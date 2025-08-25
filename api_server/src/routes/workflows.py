@@ -14,6 +14,7 @@ from guild.core.models.schemas import (
 from .. import models
 from ..database import get_db
 
+
 router = APIRouter(
     prefix="/workflows",
     tags=["Workflows & Contracts"],
@@ -94,7 +95,7 @@ from guild.core.orchestrator import execute_dag
             db_workflow.status = "failed"
             db.commit()
     finally:
-        db.close()
+        db.close(
 
 
 @router.post("/contracts/{contract_id}/execute", status_code=202)
@@ -102,6 +103,7 @@ async def execute_workflow_from_contract(
     contract_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
+
 ):
     """
     Execute the workflow defined by a contract.
@@ -147,3 +149,4 @@ async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
     if db_workflow is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
     return db_workflow
+
