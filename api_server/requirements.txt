@@ -5,7 +5,8 @@ pydantic
 pydantic-settings
 
 # Install the local guild package in editable mode
--e ../guild
+-e ./guild
+
 
 # Testing dependencies
 httpx
