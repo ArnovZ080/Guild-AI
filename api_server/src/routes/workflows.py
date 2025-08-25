@@ -1,122 +1,152 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
-from typing import List, Dict
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Depends
+from typing import List
 import uuid
 from datetime import datetime
+from sqlalchemy.orm import Session
 
-# Import the Pydantic schemas from the guild package
+# Import Pydantic schemas and SQLAlchemy models
 from guild.core.models.schemas import (
-    OutcomeContract,
+    OutcomeContract as PydanticOutcomeContract,
     OutcomeContractCreate,
-    Workflow,
+    Workflow as PydanticWorkflow,
     WorkflowCreate
 )
+from .. import models
+from ..database import get_db
+
 
 router = APIRouter(
     prefix="/workflows",
     tags=["Workflows & Contracts"],
 )
 
-# In-memory storage for now. This will be replaced by a database.
-db_contracts: Dict[str, OutcomeContract] = {}
-db_workflows: Dict[str, Workflow] = {}
 
-
-@router.post("/contracts", response_model=OutcomeContract, status_code=201)
-async def create_contract(contract: OutcomeContractCreate):
+@router.post("/contracts", response_model=PydanticOutcomeContract, status_code=201)
+async def create_contract(
+    contract: OutcomeContractCreate, db: Session = Depends(get_db)
+):
     """
-    Create a new Outcome Contract.
+    Create a new Outcome Contract and save it to the database.
     """
-    # TODO: Replace in-memory dict with a real database call.
     new_id = str(uuid.uuid4())
-    db_contract = OutcomeContract(
+    db_contract = models.OutcomeContract(
         id=new_id,
-        status="draft",
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
         **contract.dict()
     )
-    db_contracts[new_id] = db_contract
+    db.add(db_contract)
+    db.commit()
+    db.refresh(db_contract)
     return db_contract
 
 
-@router.get("/contracts", response_model=List[OutcomeContract])
-async def get_all_contracts():
+@router.get("/contracts", response_model=List[PydanticOutcomeContract])
+async def get_all_contracts(db: Session = Depends(get_db)):
     """
-    Get all existing Outcome Contracts.
+    Get all existing Outcome Contracts from the database.
     """
-    # TODO: Replace in-memory dict with a real database call.
-    return list(db_contracts.values())
+    return db.query(models.OutcomeContract).all()
 
 
-@router.get("/contracts/{contract_id}", response_model=OutcomeContract)
-async def get_contract(contract_id: str):
+@router.get("/contracts/{contract_id}", response_model=PydanticOutcomeContract)
+async def get_contract(contract_id: str, db: Session = Depends(get_db)):
     """
-    Get a specific Outcome Contract by its ID.
+    Get a specific Outcome Contract by its ID from the database.
     """
-    # TODO: Replace in-memory dict with a real database call.
-    if contract_id not in db_contracts:
+    db_contract = db.query(models.OutcomeContract).filter(models.OutcomeContract.id == contract_id).first()
+    if db_contract is None:
         raise HTTPException(status_code=404, detail="Contract not found")
-    return db_contracts[contract_id]
+    return db_contract
 
 
-def execute_workflow_background(workflow_id: str, contract: OutcomeContract):
+from ..database import SessionLocal
+
+def execute_workflow_background(workflow_id: str):
     """
     This is the function that will be run in the background.
     It will contain the logic to execute the agent workflow.
+    It creates its own database session.
     """
     print(f"Starting background execution for workflow {workflow_id}...")
-    # TODO: Implement the actual agent orchestration logic here.
-    # This will involve:
-    # 1. Compiling the contract into a DAG.
-    # 2. Initializing agents from the guild package.
-    # 3. Executing the DAG node by node.
-    # 4. Updating the workflow status in the database.
-    import time
-    time.sleep(10) # Simulate a long-running task
-    db_workflows[workflow_id].status = "completed"
-    print(f"Finished background execution for workflow {workflow_id}.")
+
+from guild.core.orchestrator import execute_dag
+
+    db = SessionLocal()
+    try:
+        # Get the workflow from the database
+        db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
+        if not db_workflow:
+            print(f"Workflow {workflow_id} not found in database for execution.")
+            return
+
+        # Execute the DAG from the guild package
+        execute_dag(db_workflow.dag_definition)
+
+        # Update the workflow status in the database
+        db_workflow.status = "completed"
+        db_workflow.progress = 1.0
+        db_workflow.completed_at = datetime.utcnow()
+        db.commit()
+        print(f"Finished background execution for workflow {workflow_id}.")
+    except Exception as e:
+        print(f"Error during background execution for workflow {workflow_id}: {e}")
+        # Optionally, update workflow status to 'failed'
+        db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
+        if db_workflow:
+            db_workflow.status = "failed"
+            db.commit()
+    finally:
+        db.close(
 
 
 @router.post("/contracts/{contract_id}/execute", status_code=202)
 async def execute_workflow_from_contract(
     contract_id: str,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+
 ):
     """
     Execute the workflow defined by a contract.
     This endpoint returns immediately and schedules the workflow to run in the background.
     """
-    # TODO: Replace in-memory dict with a real database call.
-    if contract_id not in db_contracts:
+    db_contract = db.query(models.OutcomeContract).filter(models.OutcomeContract.id == contract_id).first()
+    if db_contract is None:
         raise HTTPException(status_code=404, detail="Contract not found")
 
-    contract = db_contracts[contract_id]
+from guild.core.orchestrator import compile_contract_to_dag
+from guild.core.models.schemas import OutcomeContract as PydanticOutcomeContract
 
-    # Create a new workflow instance
+    # Convert the SQLAlchemy model to a Pydantic schema
+    pydantic_contract = PydanticOutcomeContract.from_orm(db_contract)
+
+    # Compile the contract to a DAG
+    dag_definition = compile_contract_to_dag(pydantic_contract)
+
+    # Create a new workflow instance and save it to the DB
     workflow_id = str(uuid.uuid4())
-    workflow = Workflow(
+    db_workflow = models.Workflow(
         id=workflow_id,
         contract_id=contract_id,
-        status="running",
-        progress=0.0,
-        created_at=datetime.utcnow(),
-        # TODO: The DAG definition should be created by a "Contract Compiler"
-        dag_definition={"plan": "Execute agents based on contract objective"},
+        status="pending", # Start as pending, the executor will set it to running
+        dag_definition=dag_definition,
     )
-    db_workflows[workflow_id] = workflow
+    db.add(db_workflow)
+    db.commit()
 
-    # Add the long-running task to the background
-    background_tasks.add_task(execute_workflow_background, workflow.id, contract)
+    # Pass the workflow ID to the background task. The background task will
+    # create its own database session.
+    background_tasks.add_task(execute_workflow_background, workflow_id)
 
-    return {"message": "Workflow execution started in the background.", "workflow_id": workflow.id}
+    return {"message": "Workflow execution started in the background.", "workflow_id": workflow_id}
 
 
-@router.get("/{workflow_id}/status", response_model=Workflow)
-async def get_workflow_status(workflow_id: str):
+@router.get("/{workflow_id}/status", response_model=PydanticWorkflow)
+async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
     """
-    Get the status and details of a specific workflow.
+    Get the status and details of a specific workflow from the database.
     """
-    # TODO: Replace in-memory dict with a real database call.
-    if workflow_id not in db_workflows:
+    db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
+    if db_workflow is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
-    return db_workflows[workflow_id]
+    return db_workflow
+

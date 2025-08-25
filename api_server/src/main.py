@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from guild.src.core.config import settings
+from .database import engine, Base
+from . import models
+
+# Create all database tables
+Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI(
     title="Guild API Server",
@@ -7,14 +13,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# TODO: Set up database connection for FastAPI
-# This will involve creating a database session management system
-# that can be used with FastAPI's dependency injection.
+
 
 @app.on_event("startup")
 async def startup_event():
     print("Starting up Guild API server...")
-    # TODO: Initialize database, etc.
+
     print(f"Loaded settings: DATABASE_URL={settings.DATABASE_URL}")
 
 
