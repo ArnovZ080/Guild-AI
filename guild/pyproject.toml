@@ -1,0 +1,17 @@
+[project]
+name = "guild"
+version = "0.1.0"
+description = "The core logic and AI workforce for the Guild application."
+authors = [{ name = "Guild Development Team" }]
+requires-python = ">=3.11"
+dependencies = [
+    "typer[all]",
+    "pydantic",
+    "pydantic-settings",
+]
+
+[project.scripts]
+guild = "guild.src.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,43 +1,35 @@
 from typing import List, Dict, Any
-from src.models.data_room import DocumentMeta
-from src.core.schemas import SourceProvenance
+from guild.src.core.models.schemas import Document, SourceProvenance
 
-def rag_search(query: str, data_room_ids: List[str], top_k: int = 5) -> List[Dict[str, Any]]:
+def rag_search(query: str, documents: List[Document]) -> List[Dict[str, Any]]:
     """
-    Perform RAG search across specified data rooms
+    Perform RAG search across a given list of documents.
     
     Args:
-        query: Search query
-        data_room_ids: List of data room IDs to search in
-        top_k: Number of top results to return
+        query: Search query.
+        documents: A list of Pydantic Document objects to search through.
     
     Returns:
-        List of search results with source provenance
+        List of search results with source provenance.
     """
-    # TODO: Implement actual RAG search with LlamaIndex and Qdrant
-    # For now, return placeholder results
+    # TODO: Implement actual RAG search with LlamaIndex and Qdrant.
+    # For now, return placeholder results based on the provided documents.
     
     results = []
-    
-    # Get documents from specified data rooms
-    documents = DocumentMeta.query.filter(
-        DocumentMeta.data_room_id.in_(data_room_ids),
-        DocumentMeta.status == 'indexed'
-    ).limit(top_k).all()
     
     for i, doc in enumerate(documents):
         # Placeholder search result
         result = {
-            'content': f"Placeholder search result {i+1} for query: {query}",
+            'content': f"Placeholder content from document {doc.source_id} for query: {query}",
             'score': 0.8 - (i * 0.1),  # Decreasing confidence scores
-            'source_provenance': {
-                'provider': doc.provider,
-                'data_room_id': doc.data_room_id,
-                'source_id': doc.source_id,
-                'path': doc.path,
-                'chunk_ids': [f"chunk_{i}_{j}" for j in range(3)],
-                'confidence': 0.8 - (i * 0.1)
-            }
+            'source_provenance': SourceProvenance(
+                provider=doc.provider,
+                data_room_id=doc.data_room_id,
+                source_id=doc.source_id,
+                path=doc.path,
+                chunk_ids=[f"chunk_{i}_{j}" for j in range(3)],
+                confidence=0.8 - (i * 0.1)
+            ).dict() # Convert to dict for compatibility if needed, though returning the model is better
         }
         results.append(result)
     
@@ -45,14 +37,14 @@ def rag_search(query: str, data_room_ids: List[str], top_k: int = 5) -> List[Dic
 
 def validate_search_confidence(results: List[Dict[str, Any]], min_confidence: float = 0.55) -> Dict[str, Any]:
     """
-    Validate search results confidence and return status
+    Validate search results confidence and return status.
     
     Args:
-        results: Search results from rag_search
-        min_confidence: Minimum confidence threshold
+        results: Search results from rag_search.
+        min_confidence: Minimum confidence threshold.
     
     Returns:
-        Validation status and recommendations
+        Validation status and recommendations.
     """
     if not results:
         return {
@@ -80,13 +72,13 @@ def validate_search_confidence(results: List[Dict[str, Any]], min_confidence: fl
 
 def format_citations(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Format search results into citation format for UI display
+    Format search results into citation format for UI display.
     
     Args:
-        results: Search results from rag_search
+        results: Search results from rag_search.
     
     Returns:
-        Formatted citations
+        Formatted citations.
     """
     citations = []
     
@@ -104,4 +96,3 @@ def format_citations(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         citations.append(citation)
     
     return citations
-
