@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Text, JSON, DateTime, Float, Integer, ForeignKey
+from sqlalchemy import Column, String, Text, JSON, DateTime, Float, Integer, ForeignKey, Boolean
+
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -67,3 +68,27 @@ class Deliverable(Base):
     status = Column(String(20), default='draft')
 
     workflow = relationship('Workflow', back_populates='deliverables')
+
+class DataRoom(Base):
+    __tablename__ = 'data_rooms'
+
+    id = Column(String(50), primary_key=True, index=True)
+    name = Column(String(200), nullable=False)
+    provider = Column(String(50), nullable=False)
+    config = Column(JSON, default={})
+    read_only = Column(Boolean, default=True)
+    last_sync_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ConnectorCredential(Base):
+    __tablename__ = 'connector_credentials'
+
+    id = Column(Integer, primary_key=True, index=True)
+    provider = Column(String(50), unique=True, nullable=False)
+    access_token = Column(Text, nullable=False)
+    refresh_token = Column(Text, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    scopes = Column(JSON, default=[])
+    created_at = Column(DateTime, default=datetime.utcnow)
+
