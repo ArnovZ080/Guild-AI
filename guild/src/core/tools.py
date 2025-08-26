@@ -1,38 +1,42 @@
 from typing import List, Dict, Any
 from guild.src.core.models.schemas import Document, SourceProvenance
 
-def rag_search(query: str, documents: List[Document]) -> List[Dict[str, Any]]:
+from guild.src.core import vector_store
+
+def rag_search(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
     """
-    Perform RAG search across a given list of documents.
+    Performs a RAG search using the integrated vector store.
     
     Args:
         query: Search query.
-        documents: A list of Pydantic Document objects to search through.
+        top_k: Number of top results to return.
+
     
     Returns:
         List of search results with source provenance.
     """
-    # TODO: Implement actual RAG search with LlamaIndex and Qdrant.
-    # For now, return placeholder results based on the provided documents.
+    # 1. Search the vector store
+    search_hits = vector_store.search(query=query, top_k=top_k)
     
+    # 2. Format the results into the application's expected format
     results = []
-    
-    for i, doc in enumerate(documents):
-        # Placeholder search result
+    for hit in search_hits:
+        payload = hit['payload']
         result = {
-            'content': f"Placeholder content from document {doc.source_id} for query: {query}",
-            'score': 0.8 - (i * 0.1),  # Decreasing confidence scores
+            'content': payload.get('chunk_text', ''),
+            'score': hit['score'],
             'source_provenance': SourceProvenance(
-                provider=doc.provider,
-                data_room_id=doc.data_room_id,
-                source_id=doc.source_id,
-                path=doc.path,
-                chunk_ids=[f"chunk_{i}_{j}" for j in range(3)],
-                confidence=0.8 - (i * 0.1)
-            ).dict() # Convert to dict for compatibility if needed, though returning the model is better
+                provider=payload.get('provider', 'unknown'),
+                data_room_id=payload.get('data_room_id', 'unknown'),
+                source_id=payload.get('document_id', 'unknown'),
+                path=payload.get('path', 'unknown'),
+                chunk_ids=[hit['id']],  # The point ID can serve as a chunk ID
+                confidence=hit['score']
+            )
         }
         results.append(result)
-    
+
+
     return results
 
 def validate_search_confidence(results: List[Dict[str, Any]], min_confidence: float = 0.55) -> Dict[str, Any]:

@@ -22,15 +22,16 @@ class Rubric(BaseModel):
     seo_optimization_required: bool = False
 
 # Schemas for OutcomeContract
-class OutcomeContractBase(GuildBaseModel):
+class OutcomeContractCreate(GuildBaseModel):
+
     title: str
     objective: str
     deliverables: List[str]
     data_rooms: List[str]
+
+class OutcomeContractBase(OutcomeContractCreate):
     rubric: Rubric
 
-class OutcomeContractCreate(OutcomeContractBase):
-    pass
 
 class OutcomeContract(OutcomeContractBase):
     id: str

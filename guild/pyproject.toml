@@ -8,6 +8,11 @@ dependencies = [
     "typer[all]",
     "pydantic",
     "pydantic-settings",
+    "requests",
+    "beautifulsoup4",
+    "qdrant-client",
+    "sentence-transformers",
+
 ]
 
 [project.scripts]

@@ -14,7 +14,6 @@ app = FastAPI(
 )
 
 
-
 @app.on_event("startup")
 async def startup_event():
     print("Starting up Guild API server...")
