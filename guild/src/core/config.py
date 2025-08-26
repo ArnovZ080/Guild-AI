@@ -25,7 +25,6 @@ class Settings(BaseSettings):
     # TogetherAI Configuration
     TOGETHER_API_KEY: Optional[str] = None
 
-
     # n8n Configuration
     N8N_WEBHOOK_URL: Optional[str] = None
 
