@@ -10,3 +10,7 @@ pydantic-settings
 # Testing dependencies
 httpx
 pytest
+
+# Task Queue
+celery
+redis

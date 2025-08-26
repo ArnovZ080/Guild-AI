@@ -40,26 +40,26 @@ def initialize_vector_store():
 
 # --- Indexing Logic ---
 
-def index_text(document_id: str, text_content: str, metadata: Dict[str, Any]):
+def index_chunks(document_id: str, text_chunks: List[str], metadata: Dict[str, Any]):
     """
-    Creates embeddings for text content and upserts them into Qdrant.
+    Creates embeddings for a list of text chunks and upserts them into Qdrant.
 
     Args:
         document_id: A unique identifier for the source document.
-        text_content: The text content to be indexed.
+        text_chunks: A list of text strings (chunks) to be indexed.
+
         metadata: A dictionary of metadata to store with the vectors.
     """
     client = get_qdrant_client()
 
-    # Simple chunking strategy: split by paragraph
-    chunks = [chunk for chunk in text_content.split('\n\n') if chunk.strip()]
+    if not text_chunks:
 
-    if not chunks:
         print(f"No text chunks to index for document {document_id}.")
         return
 
     # Create embeddings for each chunk
-    vectors = embedding_model.encode(chunks, show_progress_bar=False)
+    vectors = embedding_model.encode(text_chunks, show_progress_bar=False)
+
 
     # Prepare points for Qdrant
     points = []

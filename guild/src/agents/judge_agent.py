@@ -1,51 +1,59 @@
-from guild.core.models.schemas import OutcomeContractCreate, Rubric, RubricCriterion
-from typing import List
+from guild.core.models.schemas import OutcomeContractCreate, Rubric
+from guild.src.core import llm
+import json
 
 def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     """
-    Analyzes an OutcomeContract and generates a quality rubric.
-
-    This is a simplified, rule-based implementation. A more advanced
-    version could use an LLM to generate a more nuanced rubric.
+    Analyzes an OutcomeContract and generates a quality rubric by calling an LLM.
 
     Args:
-        contract: The Pydantic model of the OutcomeContract.
+        contract: The Pydantic model of the user's contract request.
 
     Returns:
-        A generated Rubric object.
+        A generated Rubric object validated against the Pydantic schema.
     """
-    criteria: List[RubricCriterion] = []
 
-    # Basic criteria for all deliverables
-    criteria.append(RubricCriterion(name="Clarity", description="Is the content clear, concise, and easy to understand?", weight=0.25))
-    criteria.append(RubricCriterion(name="Accuracy", description="Is the information presented factually accurate?", weight=0.25))
-    criteria.append(RubricCriterion(name="Brand Voice", description="Does the content align with the brand's tone and voice?", weight=0.25))
+    # 1. Construct a detailed prompt for the LLM
+    prompt = f"""
+    You are an expert project manager and quality assurance specialist. Your task is to create a detailed quality rubric for an AI workforce based on a user's request.
 
-    # Add specific criteria based on deliverables in the contract
-    for deliverable in contract.deliverables:
-        if "ad" in deliverable.lower():
-            criteria.append(RubricCriterion(name="Conversion Potential", description="Is the ad copy compelling and likely to convert?", weight=0.25))
-        if "blog" in deliverable.lower() or "post" in deliverable.lower():
-            criteria.append(RubricCriterion(name="SEO Optimization", description="Is the content optimized for relevant keywords?", weight=0.25))
-        if "report" in deliverable.lower() or "analysis" in deliverable.lower():
-            criteria.append(RubricCriterion(name="Depth of Analysis", description="Does the report provide deep and actionable insights?", weight=0.25))
+    The user's objective is: "{contract.objective}"
+    The required deliverables are: {', '.join(contract.deliverables)}
 
-    # Normalize weights so they sum to 1.0
-    total_weight = sum(c.weight for c in criteria)
-    if total_weight > 0:
-        for criterion in criteria:
-            criterion.weight = round(criterion.weight / total_weight, 2)
+    Based on this, generate a JSON object that represents a quality rubric. The JSON object must have the following structure:
+    {{
+      "quality_threshold": 0.8,
+      "criteria": [
+        {{ "name": "Criterion Name", "description": "Detailed description of what to measure.", "weight": 0.0 to 1.0 }},
+        ...
+      ],
+      "fact_check_required": boolean,
+      "brand_compliance_required": boolean,
+      "seo_optimization_required": boolean
+    }}
 
-    # Ensure weights sum exactly to 1.0 due to rounding by adjusting the last element
-    weight_sum = sum(c.weight for c in criteria)
-    if weight_sum != 1.0 and criteria:
-        criteria[-1].weight += 1.0 - weight_sum
-        criteria[-1].weight = round(criteria[-1].weight, 2)
+    - Create at least 4 relevant criteria.
+    - The weights of all criteria must sum to 1.0.
+    - Base the criteria on the specific objective and deliverables. For example, if the user asks for 'ad copy', include a criterion for 'Conversion Potential'. If they ask for 'research', include 'Depth of Analysis'.
+    - Set the boolean flags based on whether those checks seem relevant to the request.
 
+    Return ONLY the JSON object, with no other text or explanation.
+    """
 
-    return Rubric(
-        quality_threshold=0.8,
-        criteria=criteria,
-        fact_check_required="accuracy" in [c.name.lower() for c in criteria],
-        brand_compliance_required="brand voice" in [c.name.lower() for c in criteria]
-    )
+    # 2. Call the LLM to get a JSON response
+    print("Judge Agent: Requesting rubric generation from LLM...")
+    try:
+        rubric_json = llm.generate_json(prompt=prompt)
+
+        # 3. Parse the JSON into our Pydantic model for validation
+        # This will raise a ValidationError if the LLM's output doesn't match the schema
+        validated_rubric = Rubric.model_validate(rubric_json)
+
+        print("Judge Agent: Successfully generated and validated rubric.")
+        return validated_rubric
+
+    except Exception as e:
+        print(f"Judge Agent: Failed to generate rubric. Error: {e}")
+        # As a fallback, we could return a default rubric, but for now we'll re-raise
+        raise
+

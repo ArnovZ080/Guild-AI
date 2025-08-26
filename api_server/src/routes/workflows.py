@@ -66,66 +66,25 @@ async def get_contract(contract_id: str, db: Session = Depends(get_db)):
     return db_contract
 
 
-from ..database import SessionLocal
-
-def execute_workflow_background(workflow_id: str):
-    """
-    This is the function that will be run in the background.
-    It will contain the logic to execute the agent workflow.
-    It creates its own database session.
-    """
-    print(f"Starting background execution for workflow {workflow_id}...")
-
-from guild.core.orchestrator import execute_dag
-
-    db = SessionLocal()
-    try:
-        # Get the workflow from the database
-        db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
-        if not db_workflow:
-            print(f"Workflow {workflow_id} not found in database for execution.")
-            return
-
-        # Execute the DAG from the guild package
-        execute_dag(db_workflow.dag_definition)
-
-        # Update the workflow status in the database
-        db_workflow.status = "completed"
-        db_workflow.progress = 1.0
-        db_workflow.completed_at = datetime.utcnow()
-        db.commit()
-        print(f"Finished background execution for workflow {workflow_id}.")
-    except Exception as e:
-        print(f"Error during background execution for workflow {workflow_id}: {e}")
-        # Optionally, update workflow status to 'failed'
-        db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
-        if db_workflow:
-            db_workflow.status = "failed"
-            db.commit()
-    finally:
-        db.close()
-
+from ..tasks import run_workflow_task
+from guild.core.orchestrator import compile_contract_to_dag
 
 
 @router.post("/contracts/{contract_id}/execute", status_code=202)
 async def execute_workflow_from_contract(
     contract_id: str,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
-
 ):
     """
-    Execute the workflow defined by a contract.
-    This endpoint returns immediately and schedules the workflow to run in the background.
+    Creates a workflow from a contract and queues it for execution via Celery.
+
     """
     db_contract = db.query(models.OutcomeContract).filter(models.OutcomeContract.id == contract_id).first()
     if db_contract is None:
         raise HTTPException(status_code=404, detail="Contract not found")
 
-from guild.core.orchestrator import compile_contract_to_dag
-from guild.core.models.schemas import OutcomeContract as PydanticOutcomeContract
+    # Convert the SQLAlchemy model to a Pydantic schema to pass to the compiler
 
-    # Convert the SQLAlchemy model to a Pydantic schema
     pydantic_contract = PydanticOutcomeContract.from_orm(db_contract)
 
     # Compile the contract to a DAG
@@ -136,17 +95,18 @@ from guild.core.models.schemas import OutcomeContract as PydanticOutcomeContract
     db_workflow = models.Workflow(
         id=workflow_id,
         contract_id=contract_id,
-        status="pending", # Start as pending, the executor will set it to running
+        status="pending",  # The task is pending until a worker picks it up
+
         dag_definition=dag_definition,
     )
     db.add(db_workflow)
     db.commit()
 
-    # Pass the workflow ID to the background task. The background task will
-    # create its own database session.
-    background_tasks.add_task(execute_workflow_background, workflow_id)
+    # Dispatch the execution to a Celery worker
+    run_workflow_task.delay(workflow_id=workflow_id)
 
-    return {"message": "Workflow execution started in the background.", "workflow_id": workflow_id}
+    return {"message": "Workflow has been queued for execution.", "workflow_id": workflow_id}
+
 
 
 @router.get("/{workflow_id}/status", response_model=PydanticWorkflow)

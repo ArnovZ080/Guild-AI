@@ -1,11 +1,12 @@
-import requests
-from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
+
 from typing import Dict, Any
 
 def search_web(query: str) -> Dict[str, Any]:
     """
-    Performs a web search for a given query and returns the content
-    of the top search result.
+    Performs a web search for a given query using a headless browser
+    and returns the content of the top search result.
+
 
     Args:
         query: The search query.
@@ -13,52 +14,46 @@ def search_web(query: str) -> Dict[str, Any]:
     Returns:
         A dictionary containing the URL and the extracted text content.
     """
-    print(f"Research Agent: Searching for '{query}'...")
+    print(f"Research Agent: Searching for '{query}' with Playwright...")
 
-    try:
-        # Use a search engine URL. This is a simplified example using Google.
-        # In a real-world scenario, you might use a search API like SerpAPI or Google's Custom Search API.
-        search_url = f"https://www.google.com/search?q={query}"
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
 
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-        }
+            # Use DuckDuckGo as it's generally more scraper-friendly than Google.
+            search_url = f"https://duckduckgo.com/?q={query}"
+            page.goto(search_url, wait_until="networkidle")
 
-        response = requests.get(search_url, headers=headers)
-        response.raise_for_status()  # Raise an exception for bad status codes
+            # Find the first search result link.
+            # This selector targets the main result links on DuckDuckGo's page.
+            first_result_selector = 'a[data-testid="result-title-a"]'
 
-        # Find the first search result link
-        soup = BeautifulSoup(response.text, 'html.parser')
+            # Wait for the selector to ensure the page has loaded results
+            page.wait_for_selector(first_result_selector, timeout=5000)
 
-        # This is a brittle way to find search results and likely to break.
-        # A real implementation should use a dedicated search API.
-        link_tags = soup.find_all('a')
-        first_result_url = None
-        for link in link_tags:
-            href = link.get('href')
-            if href and href.startswith('/url?q='):
-                first_result_url = href.split('/url?q=')[1].split('&sa=U')[0]
-                break
+            first_result_href = page.get_attribute(first_result_selector, 'href')
 
-        if not first_result_url:
-            return {"url": search_url, "content": "Could not find a valid search result link."}
+            if not first_result_href:
+                browser.close()
+                return {"url": search_url, "content": "Could not find a valid search result link."}
 
-        # Fetch the content of the first result
-        page_response = requests.get(first_result_url, headers=headers)
-        page_response.raise_for_status()
+            # Go to the first result page
+            page.goto(first_result_href, wait_until="domcontentloaded")
 
-        page_soup = BeautifulSoup(page_response.text, 'html.parser')
+            # Extract text content using Playwright's built-in method
+            # This is generally more robust than BeautifulSoup for dynamic pages.
+            text_content = page.evaluate("document.body.innerText")
 
-        # Extract text content
-        # Remove script and style elements
-        for script_or_style in page_soup(["script", "style"]):
-            script_or_style.decompose()
+            browser.close()
 
-        text_content = page_soup.get_text(separator='\n', strip=True)
+            print(f"Research Agent: Successfully fetched content from {first_result_href}")
+            return {"url": first_result_href, "content": text_content[:5000]} # Limit content size
 
-        print(f"Research Agent: Successfully fetched content from {first_result_url}")
-        return {"url": first_result_url, "content": text_content[:5000]} # Limit content size for now
+        except Exception as e:
+            print(f"Research Agent: Error during Playwright web search - {e}")
+            # Ensure browser is closed in case of an error
+            if 'browser' in locals() and browser.is_connected():
+                browser.close()
+            return {"url": None, "content": f"An error occurred: {e}"}
 
-    except requests.exceptions.RequestException as e:
-        print(f"Research Agent: Error during web search - {e}")
-        return {"url": None, "content": f"An error occurred: {e}"}

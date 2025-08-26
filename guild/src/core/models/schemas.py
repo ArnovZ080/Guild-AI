@@ -32,7 +32,6 @@ class OutcomeContractCreate(GuildBaseModel):
 class OutcomeContractBase(OutcomeContractCreate):
     rubric: Rubric
 
-
 class OutcomeContract(OutcomeContractBase):
     id: str
     status: str
