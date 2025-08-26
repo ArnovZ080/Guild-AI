@@ -14,6 +14,7 @@ from guild.core.models.schemas import (
 from .. import models
 from ..database import get_db
 
+
 router = APIRouter(
     prefix="/workflows",
     tags=["Workflows & Contracts"],
@@ -38,6 +39,7 @@ async def create_contract(
         id=new_id,
         rubric=generated_rubric.dict(),
         **contract_in.dict()
+
     )
     db.add(db_contract)
     db.commit()
@@ -104,11 +106,13 @@ from guild.core.orchestrator import execute_dag
         db.close()
 
 
+
 @router.post("/contracts/{contract_id}/execute", status_code=202)
 async def execute_workflow_from_contract(
     contract_id: str,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
+
 ):
     """
     Execute the workflow defined by a contract.
