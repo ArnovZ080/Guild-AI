@@ -36,7 +36,6 @@ def rag_search(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         }
         results.append(result)
 
-
     return results
 
 def validate_search_confidence(results: List[Dict[str, Any]], min_confidence: float = 0.55) -> Dict[str, Any]:

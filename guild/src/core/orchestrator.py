@@ -62,7 +62,10 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     return dag
 
 
-def execute_dag(dag: Dict[str, Any]):
+from .models.schemas import OutcomeContract
+
+def execute_dag(dag: Dict[str, Any], contract: OutcomeContract):
+
     """
     Executes a DAG by processing its nodes in order.
 
@@ -80,7 +83,6 @@ def execute_dag(dag: Dict[str, Any]):
         return
 
 from guild.src.agents import research_agent # Import the agent module
-
 
     # Simplified sequential execution
     for node in dag["nodes"]:
@@ -102,5 +104,17 @@ from guild.src.agents import research_agent # Import the agent module
             time.sleep(1)
             print(f"  ... {agent_name} finished task (simulated).")
 
-
     print("\n--- DAG Execution Finished ---")
+
+    # After the DAG is finished, push a summary result to n8n
+    from guild.src.integrations import n8n_connector
+    final_result = {
+        "status": "success",
+        "message": "The AI workforce has completed the workflow.",
+        "contract_id": contract.id if contract else "unknown", # Assuming contract is available
+        "deliverables_summary": [f"Completed: {d}" for d in contract.deliverables] if contract else []
+    }
+    try:
+        n8n_connector.push_to_n8n(final_result)
+    except Exception as e:
+        print(f"Orchestrator: Failed to push to n8n at the end of the workflow. Error: {e}")

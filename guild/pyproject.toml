@@ -12,7 +12,12 @@ dependencies = [
     "beautifulsoup4",
     "qdrant-client",
     "sentence-transformers",
-
+    "ollama",
+    "playwright",
+    "langchain",
+    "langchain-community",
+    "pypdf",
+    "n8n",
 ]
 
 [project.scripts]

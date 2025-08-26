@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     # Web scraping configuration
     USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 
+    # Ollama Configuration
+    OLLAMA_HOST: str = "http://ollama:11434"
+    OLLAMA_MODEL: str = "llama3"
+
+    # n8n Configuration
+    N8N_WEBHOOK_URL: Optional[str] = None
+
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'

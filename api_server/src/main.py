@@ -17,13 +17,14 @@ app = FastAPI(
 @app.on_event("startup")
 async def startup_event():
     print("Starting up Guild API server...")
-
     print(f"Loaded settings: DATABASE_URL={settings.DATABASE_URL}")
 
 
-from api_server.src.routes import workflows
+from api_server.src.routes import workflows, data_rooms
 
 app.include_router(workflows.router)
+app.include_router(data_rooms.router)
+
 
 
 @app.get("/")
