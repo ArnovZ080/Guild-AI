@@ -65,6 +65,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
 from .models.schemas import OutcomeContract
 
 def execute_dag(dag: Dict[str, Any], contract: OutcomeContract):
+
     """
     Executes a DAG by processing its nodes in order.
 

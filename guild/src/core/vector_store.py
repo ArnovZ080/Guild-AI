@@ -47,16 +47,19 @@ def index_chunks(document_id: str, text_chunks: List[str], metadata: Dict[str, A
     Args:
         document_id: A unique identifier for the source document.
         text_chunks: A list of text strings (chunks) to be indexed.
+
         metadata: A dictionary of metadata to store with the vectors.
     """
     client = get_qdrant_client()
 
     if not text_chunks:
+
         print(f"No text chunks to index for document {document_id}.")
         return
 
     # Create embeddings for each chunk
     vectors = embedding_model.encode(text_chunks, show_progress_bar=False)
+
 
     # Prepare points for Qdrant
     points = []

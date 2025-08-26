@@ -10,6 +10,7 @@ def rag_search(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
     Args:
         query: Search query.
         top_k: Number of top results to return.
+
     
     Returns:
         List of search results with source provenance.

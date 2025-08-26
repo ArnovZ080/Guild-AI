@@ -56,3 +56,4 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
         print(f"Judge Agent: Failed to generate rubric. Error: {e}")
         # As a fallback, we could return a default rubric, but for now we'll re-raise
         raise
+
