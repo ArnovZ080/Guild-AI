@@ -1,4 +1,5 @@
 from sqlalchemy import Column, String, Text, JSON, DateTime, Float, Integer, ForeignKey, Boolean
+
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -68,7 +69,6 @@ class Deliverable(Base):
 
     workflow = relationship('Workflow', back_populates='deliverables')
 
-
 class DataRoom(Base):
     __tablename__ = 'data_rooms'
 
@@ -91,3 +91,4 @@ class ConnectorCredential(Base):
     expires_at = Column(DateTime, nullable=True)
     scopes = Column(JSON, default=[])
     created_at = Column(DateTime, default=datetime.utcnow)
+

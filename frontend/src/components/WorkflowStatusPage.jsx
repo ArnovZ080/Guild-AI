@@ -14,6 +14,7 @@ const StatusIcon = ({ status }) => {
   return <Clock className="h-5 w-5 text-gray-500" />;
 };
 
+
 const WorkflowStatusPage = () => {
   const { workflowId } = useParams();
   const [workflow, setWorkflow] = useState(null);
@@ -45,6 +46,7 @@ const WorkflowStatusPage = () => {
       } catch (err) {
         setError(err.message);
         clearInterval(intervalRef.current);
+
       } finally {
         setLoading(false);
       }
@@ -55,6 +57,7 @@ const WorkflowStatusPage = () => {
     intervalRef.current = setInterval(fetchData, 5000); // Poll every 5 seconds
 
     return () => clearInterval(intervalRef.current);
+
   }, [workflowId]);
 
   if (loading) {
@@ -108,6 +111,7 @@ const WorkflowStatusPage = () => {
           </CardContent>
         </Card>
       </div>
+
     </div>
   );
 };
