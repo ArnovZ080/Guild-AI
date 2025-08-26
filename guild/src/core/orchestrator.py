@@ -3,12 +3,14 @@ from typing import Dict, Any, List, Callable
 from guild.src.agents import research_agent, business_strategist, content_strategist, scraper_agent, judge_agent, seo_agent
 import json
 
+
 def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     """
     Compiles an OutcomeContract into a Directed Acyclic Graph (DAG) definition.
     """
     dag = {"nodes": []}
     dependencies = []
+
 
     if "launch" in contract.objective.lower() or "strategy" in contract.objective.lower():
         dag["nodes"].append({
@@ -22,6 +24,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
         dag["nodes"].append({
             "id": "scrape-leads", "type": "workforce", "name": "Scraper Agent",
             "task": contract.objective, "dependencies": list(dependencies)
+
         })
         dependencies.append("scrape-leads")
     else:
@@ -56,6 +59,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     dag["nodes"].append({
         "id": "content-creation", "type": "workforce", "name": "Content Creation Team (Copywriter, etc.)",
         "task": "Generate all content based on the content strategy.", "dependencies": list(dependencies)
+
     })
 
     return dag
@@ -72,6 +76,7 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
         return
 
     execution_context = {}
+
 
     for node in dag["nodes"]:
         node_id = node.get("id")
@@ -112,12 +117,14 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
 
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data=output_data, status="completed")
             execution_context[node_id] = output_data
+
             print(f"  ... {agent_name} finished task successfully.")
 
         except Exception as e:
             error_message = f"Agent {agent_name} failed on node {node_id}: {e}"
             print(f"  [ERROR] {error_message}")
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data={"error": error_message}, status="failed")
+
             print("--- Halting DAG Execution due to error ---")
             raise
 

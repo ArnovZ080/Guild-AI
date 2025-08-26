@@ -12,6 +12,7 @@ from guild.core.models.schemas import (
     WorkflowCreate,
     AgentExecution as PydanticAgentExecution,
     Deliverable as PydanticDeliverable
+
 )
 from .. import models
 from ..database import get_db
@@ -151,3 +152,4 @@ async def get_workflow_deliverables(workflow_id: str, db: Session = Depends(get_
     """
     deliverables = db.query(models.Deliverable).filter(models.Deliverable.workflow_id == workflow_id).all()
     return deliverables
+

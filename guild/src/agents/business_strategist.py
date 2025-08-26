@@ -13,6 +13,7 @@ def generate_business_strategy(objective: str, target_audience: str, prompt: str
 
     try:
         # The 'prompt' argument here has already been enhanced by the @inject_knowledge decorator
+
         strategy = llm_client.generate_json(prompt=prompt)
         print("Business Strategist Agent: Successfully generated business strategy.")
         return strategy
