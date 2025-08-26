@@ -79,6 +79,9 @@ def execute_dag(dag: Dict[str, Any]):
         print("DAG has no nodes to execute.")
         return
 
+from guild.src.agents import research_agent # Import the agent module
+
+
     # Simplified sequential execution
     for node in dag["nodes"]:
         agent_name = node.get("name", "Unknown Agent")
@@ -88,10 +91,16 @@ def execute_dag(dag: Dict[str, Any]):
         print(f"  Agent: {agent_name}")
         print(f"  Task: {task}")
 
-        # Simulate agent working
-        import time
-        time.sleep(2)
+        # Execute the actual agent logic if it's the Research Agent
+        if "Research Agent" in agent_name:
+            # The "task" field from the DAG can serve as the query
+            research_result = research_agent.search_web(query=task)
+            print(f"  ... Research Agent found content from: {research_result.get('url')}")
+        else:
+            # Simulate other agents working
+            import time
+            time.sleep(1)
+            print(f"  ... {agent_name} finished task (simulated).")
 
-        print(f"  ... {agent_name} finished task.")
 
     print("\n--- DAG Execution Finished ---")

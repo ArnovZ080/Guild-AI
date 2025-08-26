@@ -21,17 +21,25 @@ router = APIRouter(
 )
 
 
+from guild.src.agents.judge_agent import generate_rubric
+
 @router.post("/contracts", response_model=PydanticOutcomeContract, status_code=201)
 async def create_contract(
-    contract: OutcomeContractCreate, db: Session = Depends(get_db)
+    contract_in: OutcomeContractCreate, db: Session = Depends(get_db)
 ):
     """
-    Create a new Outcome Contract and save it to the database.
+    Create a new Outcome Contract, generate its rubric, and save it to the database.
     """
+    # Generate the rubric using the Judge Agent
+    generated_rubric = generate_rubric(contract_in)
+
+    # Now create the database model with the generated rubric
     new_id = str(uuid.uuid4())
     db_contract = models.OutcomeContract(
         id=new_id,
-        **contract.dict()
+        rubric=generated_rubric.dict(),
+        **contract_in.dict()
+
     )
     db.add(db_contract)
     db.commit()
@@ -95,7 +103,8 @@ from guild.core.orchestrator import execute_dag
             db_workflow.status = "failed"
             db.commit()
     finally:
-        db.close(
+        db.close()
+
 
 
 @router.post("/contracts/{contract_id}/execute", status_code=202)
@@ -149,4 +158,3 @@ async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
     if db_workflow is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
     return db_workflow
-
