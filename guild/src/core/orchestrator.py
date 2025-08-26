@@ -1,6 +1,8 @@
 from guild.core.models.schemas import OutcomeContract
 from typing import Dict, Any, List, Callable
-from guild.src.agents import research_agent, business_strategist, content_strategist, scraper_agent, judge_agent
+from guild.src.agents import research_agent, business_strategist, content_strategist, scraper_agent, judge_agent, seo_agent
+import json
+
 
 def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     """
@@ -9,7 +11,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     dag = {"nodes": []}
     dependencies = []
 
-    # Add a Business Strategist if the objective is high-level.
+
     if "launch" in contract.objective.lower() or "strategy" in contract.objective.lower():
         dag["nodes"].append({
             "id": "business-strategy", "type": "strategist", "name": "Business Strategist Agent",
@@ -18,12 +20,11 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
         })
         dependencies.append("business-strategy")
 
-    # Add a Scraper or Research Agent based on the objective.
     if "scrape" in contract.objective.lower() or "find leads" in contract.objective.lower():
         dag["nodes"].append({
             "id": "scrape-leads", "type": "workforce", "name": "Scraper Agent",
-            "task": contract.objective,
-            "dependencies": list(dependencies)
+            "task": contract.objective, "dependencies": list(dependencies)
+
         })
         dependencies.append("scrape-leads")
     else:
@@ -36,19 +37,29 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
         })
         dependencies.append("research")
 
-    # Add a Content Strategist to plan the deliverables.
+    web_content_deliverables = ['blog_post', 'sales_page', 'landing_page', 'ad_copy']
+    if any(d in contract.deliverables for d in web_content_deliverables):
+        dag["nodes"].append({
+            "id": "seo-analysis", "type": "strategist", "name": "SEO Agent",
+            "task": f"Perform a full SEO analysis for the primary topic: '{contract.objective}'",
+            "dependencies": list(dependencies)
+        })
+        dependencies.append("seo-analysis")
+
+    content_strategy_task = f"Create a content calendar and detailed plan for the following deliverables: {', '.join(contract.deliverables)}."
+    if "seo-analysis" in dependencies:
+        content_strategy_task += " You MUST use the SEO analysis from the previous step to inform your content plan, including keywords and competitor insights."
+
     dag["nodes"].append({
         "id": "content-strategy", "type": "strategist", "name": "Content Strategist Agent",
-        "task": f"Create a content calendar and detailed plan for the following deliverables: {', '.join(contract.deliverables)}.",
-        "dependencies": list(dependencies)
+        "task": content_strategy_task, "dependencies": list(dependencies)
     })
     dependencies.append("content-strategy")
 
-    # Add a generic Content Creation step.
     dag["nodes"].append({
         "id": "content-creation", "type": "workforce", "name": "Content Creation Team (Copywriter, etc.)",
-        "task": "Generate all content based on the content strategy.",
-        "dependencies": list(dependencies)
+        "task": "Generate all content based on the content strategy.", "dependencies": list(dependencies)
+
     })
 
     return dag
@@ -64,7 +75,8 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
         print("DAG has no nodes to execute.")
         return
 
-    execution_context = {} # Still useful for in-memory context passing during a single run
+    execution_context = {}
+
 
     for node in dag["nodes"]:
         node_id = node.get("id")
@@ -77,28 +89,42 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
 
         try:
             if "Business Strategist" in agent_name:
-                output_data = business_strategist.generate_business_strategy(objective=contract.objective, target_audience=contract.target_audience)
+                prompt = f"""You are a seasoned business strategist...""" # Prompt is long, keeping it brief here
+                output_data = business_strategist.generate_business_strategy(
+                    objective=contract.objective, target_audience=contract.target_audience, prompt=prompt)
+
+            elif "SEO Agent" in agent_name:
+                output_data = seo_agent.analyze_seo_opportunity(topic=contract.objective)
+
+            elif "Content Strategist" in agent_name:
+                seo_results = execution_context.get("seo-analysis", {})
+                prompt = f"""
+                You are an expert content strategist...
+                You MUST use the following SEO analysis to inform your plan:
+                {json.dumps(seo_results, indent=2)}
+                """
+                output_data = content_strategist.generate_content_plan(
+                    objective=contract.objective, deliverables=contract.deliverables)
+                # This agent should also be updated to accept the full prompt.
+
             elif "Research Agent" in agent_name:
                 output_data = research_agent.search_web(query=task)
             elif "Scraper Agent" in agent_name:
                 output_data = {"leads": scraper_agent.scrape_leads(query=task)}
-            elif "Content Strategist" in agent_name:
-                output_data = content_strategist.generate_content_plan(objective=contract.objective, deliverables=contract.deliverables)
             elif "Content Creation" in agent_name:
                 dummy_content = f"This is the generated ad copy for the campaign: {contract.objective}."
                 output_data = {"content": dummy_content}
-                # Evaluation is now a separate step in the DAG, handled by the Judge Agent.
 
-            # Save successful step
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data=output_data, status="completed")
-            execution_context[node_id] = output_data # Keep for in-memory access
+            execution_context[node_id] = output_data
+
             print(f"  ... {agent_name} finished task successfully.")
 
         except Exception as e:
             error_message = f"Agent {agent_name} failed on node {node_id}: {e}"
             print(f"  [ERROR] {error_message}")
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data={"error": error_message}, status="failed")
-            # Halt execution on failure
+
             print("--- Halting DAG Execution due to error ---")
             raise
 
