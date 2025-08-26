@@ -1,10 +1,11 @@
 from guild.core.models.schemas import OutcomeContractCreate, Rubric
-from guild.src.core import llm
-import json
+from guild.src.core import llm_client
+from guild.src.core.models.schemas import OutcomeContractCreate, Rubric
 
 def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     """
-    Analyzes an OutcomeContract and generates a quality rubric by calling an LLM.
+    Analyzes an OutcomeContract and generates a quality rubric by calling the LLM client.
+
 
     Args:
         contract: The Pydantic model of the user's contract request.
@@ -41,9 +42,10 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     """
 
     # 2. Call the LLM to get a JSON response
-    print("Judge Agent: Requesting rubric generation from LLM...")
+    print("Judge Agent: Requesting rubric generation from LLM client...")
     try:
-        rubric_json = llm.generate_json(prompt=prompt)
+        rubric_json = llm_client.generate_json(prompt=prompt)
+
 
         # 3. Parse the JSON into our Pydantic model for validation
         # This will raise a ValidationError if the LLM's output doesn't match the schema
@@ -55,5 +57,54 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     except Exception as e:
         print(f"Judge Agent: Failed to generate rubric. Error: {e}")
         # As a fallback, we could return a default rubric, but for now we'll re-raise
+        raise
+
+def evaluate_output(content: str, rubric: Rubric) -> dict:
+    """
+    Evaluates a piece of content against a given rubric using an LLM.
+
+    Args:
+        content: The generated content to be evaluated.
+        rubric: The Pydantic Rubric object to evaluate against.
+
+    Returns:
+        A dictionary containing the evaluation results, including scores and feedback.
+    """
+    print("Judge Agent: Evaluating content against rubric...")
+
+    prompt = f"""
+    You are a strict and fair quality assurance specialist. Your task is to evaluate a piece of content based on a predefined rubric.
+
+    Here is the content to evaluate:
+    --- CONTENT START ---
+    {content[:2000]}
+    --- CONTENT END ---
+
+    Here is the rubric to use for evaluation:
+    --- RUBRIC START ---
+    {rubric.json()}
+    --- RUBRIC END ---
+
+    Please provide your evaluation as a JSON object. The JSON object must have the following structure:
+    {{
+      "scores": [
+        {{ "criterion": "Criterion Name from Rubric", "score": 0.0 to 1.0, "reasoning": "Brief explanation for your score." }}
+      ],
+      "final_score": 0.0 to 1.0,
+      "feedback": "A summary of the content's strengths and weaknesses, with specific suggestions for improvement."
+    }}
+
+    - The 'final_score' should be the weighted average of the individual criterion scores.
+    - Be critical and objective in your assessment.
+
+    Return ONLY the JSON object, with no other text or explanation.
+    """
+
+    try:
+        evaluation_result = llm_client.generate_json(prompt=prompt)
+        print("Judge Agent: Successfully evaluated content.")
+        return evaluation_result
+    except Exception as e:
+        print(f"Judge Agent: Failed to evaluate content. Error: {e}")
         raise
 
