@@ -14,7 +14,6 @@ const StatusIcon = ({ status }) => {
   return <Clock className="h-5 w-5 text-gray-500" />;
 };
 
-
 const WorkflowStatusPage = () => {
   const { workflowId } = useParams();
   const [workflow, setWorkflow] = useState(null);
