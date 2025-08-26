@@ -35,4 +35,35 @@ class Workflow(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     contract = relationship('OutcomeContract', back_populates='workflows')
-    # agent_executions = relationship('AgentExecution', back_populates='workflow') # Can be added later
+    agent_executions = relationship('AgentExecution', back_populates='workflow')
+    deliverables = relationship('Deliverable', back_populates='workflow')
+
+
+class AgentExecution(Base):
+    __tablename__ = 'agent_executions'
+
+    id = Column(Integer, primary_key=True, index=True)
+    workflow_id = Column(String(50), ForeignKey('workflows.id'), nullable=False)
+    node_id = Column(String(100), nullable=False) # From the DAG definition
+    agent_name = Column(String(100), nullable=False)
+    status = Column(String(20), default='pending')
+    input_data = Column(JSON, default={})
+    output_data = Column(JSON, default={})
+    error_message = Column(Text, nullable=True)
+    execution_time = Column(Float, nullable=True)
+
+    workflow = relationship('Workflow', back_populates='agent_executions')
+
+
+class Deliverable(Base):
+    __tablename__ = 'deliverables'
+
+    id = Column(Integer, primary_key=True, index=True)
+    workflow_id = Column(String(50), ForeignKey('workflows.id'), nullable=False)
+    type = Column(String(50), nullable=False)
+    title = Column(String(200), nullable=False)
+    content = Column(Text, nullable=True)
+    file_path = Column(String(500), nullable=True)
+    status = Column(String(20), default='draft')
+
+    workflow = relationship('Workflow', back_populates='deliverables')
