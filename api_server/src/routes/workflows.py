@@ -14,6 +14,7 @@ from guild.core.models.schemas import (
 from .. import models
 from ..database import get_db
 
+
 router = APIRouter(
     prefix="/workflows",
     tags=["Workflows & Contracts"],
@@ -38,6 +39,7 @@ async def create_contract(
         id=new_id,
         rubric=generated_rubric.dict(),
         **contract_in.dict()
+
     )
     db.add(db_contract)
     db.commit()
@@ -67,6 +69,7 @@ async def get_contract(contract_id: str, db: Session = Depends(get_db)):
 from ..tasks import run_workflow_task
 from guild.core.orchestrator import compile_contract_to_dag
 
+
 @router.post("/contracts/{contract_id}/execute", status_code=202)
 async def execute_workflow_from_contract(
     contract_id: str,
@@ -74,12 +77,14 @@ async def execute_workflow_from_contract(
 ):
     """
     Creates a workflow from a contract and queues it for execution via Celery.
+
     """
     db_contract = db.query(models.OutcomeContract).filter(models.OutcomeContract.id == contract_id).first()
     if db_contract is None:
         raise HTTPException(status_code=404, detail="Contract not found")
 
     # Convert the SQLAlchemy model to a Pydantic schema to pass to the compiler
+
     pydantic_contract = PydanticOutcomeContract.from_orm(db_contract)
 
     # Compile the contract to a DAG
@@ -91,6 +96,7 @@ async def execute_workflow_from_contract(
         id=workflow_id,
         contract_id=contract_id,
         status="pending",  # The task is pending until a worker picks it up
+
         dag_definition=dag_definition,
     )
     db.add(db_workflow)
