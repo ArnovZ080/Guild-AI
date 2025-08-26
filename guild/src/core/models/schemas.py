@@ -28,6 +28,11 @@ class OutcomeContractCreate(GuildBaseModel):
     objective: str
     deliverables: List[str]
     data_rooms: List[str]
+    context: Optional[str] = None
+    special_notes: Optional[str] = None
+    target_audience: Optional[str] = None
+    zapier_webhook_url: Optional[str] = None
+
 
 class OutcomeContractBase(OutcomeContractCreate):
     rubric: Rubric

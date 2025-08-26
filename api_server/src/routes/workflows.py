@@ -108,7 +108,6 @@ async def execute_workflow_from_contract(
     return {"message": "Workflow has been queued for execution.", "workflow_id": workflow_id}
 
 
-
 @router.get("/{workflow_id}/status", response_model=PydanticWorkflow)
 async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
     """
