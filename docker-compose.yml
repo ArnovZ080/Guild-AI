@@ -1,15 +1,16 @@
 version: '3.8'
 
 services:
-  # Backend API
-  backend:
+  # API Server (FastAPI)
+  api_server:
     build:
-      context: ./backend
+      context: ./api_server
       dockerfile: Dockerfile
     ports:
       - "5000:5000"
+    command: uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --reload
     environment:
-      - FLASK_ENV=production
+      # Environment variables are loaded via Pydantic Settings from the .env file
       - DATABASE_URL=postgresql://postgres:password@db:5432/workflow_db
       - MINIO_ENDPOINT=minio:9000
       - QDRANT_HOST=qdrant
@@ -22,11 +23,12 @@ services:
       - qdrant
       - redis
     volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/logs:/app/logs
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+      - ./api_server/logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -39,7 +41,7 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - backend
+      - api_server
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
@@ -56,7 +58,7 @@ services:
       - POSTGRES_PASSWORD=password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./api_server/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
     restart: unless-stopped
@@ -93,9 +95,6 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-    environment:
-      - QDRANT__SERVICE__HTTP_PORT=6333
-      - QDRANT__SERVICE__GRPC_PORT=6334
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
@@ -118,7 +117,8 @@ services:
       timeout: 10s
       retries: 3
 
-  # Nginx (Reverse Proxy)
+  # Nginx (Reverse Proxy) - This may need to be updated or removed depending on the final architecture
+  # For now, it's updated to point to the new api_server
   nginx:
     image: nginx:alpine
     ports:
@@ -129,7 +129,7 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - frontend
-      - backend
+      - api_server
     restart: unless-stopped
 
   # Monitoring - Prometheus
@@ -143,9 +143,6 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
     restart: unless-stopped
 
   # Monitoring - Grafana
@@ -153,13 +150,8 @@ services:
     image: grafana/grafana:latest
     ports:
       - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
     depends_on:
       - prometheus
     restart: unless-stopped
@@ -171,7 +163,6 @@ services:
       - "3100:3100"
     volumes:
       - loki_data:/loki
-      - ./monitoring/loki.yml:/etc/loki/local-config.yaml
     command: -config.file=/etc/loki/local-config.yaml
     restart: unless-stopped
 
@@ -181,7 +172,7 @@ services:
     volumes:
       - ./monitoring/promtail.yml:/etc/promtail/config.yml
       - /var/log:/var/log:ro
-      - ./backend/logs:/app/logs:ro
+      - ./api_server/logs:/app/logs:ro
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
@@ -189,21 +180,13 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
   minio_data:
-    driver: local
   qdrant_data:
-    driver: local
   redis_data:
-    driver: local
   prometheus_data:
-    driver: local
   grafana_data:
-    driver: local
   loki_data:
-    driver: local
 
 networks:
   default:
     driver: bridge
-
