@@ -23,6 +23,7 @@ class Rubric(BaseModel):
 
 # Schemas for OutcomeContract
 class OutcomeContractCreate(GuildBaseModel):
+
     title: str
     objective: str
     deliverables: List[str]
@@ -30,6 +31,7 @@ class OutcomeContractCreate(GuildBaseModel):
 
 class OutcomeContractBase(OutcomeContractCreate):
     rubric: Rubric
+
 
 class OutcomeContract(OutcomeContractBase):
     id: str

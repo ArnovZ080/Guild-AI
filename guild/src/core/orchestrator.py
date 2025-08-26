@@ -81,6 +81,7 @@ def execute_dag(dag: Dict[str, Any]):
 
 from guild.src.agents import research_agent # Import the agent module
 
+
     # Simplified sequential execution
     for node in dag["nodes"]:
         agent_name = node.get("name", "Unknown Agent")
@@ -100,5 +101,6 @@ from guild.src.agents import research_agent # Import the agent module
             import time
             time.sleep(1)
             print(f"  ... {agent_name} finished task (simulated).")
+
 
     print("\n--- DAG Execution Finished ---")
