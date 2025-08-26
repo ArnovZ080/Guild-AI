@@ -142,6 +142,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
 
 
 def execute_dag(dag: Dict[str, Any], contract: OutcomeContract):
+
     """
     Executes a DAG by processing its nodes in order.
 
@@ -163,6 +164,7 @@ from guild.src.agents import research_agent, business_strategist, content_strate
     # This is a simple context dictionary to pass results between agents.
     # A real implementation would use a more robust state management system.
     execution_context = {}
+
 
     # Simplified sequential execution
     for node in dag["nodes"]:
@@ -224,6 +226,7 @@ from guild.src.agents import research_agent, business_strategist, content_strate
             else:
                 print("  [QUALITY OK] Score meets the threshold.")
 
+
         else:
             # Simulate other agents working
             import time
@@ -245,3 +248,4 @@ from guild.src.agents import research_agent, business_strategist, content_strate
             zapier.push_to_zapier(contract.zapier_webhook_url, final_result)
         except Exception as e:
             print(f"Orchestrator: Failed to push to Zapier at the end of the workflow. Error: {e}")
+

@@ -1,10 +1,12 @@
 from playwright.sync_api import sync_playwright
+
 from typing import Dict, Any
 
 def search_web(query: str) -> Dict[str, Any]:
     """
     Performs a web search for a given query using a headless browser
     and returns the content of the top search result.
+
 
     Args:
         query: The search query.
@@ -54,3 +56,4 @@ def search_web(query: str) -> Dict[str, Any]:
             if 'browser' in locals() and browser.is_connected():
                 browser.close()
             return {"url": None, "content": f"An error occurred: {e}"}
+

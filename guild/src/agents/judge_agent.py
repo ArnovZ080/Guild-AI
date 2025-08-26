@@ -6,6 +6,7 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     """
     Analyzes an OutcomeContract and generates a quality rubric by calling the LLM client.
 
+
     Args:
         contract: The Pydantic model of the user's contract request.
 
@@ -44,6 +45,7 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     print("Judge Agent: Requesting rubric generation from LLM client...")
     try:
         rubric_json = llm_client.generate_json(prompt=prompt)
+
 
         # 3. Parse the JSON into our Pydantic model for validation
         # This will raise a ValidationError if the LLM's output doesn't match the schema
@@ -105,3 +107,4 @@ def evaluate_output(content: str, rubric: Rubric) -> dict:
     except Exception as e:
         print(f"Judge Agent: Failed to evaluate content. Error: {e}")
         raise
+
