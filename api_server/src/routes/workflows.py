@@ -9,7 +9,10 @@ from guild.core.models.schemas import (
     OutcomeContract as PydanticOutcomeContract,
     OutcomeContractCreate,
     Workflow as PydanticWorkflow,
-    WorkflowCreate
+    WorkflowCreate,
+    AgentExecution as PydanticAgentExecution,
+    Deliverable as PydanticDeliverable
+
 )
 from .. import models
 from ..database import get_db
@@ -131,3 +134,22 @@ async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
     if db_workflow is None:
         raise HTTPException(status_code=404, detail="Workflow not found")
     return db_workflow
+
+
+@router.get("/{workflow_id}/executions", response_model=List[PydanticAgentExecution])
+async def get_workflow_executions(workflow_id: str, db: Session = Depends(get_db)):
+    """
+    Get all agent execution records for a specific workflow.
+    """
+    executions = db.query(models.AgentExecution).filter(models.AgentExecution.workflow_id == workflow_id).all()
+    return executions
+
+
+@router.get("/{workflow_id}/deliverables", response_model=List[PydanticDeliverable])
+async def get_workflow_deliverables(workflow_id: str, db: Session = Depends(get_db)):
+    """
+    Get all deliverable records for a specific workflow.
+    """
+    deliverables = db.query(models.Deliverable).filter(models.Deliverable.workflow_id == workflow_id).all()
+    return deliverables
+
