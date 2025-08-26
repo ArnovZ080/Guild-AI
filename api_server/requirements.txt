@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+pydantic
+pydantic-settings
+
+# Install the local guild package in editable mode
+-e ./guild
+
+# Testing dependencies
+httpx
+pytest
