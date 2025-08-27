@@ -12,6 +12,7 @@ from guild.src.agents import (
 )
 import json
 
+
 def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     """
     Compiles an OutcomeContract into a Directed Acyclic Graph (DAG) definition.
@@ -23,6 +24,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
         dag["nodes"].append({
             "id": "business-strategy", "type": "strategist", "name": "Business Strategist Agent",
             "task": "Generate a high-level business strategy.",
+
             "dependencies": list(dependencies)
         })
         dependencies.append("business-strategy")
@@ -37,6 +39,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
         dag["nodes"].append({
             "id": "research", "type": "workforce", "name": "Research Agent",
             "task": f"Conduct research on '{contract.objective}'.", "dependencies": list(dependencies)
+
         })
         dependencies.append("research")
 
@@ -64,6 +67,7 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     dag["nodes"].append({
         "id": "content-creation", "type": "workforce", "name": "Content Creation Team (Copywriter, etc.)",
         "task": "Generate all content based on the content strategy.", "dependencies": list(dependencies)
+
     })
 
     return dag
@@ -84,6 +88,7 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
     for node in dag["nodes"]:
         node_id = node.get("id")
         agent_name = node.get("name", "Unknown Agent")
+
         output_data = {}
 
         print(f"\n[Executing Node: {node_id}]")
@@ -92,6 +97,7 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
         try:
             if "Business Strategist" in agent_name:
                 prompt = f"Client's Objective: \"{contract.objective}\"\nTarget Audience: \"{contract.target_audience}\""
+
                 output_data = business_strategist.generate_business_strategy(
                     objective=contract.objective, target_audience=contract.target_audience, prompt=prompt)
 
@@ -124,12 +130,14 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
 
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data=output_data, status="completed")
             execution_context[node_id] = output_data
+
             print(f"  ... {agent_name} finished task successfully.")
 
         except Exception as e:
             error_message = f"Agent {agent_name} failed on node {node_id}: {e}"
             print(f"  [ERROR] {error_message}")
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data={"error": error_message}, status="failed")
+
             print("--- Halting DAG Execution due to error ---")
             raise
 
