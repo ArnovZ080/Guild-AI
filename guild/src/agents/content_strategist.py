@@ -1,38 +1,31 @@
 from guild.src.core import llm_client
 from typing import Dict, Any, List
+from guild.src.core.agent_helpers import inject_knowledge
 
-def generate_content_plan(objective: str, deliverables: List[str]) -> Dict[str, Any]:
+@inject_knowledge
+def generate_content_plan(objective: str, deliverables: List[str], prompt: str = None) -> Dict[str, Any]:
     """
-    Generates a content strategy and calendar using an LLM.
-
-    Args:
-        objective: The overall project objective.
-        deliverables: A list of required deliverables.
-
-    Returns:
-        A dictionary representing the content plan.
+    Generates a world-class content strategy and calendar using an LLM.
+    This function is decorated to automatically inject real-time knowledge.
     """
-    print("Content Strategist Agent: Generating content plan...")
+    print("Content Strategist Agent: Generating content plan with injected knowledge...")
 
-    prompt = f"""
-    You are an expert content strategist. Your task is to create a content calendar and launch plan for a new campaign.
+    if not prompt:
+        prompt = f"""
+        You are an expert content strategist, on par with the heads of content at major digital marketing agencies. Your task is to create a detailed content calendar and launch plan.
 
-    Campaign Objective: "{objective}"
-    Required Deliverables: {', '.join(deliverables)}
+        Campaign Objective: "{objective}"
+        Required Deliverables: {', '.join(deliverables)}
 
-    Based on this, generate a JSON object that outlines a 4-week content plan. The JSON object should have keys for "week_1", "week_2", "week_3", and "week_4". Each week should contain a list of planned content pieces, including the type and a brief description.
+        Based on this, and the real-time trends from the provided web context, generate a JSON object that outlines a 4-week content plan. The JSON object should have keys for "week_1", "week_2", "week_3", and "week_4". Each week should contain a list of planned content pieces, including:
+        - "type": The type of content (e.g., "blog_post", "social_media_ad").
+        - "title_or_hook": A compelling title or hook for the content.
+        - "platform": The target platform (e.g., "Blog", "Twitter", "Instagram").
+        - "brief": A short brief for the creator.
 
-    Example structure:
-    {{
-      "week_1": [
-        {{"type": "blog_post", "topic": "5 ways our new product solves problem X"}},
-        {{"type": "social_media_post", "platform": "Twitter", "content": "Announcing our new product!"}}
-      ],
-      "week_2": [...]
-    }}
+        Return ONLY the JSON object.
+        """
 
-    Return ONLY the JSON object, with no other text or explanation.
-    """
 
     try:
         content_plan = llm_client.generate_json(prompt=prompt)
