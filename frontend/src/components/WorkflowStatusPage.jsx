@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import WorkflowVisualizer from './WorkflowVisualizer';
+import SalesFunnelVisualizer from './SalesFunnelVisualizer';
+import ProjectPlanDisplay from './ProjectPlanDisplay';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, RefreshCw, AlertCircle, Clock } from 'lucide-react';
@@ -45,7 +47,6 @@ const WorkflowStatusPage = () => {
       } catch (err) {
         setError(err.message);
         clearInterval(intervalRef.current);
-
       } finally {
         setLoading(false);
       }
@@ -56,7 +57,6 @@ const WorkflowStatusPage = () => {
     intervalRef.current = setInterval(fetchData, 5000); // Poll every 5 seconds
 
     return () => clearInterval(intervalRef.current);
-
   }, [workflowId]);
 
   if (loading) {
@@ -97,9 +97,16 @@ const WorkflowStatusPage = () => {
                     <p className="text-sm text-muted-foreground">Node: {step.node_id}</p>
                     {/* Optionally display output data */}
                     {step.output_data && (
-                      <pre className="mt-2 text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
-                        {JSON.stringify(step.output_data, null, 2)}
-                      </pre>
+                      <div className="mt-2 text-xs bg-gray-100 p-2 rounded-md overflow-x-auto">
+                        {/* Render specialized components for specific outputs */}
+                        {step.output_data.funnel_type ? (
+                          <SalesFunnelVisualizer funnelPlan={step.output_data} />
+                        ) : step.output_data.project_name ? (
+                          <ProjectPlanDisplay projectPlan={step.output_data} />
+                        ) : (
+                          <pre>{JSON.stringify(step.output_data, null, 2)}</pre>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -110,7 +117,6 @@ const WorkflowStatusPage = () => {
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 };
