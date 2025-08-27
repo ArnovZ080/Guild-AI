@@ -131,4 +131,3 @@ async def get_workflow_executions(workflow_id: str, db: Session = Depends(get_db
 @router.get("/health", status_code=200)
 async def health_check():
     return {"status": "ok"}
-
