@@ -71,7 +71,6 @@ async def create_contract_and_plan_workflow(
     }
 
 
-
 @router.post("/{workflow_id}/approve", status_code=202)
 async def approve_and_execute_workflow(
     workflow_id: str,
@@ -117,7 +116,6 @@ async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
         workflow_data['user_input'] = UserInput.from_orm(db_contract)
 
     return PydanticWorkflow(**workflow_data)
-
 
 
 @router.get("/{workflow_id}/executions", response_model=List[PydanticAgentExecution])

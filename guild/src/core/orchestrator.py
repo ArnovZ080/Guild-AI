@@ -15,6 +15,11 @@ from ..agents.copywriter import Copywriter
 from ..agents.seo_agent import SEOAgent
 from ..agents.paid_ads_agent import PaidAdsAgent
 from ..agents.judge_agent import JudgeAgent
+from ..agents.sales_funnel_agent import SalesFunnelAgent
+from ..agents.crm_agent import CRMAgent
+from ..agents.project_manager_agent import ProjectManagerAgent
+from ..agents.hr_agent import HRAgent
+
 
 logger = get_logger(__name__)
 
@@ -25,6 +30,11 @@ AGENT_REGISTRY = {
     "SEOAgent": SEOAgent,
     "PaidAdsAgent": PaidAdsAgent,
     "JudgeAgent": JudgeAgent,
+    "SalesFunnelAgent": SalesFunnelAgent,
+    "CRMAgent": CRMAgent,
+    "ProjectManagerAgent": ProjectManagerAgent,
+    "HRAgent": HRAgent,
+
 }
 
 DAG_GENERATION_PROMPT = """
@@ -36,6 +46,10 @@ You have the following agents at your disposal:
 *   **SEOAgent:** Performs deep competitor analysis and keyword research to create a comprehensive SEO strategy. Essential for any goal related to organic traffic or online visibility.
 *   **Copywriter:** Writes compelling copy based on a provided strategy. It requires input from the ContentStrategist.
 *   **PaidAdsAgent:** Creates a multi-platform paid advertising campaign plan. It works best with input from the ContentStrategist or SEOAgent.
+*   **SalesFunnelAgent:** Designs a comprehensive, multi-stage sales funnel to convert prospects into customers. Crucial for any objective involving direct sales.
+*   **CRMAgent:** Designs a CRM setup and marketing automation strategy (lead scoring, nurture sequences) to manage customer relationships. Depends on a SalesFunnelAgent's output.
+*   **ProjectManagerAgent:** Takes a high-level goal and breaks it down into a structured project plan with tasks, milestones, and timelines. Useful for complex, multi-part objectives.
+*   **HRAgent:** Creates detailed job descriptions, interview plans, and onboarding processes. Use only when the user's objective explicitly mentions hiring.
 *   **JudgeAgent:** Evaluates the output of another agent based on a quality rubric. This should be the final step to ensure the quality of the main deliverable.
 
 **2. User's Request:**
@@ -55,34 +69,28 @@ Based on the user's request, create a JSON object representing the workflow.
     *   `expected_output`: A description of what this task is expected to produce.
 
 **4. Important Rules:**
-*   **Logical Order:** Ensure the dependencies create a logical flow. For example, `Copywriter` must depend on `ContentStrategist`. `JudgeAgent` must depend on the agent whose work it is judging.
-*   **Relevance:** Only include agents that are relevant to the user's objective. If the goal is to write a blog post, you don't need a `PaidAdsAgent`.
-*   **Start with Strategy:** Most workflows should begin with `ContentStrategist` or `SEOAgent`.
+*   **Logical Order:** Ensure the dependencies create a logical flow. For example, `Copywriter` must depend on `ContentStrategist`, and `CRMAgent` must depend on `SalesFunnelAgent`.
+*   **Relevance:** Only include agents that are relevant to the user's objective. If the goal is to write a blog post, you probably don't need a `SalesFunnelAgent` or `HRAgent`.
+*   **Start with Strategy:** Most workflows should begin with a high-level strategy agent like `ContentStrategist`, `SEOAgent`, or `SalesFunnelAgent`.
+
 *   **End with Quality Control:** Always include a `JudgeAgent` as the final step to evaluate the primary deliverable.
 
 **Example Output:**
 {{
   "tasks": [
     {{
-      "task_id": "create-content-strategy",
-      "agent": "ContentStrategist",
-      "description": "Develop a content strategy for the user's objective.",
+      "task_id": "design-sales-funnel",
+      "agent": "SalesFunnelAgent",
+      "description": "Design a sales funnel to sell the user's product.",
       "dependencies": [],
-      "expected_output": "A JSON object with content pillars, keywords, and format suggestions."
+      "expected_output": "A JSON object detailing the sales funnel stages and strategy."
     }},
     {{
-      "task_id": "write-copy",
-      "agent": "Copywriter",
-      "description": "Write the final copy based on the approved strategy.",
-      "dependencies": ["create-content-strategy"],
-      "expected_output": "The final written copy as a string."
-    }},
-    {{
-      "task_id": "judge-copy",
-      "agent": "JudgeAgent",
-      "description": "Evaluate the quality and effectiveness of the generated copy.",
-      "dependencies": ["write-copy"],
-      "expected_output": "A JSON object with a quality score and detailed feedback."
+      "task_id": "setup-crm-automation",
+      "agent": "CRMAgent",
+      "description": "Create a CRM and automation plan based on the sales funnel.",
+      "dependencies": ["design-sales-funnel"],
+      "expected_output": "A JSON object with CRM setup, lead scoring, and automation workflows."
     }}
   ]
 }}
@@ -110,7 +118,7 @@ class Orchestrator:
         response_str = await self.llm_client.chat(prompt)
 
         try:
-            # Clean the response to ensure it's valid JSON
+
             if response_str.startswith("```json"):
                 response_str = response_str[7:]
             if response_str.endswith("```"):
@@ -174,11 +182,12 @@ class Orchestrator:
 
         try:
             # Dynamically instantiate agent based on its needs
-            if task.agent in ["Copywriter", "PaidAdsAgent"]:
+            if task.agent in ["Copywriter", "PaidAdsAgent", "CRMAgent", "ProjectManagerAgent"]:
                 agent = agent_class(self.user_input, strategy_context=strategy_context)
             elif task.agent == "JudgeAgent":
                 agent = agent_class(self.user_input, content_to_evaluate=content_to_judge)
-            else:
+            else: # Covers ContentStrategist, SEOAgent, SalesFunnelAgent, HRAgent which only need UserInput
+
                 agent = agent_class(self.user_input)
 
             result_str = await agent.run()
@@ -188,7 +197,8 @@ class Orchestrator:
             except json.JSONDecodeError:
                 output_data = {"result": result_str}
 
-            logger.info(f"Task {task.id} completed successfully.")
+            logger.info(f"Task {task.task_id} completed successfully.")
+
             on_step_complete(
                 node_id=task.task_id,
                 agent_name=task.agent,
@@ -211,12 +221,12 @@ if __name__ == '__main__':
 
     async def main():
         user_input = UserInput(
-            objective="Launch a new AI-powered copywriting tool and attract 1,000 users.",
+            objective="Launch a new course on 'Productivity for Solo-Founders' and get 100 paying customers.",
             audience=Audience(
-                description="Marketing professionals and small business owners.",
-                demographics={"age": "25-55", "interests": ["Digital Marketing", "AI"]},
+                description="Solo-founders and entrepreneurs feeling overwhelmed.",
             ),
-            additional_notes="Focus on paid ads and a strong landing page. We need to be better than Copy.ai."
+            additional_notes="The course price is $199. We need a full funnel and a project plan to execute this."
+
         )
 
         def dummy_callback(node_id, agent_name, output_data, status):
