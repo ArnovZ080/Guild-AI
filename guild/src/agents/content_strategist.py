@@ -26,6 +26,7 @@ def generate_content_plan(objective: str, deliverables: List[str], prompt: str =
         Return ONLY the JSON object.
         """
 
+
     try:
         content_plan = llm_client.generate_json(prompt=prompt)
         print("Content Strategist Agent: Successfully generated content plan.")
