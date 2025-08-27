@@ -37,6 +37,7 @@ async def create_contract_and_plan_workflow(
         objective=user_input.objective,
         target_audience=user_input.audience.model_dump() if user_input.audience else {},
         additional_notes=user_input.additional_notes,
+
     )
     db.add(db_contract)
     db.commit()
@@ -50,12 +51,14 @@ async def create_contract_and_plan_workflow(
         raise HTTPException(status_code=500, detail=f"Failed to generate workflow from Orchestrator: {e}")
 
     # 3. Save the workflow
+
     workflow_id = str(uuid.uuid4())
     db_workflow = models.Workflow(
         id=workflow_id,
         contract_id=contract_id,
         status="pending_approval",
         dag_definition=pydantic_workflow.model_dump(),
+
     )
     db.add(db_workflow)
     db.commit()
@@ -91,10 +94,12 @@ async def approve_and_execute_workflow(
     return {"message": "Workflow execution started.", "workflow_id": workflow_id}
 
 
+
 @router.get("/{workflow_id}/status", response_model=PydanticWorkflow)
 async def get_workflow_status(workflow_id: str, db: Session = Depends(get_db)):
     """
     Get the status and details of a specific workflow, including its execution steps.
+
     """
     db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
     if db_workflow is None:
@@ -126,3 +131,4 @@ async def get_workflow_executions(workflow_id: str, db: Session = Depends(get_db
 @router.get("/health", status_code=200)
 async def health_check():
     return {"status": "ok"}
+
