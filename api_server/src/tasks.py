@@ -16,6 +16,7 @@ from models.workflow import Workflow as PydanticWorkflow, Task as PydanticTask
 def run_workflow_task(self, workflow_id: str):
     """
     A Celery task to execute a workflow DAG using the new Orchestrator, with robust state management.
+
     """
     print(f"Celery task started for workflow: {workflow_id}")
     db = SessionLocal()
@@ -41,6 +42,7 @@ def run_workflow_task(self, workflow_id: str):
         pydantic_workflow = PydanticWorkflow(user_input=user_input, tasks=pydantic_tasks)
 
 
+
         def save_step_callback(node_id: str, agent_name: str, output_data: Dict[str, Any], status: str):
             """Callback function to save the result of each agent step to the DB."""
             print(f"  Saving state for node '{node_id}' with status '{status}'...")
@@ -60,6 +62,7 @@ def run_workflow_task(self, workflow_id: str):
         # 3. Execute the workflow using asyncio.run
         asyncio.run(orchestrator.execute_workflow(pydantic_workflow, on_step_complete=save_step_callback))
 
+
         # Mark the main workflow as completed
         db_workflow.status = "completed"
         db_workflow.progress = 1.0
@@ -71,11 +74,13 @@ def run_workflow_task(self, workflow_id: str):
 
     except Exception as e:
         print(f"Error during Celery task for workflow {workflow_id}: {e}")
+
         db.rollback()
         db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
         if db_workflow:
             db_workflow.status = "failed"
             db.commit()
+
         raise
     finally:
         db.close()
