@@ -25,7 +25,6 @@ def client():
         else:
             pytest.fail("API server did not become available in time.")
 
-
         yield client
 
 def test_health_check(client: httpx.Client):
@@ -79,7 +78,6 @@ def test_full_workflow_execution_flow(client: httpx.Client):
     # 3. Poll for status
     max_retries = 40  # Increased retries for potentially long-running AI tasks
     retry_interval = 5 # seconds
-
 
     workflow_status = None
     for i in range(max_retries):
