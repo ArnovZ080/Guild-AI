@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from typing import List
 import uuid
 
-from guild.core.models.schemas import DataRoom as PydanticDataRoom, DataRoomCreate
+from models.schemas import DataRoom as PydanticDataRoom, DataRoomCreate
+
 from .. import models
 from ..database import get_db
 

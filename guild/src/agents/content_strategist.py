@@ -5,23 +5,26 @@ from guild.src.core.agent_helpers import inject_knowledge
 @inject_knowledge
 def generate_content_plan(objective: str, deliverables: List[str], prompt: str = None) -> Dict[str, Any]:
     """
-    Generates a world-class content strategy and calendar using an LLM.
+    Generates a world-class, holistic content strategy and calendar using an LLM.
     This function is decorated to automatically inject real-time knowledge.
     """
-    print("Content Strategist Agent: Generating content plan with injected knowledge...")
+    print("Content Strategist Agent: Generating holistic content plan with injected knowledge...")
 
     if not prompt:
         prompt = f"""
-        You are an expert content strategist, on par with the heads of content at major digital marketing agencies. Your task is to create a detailed content calendar and launch plan.
+        You are an expert content strategist, responsible for planning holistic content calendars that align blog, video, podcast, and social media efforts for maximum impact.
 
-        Campaign Objective: "{objective}"
-        Required Deliverables: {', '.join(deliverables)}
+        **Campaign Objective:** "{objective}"
+        **Key Deliverables to Plan For:** {', '.join(deliverables)}
 
-        Based on this, and the real-time trends from the provided web context, generate a JSON object that outlines a 4-week content plan. The JSON object should have keys for "week_1", "week_2", "week_3", and "week_4". Each week should contain a list of planned content pieces, including:
-        - "type": The type of content (e.g., "blog_post", "social_media_ad").
-        - "title_or_hook": A compelling title or hook for the content.
-        - "platform": The target platform (e.g., "Blog", "Twitter", "Instagram").
-        - "brief": A short brief for the creator.
+        Based on this, and the real-time trends from the provided web context, generate a JSON object that outlines a **holistic 2-week content plan**.
+
+        The JSON object should have a `content_calendar` key, which is a list of content items. Each item must include:
+        - `day`: e.g., "Monday, Week 1".
+        - `platform`: The primary platform for the content (e.g., "Blog", "YouTube", "Twitter").
+        - `content_type`: The specific format (e.g., "In-depth Guide", "Short-form Video", "Thread").
+        - `title_or_hook`: A compelling title or hook.
+        - `synergy_notes`: Crucially, explain how this piece of content relates to or repurposes other content in the plan (e.g., "This Twitter thread will promote the key findings from the Week 1 blog post.").
 
         Return ONLY the JSON object.
         """
