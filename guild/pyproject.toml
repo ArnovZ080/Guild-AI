@@ -18,6 +18,7 @@ dependencies = [
     "langchain-community",
     "pypdf",
     "n8n",
+    "hubspot-api-client",
 ]
 
 [project.scripts]

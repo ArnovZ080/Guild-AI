@@ -7,7 +7,6 @@ from guild.core.models.schemas import DataRoom as PydanticDataRoom, DataRoomCrea
 from .. import models
 from ..database import get_db
 
-
 router = APIRouter(
     prefix="/datarooms",
     tags=["Data Rooms"],
@@ -56,4 +55,3 @@ def delete_data_room(data_room_id: str, db: Session = Depends(get_db)):
     db.delete(db_data_room)
     db.commit()
     return
-

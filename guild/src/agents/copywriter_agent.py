@@ -30,7 +30,6 @@ def generate_ad_copy(
 
     try:
         ad_copy = llm_client.generate_json(prompt=prompt)
-
         print("Copywriter Agent: Successfully generated ad copy.")
         return ad_copy
     except Exception as e:

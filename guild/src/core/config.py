@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # n8n Configuration
     N8N_WEBHOOK_URL: Optional[str] = None
 
+    # HubSpot Configuration
+    HUBSPOT_API_KEY: Optional[str] = None
+
     class Config:
         env_file = ".env"
         env_file_encoding = 'utf-8'
