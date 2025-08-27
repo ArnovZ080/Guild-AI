@@ -1,15 +1,22 @@
+import asyncio
+from datetime import datetime
+from typing import Dict, Any
+
 from .celery_app import celery_app
 from .database import SessionLocal
 from . import models
-from guild.core.orchestrator import execute_dag
-from datetime import datetime
-from typing import Dict, Any
-from guild.core.models.schemas import OutcomeContract as PydanticOutcomeContract
+
+# Corrected imports for the top-level packages
+from core.orchestrator import Orchestrator
+from models.user_input import UserInput
+from models.workflow import Workflow as PydanticWorkflow, Task as PydanticTask
+
 
 @celery_app.task(bind=True)
 def run_workflow_task(self, workflow_id: str):
     """
-    A Celery task to execute a workflow DAG, with robust state management.
+    A Celery task to execute a workflow DAG using the new Orchestrator, with robust state management.
+
     """
     print(f"Celery task started for workflow: {workflow_id}")
     db = SessionLocal()
@@ -27,7 +34,14 @@ def run_workflow_task(self, workflow_id: str):
         if not db_contract:
             raise Exception(f"Contract {db_workflow.contract_id} not found.")
 
-        pydantic_contract = PydanticOutcomeContract.from_orm(db_contract)
+        # 1. Reconstruct UserInput and Workflow from the database
+        user_input = UserInput.from_orm(db_contract)
+
+        tasks_data = db_workflow.dag_definition.get("tasks", [])
+        pydantic_tasks = [PydanticTask(**task_data) for task_data in tasks_data]
+        pydantic_workflow = PydanticWorkflow(user_input=user_input, tasks=pydantic_tasks)
+
+
 
         def save_step_callback(node_id: str, agent_name: str, output_data: Dict[str, Any], status: str):
             """Callback function to save the result of each agent step to the DB."""
@@ -42,8 +56,12 @@ def run_workflow_task(self, workflow_id: str):
             db.add(execution_record)
             db.commit()
 
-        # Execute the DAG, passing the callback
-        execute_dag(db_workflow.dag_definition, pydantic_contract, save_step_callback)
+        # 2. Instantiate Orchestrator
+        orchestrator = Orchestrator(user_input)
+
+        # 3. Execute the workflow using asyncio.run
+        asyncio.run(orchestrator.execute_workflow(pydantic_workflow, on_step_complete=save_step_callback))
+
 
         # Mark the main workflow as completed
         db_workflow.status = "completed"
@@ -56,13 +74,13 @@ def run_workflow_task(self, workflow_id: str):
 
     except Exception as e:
         print(f"Error during Celery task for workflow {workflow_id}: {e}")
-        # Rollback any partial changes and set status to 'failed'
+
         db.rollback()
         db_workflow = db.query(models.Workflow).filter(models.Workflow.id == workflow_id).first()
         if db_workflow:
             db_workflow.status = "failed"
             db.commit()
-        # self.update_state(state='FAILURE', meta={'exc': e}) # More advanced error handling
+
         raise
     finally:
         db.close()

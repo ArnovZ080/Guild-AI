@@ -1,60 +1,149 @@
-from guild.src.core import llm_client
-from typing import Dict, Any
-from guild.src.core.agent_helpers import inject_knowledge
+from guild.src.models.user_input import UserInput
+from guild.src.models.agent import Agent, AgentCallback
+from guild.src.models.llm import Llm, LlmModels
+from guild.src.llm.llm_client import LlmClient
+from guild.src.tools.search import search_and_summarize
+from guild.src.utils.logging_utils import get_logger
+from guild.src.utils.decorators import inject_knowledge
 
-@inject_knowledge
-def generate_ad_campaign(objective: str, target_audience: str, prompt: str = None) -> Dict[str, Any]:
-    """
-    Generates a comprehensive, multi-platform paid advertising campaign plan using an LLM.
-    This function is decorated to automatically inject real-time knowledge about ad trends.
-    """
-    print("Paid Ads Agent: Generating world-class ad campaign...")
+import json
 
-    # The prompt is constructed by the orchestrator, but if not provided,
-    # we can create a default one here.
-    if not prompt:
-        prompt = f"""
-        You are a world-class digital advertising strategist, on par with top-tier ad agencies. You are tasked with creating a comprehensive paid advertising campaign.
+logger = get_logger(__name__)
 
-        Client's Objective: "{objective}"
-        Target Audience: "{target_audience}"
+PROMPT_TEMPLATE = """
+You are a world-class Paid Ads strategist AI agent. Your mission is to create a comprehensive, multi-platform digital advertising campaign plan that is efficient, targeted, and aligned with the user's core objective.
 
-        Based on this, and the real-time advertising trends provided in the context, generate a detailed ad campaign plan as a JSON object. The JSON object must include:
-        - "campaign_name": "A catchy and descriptive name for the campaign.",
-        - "target_platforms": ["A list of platforms to target, e.g., 'Meta (Facebook/Instagram)', 'Google Ads (Search)','LinkedIn Ads'"],
-        - "ad_creatives": [
+**1. Foundational Analysis (Do not include in output):**
+    *   **User's Core Objective:** {objective}
+    *   **Target Audience Analysis:** {audience}
+    *   **Key Insights & Knowledge:** {knowledge}
+    *   **SEO & Content Strategy (for context):** {strategy_context}
+
+**2. Your Task:**
+    Based on the foundational analysis, develop a complete paid advertising strategy. The strategy should be practical, creative, and data-driven.
+
+**3. Output Format (JSON only):**
+    {{
+        "campaign_name": "Campaign Name (e.g., 'Q3 Product Launch - AI Tool')",
+        "campaign_objective": "Primary goal (e.g., 'Lead Generation', 'Brand Awareness', 'Direct Sales').",
+        "recommended_platforms": ["Google Ads", "Facebook/Instagram Ads", "LinkedIn Ads"],
+        "budget_allocation": {{
+            "google_ads_percentage": 40,
+            "facebook_instagram_ads_percentage": 40,
+            "linkedin_ads_percentage": 20,
+            "justification": "Allocate budget based on where the target audience is most active and conversion potential."
+        }},
+        "ad_campaigns": [
             {{
-              "platform": "Meta",
-              "headline": "A compelling, scroll-stopping headline using the AIDA framework.",
-              "body": "Persuasive ad copy using the PAS (Problem-Agitate-Solution) framework.",
-              "cta": "A clear call-to-action."
+                "platform": "Google Ads",
+                "campaign_type": "Search",
+                "ad_groups": [
+                    {{
+                        "name": "Ad Group Name (e.g., 'AI Copywriting Keywords')",
+                        "keywords": ["keyword1", "keyword2", "keyword3"],
+                        "ads": [
+                            {{
+                                "headline_1": "AI-Powered Copywriting",
+                                "headline_2": "Write Content 10x Faster",
+                                "description": "Our AI tool generates high-converting copy in seconds. Try it free today and save hours of work.",
+                                "landing_page_url": "/landing/ai-tool"
+                            }}
+                        ]
+                    }}
+                ]
             }},
             {{
-              "platform": "Google Ads",
-              "headline_1": "Keyword-rich headline 1 (max 30 chars).",
-              "headline_2": "Benefit-driven headline 2 (max 30 chars).",
-              "description": "A concise description (max 90 chars)."
+                "platform": "Facebook/Instagram Ads",
+                "campaign_type": "Conversions",
+                "ad_sets": [
+                    {{
+                        "name": "Ad Set Name (e.g., 'Marketing Professionals - Lookalike Audience')",
+                        "targeting_summary": "Target users interested in Digital Marketing, Content Marketing, and lookalike audiences of website visitors.",
+                        "ads": [
+                            {{
+                                "ad_creative_suggestion": "A short video demonstrating the tool's key features. Show a user going from a blank page to a full article in under 30 seconds.",
+                                "primary_text": "Tired of writer's block? Let our AI be your creative partner. Generate amazing content, from ad copy to blog posts, with a single click. Learn more!",
+                                "headline": "The Future of Content Creation is Here",
+                                "call_to_action": "Learn More"
+                            }}
+                        ]
+                    }}
+                ]
             }}
-          ],
-        - "targeting_strategy": {{
-            "demographics": "Describe the age, location, and other demographics.",
-            "interests_and_behaviors": ["List specific interests or behaviors to target."],
-            "retargeting_plan": "Briefly describe a plan to retarget website visitors or past customers."
-          }},
-        - "performance_estimates": {{
-            "estimated_ctr": "e.g., '1.5% - 2.5%'",
-            "estimated_cpc": "e.g., '$1.20 - $2.50'",
-            "estimated_roas": "Provide a target Return On Ad Spend, e.g., '3:1'"
-          }},
-        - "compliance_check": "A brief note confirming the ad copy adheres to common platform policies."
+        ],
+        "performance_kpis": ["Cost Per Lead (CPL)", "Click-Through Rate (CTR)", "Conversion Rate", "Return on Ad Spend (ROAS)"],
+        "psychological_framework": "The campaign will leverage the 'Scarcity' principle with limited-time offers and the 'Social Proof' principle by highlighting user testimonials in ad copy."
+    }}
+"""
 
-        Return ONLY the JSON object.
+class PaidAdsAgent(Agent):
+    def __init__(self, user_input: UserInput, strategy_context: str, callback: AgentCallback = None):
+        super().__init__(
+            "Paid Ads Agent",
+            "Generates a multi-platform paid advertising campaign strategy.",
+            user_input,
+            callback=callback
+        )
+        self.strategy_context = strategy_context
+        self.llm_client = LlmClient(
+            Llm(
+                provider="together",
+                model=LlmModels.LLAMA3_70B.value
+            )
+        )
+
+    @inject_knowledge
+    async def run(self, knowledge: str | None = None) -> str:
+        self._send_start_callback()
+        logger.info(f"Running Paid Ads agent for objective: {self.user_input.objective}")
+
+        prompt = PROMPT_TEMPLATE.format(
+            objective=self.user_input.objective,
+            audience=self.user_input.audience.model_dump_json(indent=2) if self.user_input.audience else "{}",
+            knowledge=knowledge,
+            strategy_context=self.strategy_context
+        )
+
+        self._send_llm_start_callback(prompt, "together", LlmModels.LLAMA3_70B.value)
+        response = await self.llm_client.chat(prompt)
+        self._send_llm_end_callback(response)
+
+        logger.info("Paid Ads agent finished.")
+        self._send_end_callback(response)
+        return response
+
+if __name__ == '__main__':
+    import asyncio
+    from guild.src.models.user_input import Audience
+
+    async def main():
+        user_input = UserInput(
+            objective="Launch a new brand of premium, eco-friendly yoga mats.",
+            audience=Audience(
+                description="Environmentally conscious yoga practitioners.",
+                demographics={
+                    "age": "25-45",
+                    "location": "USA, Canada, Western Europe",
+                    "interests": ["Yoga", "Sustainability", "Wellness", "Eco-friendly products"]
+                }
+            ),
+            additional_notes="Highlight the non-toxic materials and durability."
+        )
+
+        # In a real run, this would come from the SEO or Content Strategist agent
+        strategy_context = """
+        {
+            "target_keywords": ["eco-friendly yoga mat", "sustainable yoga gear", "non-toxic yoga mat"],
+            "content_plan": [
+                { "title": "Why Your Yoga Mat Might Be Toxic (And What to Do About It)" },
+                { "title": "The Ultimate Guide to Sustainable Yoga Practices" }
+            ]
+        }
         """
 
-    try:
-        campaign_plan = llm_client.generate_json(prompt=prompt)
-        print("Paid Ads Agent: Successfully generated ad campaign plan.")
-        return campaign_plan
-    except Exception as e:
-        print(f"Paid Ads Agent: Failed to generate ad campaign. Error: {e}")
-        raise
+        agent = PaidAdsAgent(user_input, strategy_context=strategy_context)
+        result = await agent.run()
+        print(json.dumps(json.loads(result), indent=2))
+
+    asyncio.run(main())
+

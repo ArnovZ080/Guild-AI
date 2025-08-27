@@ -1,153 +1,190 @@
+from guild.src.models.user_input import UserInput
+from guild.src.models.agent import Agent, AgentCallback
+from guild.src.models.llm import Llm, LlmModels
+from guild.src.llm.llm_client import LlmClient
+from guild.src.tools.search import search_and_summarize
+from guild.src.utils.logging_utils import get_logger
+from guild.src.utils.decorators import inject_knowledge
+
 import json
-from guild.src.core import llm_client
-from . import research_agent
-from typing import Dict, Any, List
 
-def perform_keyword_research(topic: str) -> Dict[str, List[str]]:
-    """
-    Uses an LLM to generate a list of related keywords for a given topic.
-    """
-    print(f"SEO Agent: Performing keyword research for topic: '{topic}'")
+logger = get_logger(__name__)
 
-    prompt = f"""
-    You are a world-class SEO expert with deep knowledge of keyword research, equivalent to tools like Ahrefs and SEMrush.
+# This is a complex, multi-step agent. We'll define distinct prompts for each phase.
 
-    The user's primary topic is: "{topic}"
+# Phase 1: Competitor Identification
+COMPETITOR_ID_PROMPT = """
+You are a world-class SEO strategist. Based on the user's objective, your first task is to identify the top 3-5 direct and indirect competitors.
 
-    Generate a comprehensive list of related keywords. The list should be a JSON object with the following keys:
-    - "primary_keyword": The most important keyword.
-    - "long_tail_keywords": A list of at least 10 long-tail variations.
-    - "lsi_keywords": A list of at least 10 Latent Semantic Indexing (LSI) or related topical keywords.
-    - "user_intent_questions": A list of 5 common questions users ask related to this topic.
+**User's Core Objective:** {objective}
+**Key Product/Service:** {product_service}
 
-    Return ONLY the JSON object.
-    """
+**Your Task:**
+1.  Analyze the user's objective to understand their market positioning.
+2.  Perform a search to find companies offering similar products or services.
+3.  List the top 3-5 competitors. For each, provide their website URL and a brief (1-2 sentence) description of their core offering.
 
-    try:
-        keywords = llm_client.generate_json(prompt=prompt)
-        print("SEO Agent: Successfully generated keyword list.")
-        return keywords
-    except Exception as e:
-        print(f"SEO Agent: Failed to perform keyword research. Error: {e}")
-        raise
+**Output Format (JSON only):**
+{{
+    "competitors": [
+        {{
+            "name": "Competitor Name",
+            "url": "https://competitor.com",
+            "description": "Description of their business."
+        }}
+    ]
+}}
+"""
 
-def analyze_competitors(topic: str, num_competitors: int = 3) -> List[Dict[str, Any]]:
-    """
-    Analyzes the top search competitors for a given topic by scraping their content
-    and using an LLM to summarize their structure.
-    """
-    print(f"SEO Agent: Analyzing top {num_competitors} competitors for '{topic}'...")
+# Phase 2: Competitor & Keyword Analysis
+ANALYSIS_PROMPT = """
+You are a world-class SEO analyst. You will be given a list of competitors. Your task is to perform a deep analysis of their SEO strategy and identify high-opportunity keywords.
 
-    # First, find the top competitors
-    search_results = research_agent.search_web(query=f"top articles about {topic}")
+**User's Core Objective:** {objective}
+**Competitors:**
+{competitors}
 
-    # This is a simplification. A real implementation would parse the search results
-    # to get a list of distinct URLs. For now, we'll assume the initial search
-    # gives us one good competitor and we'll analyze it.
+**Key Insights & Knowledge:**
+{knowledge}
 
-    competitor_url = search_results.get("url")
-    if not competitor_url:
-        print("SEO Agent: Could not find any competitors to analyze.")
-        return []
+**Your Task:**
+1.  **Competitor Content Analysis:** For each competitor, analyze the main themes, topics, and angles they use on their website and blog. What questions do they answer? What pain points do they address?
+2.  **Keyword Research:** Based on the competitor analysis and the user's objective, generate a list of high-intent keywords. Categorize them into:
+    *   **Primary Keywords:** (High volume, high competition - e.g., "CRM software")
+    *   **Secondary Keywords:** (Medium volume, more specific - e.g., "best CRM for small business")
+    *   **Long-Tail Keywords:** (Low volume, highly specific, often questions - e.g., "how to integrate CRM with email marketing")
+3.  **Content Gap Analysis:** Identify topics or keywords the competitors are NOT covering well, representing an opportunity for the user.
 
-    competitors = []
-    # In a real loop, you would iterate through the top N URLs.
-    # for url in top_n_urls:
+**Output Format (JSON only):**
+{{
+    "competitor_analysis": [
+        {{
+            "name": "Competitor Name",
+            "content_strategy_summary": "Summary of their content themes and angles.",
+            "top_keywords_targeted": ["keyword1", "keyword2"]
+        }}
+    ],
+    "keyword_opportunities": {{
+        "primary": ["keywordA", "keywordB"],
+        "secondary": ["keywordC", "keywordD"],
+        "long_tail": ["keywordE", "keywordF"]
+    }},
+    "content_gap_analysis": "Summary of topics or angles the competition is missing."
+}}
+"""
 
-    print(f"  > Analyzing competitor: {competitor_url}")
-    # Scrape the content of the competitor's page
-    page_content = research_agent.search_web(query=competitor_url) # Re-using search_web to scrape a direct URL
+# Phase 3: SEO Strategy Synthesis
+STRATEGY_PROMPT = """
+You are a world-class SEO Director. Using the provided competitor and keyword analysis, your final task is to create a comprehensive, actionable SEO strategy.
 
-    if not page_content or not page_content.get("content"):
-        print(f"  > Failed to scrape content from {competitor_url}")
-        return []
+**Analysis & Research Data:**
+{analysis_data}
 
-    # Use an LLM to analyze the content structure
-    prompt = f"""
-    You are an SEO analyst. Analyze the following article content and provide a structured summary of its on-page SEO.
+**Your Task:**
+Create a holistic SEO strategy that includes:
+1.  **On-Page SEO Recommendations:**
+    *   **Target Keywords:** Which primary and secondary keywords should be the main focus?
+    *   **Content Plan:** Suggest 3-5 specific content ideas (e.g., blog posts, guides, landing pages) that target the identified keyword opportunities and content gaps. For each idea, provide a compelling title and a brief outline.
+    *   **Website Structure:** Recommend key pages the website should have (e.g., "Features," "Pricing," "Integrations," "Blog").
+2.  **Off-Page SEO Recommendations:**
+    *   **Backlink Strategy:** Suggest types of websites to target for backlinks (e.g., industry blogs, software review sites, news publications).
+    *   **Social Media Signals:** How can social media be used to amplify content and signal relevance to search engines?
+3.  **Technical SEO Recommendations:**
+    *   List 3-5 critical technical SEO checkpoints (e.g., mobile-friendliness, site speed, SSL certificate, XML sitemap).
 
-    Article Content (first 4000 characters):
-    ---
-    {page_content['content'][:4000]}
-    ---
+**Output Format (JSON only):**
+{{
+    "on_page_seo": {{
+        "target_keywords": ["primary_keyword1", "secondary_keyword1"],
+        "content_plan": [
+            {{
+                "title": "Content Idea 1 Title",
+                "outline": "Brief outline of the content piece."
+            }}
+        ],
+        "website_structure_recommendations": ["Homepage", "About Us", "Contact", "Blog"]
+    }},
+    "off_page_seo": {{
+        "backlink_strategy": "Summary of the backlink strategy.",
+        "social_media_amplification": "How to use social media."
+    }},
+    "technical_seo_checklist": ["Mobile-Friendliness", "Site Speed (Core Web Vitals)", "HTTPS/SSL", "XML Sitemap Submission"]
+}}
+"""
 
-    Provide your analysis as a JSON object with the following keys:
-    - "main_title": The main title or H1 of the article.
-    - "main_headings": A list of the main H2 headings used in the article.
-    - "key_themes": A brief summary of the key themes or topics covered.
-    - "content_gap_opportunity": Suggest one topic or angle that this article missed, which could be a content gap to exploit.
 
-    Return ONLY the JSON object.
-    """
+class SEOAgent(Agent):
+    def __init__(self, user_input: UserInput, callback: AgentCallback = None):
+        super().__init__(
+            "SEO Agent",
+            "Develops a comprehensive SEO strategy by analyzing competitors and identifying keyword opportunities.",
+            user_input,
+            callback=callback
+        )
+        self.llm_client = LlmClient(
+            Llm(
+                provider="together",
+                model=LlmModels.LLAMA3_70B.value
+            )
+        )
 
-    try:
-        analysis = llm_client.generate_json(prompt)
-        analysis['url'] = competitor_url
-        competitors.append(analysis)
-        print(f"  > Successfully analyzed competitor.")
-    except Exception as e:
-        print(f"  > Failed to analyze competitor with LLM. Error: {e}")
+    @inject_knowledge
+    async def run(self, knowledge: str | None = None) -> str:
+        self._send_start_callback()
+        logger.info(f"Running SEO agent for objective: {self.user_input.objective}")
 
-    return competitors
+        # Step 1: Identify Competitors
+        self._send_step_callback("Identifying competitors...")
+        product_service = self.user_input.objective # A simple heuristic for now
+        comp_id_prompt = COMPETITOR_ID_PROMPT.format(
+            objective=self.user_input.objective,
+            product_service=product_service
+        )
+        self._send_llm_start_callback(comp_id_prompt, "together", LlmModels.LLAMA3_70B.value)
+        competitors_json_str = await self.llm_client.chat(comp_id_prompt)
+        self._send_llm_end_callback(competitors_json_str)
+        competitors = json.loads(competitors_json_str)
+        logger.info(f"Identified competitors: {competitors}")
 
-def analyze_seo_opportunity(topic: str) -> Dict[str, Any]:
-    """
-    The main analysis function for the SEO Agent.
-    It performs keyword research and competitor analysis.
-    """
-    print(f"--- SEO AGENT: Starting analysis for topic: '{topic}' ---")
+        # Step 2: Analyze Competitors and Keywords
+        self._send_step_callback("Analyzing competitors and researching keywords...")
+        analysis_prompt = ANALYSIS_PROMPT.format(
+            objective=self.user_input.objective,
+            competitors=json.dumps(competitors['competitors'], indent=2),
+            knowledge=knowledge
+        )
+        self._send_llm_start_callback(analysis_prompt, "together", LlmModels.LLAMA3_70B.value)
+        analysis_json_str = await self.llm_client.chat(analysis_prompt)
+        self._send_llm_end_callback(analysis_json_str)
+        analysis_data = json.loads(analysis_json_str)
+        logger.info("Completed competitor and keyword analysis.")
 
-    # Step 1: Keyword Research
-    keyword_data = perform_keyword_research(topic)
+        # Step 3: Synthesize SEO Strategy
+        self._send_step_callback("Synthesizing SEO strategy...")
+        strategy_prompt = STRATEGY_PROMPT.format(
+            analysis_data=json.dumps(analysis_data, indent=2)
+        )
+        self._send_llm_start_callback(strategy_prompt, "together", LlmModels.LLAMA3_70B.value)
+        strategy_json_str = await self.llm_client.chat(strategy_prompt)
+        self._send_llm_end_callback(strategy_json_str)
+        logger.info("Generated final SEO strategy.")
 
-    # Step 2: Competitor Analysis (stubbed for now)
-    competitor_analysis = analyze_competitors(topic)
+        self._send_end_callback(strategy_json_str)
+        return strategy_json_str
 
-    analysis_summary = {
-        "keyword_research": keyword_data,
-        "competitor_analysis": competitor_analysis
-    }
+if __name__ == '__main__':
+    import asyncio
 
-    print(f"--- SEO AGENT: Finished analysis for topic: '{topic}' ---")
+    async def main():
+        user_input = UserInput(
+            objective="Become the #1 online resource for sustainable home gardening.",
+            audience=None,
+            additional_notes="Focus on beginners in urban environments."
+        )
 
-    # Step 3: Generate Recommendations
-    recommendations = generate_seo_recommendations(topic, analysis_summary)
+        agent = SEOAgent(user_input)
+        result = await agent.run()
+        print(json.dumps(json.loads(result), indent=2))
 
-    return recommendations
+    asyncio.run(main())
 
-def generate_seo_recommendations(topic: str, analysis_data: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Takes SEO analysis data and generates actionable recommendations using an LLM.
-    """
-    print("SEO Agent: Generating final recommendations...")
-
-    prompt = f"""
-    You are a world-class SEO strategist, acting as a consultant for a client. You have already performed the initial research. Now, you must deliver a comprehensive and actionable SEO plan.
-
-    Primary Topic: "{topic}"
-
-    Your Research Data:
-    ---
-    {json.dumps(analysis_data, indent=2)}
-    ---
-
-    Based on this data, generate a final SEO strategy as a JSON object. The JSON object must include the following keys:
-    - "recommended_title": A compelling, SEO-optimized title for a new piece of content on this topic.
-    - "on_page_seo": {{
-        "meta_description": "A 155-character meta description.",
-        "headings_structure": ["An H1 heading", "An H2 subheading", "Another H2 subheading"],
-        "internal_linking_suggestions": ["Suggest 2-3 internal pages to link to."]
-      }},
-    - "content_brief": "A detailed, paragraph-by-paragraph brief for a writer to create the content.",
-    - "off_page_seo_strategy": "Suggest 3-5 specific backlink or promotional opportunities (e.g., 'Submit to X aggregator', 'Pitch a guest post to Y blog')."
-
-    Return ONLY the JSON object.
-    """
-
-    try:
-        recommendations = llm_client.generate_json(prompt)
-        print("SEO Agent: Successfully generated SEO recommendations.")
-        return recommendations
-    except Exception as e:
-        print(f"SEO Agent: Failed to generate recommendations. Error: {e}")
-        raise
