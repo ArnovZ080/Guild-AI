@@ -1,6 +1,15 @@
 from guild.core.models.schemas import OutcomeContract
 from typing import Dict, Any, List, Callable
-from guild.src.agents import research_agent, business_strategist, content_strategist, scraper_agent, judge_agent, seo_agent
+from guild.src.agents import (
+    research_agent,
+    business_strategist,
+    content_strategist,
+    scraper_agent,
+    judge_agent,
+    seo_agent,
+    paid_ads_agent,
+    copywriter_agent
+)
 import json
 
 
@@ -11,11 +20,11 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     dag = {"nodes": []}
     dependencies = []
 
-
     if "launch" in contract.objective.lower() or "strategy" in contract.objective.lower():
         dag["nodes"].append({
             "id": "business-strategy", "type": "strategist", "name": "Business Strategist Agent",
-            "task": f"Create a high-level business strategy for the objective: '{contract.objective}'. Consider the target audience: {contract.target_audience}",
+            "task": "Generate a high-level business strategy.",
+
             "dependencies": list(dependencies)
         })
         dependencies.append("business-strategy")
@@ -24,16 +33,13 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
         dag["nodes"].append({
             "id": "scrape-leads", "type": "workforce", "name": "Scraper Agent",
             "task": contract.objective, "dependencies": list(dependencies)
-
         })
         dependencies.append("scrape-leads")
     else:
-        research_task = f"Conduct research based on the contract objective: '{contract.objective}'."
-        if contract.target_audience:
-            research_task += f" Focus on the target audience: {contract.target_audience}."
         dag["nodes"].append({
             "id": "research", "type": "workforce", "name": "Research Agent",
-            "task": research_task, "dependencies": list(dependencies)
+            "task": f"Conduct research on '{contract.objective}'.", "dependencies": list(dependencies)
+
         })
         dependencies.append("research")
 
@@ -41,20 +47,22 @@ def compile_contract_to_dag(contract: OutcomeContract) -> Dict[str, Any]:
     if any(d in contract.deliverables for d in web_content_deliverables):
         dag["nodes"].append({
             "id": "seo-analysis", "type": "strategist", "name": "SEO Agent",
-            "task": f"Perform a full SEO analysis for the primary topic: '{contract.objective}'",
-            "dependencies": list(dependencies)
+            "task": f"Perform SEO analysis for '{contract.objective}'", "dependencies": list(dependencies)
         })
         dependencies.append("seo-analysis")
 
-    content_strategy_task = f"Create a content calendar and detailed plan for the following deliverables: {', '.join(contract.deliverables)}."
-    if "seo-analysis" in dependencies:
-        content_strategy_task += " You MUST use the SEO analysis from the previous step to inform your content plan, including keywords and competitor insights."
-
     dag["nodes"].append({
         "id": "content-strategy", "type": "strategist", "name": "Content Strategist Agent",
-        "task": content_strategy_task, "dependencies": list(dependencies)
+        "task": "Create a content calendar and plan.", "dependencies": list(dependencies)
     })
     dependencies.append("content-strategy")
+
+    if "ad_copy" in contract.deliverables:
+        dag["nodes"].append({
+            "id": "paid-ads-strategy", "type": "strategist", "name": "Paid Ads Agent",
+            "task": "Create a paid ads campaign strategy.", "dependencies": list(dependencies)
+        })
+        dependencies.append("paid-ads-strategy")
 
     dag["nodes"].append({
         "id": "content-creation", "type": "workforce", "name": "Content Creation Team (Copywriter, etc.)",
@@ -77,11 +85,10 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
 
     execution_context = {}
 
-
     for node in dag["nodes"]:
         node_id = node.get("id")
         agent_name = node.get("name", "Unknown Agent")
-        task = node.get("task", "No task defined.")
+
         output_data = {}
 
         print(f"\n[Executing Node: {node_id}]")
@@ -89,7 +96,8 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
 
         try:
             if "Business Strategist" in agent_name:
-                prompt = f"""You are a seasoned business strategist...""" # Prompt is long, keeping it brief here
+                prompt = f"Client's Objective: \"{contract.objective}\"\nTarget Audience: \"{contract.target_audience}\""
+
                 output_data = business_strategist.generate_business_strategy(
                     objective=contract.objective, target_audience=contract.target_audience, prompt=prompt)
 
@@ -98,22 +106,27 @@ def execute_dag(dag: Dict[str, Any], contract: OutcomeContract, save_step_callba
 
             elif "Content Strategist" in agent_name:
                 seo_results = execution_context.get("seo-analysis", {})
-                prompt = f"""
-                You are an expert content strategist...
-                You MUST use the following SEO analysis to inform your plan:
-                {json.dumps(seo_results, indent=2)}
-                """
+                prompt = f"Campaign Objective: \"{contract.objective}\"\nRequired Deliverables: {', '.join(contract.deliverables)}\n\nYou MUST use the following SEO analysis to inform your plan:\n{json.dumps(seo_results, indent=2)}"
                 output_data = content_strategist.generate_content_plan(
-                    objective=contract.objective, deliverables=contract.deliverables)
-                # This agent should also be updated to accept the full prompt.
+                    objective=contract.objective, deliverables=contract.deliverables, prompt=prompt)
+
+            elif "Paid Ads Agent" in agent_name:
+                prompt = f"Client's Objective: \"{contract.objective}\"\nTarget Audience: \"{contract.target_audience}\""
+                output_data = paid_ads_agent.generate_ad_campaign(
+                    objective=contract.objective, target_audience=contract.target_audience, prompt=prompt)
 
             elif "Research Agent" in agent_name:
-                output_data = research_agent.search_web(query=task)
+                output_data = research_agent.search_web(query=node.get("task"))
             elif "Scraper Agent" in agent_name:
-                output_data = {"leads": scraper_agent.scrape_leads(query=task)}
+                output_data = {"leads": scraper_agent.scrape_leads(query=node.get("task"))}
+
             elif "Content Creation" in agent_name:
-                dummy_content = f"This is the generated ad copy for the campaign: {contract.objective}."
-                output_data = {"content": dummy_content}
+                # This would be a more complex step, calling the copywriter for each piece of content
+                # For now, we simulate one call.
+                plan = execution_context.get("content-strategy", {})
+                prompt = f"Product Description: \"{contract.objective}\"\nKey Messaging: {plan.get('key_messaging', [])}\nTarget Channel: 'Meta'"
+                output_data = copywriter_agent.generate_ad_copy(
+                    product_description=contract.objective, key_messaging=[], target_channel="Meta", prompt=prompt)
 
             save_step_callback(node_id=node_id, agent_name=agent_name, output_data=output_data, status="completed")
             execution_context[node_id] = output_data
