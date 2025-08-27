@@ -20,6 +20,7 @@ from ..agents.crm_agent import CRMAgent
 from ..agents.project_manager_agent import ProjectManagerAgent
 from ..agents.hr_agent import HRAgent
 
+
 logger = get_logger(__name__)
 
 # A mapping from agent names (as the LLM knows them) to their actual classes
@@ -33,6 +34,7 @@ AGENT_REGISTRY = {
     "CRMAgent": CRMAgent,
     "ProjectManagerAgent": ProjectManagerAgent,
     "HRAgent": HRAgent,
+
 }
 
 DAG_GENERATION_PROMPT = """
@@ -70,6 +72,7 @@ Based on the user's request, create a JSON object representing the workflow.
 *   **Logical Order:** Ensure the dependencies create a logical flow. For example, `Copywriter` must depend on `ContentStrategist`, and `CRMAgent` must depend on `SalesFunnelAgent`.
 *   **Relevance:** Only include agents that are relevant to the user's objective. If the goal is to write a blog post, you probably don't need a `SalesFunnelAgent` or `HRAgent`.
 *   **Start with Strategy:** Most workflows should begin with a high-level strategy agent like `ContentStrategist`, `SEOAgent`, or `SalesFunnelAgent`.
+
 *   **End with Quality Control:** Always include a `JudgeAgent` as the final step to evaluate the primary deliverable.
 
 **Example Output:**
@@ -115,6 +118,7 @@ class Orchestrator:
         response_str = await self.llm_client.chat(prompt)
 
         try:
+
             if response_str.startswith("```json"):
                 response_str = response_str[7:]
             if response_str.endswith("```"):
@@ -183,6 +187,7 @@ class Orchestrator:
             elif task.agent == "JudgeAgent":
                 agent = agent_class(self.user_input, content_to_evaluate=content_to_judge)
             else: # Covers ContentStrategist, SEOAgent, SalesFunnelAgent, HRAgent which only need UserInput
+
                 agent = agent_class(self.user_input)
 
             result_str = await agent.run()
@@ -193,6 +198,7 @@ class Orchestrator:
                 output_data = {"result": result_str}
 
             logger.info(f"Task {task.task_id} completed successfully.")
+
             on_step_complete(
                 node_id=task.task_id,
                 agent_name=task.agent,
@@ -220,6 +226,7 @@ if __name__ == '__main__':
                 description="Solo-founders and entrepreneurs feeling overwhelmed.",
             ),
             additional_notes="The course price is $199. We need a full funnel and a project plan to execute this."
+
         )
 
         def dummy_callback(node_id, agent_name, output_data, status):
@@ -245,3 +252,4 @@ if __name__ == '__main__':
             print("No tasks in the generated workflow to execute.")
 
     asyncio.run(main())
+
