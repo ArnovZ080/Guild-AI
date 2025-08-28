@@ -20,10 +20,12 @@ async def startup_event():
     print(f"Loaded settings: DATABASE_URL={settings.DATABASE_URL}")
 
 
-from api_server.src.routes import workflows, data_rooms
+from api_server.src.routes import workflows, data_rooms, onboarding
 
 app.include_router(workflows.router)
 app.include_router(data_rooms.router)
+app.include_router(onboarding.router)
+
 
 
 @app.get("/")
