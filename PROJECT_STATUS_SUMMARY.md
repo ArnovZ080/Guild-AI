@@ -2,7 +2,6 @@
 
 This document provides a living summary of the project's current state and a clear proposal for the next steps. It will be updated as we complete major phases of work.
 
-
 ---
 
 ### Part 1: Current Project Status (What We've Built)

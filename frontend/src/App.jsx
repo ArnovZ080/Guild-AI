@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataRoomManager } from './components/DataRoomManager';
 import { OAuthConnections } from './components/OAuthConnections';
-// Import the new component
 import MarketingCampaignCreator from './components/MarketingCampaignCreator';
+import OnboardingFlow from './components/OnboardingFlow'; // Import the new onboarding component
+
 import './App.css';
 
 function App() {
   const [activeTab, setActiveTab] = useState('workflow');
+  // Add state to track onboarding completion
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
+  // Render the Onboarding Flow if not complete
+  if (!isOnboardingComplete) {
+    return <OnboardingFlow onOnboardingComplete={() => setIsOnboardingComplete(true)} />;
+  }
+
+  // Render the main app if onboarding is complete
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto py-8">
@@ -27,7 +36,7 @@ function App() {
           </TabsList>
 
           <TabsContent value="workflow">
-            {/* Replace the old interface with the new one */}
+
             <MarketingCampaignCreator />
           </TabsContent>
 
