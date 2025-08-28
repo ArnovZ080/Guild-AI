@@ -1,0 +1,28 @@
+[project]
+name = "guild"
+version = "0.1.0"
+description = "The core logic and AI workforce for the Guild application."
+authors = [{ name = "Guild Development Team" }]
+requires-python = ">=3.11"
+dependencies = [
+    "typer[all]",
+    "pydantic",
+    "pydantic-settings",
+    "requests",
+    "beautifulsoup4",
+    "qdrant-client",
+    "sentence-transformers",
+    "ollama",
+    "playwright",
+    "langchain",
+    "langchain-community",
+    "pypdf",
+    "n8n",
+    "hubspot-api-client",
+]
+
+[project.scripts]
+guild = "guild.src.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
