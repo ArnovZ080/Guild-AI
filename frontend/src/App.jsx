@@ -4,6 +4,7 @@ import { DataRoomManager } from './components/DataRoomManager';
 import { OAuthConnections } from './components/OAuthConnections';
 import MarketingCampaignCreator from './components/MarketingCampaignCreator';
 import OnboardingFlow from './components/OnboardingFlow'; // Import the new onboarding component
+
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
   if (!isOnboardingComplete) {
     return <OnboardingFlow onOnboardingComplete={() => setIsOnboardingComplete(true)} />;
   }
+
 
   // Render the main app if onboarding is complete
   return (
@@ -35,6 +37,7 @@ function App() {
           </TabsList>
 
           <TabsContent value="workflow">
+
             <MarketingCampaignCreator />
           </TabsContent>
 

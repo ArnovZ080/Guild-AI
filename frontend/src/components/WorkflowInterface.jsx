@@ -83,7 +83,7 @@ export function WorkflowInterface() {
         method: 'POST',
       });
       if (!approveRes.ok) throw new Error('Failed to approve workflow');
-      
+
       setRunningWorkflowId(plannedWorkflow.id);
       setView('status');
     } catch (err) {
