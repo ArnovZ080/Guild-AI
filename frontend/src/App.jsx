@@ -17,6 +17,7 @@ function App() {
     return <OnboardingFlow onOnboardingComplete={() => setIsOnboardingComplete(true)} />;
   }
 
+
   // Render the main app if onboarding is complete
   return (
     <div className="min-h-screen bg-background">
