@@ -4,6 +4,7 @@ import { DataRoomManager } from './components/DataRoomManager';
 import { OAuthConnections } from './components/OAuthConnections';
 import MarketingCampaignCreator from './components/MarketingCampaignCreator';
 import OnboardingFlow from './components/OnboardingFlow'; // Import the new onboarding component
+
 import './App.css';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           </TabsList>
 
           <TabsContent value="workflow">
+
             <MarketingCampaignCreator />
           </TabsContent>
 

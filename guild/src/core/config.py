@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = None
+
     OPENAI_API_BASE: Optional[str] = None
 
     # Agent Configuration
