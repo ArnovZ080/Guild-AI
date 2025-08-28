@@ -48,6 +48,7 @@ from ..agents.ux_ui_tester_agent import UXUITesterAgent
 from ..agents.churn_predictor_agent import ChurnPredictorAgent
 
 
+
 logger = get_logger(__name__)
 
 # --- The Master Agent Registry ---
@@ -139,6 +140,7 @@ You are an expert AI Orchestrator, the central "brain" of a large AI workforce. 
 *   **Foundational Layer:**
     *   `JudgeAgent`: **Crucial for quality control.** Should be the final step for most major deliverables to evaluate the quality of the primary agent's work.
 
+
 **2. User's Request:**
 *   **Primary Objective:** {objective}
 *   **Target Audience:** {audience}
@@ -153,6 +155,7 @@ You are an expert AI Orchestrator, the central "brain" of a large AI workforce. 
 *   **Start with Strategy:** Most workflows should begin with a high-level strategy agent.
 *   **End with Quality Control:** Always include a `JudgeAgent` as the final step to evaluate the primary deliverable.
 
+
 **Now, generate the workflow for the user request above. Output JSON only.**
 """
 
@@ -163,6 +166,7 @@ class Orchestrator:
         self.llm_client = LlmClient(Llm(provider="together", model=LlmModels.LLAMA3_70B.value))
 
     async def generate_workflow(self) -> Workflow:
+
         logger.info("Generating workflow by analyzing user input...")
         prompt = DAG_GENERATION_PROMPT.format(
             objective=self.user_input.objective,
@@ -171,10 +175,12 @@ class Orchestrator:
         )
         response_str = await self.llm_client.chat(prompt)
         try:
+
             if response_str.startswith("```json"):
                 response_str = response_str[7:]
             if response_str.endswith("```"):
                 response_str = response_str[:-3]
+
             workflow_data = json.loads(response_str)
             tasks = [Task(**task_data) for task_data in workflow_data.get("tasks", [])]
             workflow = Workflow(user_input=self.user_input, tasks=tasks)
@@ -187,6 +193,7 @@ class Orchestrator:
     async def execute_workflow(self, workflow: Workflow, on_step_complete: Callable) -> Dict[str, Any]:
         logger.info(f"Starting execution of workflow for objective: {workflow.user_input.objective}")
         execution_context: Dict[str, Any] = {}
+
         completed_tasks = set()
         while len(completed_tasks) < len(workflow.tasks):
             tasks_to_run = [
@@ -201,11 +208,13 @@ class Orchestrator:
             for task, result in zip(tasks_to_run, results):
                 execution_context[task.task_id] = result
                 completed_tasks.add(task.task_id)
+
         logger.info("Workflow execution finished.")
         return execution_context
 
     async def _execute_task(self, task: Task, context: Dict[str, Any], on_step_complete: Callable) -> Any:
         logger.info(f"Executing task: {task.task_id} with agent: {task.agent}")
+
         agent_class = AGENT_REGISTRY.get(task.agent)
         if not agent_class:
             raise ValueError(f"Unknown agent '{task.agent}' specified in workflow.")
@@ -253,3 +262,4 @@ class Orchestrator:
             status="completed"
         )
         return output_data
+

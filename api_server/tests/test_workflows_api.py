@@ -6,6 +6,7 @@ import os
 # Use an environment variable for the base URL, with a fallback for local testing
 BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
 
+
 @pytest.fixture(scope="module")
 def client():
     # Use httpx.Client for synchronous tests. For async tests, use httpx.AsyncClient.
@@ -34,6 +35,7 @@ def test_health_check(client: httpx.Client):
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
+
 def test_full_workflow_execution_flow(client: httpx.Client):
     """
     Tests the full pipeline:
@@ -52,6 +54,7 @@ def test_full_workflow_execution_flow(client: httpx.Client):
             }
         },
         "additional_notes": "Focus on digital channels: SEO and paid ads on Instagram."
+
     }
 
     create_response = client.post("/workflows/contracts", json=contract_data)
@@ -103,3 +106,4 @@ def test_full_workflow_execution_flow(client: httpx.Client):
     assert len(judge_executions) > 0
     assert all(ex["status"] == "completed" for ex in judge_executions)
     print("Verified that agent execution steps were recorded.")
+
