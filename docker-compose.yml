@@ -61,6 +61,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 30s
 
   # MinIO (Object Storage)
   minio:
@@ -90,7 +91,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333"]
+      test: ["CMD", "nc", "-z", "localhost", "6333"]
       interval: 10s
       timeout: 5s
       retries: 5
