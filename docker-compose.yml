@@ -1,20 +1,14 @@
 version: '3.8'
 
 services:
-  # API Server (FastAPI)
-  api_server:
+# API Server (FastAPI)
+  backend:
     build:
       context: .
       dockerfile: ./api_server/Dockerfile
     ports:
-      - "5000:5000"
-    command: uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --reload
-    environment:
-      # Environment variables are loaded via Pydantic Settings from the .env file
-      - DATABASE_URL=postgresql://postgres:password@db:5432/workflow_db
-      - MINIO_ENDPOINT=minio:9000
-      - QDRANT_HOST=qdrant
-      - REDIS_URL=redis://redis:6379
+      - "5001:5000"
+    command: uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000
     env_file:
       - .env
     depends_on:
@@ -28,7 +22,7 @@ services:
       - ./api_server/logs:/app/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,10 +35,10 @@ services:
     ports:
       - "3000:80"
     depends_on:
-      - api_server
+      - backend
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -125,11 +119,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      #- ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/ssl:/etc/nginx/ssl
     depends_on:
       - frontend
-      - api_server
+      - backend
     restart: unless-stopped
 
   # Monitoring - Prometheus
