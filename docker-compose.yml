@@ -81,7 +81,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Qdrant (Vector Database)
+# Qdrant (Vector Database)
   qdrant:
     image: qdrant/qdrant:latest
     container_name: guild-ai-qdrant-1
@@ -90,12 +90,19 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
+      - ./monitoring/qdrant-healthcheck.sh:/healthcheck.sh
+    environment:
+      - QDRANT_ALLOW_ORIGIN=*
+      - QDRANT_SERVICE_PORT=6333
+      - QDRANT_GRPC_PORT=6334
+      - QDRANT_LOG_LEVEL=INFO
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "6333"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+
 
 
   # Redis (Caching and Task Queue)
