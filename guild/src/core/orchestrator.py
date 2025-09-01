@@ -2,50 +2,50 @@ import json
 import asyncio
 from typing import Dict, Any, Callable
 
-# Use relative imports within the same package
-from ..models.user_input import UserInput
-from ..models.llm import Llm, LlmModels
-from ..llm.llm_client import LlmClient
-from ..models.workflow import Workflow, Task
-from ..utils.logging_utils import get_logger
+# Use absolute imports for clarity and robustness
+from guild.src.models.user_input import UserInput
+from guild.src.models.llm import Llm, LlmModels
+from guild.src.llm.llm_client import LlmClient
+from guild.src.models.workflow import Workflow, Task
+from guild.src.utils.logging_utils import get_logger
 
 # --- Import ALL Agent Classes ---
 # Foundational
-from ..agents.judge_agent import JudgeAgent
+from guild.src.agents.judge_agent import JudgeAgent
 # Executive
-from ..agents.chief_of_staff_agent import ChiefOfStaffAgent
-from ..agents.strategy_agent import StrategyAgent
-from ..agents.strategic_sounding_board_agent import StrategicSoundingBoardAgent
-from ..agents.well_being_agent import WellBeingAgent
-from ..agents.accountability_coach_agent import AccountabilityCoachAgent
+from guild.src.agents.chief_of_staff_agent import ChiefOfStaffAgent
+from guild.src.agents.strategy_agent import StrategyAgent
+from guild.src.agents.strategic_sounding_board_agent import StrategicSoundingBoardAgent
+from guild.src.agents.well_being_agent import WellBeingAgent
+from guild.src.agents.accountability_coach_agent import AccountabilityCoachAgent
 # Marketing & Growth
-from ..agents.content_strategist import ContentStrategist
-from ..agents.seo_agent import SEOAgent
-from ..agents.copywriter import Copywriter
-from ..agents.paid_ads_agent import PaidAdsAgent
-from ..agents.pr_outreach_agent import PROutreachAgent
-from ..agents.community_manager_agent import CommunityManagerAgent
+from guild.src.agents.content_strategist import ContentStrategist
+from guild.src.agents.seo_agent import SEOAgent
+from guild.src.agents.copywriter import Copywriter
+from guild.src.agents.paid_ads_agent import PaidAdsAgent
+from guild.src.agents.pr_outreach_agent import PROutreachAgent
+from guild.src.agents.community_manager_agent import CommunityManagerAgent
 # Sales & Revenue
-from ..agents.sales_funnel_agent import SalesFunnelAgent
-from ..agents.crm_agent import CRMAgent
-from ..agents.outbound_sales_agent import OutboundSalesAgent
-from ..agents.partnerships_agent import PartnershipsAgent
+from guild.src.agents.sales_funnel_agent import SalesFunnelAgent
+from guild.src.agents.crm_agent import CRMAgent
+from guild.src.agents.outbound_sales_agent import OutboundSalesAgent
+from guild.src.agents.partnerships_agent import PartnershipsAgent
 # Operations
-from ..agents.project_manager_agent import ProjectManagerAgent
-from ..agents.hr_agent import HRAgent
-from ..agents.training_agent import TrainingAgent
-from ..agents.compliance_agent import ComplianceAgent
-from ..agents.skill_development_agent import SkillDevelopmentAgent
-from ..agents.outsourcing_agent import OutsourcingAgent
+from guild.src.agents.project_manager_agent import ProjectManagerAgent
+from guild.src.agents.hr_agent import HRAgent
+from guild.src.agents.training_agent import TrainingAgent
+from guild.src.agents.compliance_agent import ComplianceAgent
+from guild.src.agents.skill_development_agent import SkillDevelopmentAgent
+from guild.src.agents.outsourcing_agent import OutsourcingAgent
 # Finance
-from ..agents.bookkeeping_agent import BookkeepingAgent
-from ..agents.investor_relations_agent import InvestorRelationsAgent
-from ..agents.pricing_agent import PricingAgent
+from guild.src.agents.bookkeeping_agent import BookkeepingAgent
+from guild.src.agents.investor_relations_agent import InvestorRelationsAgent
+from guild.src.agents.pricing_agent import PricingAgent
 # Product & Customer
-from ..agents.product_manager_agent import ProductManagerAgent
-from ..agents.customer_support_agent import CustomerSupportAgent
-from ..agents.ux_ui_tester_agent import UXUITesterAgent
-from ..agents.churn_predictor_agent import ChurnPredictorAgent
+from guild.src.agents.product_manager_agent import ProductManagerAgent
+from guild.src.agents.customer_support_agent import CustomerSupportAgent
+from guild.src.agents.ux_ui_tester_agent import UXUITesterAgent
+from guild.src.agents.churn_predictor_agent import ChurnPredictorAgent
 
 
 
