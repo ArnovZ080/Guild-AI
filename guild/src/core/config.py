@@ -1,10 +1,7 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
-from pydantic import ConfigDict
 
 class Settings(BaseSettings):
-    model_config = ConfigDict(extra='allow')
-
     # Database Configuration
     DATABASE_URL: str = "sqlite:///./guild_app.db"
 
@@ -14,6 +11,7 @@ class Settings(BaseSettings):
 
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = None
+
     OPENAI_API_BASE: Optional[str] = None
 
     # Agent Configuration
@@ -37,6 +35,10 @@ class Settings(BaseSettings):
 
     # HubSpot Configuration
     HUBSPOT_API_KEY: Optional[str] = None
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = 'utf-8'
 
 # Create a single settings instance to be used throughout the application
 settings = Settings()
