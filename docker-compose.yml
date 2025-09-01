@@ -10,14 +10,10 @@ services:
     env_file:
       - .env
     depends_on:
-      db:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - db
+      - minio
+      - qdrant
+      - redis
     volumes:
       - ./api_server:/app/api_server
       - ./guild:/app/guild
@@ -91,18 +87,7 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-      - ./monitoring/qdrant-healthcheck.sh:/healthcheck.sh
-    environment:
-      - QDRANT_ALLOW_ORIGIN=*
-      - QDRANT_SERVICE_PORT=6333
-      - QDRANT_GRPC_PORT=6334
-      - QDRANT_LOG_LEVEL=INFO
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "6333"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+
 
 
 
