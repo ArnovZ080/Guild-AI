@@ -3,12 +3,13 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-# Corrected imports to use the absolute top-level packages
-from api_server.src.models.schemas import (
+# Corrected imports to use the actual top-level packages
+from guild.src.core.models.schemas import (
     Workflow as PydanticWorkflow,
     AgentExecution as PydanticAgentExecution,
 )
-from api_server.src.models.user_input import UserInput
+from guild.src.models.user_input import UserInput
+
 
 from api_server.src import models
 from api_server.src.database import get_db
