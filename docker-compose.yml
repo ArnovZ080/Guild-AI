@@ -97,12 +97,13 @@ services:
       - QDRANT_GRPC_PORT=6334
       - QDRANT_LOG_LEVEL=INFO
     healthcheck:
-       test: ["CMD", "sh", "-c", "command -v curl >/dev/null || apt-get update && apt-get install -y curl; curl -f http://localhost:6333/healthz"]
-       interval: 30s
-       timeout: 10s
-       retries: 5
-       start_period: 30s
-    restart: unless-stopped
+      test: ["CMD", "nc", "-z", "localhost", "6333"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
 
   # Redis (Caching and Task Queue)
   redis:
