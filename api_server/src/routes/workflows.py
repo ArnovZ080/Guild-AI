@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from typing import List
 
 # Corrected imports to use the actual top-level packages
-from models.schemas import (
+from guild.src.core.models.schemas import (
     Workflow as PydanticWorkflow,
     AgentExecution as PydanticAgentExecution,
 )
-from models.user_input import UserInput
+from guild.src.models.user_input import UserInput
 
 from .. import models
 from ..database import get_db
