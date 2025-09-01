@@ -3,19 +3,19 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-# Corrected imports to use the actual top-level packages
-from models.schemas import (
+# Corrected imports to use the absolute top-level packages
+from api_server.src.models.schemas import (
     Workflow as PydanticWorkflow,
     AgentExecution as PydanticAgentExecution,
 )
-from models.user_input import UserInput
+from api_server.src.models.user_input import UserInput
 
-from .. import models
-from ..database import get_db
-from ..tasks import run_workflow_task
+from api_server.src import models
+from api_server.src.database import get_db
+from api_server.src.tasks import run_workflow_task
 
-# Import the new Orchestrator from its top-level package
-from core.orchestrator import Orchestrator
+# Import the new Orchestrator using its absolute path
+from api_server.src.core.orchestrator import Orchestrator
 
 router = APIRouter(
     prefix="/workflows",
