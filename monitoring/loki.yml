@@ -35,8 +35,8 @@ schema_config:
 
 # Add this entire section to your file
 limits_config:
-  ingestion_rate_mb: 64   # Increase the ingestion rate from the default 4MB/s
-  ingestion_burst_mb: 128  # Increase the burst rate from the default 8MB
+  ingestion_rate_mb: 32   # Increase the ingestion rate from the default 4MB/s
+  ingestion_burst_mb: 64  # Increase the burst rate from the default 8MB
 
 
 ruler:

@@ -10,13 +10,12 @@ from guild.src.core.models.schemas import (
 )
 from guild.src.models.user_input import UserInput
 
+from .. import models
+from ..database import get_db
+from ..tasks import run_workflow_task
 
-from api_server.src import models
-from api_server.src.database import get_db
-from api_server.src.tasks import run_workflow_task
-
-# Import the new Orchestrator using its absolute path
-from api_server.src.core.orchestrator import Orchestrator
+# Import the new Orchestrator from its top-level package
+from core.orchestrator import Orchestrator
 
 router = APIRouter(
     prefix="/workflows",
