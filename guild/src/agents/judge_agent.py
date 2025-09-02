@@ -1,6 +1,6 @@
-from guild.core.models.schemas import OutcomeContractCreate, Rubric
-from guild.src.core import llm_client
 from guild.src.core.models.schemas import OutcomeContractCreate, Rubric
+from guild.src.core import llm_client
+
 
 def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
     """
@@ -15,12 +15,26 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
 
     # 1. Construct a detailed prompt for the LLM
     prompt = f"""
-    You are an expert project manager and quality assurance specialist. Your task is to create a detailed quality rubric for an AI workforce based on a user's request.
+    ## Agent Profile
+    **Role:** The Judge Agent, responsible for creating task-specific quality rubrics and evaluating all outputs against them.
+    
+    **Expertise:** Quality assurance, rubric design, evaluation frameworks, and objective assessment.
+    
+    **Objective:** To generate comprehensive quality rubrics that define success metrics for AI workforce deliverables, ensuring consistent quality control across all agent outputs.
 
-    The user's objective is: "{contract.objective}"
-    The required deliverables are: {', '.join(contract.deliverables)}
+    ## Task Instructions
+    **Input:** Outcome contract with objective: "{contract.objective}" and deliverables: {', '.join(contract.deliverables)}
+    **Context:** Creating a quality rubric for AI workforce deliverables to ensure consistent quality standards
+    **Constraints:** Rubric must be specific, measurable, and relevant to the specific request
 
-    Based on this, generate a JSON object that represents a quality rubric. The JSON object must have the following structure:
+    **Steps:**
+    1. **Analyze the objective** to understand what success looks like
+    2. **Review deliverables** to identify quality dimensions
+    3. **Design evaluation criteria** that are specific and measurable
+    4. **Set appropriate weights** for balanced evaluation
+    5. **Determine required checks** based on content type and objectives
+
+    **Output Format (JSON only):**
     {{
       "quality_threshold": 0.8,
       "criteria": [
@@ -32,10 +46,14 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
       "seo_optimization_required": boolean
     }}
 
-    - Create at least 4 relevant criteria.
-    - The weights of all criteria must sum to 1.0.
-    - Base the criteria on the specific objective and deliverables. For example, if the user asks for 'ad copy', include a criterion for 'Conversion Potential'. If they ask for 'research', include 'Depth of Analysis'.
-    - Set the boolean flags based on whether those checks seem relevant to the request.
+    **Quality Criteria:**
+    - Create at least 4 relevant criteria specific to the objective
+    - The weights of all criteria must sum to 1.0
+    - Base criteria on the specific objective and deliverables
+    - For 'ad copy', include 'Conversion Potential'
+    - For 'research', include 'Depth of Analysis'
+    - For 'content strategy', include 'Strategic Alignment'
+    - Set boolean flags based on content type relevance
 
     Return ONLY the JSON object, with no other text or explanation.
     """
@@ -57,6 +75,7 @@ def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
         # As a fallback, we could return a default rubric, but for now we'll re-raise
         raise
 
+
 def evaluate_output(content: str, rubric: Rubric) -> dict:
     """
     Evaluates a piece of content against a given rubric using an LLM.
@@ -71,19 +90,36 @@ def evaluate_output(content: str, rubric: Rubric) -> dict:
     print("Judge Agent: Evaluating content against rubric...")
 
     prompt = f"""
-    You are a strict and fair quality assurance specialist. Your task is to evaluate a piece of content based on a predefined rubric.
+    ## Agent Profile
+    **Role:** The Judge Agent, responsible for evaluating content against predefined quality rubrics.
+    
+    **Expertise:** Quality assessment, objective evaluation, feedback generation, and scoring methodologies.
+    
+    **Objective:** To provide fair, objective, and constructive evaluation of AI-generated content against established quality criteria.
 
-    Here is the content to evaluate:
+    ## Task Instructions
+    **Input:** Content to evaluate and quality rubric for assessment
+    **Context:** Evaluating AI-generated content against predefined quality standards to ensure consistent output quality
+    **Constraints:** Must be objective, fair, and provide actionable feedback
+
+    **Steps:**
+    1. **Analyze the content** against each rubric criterion
+    2. **Score each criterion** objectively (0.0 to 1.0 scale)
+    3. **Calculate final score** as weighted average
+    4. **Generate constructive feedback** with specific improvement suggestions
+    5. **Ensure objectivity** in all assessments
+
+    **Content to Evaluate:**
     --- CONTENT START ---
     {content[:2000]}
     --- CONTENT END ---
 
-    Here is the rubric to use for evaluation:
+    **Rubric for Evaluation:**
     --- RUBRIC START ---
     {rubric.json()}
     --- RUBRIC END ---
 
-    Please provide your evaluation as a JSON object. The JSON object must have the following structure:
+    **Output Format (JSON only):**
     {{
       "scores": [
         {{ "criterion": "Criterion Name from Rubric", "score": 0.0 to 1.0, "reasoning": "Brief explanation for your score." }}
@@ -92,8 +128,12 @@ def evaluate_output(content: str, rubric: Rubric) -> dict:
       "feedback": "A summary of the content's strengths and weaknesses, with specific suggestions for improvement."
     }}
 
-    - The 'final_score' should be the weighted average of the individual criterion scores.
-    - Be critical and objective in your assessment.
+    **Evaluation Guidelines:**
+    - Score each criterion objectively on a 0.0 to 1.0 scale
+    - The 'final_score' should be the weighted average of individual criterion scores
+    - Be critical but fair in your assessment
+    - Provide specific, actionable feedback for improvement
+    - Focus on the content's alignment with the rubric criteria
 
     Return ONLY the JSON object, with no other text or explanation.
     """
@@ -105,3 +145,15 @@ def evaluate_output(content: str, rubric: Rubric) -> dict:
     except Exception as e:
         print(f"Judge Agent: Failed to evaluate content. Error: {e}")
         raise
+
+
+class JudgeAgent:
+    """Class wrapper to satisfy imports expecting a JudgeAgent with methods."""
+
+    @staticmethod
+    def generate_rubric(contract: OutcomeContractCreate) -> Rubric:
+        return generate_rubric(contract)
+
+    @staticmethod
+    def evaluate_output(content: str, rubric: Rubric) -> dict:
+        return evaluate_output(content, rubric)
