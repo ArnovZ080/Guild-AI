@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from guild.src.core.config import settings
 from .database import engine, Base
 from . import models
+from fastapi.middleware.cors import CORSMiddleware
+import os
 
 # Create all database tables
 Base.metadata.create_all(bind=engine)
@@ -11,6 +13,17 @@ app = FastAPI(
     title="Guild API Server",
     description="The API for orchestrating the Guild AI workforce.",
     version="1.0.0"
+)
+
+# CORS configuration
+origins_env = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [o for o in (origins_env.split(",") if origins_env else []) if o]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins or ["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -27,6 +40,9 @@ app.include_router(data_rooms.router)
 app.include_router(onboarding.router)
 
 
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
 
 @app.get("/")
 async def root():
