@@ -33,11 +33,12 @@ async def startup_event():
     print(f"Loaded settings: DATABASE_URL={settings.DATABASE_URL}")
 
 
-from api_server.src.routes import workflows, data_rooms, onboarding
+from api_server.src.routes import workflows, data_rooms, onboarding, workflow_builder
 
 app.include_router(workflows.router)
 app.include_router(data_rooms.router)
 app.include_router(onboarding.router)
+app.include_router(workflow_builder.router)
 
 
 @app.get("/health")
