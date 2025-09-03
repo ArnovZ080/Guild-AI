@@ -3,15 +3,44 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Database Configuration
-    DATABASE_URL: str = "sqlite:///./guild_app.db"
+    DATABASE_URL: str = "postgresql://postgres:password@db:5432/workflow_db"
+    
+    # PostgreSQL Configuration
+    POSTGRES_DB: str = "workflow_db"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "password"
+    POSTGRES_HOST: str = "db"
+    
+    # Redis Configuration
+    REDIS_HOST: str = "redis"
+    REDIS_PORT: str = "6379"
+    # Common alias for full URL in local/dev setups
+    REDIS_URL: Optional[str] = None
 
     # Celery Configuration
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
 
+    # MinIO Configuration
+    MINIO_ENDPOINT: str = "minio:9000"
+    MINIO_ROOT_USER: str = "minio_user"
+    MINIO_ROOT_PASSWORD: str = "minio_password"
+    MINIO_BUCKET_NAME: str = "guild-bucket"
+
+    # Qdrant Configuration
+    QDRANT_HOST: str = "qdrant"
+    QDRANT_URL: Optional[str] = None
+
+    # FastAPI Configuration
+    FASTAPI_APP_ENV: str = "local"
+    FASTAPI_SECRET_KEY: str = "a_strong_secret_key_here"
+    ALLOWED_ORIGINS: Optional[str] = None
+
+    # LLM Configuration
+    LLM_PROVIDER: Optional[str] = None
+
     # OpenAI Configuration
     OPENAI_API_KEY: Optional[str] = None
-
     OPENAI_API_BASE: Optional[str] = None
 
     # Agent Configuration
@@ -35,6 +64,11 @@ class Settings(BaseSettings):
 
     # HubSpot Configuration
     HUBSPOT_API_KEY: Optional[str] = None
+
+    @property
+    def database_url(self) -> str:
+        """Construct database URL from PostgreSQL settings"""
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:5432/{self.POSTGRES_DB}"
 
     class Config:
         env_file = ".env"

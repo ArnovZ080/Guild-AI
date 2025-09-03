@@ -2,12 +2,15 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from guild.src.core.config import settings
+import os
 
-# Create the SQLAlchemy engine
+# Prefer explicit DATABASE_URL env if present, else fall back to constructed one
+explicit_url = os.getenv("DATABASE_URL") or getattr(settings, "DATABASE_URL", None)
+resolved_db_url = explicit_url or settings.database_url
+
+# Create the SQLAlchemy engine using the resolved database URL
 engine = create_engine(
-    settings.DATABASE_URL,
-    # connect_args={"check_same_thread": False} is only needed for SQLite
-    # For PostgreSQL, this is not necessary.
+    resolved_db_url,
 )
 
 # Create a configured "Session" class
