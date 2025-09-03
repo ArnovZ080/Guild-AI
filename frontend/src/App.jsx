@@ -1,23 +1,40 @@
 import React, { useState } from 'react';
+import { Routes, Route, Link } from 'react-router-dom';
 import OnboardingFlow from './components/OnboardingFlow';
 import MainLayout from './layouts/MainLayout';
+import WorkflowBuilderView from './components/builder/WorkflowBuilderView';
+
 
 import './App.css';
+
+// A simple navigation component for easy switching during development
+const DevNavigation = () => (
+  <nav className="bg-gray-900 text-white p-2 absolute top-0 left-0 z-50">
+    <Link to="/" className="mr-4">Dashboard</Link>
+    <Link to="/builder">Builder</Link>
+  </nav>
+);
+
 
 function App() {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
-  // For development and review, we'll bypass the onboarding flow for now.
-  // This allows direct access to the new UI layout.
+
   const showOnboarding = false;
 
   if (showOnboarding && !isOnboardingComplete) {
     return <OnboardingFlow onOnboardingComplete={() => setIsOnboardingComplete(true)} />;
   }
 
-  // Render the main application layout
   return (
-    <MainLayout />
+    <div className="relative">
+      <DevNavigation />
+      <Routes>
+        <Route path="/" element={<MainLayout />} />
+        <Route path="/builder" element={<WorkflowBuilderView />} />
+      </Routes>
+    </div>
+
   );
 }
 
