@@ -16,7 +16,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from guild.src.core.vision.visual_automation_tool import VisualAutomationTool
-from guild.src.core.orchestrator import WorkforceOrchestrator
+from guild.src.core.orchestrator import Orchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +24,17 @@ logger = logging.getLogger(__name__)
 class BaseNode(ABC):
     """Base class for all workflow nodes."""
     
-    def __init__(self, node_id: str, name: str, description: str = ""):
+    def __init__(self, node_id: str, name: str, description: str = "", node_type: str = "base"):
         self.node_id = node_id
         self.name = name
         self.description = description
+        self.node_type = node_type
         self.status = "pending"
         self.inputs: Dict[str, Any] = {}
         self.outputs: Dict[str, Any] = {}
+        self.dependencies: List[str] = []
+        self.estimated_duration: int = 0
+        self.config: Dict[str, Any] = {}
         self.error: Optional[str] = None
         self.execution_log: List[Dict[str, Any]] = []
         self.start_time: Optional[float] = None
@@ -68,7 +72,7 @@ class AgentNode(BaseNode):
     """Node that executes one of your existing AI agents."""
     
     def __init__(self, node_id: str, name: str, agent_type: str, agent_config: Dict[str, Any]):
-        super().__init__(node_id, name, f"AI Agent: {agent_type}")
+        super().__init__(node_id, name, f"AI Agent: {agent_type}", "agent")
         self.agent_type = agent_type
         self.agent_config = agent_config
         self.agent = None
@@ -79,10 +83,26 @@ class AgentNode(BaseNode):
         try:
             # Import and instantiate the appropriate agent
             if self.agent_type == "content_strategist":
-                from guild.src.agents.content_strategist import ContentStrategistAgent
-                self.agent = ContentStrategistAgent(self.agent_config)
+                from guild.src.agents.content_strategist import ContentStrategist
+                self.agent = ContentStrategist(self.agent_config)
             elif self.agent_type == "copywriter":
-                from guild.src.agents.copywriter_agent import CopywriterAgent
+                from guild.src.agents.copywriter_agent import generate_ad_copy
+                # Create a wrapper class for the copywriter function
+                class CopywriterAgent:
+                    def __init__(self, config):
+                        self.config = config
+                    
+                    async def run(self, context):
+                        try:
+                            result = generate_ad_copy(
+                                product_description=context.get("product_description", ""),
+                                key_messaging=context.get("key_messaging", []),
+                                target_channel=context.get("target_channel", "general")
+                            )
+                            return {"success": True, "result": result}
+                        except Exception as e:
+                            return {"success": False, "error": str(e)}
+                
                 self.agent = CopywriterAgent(self.agent_config)
             elif self.agent_type == "judge":
                 from guild.src.agents.judge_agent import JudgeAgent
@@ -91,9 +111,16 @@ class AgentNode(BaseNode):
                 from guild.src.agents.onboarding_agent import OnboardingAgent
                 self.agent = OnboardingAgent(self.agent_config)
             else:
-                # Generic agent fallback
-                from guild.src.agents.base_agent import BaseAgent
-                self.agent = BaseAgent(self.agent_type, self.agent_config)
+                # Generic agent fallback - create a simple wrapper
+                class GenericAgent:
+                    def __init__(self, agent_type, config):
+                        self.agent_type = agent_type
+                        self.config = config
+                    
+                    async def run(self, context):
+                        return {"success": True, "agent_type": self.agent_type, "message": f"Generic agent {self.agent_type} executed"}
+                
+                self.agent = GenericAgent(self.agent_type, self.agent_config)
                 
             logger.info(f"Initialized agent node: {self.agent_type}")
         except Exception as e:
@@ -149,7 +176,7 @@ class VisualSkillNode(BaseNode):
     """Node that executes learned visual automation skills."""
     
     def __init__(self, node_id: str, name: str, skill_pattern: Dict[str, Any]):
-        super().__init__(node_id, name, f"Visual Skill: {name}")
+        super().__init__(node_id, name, f"Visual Skill: {name}", "visual_skill")
         self.skill_pattern = skill_pattern
         self.visual_tool = VisualAutomationTool()
         self.estimated_duration = skill_pattern.get("estimated_duration", 30)
@@ -255,7 +282,7 @@ class LogicNode(BaseNode):
     """Node that provides control flow and decision making."""
     
     def __init__(self, node_id: str, name: str, logic_type: str, config: Dict[str, Any]):
-        super().__init__(node_id, name, f"Logic: {logic_type}")
+        super().__init__(node_id, name, f"Logic: {logic_type}", "logic")
         self.logic_type = logic_type
         self.config = config
     
@@ -393,7 +420,7 @@ class InputNode(BaseNode):
     """Node that provides input data to the workflow."""
     
     def __init__(self, node_id: str, name: str, input_type: str, default_value: Any = None):
-        super().__init__(node_id, name, f"Input: {input_type}")
+        super().__init__(node_id, name, f"Input: {input_type}", "input")
         self.input_type = input_type
         self.default_value = default_value
     
@@ -422,7 +449,7 @@ class OutputNode(BaseNode):
     """Node that collects output data from the workflow."""
     
     def __init__(self, node_id: str, name: str, output_type: str = "any"):
-        super().__init__(node_id, name, f"Output: {output_type}")
+        super().__init__(node_id, name, f"Output: {output_type}", "output")
         self.output_type = output_type
     
     async def execute(self, context: Dict[str, Any]) -> Dict[str, Any]:

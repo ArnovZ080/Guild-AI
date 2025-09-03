@@ -107,6 +107,320 @@ class VisualWorkflowBuilder:
                 "category": "Visual Skills"
             },
             
+            # Social Media Skills
+            "instagram_post": {
+                "type": "visual_skill",
+                "name": "Instagram Post",
+                "description": "Create and post Instagram content",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "plus_button"},
+                            {"action_type": "click", "target_element": "post_option"},
+                            {"action_type": "click", "target_element": "select_photos"},
+                            {"action_type": "wait", "duration": 2},
+                            {"action_type": "click", "target_element": "next_button"},
+                            {"action_type": "type", "target_element": "caption_field", "action_data": {"text": "{caption}"}},
+                            {"action_type": "click", "target_element": "share_button"}
+                        ],
+                        "estimated_duration": 60
+                    }
+                },
+                "category": "Social Media"
+            },
+            "twitter_post": {
+                "type": "visual_skill",
+                "name": "Twitter Post",
+                "description": "Compose and post Twitter content",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "tweet_button"},
+                            {"action_type": "type", "target_element": "tweet_input", "action_data": {"text": "{tweet_text}"}},
+                            {"action_type": "click", "target_element": "add_media"},
+                            {"action_type": "wait", "duration": 2},
+                            {"action_type": "click", "target_element": "post_tweet"}
+                        ],
+                        "estimated_duration": 45
+                    }
+                },
+                "category": "Social Media"
+            },
+            "linkedin_post": {
+                "type": "visual_skill",
+                "name": "LinkedIn Post",
+                "description": "Create professional LinkedIn posts",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "start_post"},
+                            {"action_type": "type", "target_element": "post_content", "action_data": {"text": "{post_content}"}},
+                            {"action_type": "type", "target_element": "hashtag_input", "action_data": {"text": "{hashtags}"}},
+                            {"action_type": "click", "target_element": "post_button"}
+                        ],
+                        "estimated_duration": 60
+                    }
+                },
+                "category": "Social Media"
+            },
+            "facebook_post": {
+                "type": "visual_skill",
+                "name": "Facebook Post",
+                "description": "Post content to Facebook pages",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "create_post"},
+                            {"action_type": "type", "target_element": "post_text", "action_data": {"text": "{post_text}"}},
+                            {"action_type": "click", "target_element": "add_photo"},
+                            {"action_type": "wait", "duration": 2},
+                            {"action_type": "click", "target_element": "post_now"}
+                        ],
+                        "estimated_duration": 45
+                    }
+                },
+                "category": "Social Media"
+            },
+            
+            # Content Creation Skills
+            "canva_design": {
+                "type": "visual_skill",
+                "name": "Canva Design",
+                "description": "Create social media graphics in Canva",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "canva.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "create_design"},
+                            {"action_type": "click", "target_element": "social_media_template"},
+                            {"action_type": "click", "target_element": "instagram_post"},
+                            {"action_type": "type", "target_element": "text_editor", "action_data": {"text": "{design_text}"}},
+                            {"action_type": "click", "target_element": "download_button"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Content Creation"
+            },
+            "video_editing_capcut": {
+                "type": "visual_skill",
+                "name": "CapCut Video Editing",
+                "description": "Basic video editing in CapCut",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "new_project"},
+                            {"action_type": "click", "target_element": "import_media"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "drag", "target_element": "media_clip", "action_data": {"target": "timeline"}},
+                            {"action_type": "click", "target_element": "text_tool"},
+                            {"action_type": "type", "target_element": "text_input", "action_data": {"text": "{video_text}"}},
+                            {"action_type": "click", "target_element": "export_button"}
+                        ],
+                        "estimated_duration": 180
+                    }
+                },
+                "category": "Content Creation"
+            },
+            "video_editing_davinci": {
+                "type": "visual_skill",
+                "name": "DaVinci Resolve Editing",
+                "description": "Professional video editing in DaVinci Resolve",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "new_project"},
+                            {"action_type": "click", "target_element": "import_media"},
+                            {"action_type": "wait", "duration": 5},
+                            {"action_type": "drag", "target_element": "media_clip", "action_data": {"target": "timeline"}},
+                            {"action_type": "click", "target_element": "color_correction"},
+                            {"action_type": "adjust_slider", "target_element": "exposure", "action_data": {"value": "{exposure_value}"}},
+                            {"action_type": "click", "target_element": "export_button"}
+                        ],
+                        "estimated_duration": 300
+                    }
+                },
+                "category": "Content Creation"
+            },
+            "youtube_upload": {
+                "type": "visual_skill",
+                "name": "YouTube Upload",
+                "description": "Upload and configure YouTube videos",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "studio.youtube.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "create_button"},
+                            {"action_type": "click", "target_element": "upload_video"},
+                            {"action_type": "wait", "duration": 5},
+                            {"action_type": "type", "target_element": "title_field", "action_data": {"text": "{video_title}"}},
+                            {"action_type": "type", "target_element": "description_field", "action_data": {"text": "{video_description}"}},
+                            {"action_type": "click", "target_element": "publish_button"}
+                        ],
+                        "estimated_duration": 240
+                    }
+                },
+                "category": "Content Creation"
+            },
+            "tiktok_upload": {
+                "type": "visual_skill",
+                "name": "TikTok Upload",
+                "description": "Upload and configure TikTok videos",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "tiktok.com/upload"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "upload_video"},
+                            {"action_type": "wait", "duration": 5},
+                            {"action_type": "type", "target_element": "caption_field", "action_data": {"text": "{tiktok_caption}"}},
+                            {"action_type": "click", "target_element": "add_hashtags"},
+                            {"action_type": "type", "target_element": "hashtag_input", "action_data": {"text": "{hashtags}"}},
+                            {"action_type": "click", "target_element": "post_button"}
+                        ],
+                        "estimated_duration": 180
+                    }
+                },
+                "category": "Content Creation"
+            },
+            "podcast_editing": {
+                "type": "visual_skill",
+                "name": "Podcast Editing",
+                "description": "Basic podcast editing in Audacity",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "file_open"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "select_audio"},
+                            {"action_type": "click", "target_element": "noise_reduction"},
+                            {"action_type": "click", "target_element": "normalize_audio"},
+                            {"action_type": "click", "target_element": "export_audio"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Content Creation"
+            },
+            
+            # Business Operations Skills
+            "invoice_creation": {
+                "type": "visual_skill",
+                "name": "Invoice Creation",
+                "description": "Create invoices in accounting software",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "new_invoice"},
+                            {"action_type": "type", "target_element": "client_field", "action_data": {"text": "{client_name}"}},
+                            {"action_type": "type", "target_element": "amount_field", "action_data": {"text": "{amount}"}},
+                            {"action_type": "type", "target_element": "description_field", "action_data": {"text": "{description}"}},
+                            {"action_type": "click", "target_element": "save_button"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Business Operations"
+            },
+            "calendar_scheduling": {
+                "type": "visual_skill",
+                "name": "Calendar Scheduling",
+                "description": "Schedule meetings and appointments",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "click", "target_element": "new_event"},
+                            {"action_type": "type", "target_element": "title_field", "action_data": {"text": "{event_title}"}},
+                            {"action_type": "type", "target_element": "date_field", "action_data": {"text": "{date}"}},
+                            {"action_type": "type", "target_element": "time_field", "action_data": {"text": "{time}"}},
+                            {"action_type": "click", "target_element": "save_button"}
+                        ],
+                        "estimated_duration": 60
+                    }
+                },
+                "category": "Business Operations"
+            },
+            
+            # Marketing & Analytics Skills
+            "google_analytics_report": {
+                "type": "visual_skill",
+                "name": "Google Analytics Report",
+                "description": "Generate and export analytics reports",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "analytics.google.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "date_range"},
+                            {"action_type": "click", "target_element": "last_30_days"},
+                            {"action_type": "click", "target_element": "export_button"},
+                            {"action_type": "click", "target_element": "csv_format"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Marketing & Analytics"
+            },
+            "facebook_ads_creation": {
+                "type": "visual_skill",
+                "name": "Facebook Ads Creation",
+                "description": "Create Facebook advertising campaigns",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "adsmanager.facebook.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "create_campaign"},
+                            {"action_type": "click", "target_element": "awareness_objective"},
+                            {"action_type": "type", "target_element": "campaign_name", "action_data": {"text": "{campaign_name}"}},
+                            {"action_type": "click", "target_element": "continue_button"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Marketing & Analytics"
+            },
+            "google_ads_creation": {
+                "type": "visual_skill",
+                "name": "Google Ads Creation",
+                "description": "Create Google advertising campaigns",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "ads.google.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_campaign"},
+                            {"action_type": "click", "target_element": "search_campaign"},
+                            {"action_type": "type", "target_element": "campaign_name", "action_data": {"text": "{campaign_name}"}},
+                            {"action_type": "click", "target_element": "continue_button"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Marketing & Analytics"
+            },
+            "email_campaign_setup": {
+                "type": "visual_skill",
+                "name": "Email Campaign Setup",
+                "description": "Set up email marketing campaigns",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "mailchimp.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "create_campaign"},
+                            {"action_type": "click", "target_element": "email_campaign"},
+                            {"action_type": "type", "target_element": "campaign_name", "action_data": {"text": "{campaign_name}"}},
+                            {"action_type": "click", "target_element": "design_email"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Marketing & Analytics"
+            },
+            
             # Logic Templates
             "if_else": {
                 "type": "logic",
@@ -211,6 +525,9 @@ class VisualWorkflowBuilder:
         config = template["config"].copy()
         if custom_config:
             config.update(custom_config)
+        
+        # Remove name from config to avoid conflicts
+        config.pop("name", None)
         
         # Create node
         node = create_node(
