@@ -1,0 +1,81 @@
+id: pr_opportunities_manager
+name: PR & Media Opportunities Manager
+description: "Daily automated PR opportunity hunting, media outreach, and brand mention tracking for business growth."
+
+trigger:
+  type: schedule
+  cron: "0 7 * * 1-5" # Weekdays at 7 AM
+
+steps:
+  - name: scan_media_mentions
+    agent: scraper_agent
+    input: "Scan news sites, social media, and industry publications for mentions of our company, competitors, and industry keywords."
+    output: media_mentions
+
+  - name: identify_pr_opportunities
+    agent: evaluation_agent
+    loop: "{{ steps.scan_media_mentions.output }}"
+    input:
+      mention: "{{ loop.item }}"
+      criteria: "{{ config.pr_opportunity_criteria }}"
+      prompt: "Evaluate if this mention represents a PR opportunity (interview request, quote opportunity, partnership mention, etc.)"
+    output: pr_opportunities
+
+  - name: research_media_contacts
+    agent: research_agent
+    loop: "{{ steps.identify_pr_opportunities.output }}"
+    input:
+      opportunity: "{{ loop.item }}"
+      prompt: "Find relevant media contacts, journalists, and influencers for this PR opportunity"
+    output: media_contacts
+
+  - name: generate_pr_pitches
+    agent: copywriter_agent
+    loop: "{{ steps.identify_pr_opportunities.output }}"
+    input:
+      opportunity: "{{ loop.item }}"
+      contacts: "{{ steps.research_media_contacts.output }}"
+      prompt: "Create personalized PR pitches for each opportunity with compelling angles and company positioning"
+    output: pr_pitches
+
+  - name: create_media_outreach_sequence
+    agent: marketing_agent
+    input:
+      opportunities: "{{ steps.identify_pr_opportunities.output }}"
+      pitches: "{{ steps.generate_pr_pitches.output }}"
+      contacts: "{{ steps.research_media_contacts.output }}"
+      prompt: "Create a prioritized outreach sequence with timing and follow-up strategy"
+    output: outreach_sequence
+
+  - name: send_initial_pitches
+    agent: email_agent
+    loop: "{{ steps.outreach_sequence.output.initial_pitches }}"
+    input:
+      to: "{{ loop.item.contact_email }}"
+      subject: "{{ loop.item.pitch_subject }}"
+      body: "{{ loop.item.pitch_body }}"
+      follow_up_date: "{{ loop.item.follow_up_date }}"
+    output: pitches_sent
+
+  - name: track_brand_mentions
+    agent: scraper_agent
+    input: "Monitor social media, news, and blogs for new brand mentions and sentiment analysis"
+    output: brand_mentions
+
+  - name: generate_pr_report
+    agent: content_strategist
+    input:
+      opportunities: "{{ steps.identify_pr_opportunities.output }}"
+      outreach_results: "{{ steps.pitches_sent.output }}"
+      brand_mentions: "{{ steps.track_brand_mentions.output }}"
+      prompt: "Create a daily PR report with opportunities, outreach status, and brand sentiment"
+    output: daily_pr_report
+
+  - name: send_pr_summary
+    agent: email_agent
+    input:
+      to: "{{ config.pr_team_email }}"
+      subject: "Daily PR Report - {{ date }}"
+      body: "{{ steps.generate_pr_report.output }}"
+      attachments: ["{{ steps.generate_pr_report.output }}"]
+    output: pr_summary_sent

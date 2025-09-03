@@ -1,0 +1,69 @@
+id: lead_generation_manager
+name: Lead Generation & CRM Manager
+description: "Automates lead generation, nurturing, and CRM management processes."
+
+trigger:
+  type: schedule
+  cron: "0 10 * * 1-5" # Weekdays at 10 AM
+
+steps:
+  - name: analyze_audience
+    agent: visual_agent
+    input:
+      skill: "audience_analysis_ai"
+      target_audience: "{{ config.target_audience }}"
+      business_type: "{{ config.business_type }}"
+    output: audience_insights
+
+  - name: create_lead_magnets
+    agent: visual_agent
+    input:
+      skill: "lead_magnet_creation"
+      insights: "{{ steps.analyze_audience.output }}"
+      prompt: "Create lead magnets based on audience pain points."
+    output: new_lead_magnets
+
+  - name: build_email_funnel
+    agent: visual_agent
+    input:
+      skill: "email_collection_funnel"
+      lead_magnets: "{{ steps.create_lead_magnets.output }}"
+    output: email_funnel
+
+  - name: scan_for_leads
+    agent: scraper_agent
+    input: "Scan social media, forums, and industry sites for potential leads matching ICP."
+    output: potential_leads
+
+  - name: qualify_leads
+    agent: evaluation_agent
+    loop: "{{ steps.scan_for_leads.output }}"
+    input:
+      lead: "{{ loop.item }}"
+      icp_criteria: "{{ config.icp_criteria }}"
+      prompt: "Evaluate if this lead matches our Ideal Customer Profile."
+    output: qualified_leads
+
+  - name: add_to_crm
+    agent: visual_agent
+    loop: "{{ steps.qualify_leads.output }}"
+    input:
+      skill: "crm_lead_management"
+      lead_data: "{{ loop.item }}"
+    output: crm_leads_added
+
+  - name: create_nurture_sequence
+    agent: marketing_agent
+    input:
+      leads: "{{ steps.crm_leads_added.output }}"
+      prompt: "Create personalized nurture sequences for new leads."
+    output: nurture_sequences
+
+  - name: send_welcome_emails
+    agent: email_agent
+    loop: "{{ steps.nurture_sequences.output }}"
+    input:
+      to: "{{ loop.item.email }}"
+      subject: "Welcome to {{ config.company_name }}!"
+      body: "{{ loop.item.welcome_message }}"
+    output: welcome_emails_sent
