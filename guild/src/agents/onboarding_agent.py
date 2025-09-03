@@ -1,11 +1,11 @@
 import json
 import asyncio
 
-from models.user_input import UserInput, Audience
-from models.agent import Agent, AgentCallback
-from models.llm import Llm, LlmModels
-from llm.llm_client import LlmClient
-from utils.logging_utils import get_logger
+from guild.src.models.user_input import UserInput, Audience
+from guild.src.models.agent import Agent, AgentCallback
+from guild.src.models.llm import Llm, LlmModels
+from guild.src.core.llm_client import LlmClient
+from guild.src.utils.logging_utils import get_logger
 
 logger = get_logger(__name__)
 
@@ -36,30 +36,44 @@ Conclude by saying once they provide these details, you will generate a formal B
 """
 
 GENERATE_BRAND_VOICE_PROMPT = """
-You are the Onboarding Agent. The user has provided details about their desired brand voice.
+## Agent Profile
+**Role:** The Onboarding Agent, synthesizing brand voice preferences into a formal document.
 
-**User's Brand Voice Preferences:**
-"{brand_voice_preferences}"
+**Expertise:** Brand documentation, voice synthesis, and strategic communication planning.
 
-**Your Task:**
-Synthesize the user's preferences into a formal Brand Voice document. This document will be stored and used by all other AI agents (especially marketing and sales agents) to ensure consistent communication.
+**Objective:** To create a comprehensive Brand Voice document that will guide all AI agents in maintaining consistent brand communication.
+
+## Task Instructions
+**Input:** User's brand voice preferences: "{brand_voice_preferences}"
+**Context:** The user has defined their brand voice preferences and now needs a formal document for AI agent alignment
+**Constraints:** Create a comprehensive, actionable document that AI agents can follow
+
+**Steps:**
+1. **Analyze the user's preferences** for tone, vocabulary, pacing, and personality
+2. **Synthesize into clear guidelines** that AI agents can follow
+3. **Create a structured document** with actionable style guidelines
+4. **Ensure completeness** for comprehensive brand voice guidance
 
 **Output Format (JSON only):**
 {{
   "brand_voice_document": {{
     "document_title": "Foundational Document: Brand Voice & Tone",
-    "brand_personality_summary": "A one-paragraph summary of the brand's overall personality.",
+    "brand_personality_summary": "A one-paragraph summary of the brand's overall personality based on user preferences.",
     "core_attributes": [
-      {{ "attribute": "Tone", "description": "e.g., 'Casual, enthusiastic, and slightly humorous.'" }},
-      {{ "attribute": "Vocabulary", "description": "e.g., 'Accessible and easy-to-understand. Avoids overly technical jargon.'" }},
-      {{ "attribute": "Pacing", "description": "e.g., 'Generally short and punchy, especially for social media. Longer form content should still be broken up with headings and bullet points.'" }}
+      {{ "attribute": "Tone", "description": "Specific tone description based on user preferences" }},
+      {{ "attribute": "Vocabulary", "description": "Specific vocabulary guidelines based on user preferences" }},
+      {{ "attribute": "Pacing", "description": "Specific pacing guidelines based on user preferences" }},
+      {{ "attribute": "Personality", "description": "Specific personality description based on user preferences" }}
     ],
     "style_guidelines": {{
-        "do": ["A list of things to do (e.g., 'Use emojis to convey emotion', 'Speak directly to the user as 'you'')."],
-        "dont": ["A list of things to avoid (e.g., 'Don't be overly formal or corporate', 'Don't use complex sentence structures.')."]
-    }}
+        "do": ["Specific actions to take based on user preferences"],
+        "dont": ["Specific actions to avoid based on user preferences"]
+    }},
+    "ai_agent_instructions": "Clear instructions for how AI agents should apply this brand voice"
   }}
 }}
+
+**Quality Criteria:** Comprehensive coverage of all brand voice aspects, clear and actionable guidelines, and specific instructions for AI agent implementation.
 """
 
 class OnboardingAgent(Agent):
@@ -70,7 +84,11 @@ class OnboardingAgent(Agent):
             user_input,
             callback=callback
         )
-        self.llm_client = LlmClient(Llm(provider="together", model=LlmModels.LLAMA3_70B.value))
+        # Use configured provider from environment, fallback to ollama
+        import os
+        provider = os.getenv("LLM_PROVIDER", "ollama")
+        model = os.getenv("OLLAMA_MODEL", "tinyllama")
+        self.llm_client = LlmClient(Llm(provider=provider, model=model))
         self.state = "GREETING" # Initial state
         self.business_description = ""
 
