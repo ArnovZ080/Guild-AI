@@ -4,7 +4,6 @@ import OnboardingFlow from './components/OnboardingFlow';
 import MainLayout from './layouts/MainLayout';
 import WorkflowBuilderView from './components/builder/WorkflowBuilderView';
 
-
 import './App.css';
 
 // A simple navigation component for easy switching during development

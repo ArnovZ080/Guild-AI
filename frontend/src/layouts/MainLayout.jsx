@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import CommandCenter from '../components/dashboard/CommandCenter';
 import ActionTheater from '../components/theater/ActionTheater';
+import AchievementCelebration from '../components/psychology/AchievementCelebration';
+import StressReductionInterface from '../components/psychology/StressReductionInterface';
+
 
 const MainLayout = () => {
   const [selectedZone, setSelectedZone] = useState('overview');
@@ -96,6 +99,13 @@ const MainLayout = () => {
       <main className="flex-grow overflow-auto">
         {renderContent()}
       </main>
+
+      {/* Floating UI Systems */}
+      <AchievementCelebration />
+      <div className="absolute top-20 right-4 z-40">
+        <StressReductionInterface />
+      </div>
+
     </div>
   );
 };

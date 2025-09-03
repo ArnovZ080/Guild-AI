@@ -1,19 +1,19 @@
 import React from 'react';
-import BusinessPulseMonitorWidget from './BusinessPulseMonitorWidget';
-import AgentStatusWidget from './AgentStatusWidget';
-import RevenueWidget from './RevenueWidget';
-import TasksWidget from './TasksWidget';
+import ProgressMomentumTracker from '../psychology/ProgressMomentumTracker';
+import FinancialFlowVisualization from '../visualizations/FinancialFlowVisualization';
+import CustomerJourneyConstellation from '../visualizations/CustomerJourneyConstellation';
 
 const CommandCenter = () => {
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Command Center</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <BusinessPulseMonitorWidget />
-        <AgentStatusWidget />
-        <RevenueWidget />
-        <TasksWidget />
-      </div>
+    <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FinancialFlowVisualization />
+            <CustomerJourneyConstellation />
+        </div>
+        <div>
+            <ProgressMomentumTracker />
+        </div>
+
     </div>
   );
 };
