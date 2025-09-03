@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from guild.src.core.models.schemas import Document, SourceProvenance
+from guild.src.core.vision import VisualAutomationTool
 
 from guild.src.core import vector_store
 
@@ -98,3 +99,98 @@ def format_citations(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         citations.append(citation)
     
     return citations
+
+
+# --- Visual Automation Tools ---
+
+# Global instance of VisualAutomationTool
+_visual_tool = None
+
+def get_visual_automation_tool() -> VisualAutomationTool:
+    """
+    Get or create the VisualAutomationTool instance.
+    
+    Returns:
+        VisualAutomationTool instance
+    """
+    global _visual_tool
+    if _visual_tool is None:
+        _visual_tool = VisualAutomationTool()
+    return _visual_tool
+
+def click_ui_element(element_description: str) -> str:
+    """
+    Click a UI element based on natural language description.
+    
+    Args:
+        element_description: Description of the element to click
+        
+    Returns:
+        Result of the click action
+    """
+    tool = get_visual_automation_tool()
+    return tool.click_element(element_description)
+
+def type_in_ui_element(text: str, element_description: str) -> str:
+    """
+    Type text into a UI element based on natural language description.
+    
+    Args:
+        text: Text to type
+        element_description: Description of the target element
+        
+    Returns:
+        Result of the typing action
+    """
+    tool = get_visual_automation_tool()
+    return tool.type_text(text, element_description)
+
+def read_ui_text(area_description: str) -> str:
+    """
+    Read text from a UI area based on natural language description.
+    
+    Args:
+        area_description: Description of the area to read
+        
+    Returns:
+        Extracted text or error message
+    """
+    tool = get_visual_automation_tool()
+    return tool.read_text(area_description)
+
+def take_ui_screenshot(output_path: str = None) -> str:
+    """
+    Take a screenshot of the current UI.
+    
+    Args:
+        output_path: Optional path to save the screenshot
+        
+    Returns:
+        Result of the screenshot action
+    """
+    tool = get_visual_automation_tool()
+    return tool.take_screenshot(output_path)
+
+def scroll_ui(direction: str, amount: int) -> str:
+    """
+    Scroll the UI in a specified direction.
+    
+    Args:
+        direction: Direction to scroll ("up", "down", "left", "right")
+        amount: Number of pixels to scroll
+        
+    Returns:
+        Result of the scroll action
+    """
+    tool = get_visual_automation_tool()
+    return tool.scroll(direction, amount)
+
+def get_current_ui_state() -> Dict[str, Any]:
+    """
+    Get the current state of the UI.
+    
+    Returns:
+        Dictionary containing UI state information
+    """
+    tool = get_visual_automation_tool()
+    return tool.get_ui_state()

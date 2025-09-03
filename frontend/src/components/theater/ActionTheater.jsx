@@ -26,6 +26,7 @@ const ActionTheater = () => {
       </div>
       <div className="flex-grow bg-gray-600 rounded-lg">
         {view === 'theater' ? <AgentActivityTheaterView /> : <AgentCollaborationFlow />}
+
       </div>
     </div>
   );

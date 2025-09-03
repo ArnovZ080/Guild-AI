@@ -3,6 +3,7 @@ uvicorn[standard]
 SQLAlchemy
 pydantic
 pydantic-settings
+psycopg2-binary
 
 # Install the local guild package in editable mode
 -e ./guild

@@ -5,6 +5,7 @@ import ActionTheater from '../components/theater/ActionTheater';
 import AchievementCelebration from '../components/psychology/AchievementCelebration';
 import StressReductionInterface from '../components/psychology/StressReductionInterface';
 
+
 const MainLayout = () => {
   const [selectedZone, setSelectedZone] = useState('overview');
 
@@ -104,6 +105,7 @@ const MainLayout = () => {
       <div className="absolute top-20 right-4 z-40">
         <StressReductionInterface />
       </div>
+
     </div>
   );
 };

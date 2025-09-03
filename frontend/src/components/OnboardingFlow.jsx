@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Loader2, Bot, User } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
-const API_URL = 'http://localhost:8000'; // Adjust if your API is elsewhere
+const API_URL = '/api'; // Use the Vite proxy to connect to local backend
 
 const OnboardingFlow = ({ onOnboardingComplete }) => {
     const [sessionId] = useState(uuidv4());
