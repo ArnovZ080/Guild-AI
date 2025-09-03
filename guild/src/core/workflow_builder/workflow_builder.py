@@ -421,6 +421,389 @@ class VisualWorkflowBuilder:
                 "category": "Marketing & Analytics"
             },
             
+            # Accounting & Bookkeeping Skills
+            "excel_expense_tracking": {
+                "type": "visual_skill",
+                "name": "Excel Expense Tracking",
+                "description": "Automate expense categorization and tracking in Excel",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "excel_file"},
+                            {"action_type": "wait", "duration": 2},
+                            {"action_type": "click", "target_element": "expense_sheet"},
+                            {"action_type": "click", "target_element": "new_expense_row"},
+                            {"action_type": "type", "target_element": "date_field", "action_data": {"text": "{expense_date}"}},
+                            {"action_type": "type", "target_element": "amount_field", "action_data": {"text": "{expense_amount}"}},
+                            {"action_type": "type", "target_element": "category_field", "action_data": {"text": "{expense_category}"}},
+                            {"action_type": "type", "target_element": "description_field", "action_data": {"text": "{expense_description}"}},
+                            {"action_type": "press_key", "key": "enter"}
+                        ],
+                        "estimated_duration": 30
+                    }
+                },
+                "category": "Accounting & Finance"
+            },
+            "xero_invoice_creation": {
+                "type": "visual_skill",
+                "name": "Xero Invoice Creation",
+                "description": "Automate invoice creation in Xero accounting software",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "xero.com"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "login_button"},
+                            {"action_type": "type", "target_element": "email_field", "action_data": {"text": "{email}"}},
+                            {"action_type": "type", "target_element": "password_field", "action_data": {"text": "{password}"}},
+                            {"action_type": "click", "target_element": "sign_in"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "invoices_menu"},
+                            {"action_type": "click", "target_element": "new_invoice"},
+                            {"action_type": "type", "target_element": "client_field", "action_data": {"text": "{client_name}"}},
+                            {"action_type": "type", "target_element": "item_description", "action_data": {"text": "{item_description}"}},
+                            {"action_type": "type", "target_element": "quantity_field", "action_data": {"text": "{quantity}"}},
+                            {"action_type": "type", "target_element": "unit_price", "action_data": {"text": "{unit_price}"}},
+                            {"action_type": "click", "target_element": "save_invoice"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Accounting & Finance"
+            },
+            "xero_expense_categorization": {
+                "type": "visual_skill",
+                "name": "Xero Expense Categorization",
+                "description": "Automate expense categorization and bank reconciliation",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "xero.com/bank-accounts"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "bank_account"},
+                            {"action_type": "click", "target_element": "unreconciled_transactions"},
+                            {"action_type": "click", "target_element": "transaction"},
+                            {"action_type": "click", "target_element": "categorize_button"},
+                            {"action_type": "click", "target_element": "expense_category"},
+                            {"action_type": "type", "target_element": "description_field", "action_data": {"text": "{expense_description}"}},
+                            {"action_type": "click", "target_element": "save_categorization"}
+                        ],
+                        "estimated_duration": 45
+                    }
+                },
+                "category": "Accounting & Finance"
+            },
+            "cashflow_analysis_excel": {
+                "type": "visual_skill",
+                "name": "Cash Flow Analysis Excel",
+                "description": "Automate cash flow analysis and reporting in Excel",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "excel_file"},
+                            {"action_type": "wait", "duration": 2},
+                            {"action_type": "click", "target_element": "cashflow_sheet"},
+                            {"action_type": "click", "target_element": "data_range"},
+                            {"action_type": "press_key", "key": "ctrl+a"},
+                            {"action_type": "click", "target_element": "pivot_table"},
+                            {"action_type": "click", "target_element": "cashflow_analysis"},
+                            {"action_type": "click", "target_element": "create_chart"},
+                            {"action_type": "click", "target_element": "save_analysis"}
+                        ],
+                        "estimated_duration": 60
+                    }
+                },
+                "category": "Accounting & Finance"
+            },
+            "cost_analysis_reporting": {
+                "type": "visual_skill",
+                "name": "Cost Analysis Reporting",
+                "description": "Automate cost of sales vs income analysis and reporting",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "excel_file"},
+                            {"action_type": "wait", "duration": 2},
+                            {"action_type": "click", "target_element": "cost_analysis_sheet"},
+                            {"action_type": "click", "target_element": "raw_materials_tab"},
+                            {"action_type": "click", "target_element": "calculate_totals"},
+                            {"action_type": "click", "target_element": "income_tab"},
+                            {"action_type": "click", "target_element": "profit_margin_calc"},
+                            {"action_type": "click", "target_element": "create_summary_chart"},
+                            {"action_type": "click", "target_element": "export_report"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Accounting & Finance"
+            },
+            
+            # Sales Funnel Builder Skills
+            "landing_page_creation": {
+                "type": "visual_skill",
+                "name": "Landing Page Creation",
+                "description": "Automate landing page creation with drag-and-drop builders",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "landing_page_builder"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_page"},
+                            {"action_type": "click", "target_element": "template_gallery"},
+                            {"action_type": "click", "target_element": "sales_page_template"},
+                            {"action_type": "click", "target_element": "use_template"},
+                            {"action_type": "type", "target_element": "headline_field", "action_data": {"text": "{page_headline}"}},
+                            {"action_type": "type", "target_element": "subheadline_field", "action_data": {"text": "{page_subheadline}"}},
+                            {"action_type": "click", "target_element": "save_page"}
+                        ],
+                        "estimated_duration": 180
+                    }
+                },
+                "category": "Sales Funnel Builder"
+            },
+            "upsell_sequence_setup": {
+                "type": "visual_skill",
+                "name": "Upsell Sequence Setup",
+                "description": "Automate upsell and cross-sell sequence creation",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "funnel_builder"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "create_sequence"},
+                            {"action_type": "click", "target_element": "upsell_template"},
+                            {"action_type": "type", "target_element": "sequence_name", "action_data": {"text": "{sequence_name}"}},
+                            {"action_type": "click", "target_element": "add_upsell_page"},
+                            {"action_type": "type", "target_element": "upsell_offer", "action_data": {"text": "{upsell_offer}"}},
+                            {"action_type": "click", "target_element": "add_cross_sell"},
+                            {"action_type": "click", "target_element": "save_sequence"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Sales Funnel Builder"
+            },
+            "payment_provider_integration": {
+                "type": "visual_skill",
+                "name": "Payment Provider Integration",
+                "description": "Automate Stripe, PayPal, and other payment integrations",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "payment_settings"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "add_payment_method"},
+                            {"action_type": "click", "target_element": "stripe_integration"},
+                            {"action_type": "type", "target_element": "api_key_field", "action_data": {"text": "{stripe_api_key}"}},
+                            {"action_type": "type", "target_element": "webhook_url", "action_data": {"text": "{webhook_url}"}},
+                            {"action_type": "click", "target_element": "test_connection"},
+                            {"action_type": "click", "target_element": "save_integration"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Sales Funnel Builder"
+            },
+            "thank_you_page_setup": {
+                "type": "visual_skill",
+                "name": "Thank You Page Setup",
+                "description": "Automate post-purchase thank you page and sequence creation",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "thank_you_page_builder"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_thank_you_page"},
+                            {"action_type": "type", "target_element": "page_title", "action_data": {"text": "Thank You for Your Purchase!"}},
+                            {"action_type": "click", "target_element": "add_gratitude_message"},
+                            {"action_type": "type", "target_element": "message_content", "action_data": {"text": "{gratitude_message}"}},
+                            {"action_type": "click", "target_element": "add_next_steps"},
+                            {"action_type": "click", "target_element": "add_email_sequence"},
+                            {"action_type": "click", "target_element": "save_page"}
+                        ],
+                        "estimated_duration": 75
+                    }
+                },
+                "category": "Sales Funnel Builder"
+            },
+            
+            # Lead Magnet & CRM Automation Skills
+            "lead_magnet_creation": {
+                "type": "visual_skill",
+                "name": "Lead Magnet Creation",
+                "description": "Automate lead magnet creation (PDFs, videos, checklists)",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "content_creation_tool"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_lead_magnet"},
+                            {"action_type": "click", "target_element": "template_gallery"},
+                            {"action_type": "click", "target_element": "pdf_template"},
+                            {"action_type": "type", "target_element": "title_field", "action_data": {"text": "{lead_magnet_title}"}},
+                            {"action_type": "type", "target_element": "content_field", "action_data": {"text": "{lead_magnet_content}"}},
+                            {"action_type": "click", "target_element": "add_branding"},
+                            {"action_type": "click", "target_element": "export_pdf"}
+                        ],
+                        "estimated_duration": 150
+                    }
+                },
+                "category": "Lead Magnet & CRM"
+            },
+            "email_collection_funnel": {
+                "type": "visual_skill",
+                "name": "Email Collection Funnel",
+                "description": "Automate email capture funnel creation and setup",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "funnel_builder"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_funnel"},
+                            {"action_type": "click", "target_element": "email_capture_template"},
+                            {"action_type": "type", "target_element": "funnel_name", "action_data": {"text": "{funnel_name}"}},
+                            {"action_type": "click", "target_element": "add_optin_page"},
+                            {"action_type": "type", "target_element": "optin_copy", "action_data": {"text": "{optin_copy}"}},
+                            {"action_type": "click", "target_element": "add_thank_you_page"},
+                            {"action_type": "click", "target_element": "save_funnel"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Lead Magnet & CRM"
+            },
+            "crm_lead_management": {
+                "type": "visual_skill",
+                "name": "CRM Lead Management",
+                "description": "Automate lead addition and follow-up sequence setup",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "crm_dashboard"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "add_new_lead"},
+                            {"action_type": "type", "target_element": "lead_name", "action_data": {"text": "{lead_name}"}},
+                            {"action_type": "type", "target_element": "lead_email", "action_data": {"text": "{lead_email}"}},
+                            {"action_type": "type", "target_element": "lead_source", "action_data": {"text": "{lead_source}"}},
+                            {"action_type": "click", "target_element": "assign_follow_up"},
+                            {"action_type": "click", "target_element": "create_sequence"},
+                            {"action_type": "click", "target_element": "save_lead"}
+                        ],
+                        "estimated_duration": 60
+                    }
+                },
+                "category": "Lead Magnet & CRM"
+            },
+            "audience_analysis_ai": {
+                "type": "visual_skill",
+                "name": "Audience Analysis AI",
+                "description": "AI-powered lead magnet recommendations for target audience",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "ai_analysis_tool"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "audience_analysis"},
+                            {"action_type": "type", "target_element": "target_audience", "action_data": {"text": "{target_audience}"}},
+                            {"action_type": "type", "target_element": "business_type", "action_data": {"text": "{business_type}"}},
+                            {"action_type": "click", "target_element": "analyze_pain_points"},
+                            {"action_type": "click", "target_element": "generate_recommendations"},
+                            {"action_type": "click", "target_element": "export_analysis"}
+                        ],
+                        "estimated_duration": 120
+                    }
+                },
+                "category": "Lead Magnet & CRM"
+            },
+            
+            # Business Operations Skills
+            "inventory_management": {
+                "type": "visual_skill",
+                "name": "Inventory Management",
+                "description": "Automate inventory tracking and reorder point management",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "inventory_system"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "inventory_dashboard"},
+                            {"action_type": "click", "target_element": "add_new_item"},
+                            {"action_type": "type", "target_element": "item_name", "action_data": {"text": "{item_name}"}},
+                            {"action_type": "type", "target_element": "current_stock", "action_data": {"text": "{current_stock}"}},
+                            {"action_type": "type", "target_element": "reorder_point", "action_data": {"text": "{reorder_point}"}},
+                            {"action_type": "click", "target_element": "set_alerts"},
+                            {"action_type": "click", "target_element": "save_item"}
+                        ],
+                        "estimated_duration": 60
+                    }
+                },
+                "category": "Business Operations"
+            },
+            "customer_support_automation": {
+                "type": "visual_skill",
+                "name": "Customer Support Automation",
+                "description": "Automate ticket creation and response systems",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "support_system"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_ticket"},
+                            {"action_type": "type", "target_element": "customer_email", "action_data": {"text": "{customer_email}"}},
+                            {"action_type": "type", "target_element": "issue_description", "action_data": {"text": "{issue_description}"}},
+                            {"action_type": "click", "target_element": "assign_priority"},
+                            {"action_type": "click", "target_element": "auto_response"},
+                            {"action_type": "click", "target_element": "create_ticket"}
+                        ],
+                        "estimated_duration": 45
+                    }
+                },
+                "category": "Business Operations"
+            },
+            "project_management_setup": {
+                "type": "visual_skill",
+                "name": "Project Management Setup",
+                "description": "Automate project creation and task management",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "project_management_tool"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "new_project"},
+                            {"action_type": "type", "target_element": "project_name", "action_data": {"text": "{project_name}"}},
+                            {"action_type": "type", "target_element": "project_description", "action_data": {"text": "{project_description}"}},
+                            {"action_type": "click", "target_element": "add_team_members"},
+                            {"action_type": "click", "target_element": "create_tasks"},
+                            {"action_type": "click", "target_element": "set_deadlines"},
+                            {"action_type": "click", "target_element": "save_project"}
+                        ],
+                        "estimated_duration": 75
+                    }
+                },
+                "category": "Business Operations"
+            },
+            "reporting_automation": {
+                "type": "visual_skill",
+                "name": "Reporting Automation",
+                "description": "Automate scheduled report generation and distribution",
+                "config": {
+                    "skill_pattern": {
+                        "steps": [
+                            {"action_type": "navigate", "url": "reporting_dashboard"},
+                            {"action_type": "wait", "duration": 3},
+                            {"action_type": "click", "target_element": "create_report"},
+                            {"action_type": "click", "target_element": "select_data_source"},
+                            {"action_type": "click", "target_element": "choose_metrics"},
+                            {"action_type": "click", "target_element": "set_schedule"},
+                            {"action_type": "type", "target_element": "recipient_emails", "action_data": {"text": "{recipient_emails}"}},
+                            {"action_type": "click", "target_element": "save_automation"}
+                        ],
+                        "estimated_duration": 90
+                    }
+                },
+                "category": "Business Operations"
+            },
+            
             # Logic Templates
             "if_else": {
                 "type": "logic",
