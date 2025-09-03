@@ -21,6 +21,9 @@ dependencies = [
     "hubspot-api-client",
     "pyautogui",
     "pillow",
+    "opencv-python",
+    "easyocr",
+    "numpy",
     # "omni-parser",  # Placeholder for OmniParser library
 ]
 
