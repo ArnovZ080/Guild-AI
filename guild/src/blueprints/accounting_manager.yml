@@ -1,0 +1,66 @@
+id: accounting_manager
+name: Accounting & Financial Manager
+description: "Automates end-to-end accounting operations including expense tracking, invoicing, and financial reporting."
+
+trigger:
+  type: schedule
+  cron: "0 8 * * 1-5" # Weekdays at 8 AM
+
+steps:
+  - name: check_new_expenses
+    agent: scraper_agent
+    input: "Scan email and bank feeds for new expenses and transactions."
+    output: new_transactions
+
+  - name: categorize_expenses
+    agent: bookkeeping_agent
+    loop: "{{ steps.check_new_expenses.output }}"
+    input:
+      transaction: "{{ loop.item }}"
+      prompt: "Categorize this transaction and add it to the expense tracking system."
+    output: categorized_expenses
+
+  - name: update_excel_tracking
+    agent: visual_agent
+    input:
+      skill: "excel_expense_tracking"
+      data: "{{ steps.categorize_expenses.output }}"
+    output: excel_updated
+
+  - name: sync_with_xero
+    agent: visual_agent
+    input:
+      skill: "xero_expense_categorization"
+      data: "{{ steps.categorize_expenses.output }}"
+    output: xero_synced
+
+  - name: generate_invoices
+    agent: bookkeeping_agent
+    input:
+      prompt: "Generate invoices for completed projects this week."
+      data: "{{ steps.check_new_expenses.output }}"
+    output: new_invoices
+
+  - name: create_xero_invoices
+    agent: visual_agent
+    loop: "{{ steps.generate_invoices.output }}"
+    input:
+      skill: "xero_invoice_creation"
+      invoice_data: "{{ loop.item }}"
+    output: xero_invoices_created
+
+  - name: cashflow_analysis
+    agent: visual_agent
+    input:
+      skill: "cashflow_analysis_excel"
+      data: "{{ steps.categorized_expenses.output }}"
+    output: cashflow_report
+
+  - name: send_financial_summary
+    agent: email_agent
+    input:
+      to: "{{ config.financial_manager_email }}"
+      subject: "Daily Financial Summary - {{ date }}"
+      body: "{{ steps.cashflow_analysis.output }}"
+      attachments: ["{{ steps.cashflow_report.output }}"]
+    output: summary_sent

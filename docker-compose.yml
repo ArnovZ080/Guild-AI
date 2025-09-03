@@ -1,3 +1,6 @@
+
+
+
 services:
 # API Server (FastAPI)
   backend:
@@ -10,14 +13,10 @@ services:
     env_file:
       - .env
     depends_on:
-      db:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-      qdrant:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - db
+      - minio
+      - qdrant
+      - redis
     volumes:
       - ./api_server:/app/api_server
       - ./guild:/app/guild
@@ -62,7 +61,6 @@ services:
       retries: 5
       start_period: 90s
 
-
   # MinIO (Object Storage)
   minio:
     image: minio/minio:latest
@@ -82,7 +80,7 @@ services:
       retries: 3
       start_period: 10s
 
-# Qdrant (Vector Database)
+  # Qdrant (Vector Database)
   qdrant:
     image: qdrant/qdrant:latest
     container_name: guild-ai-qdrant-1
@@ -91,12 +89,7 @@ services:
       - "6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
-      - ./monitoring/qdrant-healthcheck.sh:/healthcheck.sh
-    environment:
-      - QDRANT_ALLOW_ORIGIN=*
-      - QDRANT_SERVICE_PORT=6333
-      - QDRANT_GRPC_PORT=6334
-      - QDRANT_LOG_LEVEL=INFO
+
 
   # Redis (Caching and Task Queue)
   redis:
@@ -116,18 +109,18 @@ services:
 
   # Nginx (Reverse Proxy) - This may need to be updated or removed depending on the final architecture
   # For now, it's updated to point to the new api_server
-  nginx:
-    image: nginx:alpine
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
-    depends_on:
-      - frontend
-      - backend
-    restart: unless-stopped
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+  #     - ./nginx/ssl:/etc/nginx/ssl
+  #   depends_on:
+  #     - frontend
+  #     - backend
+  #   restart: unless-stopped
 
   # Monitoring - Prometheus
   prometheus:
@@ -173,6 +166,42 @@ services:
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
+    restart: unless-stopped
+      
+  # Celery Worker (Task Processing)
+  celery:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    command: celery -A api_server.src.celery_app.celery worker --loglevel=info
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+      
+  # Celery Beat (Scheduled Tasks)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      celery -A api_server.src.celery_app.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      "
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
     restart: unless-stopped
 
 volumes:
