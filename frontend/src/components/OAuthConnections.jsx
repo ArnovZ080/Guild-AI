@@ -74,7 +74,7 @@ export function OAuthConnections() {
       const authUrl = `/api/oauth/${provider}/start`
       // In a real app, this would redirect to the OAuth provider
       console.log(`Would redirect to: ${authUrl}`)
-      
+
       // Simulate successful connection after delay
       setTimeout(() => {
         const newCredential = {
@@ -188,7 +188,7 @@ export function OAuthConnections() {
                         )}
                         <div>Scopes: {credential.scopes.join(', ')}</div>
                       </div>
-                      
+
                       <div className="flex gap-2">
                         {status.status === 'expired' && (
                           <Button
@@ -201,7 +201,7 @@ export function OAuthConnections() {
                             Reconnect
                           </Button>
                         )}
-                        
+
                         <Button
                           variant="outline"
                           size="sm"
@@ -272,4 +272,3 @@ export function OAuthConnections() {
     </div>
   )
 }
-
