@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
+
 
 // Placeholders for components to be created later
 const CommandCenter = () => <div className="p-4"><h2 className="text-xl font-bold">Command Center</h2></div>;
@@ -14,9 +17,12 @@ const MainLayout = () => {
     switch (selectedZone) {
       case 'overview':
         return (
-          <div
+          <motion.div
             key="overview"
-            style={{ opacity: 1, transform: 'none' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+
             className="flex flex-col h-full"
           >
             <header className="h-1/3 bg-gray-800 p-4 shadow-lg z-10 overflow-y-auto">
@@ -28,7 +34,7 @@ const MainLayout = () => {
             <footer className="h-1/3 bg-gray-800 p-4 border-t border-gray-700">
               <h2 className="text-lg font-semibold">Zone 3: Opportunity Horizon</h2>
             </footer>
-          </div>
+          </motion.div>
         );
       default:
         return <div className="p-6"><h1 className="text-2xl font-bold">{selectedZone.charAt(0).toUpperCase() + selectedZone.slice(1)} Zone</h1></div>;
@@ -51,8 +57,10 @@ const MainLayout = () => {
               className={`px-4 py-1 rounded-md text-sm font-medium transition-all capitalize relative \${selectedZone === zone ? 'text-white' : 'text-gray-400 hover:text-white'}`}
             >
               {selectedZone === zone && (
-                <div
+                <motion.div
                   className="absolute inset-0 bg-gray-700 rounded-md"
+                  layoutId="activeZone"
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
 
                 />
               )}
