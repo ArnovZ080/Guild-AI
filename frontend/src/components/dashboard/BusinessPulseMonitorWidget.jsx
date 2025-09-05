@@ -55,7 +55,9 @@ const BusinessPulseMonitorWidget = () => {
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg h-full text-white flex flex-col items-center justify-center">
-      <h3 className="font-semibold mb-4">Business Pulse</h3>
+      <h3 className="font-semibold mb-4">Business Pulse - DEBUG</h3>
+      <div className="text-sm mb-2">Intensity: {displayData.intensity}</div>
+      <div className="text-sm mb-2">Activities: {displayData.activities.length}</div>
       <div className="relative w-64 h-64">
         {/* Main Pulse Circle */}
         <motion.div

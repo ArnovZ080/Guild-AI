@@ -42,7 +42,9 @@ const FinancialFlowVisualization = () => {
 
   return (
     <div className="w-full h-96 bg-gradient-to-b from-blue-50 to-green-50 rounded-lg p-6 relative overflow-hidden">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Flow</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Flow - DEBUG</h3>
+      <div className="text-sm mb-2">Revenue: ${totalRevenue}</div>
+      <div className="text-sm mb-2">Expenses: ${totalExpenses}</div>
       
       {/* Revenue Streams (flowing in from left) */}
       <div className="absolute left-0 top-1/2 transform -translate-y-1/2">
