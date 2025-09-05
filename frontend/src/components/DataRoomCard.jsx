@@ -54,7 +54,7 @@ export function DataRoomCard({ dataRoom, onSync, onEdit, onDelete, onViewDocumen
           <div className="text-sm text-muted-foreground">
             Last sync: {formatDate(dataRoom.last_sync_at)}
           </div>
-          
+
           <div className="flex gap-2 flex-wrap">
             <Button
               variant="outline"
@@ -65,7 +65,7 @@ export function DataRoomCard({ dataRoom, onSync, onEdit, onDelete, onViewDocumen
               <RefreshCw className="h-4 w-4" />
               Sync
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -75,7 +75,7 @@ export function DataRoomCard({ dataRoom, onSync, onEdit, onDelete, onViewDocumen
               <FolderOpen className="h-4 w-4" />
               Documents
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -85,7 +85,7 @@ export function DataRoomCard({ dataRoom, onSync, onEdit, onDelete, onViewDocumen
               <Settings className="h-4 w-4" />
               Settings
             </Button>
-            
+
             <Button
               variant="outline"
               size="sm"
@@ -101,4 +101,3 @@ export function DataRoomCard({ dataRoom, onSync, onEdit, onDelete, onViewDocumen
     </Card>
   )
 }
-

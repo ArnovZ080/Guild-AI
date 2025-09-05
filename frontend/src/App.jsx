@@ -14,9 +14,11 @@ const DevNavigation = () => (
   </nav>
 );
 
+
 function App() {
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
   const showOnboarding = false;
+
 
   if (showOnboarding && !isOnboardingComplete) {
     return <OnboardingFlow onOnboardingComplete={() => setIsOnboardingComplete(true)} />;
@@ -30,6 +32,7 @@ function App() {
         <Route path="/builder" element={<WorkflowBuilderView />} />
       </Routes>
     </div>
+
   );
 }
 

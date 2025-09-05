@@ -6,4 +6,5 @@ const CustomerJourneyConstellation = () => {
     </div>
   );
 };
+
 export default CustomerJourneyConstellation;

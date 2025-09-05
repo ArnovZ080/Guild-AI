@@ -1,0 +1,120 @@
+id: customer_success_manager
+name: Customer Success & Upsell Manager
+description: "Automated customer success management, upsell opportunities, and revenue retention strategies."
+
+trigger:
+  type: schedule
+  cron: "0 10 * * 1-5" # Weekdays at 10 AM
+
+steps:
+  - name: analyze_customer_health
+    agent: evaluation_agent
+    input: "Analyze customer usage patterns, satisfaction scores, and risk indicators for all active customers."
+    output: customer_health_data
+
+  - name: identify_at_risk_customers
+    agent: evaluation_agent
+    loop: "{{ steps.analyze_customer_health.output }}"
+    input:
+      customer: "{{ loop.item }}"
+      criteria: "{{ config.customer_risk_criteria }}"
+      prompt: "Evaluate if this customer is at risk of churning based on usage, satisfaction, and engagement"
+    output: at_risk_customers
+
+  - name: identify_upsell_opportunities
+    agent: evaluation_agent
+    loop: "{{ steps.analyze_customer_health.output }}"
+    input:
+      customer: "{{ loop.item }}"
+      criteria: "{{ config.upsell_criteria }}"
+      prompt: "Identify upsell and cross-sell opportunities based on usage patterns and customer needs"
+    output: upsell_opportunities
+
+  - name: generate_customer_success_plans
+    agent: content_strategist
+    loop: "{{ steps.at_risk_customers.output }}"
+    input:
+      customer: "{{ loop.item }}"
+      health_data: "{{ steps.analyze_customer_health.output }}"
+      prompt: "Create personalized customer success plans to improve satisfaction and prevent churn"
+    output: success_plans
+
+  - name: create_upsell_proposals
+    agent: copywriter_agent
+    loop: "{{ steps.upsell_opportunities.output }}"
+    input:
+      customer: "{{ loop.item }}"
+      opportunities: "{{ steps.identify_upsell_opportunities.output }}"
+      prompt: "Create compelling upsell proposals with clear value propositions and ROI calculations"
+    output: upsell_proposals
+
+  - name: schedule_customer_check_ins
+    agent: visual_agent
+    input:
+      skill: "calendar_scheduling"
+      data: "{{ steps.at_risk_customers.output }}"
+      prompt: "Schedule proactive customer check-in calls and meetings for at-risk customers"
+    output: check_ins_scheduled
+
+  - name: send_customer_success_emails
+    agent: email_agent
+    loop: "{{ steps.success_plans.output }}"
+    input:
+      to: "{{ loop.item.customer_email }}"
+      subject: "{{ loop.item.email_subject }}"
+      body: "{{ loop.item.email_body }}"
+      follow_up_date: "{{ loop.item.follow_up_date }}"
+    output: success_emails_sent
+
+  - name: send_upsell_emails
+    agent: email_agent
+    loop: "{{ steps.upsell_proposals.output }}"
+    input:
+      to: "{{ loop.item.customer_email }}"
+      subject: "{{ loop.item.email_subject }}"
+      body: "{{ loop.item.email_body }}"
+      proposal: "{{ loop.item.proposal }}"
+    output: upsell_emails_sent
+
+  - name: track_customer_responses
+    agent: evaluation_agent
+    input:
+      success_emails: "{{ steps.send_customer_success_emails.output }}"
+      upsell_emails: "{{ steps.send_upsell_emails.output }}"
+      prompt: "Track and categorize all customer responses and engagement levels"
+    output: customer_responses
+
+  - name: update_crm_records
+    agent: visual_agent
+    input:
+      skill: "crm_lead_management"
+      data: "{{ steps.customer_responses.output }}"
+      prompt: "Update CRM with customer success activities, upsell opportunities, and follow-up tasks"
+    output: crm_updated
+
+  - name: generate_customer_success_report
+    agent: content_strategist
+    input:
+      health_data: "{{ steps.analyze_customer_health.output }}"
+      at_risk: "{{ steps.identify_at_risk_customers.output }}"
+      upsells: "{{ steps.identify_upsell_opportunities.output }}"
+      responses: "{{ steps.track_customer_responses.output }}"
+      prompt: "Create comprehensive customer success report with retention metrics and revenue opportunities"
+    output: customer_success_report
+
+  - name: identify_quick_retention_wins
+    agent: evaluation_agent
+    input:
+      at_risk: "{{ steps.at_risk_customers.output }}"
+      responses: "{{ steps.track_customer_responses.output }}"
+      prompt: "Identify quick-win opportunities to improve customer satisfaction and prevent immediate churn"
+    output: quick_retention_wins
+
+  - name: send_customer_success_summary
+    agent: email_agent
+    input:
+      to: "{{ config.customer_success_team }}"
+      subject: "Customer Success Report - {{ date }}"
+      body: "{{ steps.generate_customer_success_report.output }}"
+      attachments: ["{{ steps.generate_customer_success_report.output }}"]
+    output: summary_sent

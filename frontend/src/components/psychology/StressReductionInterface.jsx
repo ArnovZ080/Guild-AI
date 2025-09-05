@@ -6,4 +6,5 @@ const StressReductionInterface = () => {
     </div>
   );
 };
+
 export default StressReductionInterface;

@@ -1,0 +1,122 @@
+id: market_intelligence_manager
+name: Market Intelligence & Competitive Analysis Manager
+description: "Automated market research, competitive analysis, and strategic intelligence gathering for business growth."
+
+trigger:
+  type: schedule
+  cron: "0 6 * * 1" # Every Monday at 6 AM
+
+steps:
+  - name: scan_competitor_activities
+    agent: scraper_agent
+    input: "Monitor competitor websites, social media, press releases, and marketing activities for new developments."
+    output: competitor_activities
+
+  - name: analyze_market_trends
+    agent: research_agent
+    input: "Research current market trends, industry developments, and emerging opportunities in our space."
+    output: market_trends
+
+  - name: track_industry_news
+    agent: scraper_agent
+    input: "Scan industry publications, news sites, and analyst reports for relevant business intelligence."
+    output: industry_news
+
+  - name: monitor_customer_sentiment
+    agent: evaluation_agent
+    input: "Analyze social media sentiment, customer reviews, and feedback across our industry."
+    output: customer_sentiment
+
+  - name: research_emerging_technologies
+    agent: research_agent
+    input: "Identify emerging technologies, tools, and innovations that could impact our business model."
+    output: emerging_technologies
+
+  - name: analyze_competitor_positioning
+    agent: evaluation_agent
+    loop: "{{ steps.scan_competitor_activities.output }}"
+    input:
+      competitor: "{{ loop.item }}"
+      prompt: "Analyze competitor positioning, messaging, pricing, and market approach"
+    output: competitor_analysis
+
+  - name: identify_market_gaps
+    agent: evaluation_agent
+    input:
+      trends: "{{ steps.analyze_market_trends.output }}"
+      sentiment: "{{ steps.monitor_customer_sentiment.output }}"
+      competitors: "{{ steps.analyze_competitor_positioning.output }}"
+      prompt: "Identify market gaps, underserved customer needs, and opportunities for differentiation"
+    output: market_gaps
+
+  - name: assess_competitive_threats
+    agent: evaluation_agent
+    input:
+      competitors: "{{ steps.analyze_competitor_positioning.output }}"
+      technologies: "{{ steps.research_emerging_technologies.output }}"
+      prompt: "Assess potential competitive threats and market disruptions"
+    output: competitive_threats
+
+  - name: identify_partnership_opportunities
+    agent: evaluation_agent
+    input:
+      trends: "{{ steps.analyze_market_trends.output }}"
+      gaps: "{{ steps.identify_market_gaps.output }}"
+      technologies: "{{ steps.research_emerging_technologies.output }}"
+      prompt: "Identify strategic partnership opportunities to address market gaps"
+    output: partnership_opportunities
+
+  - name: generate_strategic_recommendations
+    agent: content_strategist
+    input:
+      trends: "{{ steps.analyze_market_trends.output }}"
+      gaps: "{{ steps.identify_market_gaps.output }}"
+      threats: "{{ steps.assess_competitive_threats.output }}"
+      opportunities: "{{ steps.identify_partnership_opportunities.output }}"
+      prompt: "Generate strategic recommendations for business growth and competitive positioning"
+    output: strategic_recommendations
+
+  - name: create_competitive_intelligence_report
+    agent: content_strategist
+    input:
+      competitors: "{{ steps.analyze_competitor_positioning.output }}"
+      activities: "{{ steps.scan_competitor_activities.output }}"
+      threats: "{{ steps.assess_competitive_threats.output }}"
+      prompt: "Create comprehensive competitive intelligence report with actionable insights"
+    output: competitive_intelligence_report
+
+  - name: generate_market_opportunity_report
+    agent: content_strategist
+    input:
+      trends: "{{ steps.analyze_market_trends.output }}"
+      gaps: "{{ steps.identify_market_gaps.output }}"
+      opportunities: "{{ steps.identify_partnership_opportunities.output }}"
+      recommendations: "{{ steps.generate_strategic_recommendations.output }}"
+      prompt: "Create market opportunity report with prioritized growth strategies"
+    output: market_opportunity_report
+
+  - name: update_strategic_planning
+    agent: content_strategist
+    input:
+      intelligence: "{{ steps.create_competitive_intelligence_report.output }}"
+      opportunities: "{{ steps.generate_market_opportunity_report.output }}"
+      recommendations: "{{ steps.generate_strategic_recommendations.output }}"
+      prompt: "Update strategic planning documents with latest market intelligence and recommendations"
+    output: strategic_planning_updated
+
+  - name: send_market_intelligence_summary
+    agent: email_agent
+    input:
+      to: "{{ config.strategic_team }}"
+      subject: "Weekly Market Intelligence Report - {{ date }}"
+      body: "{{ steps.generate_market_opportunity_report.output }}"
+      attachments: ["{{ steps.create_competitive_intelligence_report.output }}", "{{ steps.generate_market_opportunity_report.output }}"]
+    output: intelligence_summary_sent
+
+  - name: schedule_strategic_review_meetings
+    agent: visual_agent
+    input:
+      skill: "calendar_scheduling"
+      data: "{{ steps.generate_strategic_recommendations.output }}"
+      prompt: "Schedule strategic review meetings for high-priority market opportunities and competitive threats"
+    output: meetings_scheduled

@@ -4,10 +4,12 @@ import { motion } from 'framer-motion';
 const AgentStatusWidget = () => {
   // eslint-disable-next-line no-unused-vars
   const [agents, setAgents] = useState([
+
     { id: '1', name: 'Research Agent', status: 'busy', efficiency: 0.92 },
     { id: '2', name: 'Content Agent', status: 'online', efficiency: 0.88 },
   ]);
   const getStatusColor = (status) => ({ online: '#10B981', busy: '#F59E0B', offline: '#6B7280' })[status];
+
   return (
     <div className="bg-gray-800 p-4 rounded-lg h-full text-white">
       <h3 className="font-semibold mb-4">Agent Status</h3>
@@ -21,9 +23,11 @@ const AgentStatusWidget = () => {
               </div>
             </div>
           </motion.div>
+
         ))}
       </div>
     </div>
   );
 };
+
 export default AgentStatusWidget;

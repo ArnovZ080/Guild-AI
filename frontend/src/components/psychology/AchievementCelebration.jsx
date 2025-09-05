@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
+
 const AchievementCelebration = () => {
   const [show, setShow] = useState(false);
   const [ach, setAch] = useState(null);
@@ -11,4 +12,5 @@ const AchievementCelebration = () => {
     </div>
   );
 };
+
 export default AchievementCelebration;

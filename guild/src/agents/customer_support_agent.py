@@ -1,12 +1,12 @@
 import json
 import asyncio
 
-from models.user_input import UserInput, Audience
-from models.agent import Agent, AgentCallback
-from models.llm import Llm, LlmModels
-from llm.llm_client import LlmClient
-from utils.logging_utils import get_logger
-from utils.decorators import inject_knowledge
+from guild.src.models.user_input import UserInput, Audience
+from guild.src.models.agent import Agent, AgentCallback
+from guild.src.models.llm import Llm, LlmModels
+from guild.src.core.llm_client import LlmClient
+from guild.src.utils.logging_utils import get_logger
+from guild.src.utils.decorators import inject_knowledge
 
 logger = get_logger(__name__)
 
