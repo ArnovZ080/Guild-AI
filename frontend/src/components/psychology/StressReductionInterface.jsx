@@ -56,7 +56,7 @@ const StressReductionInterface = () => {
             transition={{ duration: 4 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 2 }}
           >
             {currentTheme.particles}
-          </motion.dot>
+          </motion.div>
         ))}
         {isActive && (
           <div className="absolute inset-0 flex items-center justify-center">

@@ -2,7 +2,7 @@
 Visual Parser for UI Understanding
 
 This module provides the ability to analyze screenshots of UIs and convert them into
-a structured format using OpenCV and EasyOCR for real computer vision capabilities.
+a structured format using OpenCV and Tesseract OCR for lightweight computer vision capabilities.
 """
 
 import base64
@@ -11,7 +11,7 @@ import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
 from PIL import Image
 import io
-import easyocr
+import pytesseract
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,22 +21,18 @@ class VisualParser:
     """
     A component responsible for analyzing screenshots of UIs and converting them
     into a structured format. It identifies UI elements, their types, labels, and positions
-    using computer vision techniques.
+    using lightweight computer vision techniques.
     """
     
     def __init__(self):
         """Initialize the VisualParser with computer vision models."""
         try:
-            # Initialize EasyOCR for text recognition
-            # Disable SSL verification for model download (common issue on macOS)
-            import ssl
-            ssl._create_default_https_context = ssl._create_unverified_context
-            
-            self.reader = easyocr.Reader(['en'], gpu=False)  # Set gpu=True if you have CUDA
+            # Test Tesseract availability
+            pytesseract.get_tesseract_version()
             self.initialized = True
-            logger.info("VisualParser initialized successfully with EasyOCR")
+            logger.info("VisualParser initialized successfully with Tesseract OCR")
         except Exception as e:
-            logger.error(f"Failed to initialize EasyOCR: {e}")
+            logger.error(f"Failed to initialize Tesseract: {e}")
             logger.info("Falling back to OpenCV-only mode for UI element detection")
             self.initialized = False
     
@@ -67,13 +63,16 @@ class VisualParser:
             # Merge and structure results
             all_elements = elements + text_elements
             
+            # Calculate overall confidence
+            overall_confidence = self._calculate_overall_confidence(all_elements)
+            
             return {
                 "elements": all_elements,
                 "metadata": {
                     "image_size": {"width": pil_image.width, "height": pil_image.height},
-                    "parsing_method": "computer_vision",
+                    "parsing_method": "lightweight_computer_vision",
                     "total_elements": len(all_elements),
-                    "parsing_confidence": self._calculate_overall_confidence(all_elements),
+                    "parsing_confidence": overall_confidence,
                     "text_elements": len(text_elements),
                     "ui_elements": len(elements)
                 }
@@ -150,7 +149,7 @@ class VisualParser:
                 if 20 <= w <= 300 and 20 <= h <= 100:
                     # Check if it has text inside (simple heuristic)
                     roi = gray[y:y+h, x:x+w]
-                    if np.std(roi) > 20:  # Has some variation (likely text)
+                    if np.std(roi) > 20: # Has some variation (likely text)
                         buttons.append({
                             "type": "button",
                             "label": f"Button at ({x}, {y})",
@@ -236,7 +235,7 @@ class VisualParser:
     
     def _extract_text_elements(self, cv_image: np.ndarray) -> List[Dict]:
         """
-        Extract text elements using EasyOCR.
+        Extract text elements using Tesseract OCR.
         
         Args:
             cv_image: OpenCV image array
@@ -247,33 +246,30 @@ class VisualParser:
         text_elements = []
         
         try:
-            # Use EasyOCR to detect text
-            results = self.reader.readtext(cv_image)
+            # Use Tesseract to detect text
+            results = pytesseract.image_to_data(cv_image, output_type=pytesseract.Output.DICT)
             
-            for (bbox, text, confidence) in results:
-                # Extract bounding box coordinates
-                (top_left, top_right, bottom_right, bottom_left) = bbox
-                
-                # Calculate position and dimensions
-                x = int(min(top_left[0], bottom_left[0]))
-                y = int(min(top_left[1], top_right[1]))
-                w = int(max(top_right[0], bottom_right[0]) - x)
-                h = int(max(bottom_left[1], bottom_right[1]) - y)
-                
-                # Filter out very small text (likely noise)
-                if w > 10 and h > 5 and len(text.strip()) > 0:
-                    text_elements.append({
-                        "type": "text",
-                        "label": text.strip(),
-                        "position": {"x": x, "y": y, "width": w, "height": h},
-                        "confidence": confidence,
-                        "attributes": {
-                            "text": text.strip(),
-                            "font_size": h,
-                            "readable": True
-                        }
-                    })
-        
+            for i in range(len(results["text"])):
+                if int(results["conf"][i]) > 60: # Confidence threshold
+                    x = int(results["left"][i])
+                    y = int(results["top"][i])
+                    w = int(results["width"][i])
+                    h = int(results["height"][i])
+                    
+                    # Filter out very small text (likely noise)
+                    if w > 10 and h > 5 and len(results["text"][i].strip()) > 0:
+                        text_elements.append({
+                            "type": "text",
+                            "label": results["text"][i].strip(),
+                            "position": {"x": x, "y": y, "width": w, "height": h},
+                            "confidence": int(results["conf"][i]),
+                            "attributes": {
+                                "text": results["text"][i].strip(),
+                                "font_size": h,
+                                "readable": True
+                            }
+                        })
+            
         except Exception as e:
             logger.error(f"Error extracting text: {e}")
         

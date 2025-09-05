@@ -15,13 +15,30 @@ from datetime import datetime
 import threading
 from pathlib import Path
 
-import pyautogui
-import cv2
-import numpy as np
-from PIL import Image, ImageGrab
+# Conditional imports for vision components
+try:
+    from guild.src.core.vision.visual_parser import VisualParser
+    from guild.src.core.vision.ui_controller import UiController
+    VISION_AVAILABLE = True
+except ImportError:
+    VisualParser = None
+    UiController = None
+    VISION_AVAILABLE = False
+    print("Warning: Vision components not available - session recording disabled")
 
-from guild.src.core.vision.visual_parser import VisualParser
-from guild.src.core.vision.ui_controller import UiController
+# Conditional imports for display-dependent libraries
+try:
+    import cv2
+    import numpy as np
+    from PIL import Image, ImageGrab
+    CV_AVAILABLE = True
+except ImportError:
+    CV_AVAILABLE = False
+    print("Warning: Computer vision libraries not available")
+
+# Don't import PyAutoGUI at module level - import only when needed
+PYAUTOGUI_AVAILABLE = False
+pyautogui = None
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +82,21 @@ class SessionRecorder:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
         
-        # Initialize vision components
-        self.visual_parser = VisualParser()
-        self.ui_controller = UiController()
+        # Initialize vision components if available
+        if VISION_AVAILABLE:
+            try:
+                self.visual_parser = VisualParser()
+                self.ui_controller = UiController()
+            except Exception as e:
+                logger.warning(f"Failed to initialize vision components: {e}")
+                self.visual_parser = None
+                self.ui_controller = None
+        else:
+            self.visual_parser = None
+            self.ui_controller = None
+        
+        # Initialize PyAutoGUI only when needed
+        self._init_pyautogui()
         
         # Recording state
         self.is_recording = False
@@ -84,13 +113,42 @@ class SessionRecorder:
         
         logger.info("SessionRecorder initialized successfully")
     
+    def _init_pyautogui(self):
+        """Initialize PyAutoGUI only when needed."""
+        global PYAUTOGUI_AVAILABLE, pyautogui
+        
+        # Check if we're in a headless environment
+        import os
+        headless_env = not os.getenv('DISPLAY') or os.getenv('DISPLAY') == ':99'
+        
+        if headless_env:
+            logger.info("Running in headless environment - PyAutoGUI disabled")
+            return
+            
+        try:
+            import pyautogui as pg
+            pyautogui = pg
+            PYAUTOGUI_AVAILABLE = True
+            
+            # Configure PyAutoGUI safety settings
+            pyautogui.FAILSAFE = True
+            pyautogui.PAUSE = 0.1
+            
+            logger.info("PyAutoGUI initialized successfully")
+        except ImportError as e:
+            logger.warning(f"PyAutoGUI not available: {e}")
+        except Exception as e:
+            logger.warning(f"PyAutoGUI initialization failed: {e}")
+    
     def start_recording(self, session_name: str, description: str = "") -> str:
         """Start recording a new demonstration session."""
         if self.is_recording:
             raise RuntimeError("Already recording a session")
         
-        # Create new session
-        session_id = f"session_{int(time.time())}"
+        # Generate session ID
+        session_id = f"session_{int(time.time())}_{session_name[:20].replace(' ', '_')}"
+        
+        # Create session
         self.current_session = DemonstrationSession(
             session_id=session_id,
             name=session_name,
@@ -98,14 +156,7 @@ class SessionRecorder:
             start_time=datetime.now(),
             actions=[],
             screen_states=[],
-            metadata={
-                "screen_resolution": pyautogui.size(),
-                "platform": pyautogui.platform,
-                "recording_settings": {
-                    "screenshot_interval": self.screenshot_interval,
-                    "action_threshold": self.action_threshold
-                }
-            }
+            metadata={}
         )
         
         # Start recording thread
@@ -114,7 +165,7 @@ class SessionRecorder:
         self.recording_thread.daemon = True
         self.recording_thread.start()
         
-        logger.info(f"Started recording session: {session_name} (ID: {session_id})")
+        logger.info(f"Started recording session: {session_id}")
         return session_id
     
     def stop_recording(self) -> Optional[DemonstrationSession]:
@@ -125,268 +176,173 @@ class SessionRecorder:
         self.is_recording = False
         
         if self.recording_thread:
-            self.recording_thread.join(timeout=5)
+            self.recording_thread.join(timeout=2.0)
         
         if self.current_session:
             self.current_session.end_time = datetime.now()
             
-            # Save session
-            self._save_session(self.current_session)
+            # Save session to file
+            session_file = self.output_dir / f"{self.current_session.session_id}.json"
+            try:
+                with open(session_file, 'w') as f:
+                    json.dump(asdict(self.current_session), f, default=str, indent=2)
+                logger.info(f"Session saved to: {session_file}")
+            except Exception as e:
+                logger.error(f"Failed to save session: {e}")
             
-            # Generate skill pattern
-            self.current_session.skill_pattern = self._generate_skill_pattern()
-            
-            logger.info(f"Stopped recording session: {self.current_session.name}")
-            return self.current_session
+            session = self.current_session
+            self.current_session = None
+            return session
         
         return None
     
     def _recording_loop(self):
-        """Main recording loop that captures actions and screen states."""
+        """Main recording loop that captures actions and screenshots."""
+        logger.info("Recording loop started")
+        
         while self.is_recording:
             try:
                 current_time = time.time()
                 
-                # Capture screen state periodically
+                # Capture actions if enough time has passed
+                if current_time - self.last_action_time >= self.action_threshold:
+                    self._capture_current_action()
+                    self.last_action_time = current_time
+                
+                # Capture screenshots if enough time has passed
                 if current_time - self.last_screenshot_time >= self.screenshot_interval:
-                    self._capture_screen_state()
+                    self._capture_screenshot()
                     self.last_screenshot_time = current_time
                 
-                # Small delay to prevent excessive CPU usage
-                time.sleep(0.1)
+                time.sleep(0.1)  # Small delay to prevent excessive CPU usage
                 
             except Exception as e:
                 logger.error(f"Error in recording loop: {e}")
-                break
+                time.sleep(1.0)  # Longer delay on error
+        
+        logger.info("Recording loop stopped")
     
-    def _capture_screen_state(self):
-        """Capture current screen state with UI element detection."""
+    def _capture_current_action(self):
+        """Capture the current action (mouse position, keyboard state, etc.)."""
+        if not self.current_session:
+            return
+        
         try:
-            timestamp = time.time()
+            # Get mouse position if PyAutoGUI is available
+            mouse_pos = None
+            if PYAUTOGUI_AVAILABLE and pyautogui:
+                try:
+                    mouse_pos = pyautogui.position()
+                except Exception as e:
+                    logger.debug(f"Could not get mouse position: {e}")
             
-            # Take screenshot
-            screenshot = ImageGrab.grab()
-            screenshot_path = self.output_dir / f"screen_{timestamp:.3f}.png"
-            screenshot.save(screenshot_path)
-            
-            # Detect UI elements
-            ui_elements = self._detect_ui_elements(screenshot)
-            
-            # Get mouse position
-            mouse_pos = pyautogui.position()
-            
-            # Get active window info
-            active_window = self._get_active_window_info()
-            
-            # Create screen state
-            screen_state = ScreenState(
-                timestamp=timestamp,
-                screenshot_path=str(screenshot_path),
-                ui_elements=ui_elements,
-                active_window=active_window,
-                mouse_position=mouse_pos
+            # Create action event
+            action = ActionEvent(
+                timestamp=time.time(),
+                action_type="monitor",  # Generic monitoring action
+                coordinates=mouse_pos,
+                action_data={
+                    "mouse_position": mouse_pos,
+                    "timestamp": time.time()
+                }
             )
             
-            if self.current_session:
-                self.current_session.screen_states.append(screen_state)
-                
-        except Exception as e:
-            logger.error(f"Error capturing screen state: {e}")
-    
-    def _detect_ui_elements(self, screenshot: Image.Image) -> List[Dict[str, Any]]:
-        """Detect UI elements in the screenshot using computer vision."""
-        try:
-            # Convert PIL image to OpenCV format
-            cv_image = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
-            
-            # Use visual parser to detect elements
-            elements = self.visual_parser.detect_ui_elements(cv_image)
-            
-            return elements
+            self.current_session.actions.append(action)
             
         except Exception as e:
-            logger.error(f"Error detecting UI elements: {e}")
-            return []
+            logger.error(f"Error capturing action: {e}")
     
-    def _get_active_window_info(self) -> Optional[str]:
-        """Get information about the currently active window."""
-        try:
-            # This would integrate with your UI controller
-            # For now, return basic info
-            return "Active Window"
-        except Exception as e:
-            logger.error(f"Error getting active window info: {e}")
-            return None
-    
-    def record_action(self, action_type: str, target_element: Optional[str] = None, 
-                     coordinates: Optional[Tuple[int, int]] = None, 
-                     action_data: Optional[Dict[str, Any]] = None):
-        """Record a user action during the session."""
-        if not self.is_recording or not self.current_session:
-            return
-        
-        current_time = time.time()
-        
-        # Check if enough time has passed since last action
-        if current_time - self.last_action_time < self.action_threshold:
-            return
-        
-        # Create action event
-        action = ActionEvent(
-            timestamp=current_time,
-            action_type=action_type,
-            target_element=target_element,
-            coordinates=coordinates,
-            action_data=action_data,
-            confidence=1.0
-        )
-        
-        # Add to session
-        self.current_session.actions.append(action)
-        self.last_action_time = current_time
-        
-        logger.debug(f"Recorded action: {action_type} at {coordinates}")
-    
-    def _generate_skill_pattern(self) -> Dict[str, Any]:
-        """Generate a skill pattern from the recorded session."""
-        if not self.current_session or not self.current_session.actions:
-            return {}
-        
-        try:
-            # Analyze actions to create a skill pattern
-            steps = []
-            
-            for action in self.current_session.actions:
-                step = {
-                    "action_type": action.action_type,
-                    "target_element": action.target_element or "unknown",
-                    "action_data": action.action_data or {}
-                }
-                
-                if action.coordinates:
-                    step["coordinates"] = action.coordinates
-                
-                steps.append(step)
-            
-            # Calculate estimated duration
-            if len(self.current_session.actions) > 1:
-                duration = (self.current_session.actions[-1].timestamp - 
-                          self.current_session.actions[0].timestamp)
-            else:
-                duration = 30  # Default duration
-            
-            skill_pattern = {
-                "steps": steps,
-                "estimated_duration": int(duration),
-                "session_metadata": {
-                    "session_id": self.current_session.session_id,
-                    "recorded_at": self.current_session.start_time.isoformat(),
-                    "total_actions": len(self.current_session.actions),
-                    "total_screenshots": len(self.current_session.screen_states)
-                }
-            }
-            
-            return skill_pattern
-            
-        except Exception as e:
-            logger.error(f"Error generating skill pattern: {e}")
-            return {}
-    
-    def _save_session(self, session: DemonstrationSession):
-        """Save the session to disk."""
-        try:
-            # Create session directory
-            session_dir = self.output_dir / session.session_id
-            session_dir.mkdir(exist_ok=True)
-            
-            # Save session metadata
-            session_file = session_dir / "session.json"
-            with open(session_file, 'w') as f:
-                json.dump(asdict(session), f, indent=2, default=str)
-            
-            # Save screenshots (move them to session directory)
-            screenshots_dir = session_dir / "screenshots"
-            screenshots_dir.mkdir(exist_ok=True)
-            
-            for screen_state in session.screen_states:
-                if screen_state.screenshot_path:
-                    old_path = Path(screen_state.screenshot_path)
-                    if old_path.exists():
-                        new_path = screenshots_dir / old_path.name
-                        old_path.rename(new_path)
-                        screen_state.screenshot_path = str(new_path)
-            
-            logger.info(f"Session saved to: {session_dir}")
-            
-        except Exception as e:
-            logger.error(f"Error saving session: {e}")
-    
-    def get_session_summary(self) -> Dict[str, Any]:
-        """Get a summary of the current recording session."""
+    def _capture_screenshot(self):
+        """Capture a screenshot of the current screen."""
         if not self.current_session:
-            return {}
+            return
+        
+        try:
+            # Try to take screenshot using available methods
+            screenshot_data = None
+            
+            if PYAUTOGUI_AVAILABLE and pyautogui:
+                try:
+                    screenshot = pyautogui.screenshot()
+                    # Convert to bytes
+                    import io
+                    img_byte_arr = io.BytesIO()
+                    screenshot.save(img_byte_arr, format='PNG')
+                    screenshot_data = img_byte_arr.getvalue()
+                except Exception as e:
+                    logger.debug(f"PyAutoGUI screenshot failed: {e}")
+            
+            if not screenshot_data and CV_AVAILABLE:
+                try:
+                    # Fallback to PIL ImageGrab
+                    screenshot = ImageGrab.grab()
+                    import io
+                    img_byte_arr = io.BytesIO()
+                    screenshot.save(img_byte_arr, format='PNG')
+                    screenshot_data = img_byte_arr.getvalue()
+                except Exception as e:
+                    logger.debug(f"PIL screenshot failed: {e}")
+            
+            if screenshot_data:
+                # Save screenshot to file
+                timestamp = int(time.time())
+                screenshot_file = self.output_dir / f"{self.current_session.session_id}_screenshot_{timestamp}.png"
+                
+                try:
+                    with open(screenshot_file, 'wb') as f:
+                        f.write(screenshot_data)
+                    
+                    # Create screen state
+                    screen_state = ScreenState(
+                        timestamp=time.time(),
+                        screenshot_path=str(screenshot_file),
+                        ui_elements=[],  # Would be populated by visual parser if available
+                        mouse_position=None  # Would be populated if available
+                    )
+                    
+                    self.current_session.screen_states.append(screen_state)
+                    
+                except Exception as e:
+                    logger.error(f"Failed to save screenshot: {e}")
+            else:
+                logger.debug("No screenshot method available")
+                
+        except Exception as e:
+            logger.error(f"Error capturing screenshot: {e}")
+    
+    def add_custom_action(self, action_type: str, **kwargs):
+        """Add a custom action to the current session."""
+        if not self.current_session or not self.is_recording:
+            return
+        
+        try:
+            action = ActionEvent(
+                timestamp=time.time(),
+                action_type=action_type,
+                **kwargs
+            )
+            
+            self.current_session.actions.append(action)
+            logger.debug(f"Added custom action: {action_type}")
+            
+        except Exception as e:
+            logger.error(f"Error adding custom action: {e}")
+    
+    def get_session_info(self) -> Optional[Dict[str, Any]]:
+        """Get information about the current recording session."""
+        if not self.current_session:
+            return None
         
         return {
             "session_id": self.current_session.session_id,
             "name": self.current_session.name,
             "description": self.current_session.description,
             "start_time": self.current_session.start_time.isoformat(),
-            "duration": (datetime.now() - self.current_session.start_time).total_seconds(),
-            "actions_recorded": len(self.current_session.actions),
-            "screenshots_captured": len(self.current_session.screen_states),
+            "actions_count": len(self.current_session.actions),
+            "screenshots_count": len(self.current_session.screen_states),
             "is_recording": self.is_recording
         }
     
-    def list_recorded_sessions(self) -> List[Dict[str, Any]]:
-        """List all recorded sessions."""
-        sessions = []
-        
-        for session_dir in self.output_dir.iterdir():
-            if session_dir.is_dir() and session_dir.name.startswith("session_"):
-                session_file = session_dir / "session.json"
-                if session_file.exists():
-                    try:
-                        with open(session_file, 'r') as f:
-                            session_data = json.load(f)
-                            sessions.append({
-                                "session_id": session_data["session_id"],
-                                "name": session_data["name"],
-                                "description": session_data["description"],
-                                "start_time": session_data["start_time"],
-                                "end_time": session_data.get("end_time"),
-                                "total_actions": len(session_data.get("actions", [])),
-                                "total_screenshots": len(session_data.get("screen_states", []))
-                            })
-                    except Exception as e:
-                        logger.error(f"Error reading session {session_dir.name}: {e}")
-        
-        return sorted(sessions, key=lambda x: x["start_time"], reverse=True)
-    
-    def load_session(self, session_id: str) -> Optional[DemonstrationSession]:
-        """Load a recorded session from disk."""
-        try:
-            session_file = self.output_dir / session_id / "session.json"
-            if not session_file.exists():
-                return None
-            
-            with open(session_file, 'r') as f:
-                session_data = json.load(f)
-                
-            # Reconstruct session object
-            session = DemonstrationSession(
-                session_id=session_data["session_id"],
-                name=session_data["name"],
-                description=session_data["description"],
-                start_time=datetime.fromisoformat(session_data["start_time"]),
-                end_time=datetime.fromisoformat(session_data["end_time"]) if session_data.get("end_time") else None,
-                actions=[ActionEvent(**action) for action in session_data.get("actions", [])],
-                screen_states=[ScreenState(**state) for state in session_data.get("screen_states", [])],
-                metadata=session_data.get("metadata", {}),
-                skill_pattern=session_data.get("skill_pattern", {})
-            )
-            
-            return session
-            
-        except Exception as e:
-            logger.error(f"Error loading session {session_id}: {e}")
-            return None
+    def is_recording_active(self) -> bool:
+        """Check if recording is currently active."""
+        return self.is_recording

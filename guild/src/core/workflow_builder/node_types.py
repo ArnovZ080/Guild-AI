@@ -15,7 +15,12 @@ from typing import Dict, List, Any, Optional, Union
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from guild.src.core.vision.visual_automation_tool import VisualAutomationTool
+# Conditional import for vision components
+try:
+    from guild.src.core.vision.visual_automation_tool import VisualAutomationTool
+except ImportError:
+    VisualAutomationTool = None
+    print("Warning: VisualAutomationTool not available - computer vision features disabled")
 from guild.src.core.orchestrator import Orchestrator
 
 logger = logging.getLogger(__name__)

@@ -76,10 +76,14 @@ This system combines your existing AI agents with visual automation skills to cr
 ## 🎨 Node Types Available
 
 ### 🤖 **AI Agent Nodes**
-- **Content Strategist**: Creates content strategies and plans
-- **Copywriter**: Writes compelling copy and content
-- **Judge Agent**: Evaluates quality and generates rubrics
-- **Onboarding Agent**: Handles user onboarding conversations
+- **🎯 Executive Layer**: Chief of Staff, Strategy, Business Strategist
+- **🎨 Content Creation**: Brief Generator, Ad Copy, Content Strategist, Social Media, Writer
+- **🔍 Research & Data**: Research, Advanced Scraper, Lead Personalization, Data Enrichment
+- **💰 Financial & Business**: Accounting, Analytics
+- **🎨 Creative & Media**: Image Generation, Voice, Video Editor, Document Processing
+- **🤖 Automation**: Unified Automation, Visual Automation, Selenium Automation
+- **🔍 Evaluator League**: Judge, Fact Checker, Brand Checker, SEO Evaluator
+- **🎛️ Orchestration**: Workflow Manager, Pre-flight Planner, Contract Compiler, Quality Controller
 
 ### 👁️ **Visual Skill Nodes**
 - **Email Navigation**: Navigate to specific email accounts
@@ -299,9 +303,14 @@ python test_workflow_builder.py
 **You now have the foundation for the most powerful AI workflow system ever created!**
 
 This system combines:
-- ✅ **Your existing AI agents** (26 specialized agents)
+- ✅ **Your existing AI agents** (29+ specialized agents across 8 categories)
 - ✅ **Real computer vision** (OpenCV + EasyOCR)
-- ✅ **Visual automation** (PyAutoGUI)
+- ✅ **Visual automation** (PyAutoGUI + Selenium)
+- ✅ **Advanced web scraping** (Scrapy with data enrichment)
+- ✅ **Creative media generation** (Images, video, audio)
+- ✅ **Financial automation** (Accounting and reporting)
+- ✅ **Lead personalization** (Sales psychology-based outreach)
+- ✅ **Document processing** (MarkItDown for all formats)
 - ✅ **Workflow orchestration** (DAG-based execution)
 - ✅ **Professional interface** (React + FastAPI)
 

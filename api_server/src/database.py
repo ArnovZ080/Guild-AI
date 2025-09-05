@@ -1,16 +1,28 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from guild.src.core.config import settings
 import os
 
-# Prefer explicit DATABASE_URL env if present, else fall back to constructed one
-explicit_url = os.getenv("DATABASE_URL") or getattr(settings, "DATABASE_URL", None)
-resolved_db_url = explicit_url or settings.database_url
+# Force database configuration for Docker environment
+def get_database_url():
+    """Get database URL with Docker-specific configuration"""
+    # Check for explicit DATABASE_URL first
+    if os.getenv("DATABASE_URL"):
+        return os.getenv("DATABASE_URL")
+    
+    # Use Docker service names
+    host = os.getenv("POSTGRES_HOST", "db")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "password")
+    database = os.getenv("POSTGRES_DB", "workflow_db")
+    
+    return f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
-# Create the SQLAlchemy engine using the resolved database URL
+# Create the SQLAlchemy engine using the forced database URL
 engine = create_engine(
-    resolved_db_url,
+    get_database_url(),
+    echo=True  # Enable SQL logging for debugging
 )
 
 # Create a configured "Session" class

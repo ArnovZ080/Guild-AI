@@ -13,7 +13,15 @@ from datetime import datetime
 from dataclasses import dataclass
 
 from .workflow_canvas import WorkflowCanvas, WorkflowExecution
-from .node_types import BaseNode, create_node
+# Conditional import for node types to avoid vision dependency issues
+try:
+    from .node_types import BaseNode, create_node
+    NODE_TYPES_AVAILABLE = True
+except ImportError:
+    BaseNode = None
+    create_node = None
+    NODE_TYPES_AVAILABLE = False
+    print("Warning: Node types not available - workflow engine functionality limited")
 
 logger = logging.getLogger(__name__)
 

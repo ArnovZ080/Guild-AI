@@ -8,8 +8,6 @@ visual automation capabilities for AI agents.
 import time
 import logging
 from typing import Dict, List, Any, Optional, Tuple
-from .visual_parser import VisualParser
-from .ui_controller import UiController
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +20,24 @@ class VisualAutomationTool:
     
     def __init__(self):
         """Initialize the Visual Automation Tool."""
-        self.visual_parser = VisualParser()
-        self.ui_controller = UiController()
-        
-        logger.info("VisualAutomationTool initialized successfully")
+        try:
+            from .visual_parser import VisualParser
+            from .ui_controller import UiController
+            
+            self.visual_parser = VisualParser()
+            self.ui_controller = UiController()
+            self.vision_available = True
+            logger.info("VisualAutomationTool initialized successfully with full vision capabilities")
+        except ImportError as e:
+            logger.warning(f"Vision components not available: {e}")
+            self.visual_parser = None
+            self.ui_controller = None
+            self.vision_available = False
+        except Exception as e:
+            logger.error(f"Failed to initialize vision components: {e}")
+            self.visual_parser = None
+            self.ui_controller = None
+            self.vision_available = False
     
     def click_element(self, description: str, confidence_threshold: float = 0.6) -> bool:
         """
@@ -38,6 +50,10 @@ class VisualAutomationTool:
         Returns:
             True if successful
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform click operation")
+            return False
+            
         try:
             # Take screenshot and analyze
             screenshot = self.ui_controller.take_screenshot()
@@ -90,6 +106,10 @@ class VisualAutomationTool:
         Returns:
             True if successful
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform type_text operation")
+            return False
+            
         try:
             # Take screenshot and analyze
             screenshot = self.ui_controller.take_screenshot()
@@ -142,6 +162,10 @@ class VisualAutomationTool:
         Returns:
             Extracted text or None if failed
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform read_text operation")
+            return None
+            
         try:
             # Take screenshot
             screenshot = self.ui_controller.take_screenshot(region)
@@ -187,6 +211,10 @@ class VisualAutomationTool:
         Returns:
             Screenshot as bytes
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform take_screenshot operation")
+            return b""
+            
         return self.ui_controller.take_screenshot(region)
     
     def scroll(self, direction: str = "down", amount: int = 3) -> bool:
@@ -200,6 +228,10 @@ class VisualAutomationTool:
         Returns:
             True if successful
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform scroll operation")
+            return False
+            
         try:
             clicks = amount if direction in ["up", "left"] else -amount
             
@@ -230,6 +262,9 @@ class VisualAutomationTool:
         Returns:
             Dictionary describing the current UI state
         """
+        if not self.vision_available:
+            return {"error": "Vision components not available"}
+            
         try:
             # Take screenshot and analyze
             screenshot = self.ui_controller.take_screenshot()
@@ -280,6 +315,10 @@ class VisualAutomationTool:
         Returns:
             Element data if found, None if timeout
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform wait_for_element operation")
+            return None
+            
         start_time = time.time()
         
         while time.time() - start_time < timeout:
@@ -315,6 +354,10 @@ class VisualAutomationTool:
         Returns:
             True if successful
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform find_and_click operation")
+            return False
+            
         for attempt in range(max_attempts):
             logger.info(f"Attempt {attempt + 1}/{max_attempts} to find and click: {description}")
             
@@ -338,6 +381,10 @@ class VisualAutomationTool:
         Returns:
             Element information or None if not found
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform get_element_info operation")
+            return None
+            
         try:
             ui_state = self.get_ui_state()
             if "error" in ui_state:
@@ -370,6 +417,10 @@ class VisualAutomationTool:
         Returns:
             True if element is visible
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform validate_element_visibility operation")
+            return False
+            
         element = self.get_element_info(description)
         return element is not None and element.get("attributes", {}).get("visible", True)
     
@@ -380,6 +431,10 @@ class VisualAutomationTool:
         Returns:
             List of clickable elements
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform get_clickable_elements operation")
+            return []
+            
         try:
             ui_state = self.get_ui_state()
             if "error" in ui_state:
@@ -403,6 +458,10 @@ class VisualAutomationTool:
         Returns:
             List of text elements
         """
+        if not self.vision_available:
+            logger.error("Vision components not available - cannot perform get_text_elements operation")
+            return []
+            
         try:
             ui_state = self.get_ui_state()
             if "error" in ui_state:
@@ -426,12 +485,15 @@ class VisualAutomationTool:
         Returns:
             Dictionary with system status information
         """
+        if not self.vision_available:
+            return {"error": "Vision components not available"}
+            
         return {
             "visual_parser": {
-                "initialized": self.visual_parser.initialized,
-                "status": "ready" if self.visual_parser.initialized else "not_initialized"
+                "initialized": self.visual_parser.initialized if self.visual_parser else False,
+                "status": "ready" if self.visual_parser and self.visual_parser.initialized else "not_initialized"
             },
-            "ui_controller": self.ui_controller.get_screen_info(),
+            "ui_controller": self.ui_controller.get_screen_info() if self.ui_controller else {"error": "UiController not initialized"},
             "timestamp": time.time(),
             "version": "1.0.0"
         }

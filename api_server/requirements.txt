@@ -18,3 +18,15 @@ celery
 redis
 django-celery-beat==2.5.0
 django==4.2.7
+
+# Lightweight Computer Vision Dependencies
+opencv-python-headless==4.8.1.78
+Pillow>=10.0.0
+numpy>=1.24.0
+pytesseract>=0.3.10
+
+# Note: Using lightweight alternatives to heavy ML models
+# - opencv-python-headless: Core computer vision without GUI dependencies
+# - pytesseract: Lightweight OCR using Tesseract engine
+# - Pillow: Image processing
+# - numpy: Numerical computing
