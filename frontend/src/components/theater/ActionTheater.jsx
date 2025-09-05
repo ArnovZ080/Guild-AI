@@ -11,6 +11,7 @@ const ActionTheater = () => {
       default: return <AgentChatInterface />;
     }
   }
+
   return (
     <div className="h-full flex flex-col text-white">
       <div className="flex items-center justify-between mb-4">
@@ -25,4 +26,5 @@ const ActionTheater = () => {
     </div>
   );
 };
+
 export default ActionTheater;

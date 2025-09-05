@@ -10,4 +10,5 @@ const AchievementCelebration = () => {
     </div>
   );
 };
+
 export default AchievementCelebration;

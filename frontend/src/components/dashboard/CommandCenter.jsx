@@ -19,4 +19,5 @@ const CommandCenter = () => {
     </div>
   );
 };
+
 export default CommandCenter;

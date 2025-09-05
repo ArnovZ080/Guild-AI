@@ -6,4 +6,5 @@ const FinancialFlowVisualization = () => {
     </div>
   );
 };
+
 export default FinancialFlowVisualization;

@@ -9,4 +9,13 @@ export default defineConfig({
       "@": new URL("./src", import.meta.url).pathname,
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8010',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+  },
 })

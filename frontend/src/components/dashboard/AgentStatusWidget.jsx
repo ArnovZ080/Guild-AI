@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 const AgentStatusWidget = () => {
   const [agents] = useState([
@@ -5,6 +6,7 @@ const AgentStatusWidget = () => {
     { id: '2', name: 'Content Agent', status: 'online', efficiency: 0.88 },
   ]);
   const getStatusColor = (status) => ({ online: '#10B981', busy: '#F59E0B', offline: '#6B7280' })[status];
+
   return (
     <div className="bg-gray-800 p-4 rounded-lg h-full text-white">
       <h3 className="font-semibold mb-4">Agent Status</h3>
@@ -18,9 +20,11 @@ const AgentStatusWidget = () => {
               </div>
             </div>
           </div>
+
         ))}
       </div>
     </div>
   );
 };
+
 export default AgentStatusWidget;

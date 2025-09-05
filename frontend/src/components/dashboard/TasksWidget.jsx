@@ -6,8 +6,10 @@ const TasksWidget = () => {
       <ul className="space-y-2 text-sm">
         <li className="flex items-center"><input type="checkbox" className="mr-2" /><span>Review new ad copy</span></li>
         <li className="flex items-center"><input type="checkbox" className="mr-2" /><span>Approve marketing budget</span></li>
+
       </ul>
     </div>
   );
 };
+
 export default TasksWidget;

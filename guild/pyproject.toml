@@ -19,6 +19,12 @@ dependencies = [
     "pypdf",
     "n8n",
     "hubspot-api-client",
+    "pyautogui",
+    "pillow",
+    "opencv-python",
+    "easyocr",
+    "numpy",
+    # "omni-parser",  # Placeholder for OmniParser library
 ]
 
 [project.scripts]
