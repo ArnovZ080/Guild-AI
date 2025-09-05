@@ -22,6 +22,7 @@ const WorkflowStatusPage = () => {
   const [executions, setExecutions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const intervalRef = React.useRef();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,7 +54,6 @@ const WorkflowStatusPage = () => {
     };
 
     fetchData(); // Initial fetch
-    const intervalRef = React.useRef();
     intervalRef.current = setInterval(fetchData, 5000); // Poll every 5 seconds
 
     return () => clearInterval(intervalRef.current);
