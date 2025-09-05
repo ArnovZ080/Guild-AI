@@ -15,7 +15,7 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Loader2, CheckCircle, XCircle, FileText, BrainCircuit, Bot } from 'lucide-react';
 
-const API_URL = 'http://localhost:8000'; // Adjust if your API is elsewhere
+const API_URL = '/api'; // Use the Vite proxy to connect to local backend
 
 const nodeStatusIcons = {
     pending: <FileText className="h-4 w-4 text-gray-500" />,

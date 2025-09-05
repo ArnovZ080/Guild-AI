@@ -14,8 +14,8 @@ from .. import models
 from ..database import get_db
 from ..tasks import run_workflow_task
 
-# Import the new Orchestrator from its top-level package
-from core.orchestrator import Orchestrator
+# Import the new Orchestrator from its correct package path
+from guild.src.core.orchestrator import Orchestrator
 
 router = APIRouter(
     prefix="/workflows",
@@ -34,10 +34,10 @@ async def create_contract_and_plan_workflow(
     contract_id = str(uuid.uuid4())
     db_contract = models.OutcomeContract(
         id=contract_id,
+        title=f"Contract for: {user_input.objective}",  # Required field
         objective=user_input.objective,
         target_audience=user_input.audience.model_dump() if user_input.audience else {},
         additional_notes=user_input.additional_notes,
-
     )
     db.add(db_contract)
     db.commit()

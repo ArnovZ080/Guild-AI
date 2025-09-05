@@ -1,3 +1,6 @@
+
+
+
 services:
 # API Server (FastAPI)
   backend:
@@ -163,6 +166,42 @@ services:
     command: -config.file=/etc/promtail/config.yml
     depends_on:
       - loki
+    restart: unless-stopped
+      
+  # Celery Worker (Task Processing)
+  celery:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    command: celery -A api_server.src.celery_app.celery worker --loglevel=info
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+      
+  # Celery Beat (Scheduled Tasks)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    command: >
+      sh -c "
+      python manage.py migrate &&
+      celery -A api_server.src.celery_app.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      "
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
     restart: unless-stopped
 
 volumes:

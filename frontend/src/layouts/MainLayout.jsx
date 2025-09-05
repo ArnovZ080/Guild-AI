@@ -6,6 +6,7 @@ const ActionTheater = () => <div className="p-4"><h2 className="text-xl font-bol
 const AchievementCelebration = () => <div className="absolute bottom-4 right-4">Achievement Placeholder</div>;
 const StressReductionInterface = () => <div className="absolute top-20 right-4">Stress Placeholder</div>;
 
+
 const MainLayout = () => {
   const [selectedZone, setSelectedZone] = useState('overview');
 
@@ -31,6 +32,7 @@ const MainLayout = () => {
         );
       default:
         return <div className="p-6"><h1 className="text-2xl font-bold">{selectedZone.charAt(0).toUpperCase() + selectedZone.slice(1)} Zone</h1></div>;
+
     }
   };
 
@@ -40,6 +42,7 @@ const MainLayout = () => {
         <div>
           <h1 className="text-xl font-bold text-white">Guild AI</h1>
         </div>
+
         <div className="flex bg-gray-800 rounded-lg p-1">
           {['overview', 'detail', 'action'].map((zone) => (
             <button
@@ -50,6 +53,7 @@ const MainLayout = () => {
               {selectedZone === zone && (
                 <div
                   className="absolute inset-0 bg-gray-700 rounded-md"
+
                 />
               )}
               <span className="relative z-10">{zone}</span>
@@ -60,10 +64,12 @@ const MainLayout = () => {
       <main className="flex-grow overflow-auto">
         {renderContent()}
       </main>
+
       <AchievementCelebration />
       <div className="absolute top-20 right-4 z-40">
         <StressReductionInterface />
       </div>
+
     </div>
   );
 };

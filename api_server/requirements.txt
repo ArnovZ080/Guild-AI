@@ -4,6 +4,8 @@ SQLAlchemy
 pydantic
 pydantic-settings
 
+psycopg2-binary
+
 # Install the local guild package in editable mode
 -e ./guild
 
@@ -14,3 +16,5 @@ pytest
 # Task Queue
 celery
 redis
+django-celery-beat==2.5.0
+django==4.2.7
