@@ -1,29 +1,26 @@
-# Hybrid Storage Workflow System
+# Guild AI - Your Autonomous AI Workforce
 
-A comprehensive web application that orchestrates AI agents with connected data sources for automated content creation. This system implements a hybrid storage architecture that seamlessly integrates workspace storage with external cloud providers like Google Drive, Notion, OneDrive, and Dropbox.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 🚀 Features
+Guild is an AI Workforce platform designed specifically for solopreneurs and lean teams. It uses a multi-agent architecture with specialized roles for research, marketing, content creation, and more, all coordinated by a powerful workflow engine. The goal is to automate the vast majority of a solopreneur's tasks, allowing them to focus on their core business and strategic growth.
 
-### Core Capabilities
-- **Multi-Agent Orchestration**: Coordinate specialized AI agents for content creation, fact-checking, and quality assurance
-- **Hybrid Storage Integration**: Connect and sync data from multiple sources including workspace storage and cloud providers
-- **Workflow Automation**: Plan → Approve → Run → QA pipeline for automated content generation
-- **Real-time Collaboration**: OAuth-based connections to external data sources with persistent authentication
-- **Quality Control**: Comprehensive evaluation system with fact-checking, brand compliance, and SEO optimization
+## ✨ Key Features
 
-### Supported Data Sources
-- **Workspace Storage**: Local MinIO-based file storage
-- **Google Drive**: OAuth-connected cloud storage with folder synchronization
-- **Notion**: Database and page content integration
-- **OneDrive**: Microsoft cloud storage connectivity
-- **Dropbox**: File sharing platform integration
+-   **Autonomous AI Agents:** A full suite of specialized agents including Content Creators, Researchers, Marketers, Sales Agents, and more.
+-   **Visual Workflow Builder:** A drag-and-drop interface to create, manage, and execute complex business processes.
+-   **Dynamic & Adaptive UI:** A psychologically-optimized dashboard that provides at-a-glance business intelligence and motivational feedback.
+-   **Multi-source Data Integration:** A powerful RAG pipeline that connects to local files, Google Drive, Notion, and more.
+-   **Visual Automation:** Agents can see and interact with applications on your screen, just like a human assistant.
+-   **Comprehensive Monitoring:** A full monitoring stack with Prometheus and Grafana to observe system health.
 
-### Content Deliverables
-- Project briefs and requirements documentation
-- Marketing advertisements and copy
-- Content calendars and scheduling
-- Product listing packages
-- SEO optimization checklists
+## 🛠️ Tech Stack
+
+-   **Frontend:** React, Vite, Tailwind CSS, Framer Motion, React Flow
+-   **Backend & AI:** Python, FastAPI, LangChain, Celery
+-   **Core AI Models:** Ollama, Sentence Transformers
+-   **Databases:** PostgreSQL (Primary), Redis (Caching & Queues)
+-   **Vector Store:** Qdrant
+-   **Infrastructure:** Docker, MinIO (Object Storage)
 
 ### Advanced Integrations
 - **Web Scraping**: Scrapy-based lead generation with data enrichment
@@ -44,6 +41,10 @@ A comprehensive web application that orchestrates AI agents with connected data 
 - **🎛️ Orchestration**: Workflow Manager, Pre-flight Planner, Contract Compiler, and Quality Controller agents
 
 ## 🏗️ Architecture
+
+## 🚀 Getting Started
+
+Follow these steps to get the Guild AI platform running on your local machine.
 
 The system follows a microservices architecture with clear separation between frontend, backend, and data layers:
 
@@ -94,74 +95,47 @@ The system follows a microservices architecture with clear separation between fr
     + MarkItDown (document conversion & transcription)
 ```
 
-## 📋 Prerequisites
+### Prerequisites
 
-- Python 3.11+
-- Node.js 20+
-- pnpm (for frontend package management)
-- Git
-
-## 🛠️ Installation
+-   Git
+-   Docker & Docker Compose
+-   Python 3.11+
+-   Node.js 18+ & pnpm
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
-cd web-app
+git clone <your-repo-url> guild-ai
+cd guild-ai
 ```
 
-### 2. Backend Setup
+### 2. Create Environment File
 
-```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-### 3. Frontend Setup
-
-```bash
-cd frontend
-pnpm install
-```
-
-### 4. Environment Configuration
-
-Create a `.env` file in the backend directory:
+Create a `.env` file in the root of the project by copying the example below. This file contains all the necessary credentials and configuration for the services.
 
 ```env
-# Flask Configuration
-FLASK_ENV=development
-SECRET_KEY=your-secret-key-here
+# .env
 
-# Database Configuration
-DATABASE_URL=sqlite:///app.db
+# PostgreSQL
+POSTGRES_USER=guild
+POSTGRES_PASSWORD=guild
+POSTGRES_DB=guild
+DATABASE_URL=postgresql+psycopg://guild:guild@localhost:5432/guild
 
-# OAuth Credentials
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-NOTION_CLIENT_ID=your-notion-client-id
-NOTION_CLIENT_SECRET=your-notion-client-secret
-MICROSOFT_CLIENT_ID=your-microsoft-client-id
-MICROSOFT_CLIENT_SECRET=your-microsoft-client-secret
-DROPBOX_CLIENT_ID=your-dropbox-client-id
-DROPBOX_CLIENT_SECRET=your-dropbox-client-secret
+# Redis
+REDIS_URL=redis://localhost:6379/0
 
-# MinIO Configuration (for workspace storage)
-MINIO_ENDPOINT=localhost:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_SECURE=false
+# Qdrant
+QDRANT_URL=http://localhost:6333
 
-# Qdrant Configuration (for vector storage)
-QDRANT_HOST=localhost
-QDRANT_PORT=6333
-QDRANT_API_KEY=your-qdrant-api-key
+# MinIO
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin
+MINIO_URL=http://localhost:9000
 
-# OpenAI Configuration
-OPENAI_API_KEY=your-openai-api-key
-OPENAI_API_BASE=https://api.openai.com/v1
+# LLM (local default)
+LLM_PROVIDER=ollama
+OLLAMA_HOST=http://localhost:11434
 
 # MarkItDown Configuration (for document conversion & transcription)
 MARKITDOWN_ENABLE_PLUGINS=true
@@ -174,202 +148,50 @@ AGENT_MAX_ITERATIONS=3
 AGENT_TIMEOUT_MINUTES=30
 AGENT_QUALITY_THRESHOLD=0.8
 AGENT_CONFIDENCE_THRESHOLD=0.55
+
+# CORS (for frontend)
+ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 ```
 
-## 🚀 Running the Application
+### 3. Run the Application
 
-### Development Mode
+With Docker running, start all the services using Docker Compose:
 
-1. **Start the Backend**:
 ```bash
-cd backend
-source venv/bin/activate
-python src/main.py
+# Note: You may need to run this with sudo depending on your Docker setup
+docker compose up -d
 ```
-The backend will be available at `http://localhost:5000`
 
-2. **Start the Frontend**:
+This command will build the necessary images and start all services in detached mode. This may take a few minutes on the first run as it downloads the service images.
+
+### 4. Accessing the Application
+
+Once all services are running, you can access the different parts of the platform:
+
+-   **Frontend Application:** `http://localhost:3000`
+-   **Backend API Docs:** `http://localhost:5001/docs`
+-   **MinIO Console:** `http://localhost:9001` (Use the credentials from your `.env` file)
+-   **Grafana Dashboard:** `http://localhost:3001`
+
+## 🧪 Running Tests
+
+To run the backend test suite, first ensure you have the Python dependencies installed locally.
+
 ```bash
-cd frontend
-pnpm run dev
+# From the project root
+pip install -e ./guild
+pip install -e ./api_server
+pip install pytest httpx
+
+# Run the tests
+python -m pytest api_server/tests/
 ```
-The frontend will be available at `http://localhost:5173`
-
-### Production Mode
-
-See the [Deployment Guide](docs/deployment.md) for production deployment instructions.
-
-## 📚 API Documentation
-
-### Data Rooms API
-
-#### GET /api/data-rooms
-Get all data rooms
-```json
-{
-  "data": [
-    {
-      "id": "uuid",
-      "name": "Marketing Assets",
-      "provider": "gdrive",
-      "config": {"folder_id": "abc123"},
-      "read_only": true,
-      "last_sync_at": "2024-01-15T10:30:00Z",
-      "created_at": "2024-01-01T00:00:00Z"
-    }
-  ]
-}
-```
-
-#### POST /api/data-rooms
-Create a new data room
-```json
-{
-  "name": "Project Documentation",
-  "provider": "notion",
-  "config": {"database_id": "def456"},
-  "read_only": true
-}
-```
-
-#### POST /api/data-rooms/{id}/sync
-Sync a data room with its provider
-
-### OAuth API
-
-#### GET /api/oauth/{provider}/start
-Start OAuth flow for a provider (gdrive, notion, onedrive, dropbox)
-
-#### GET /api/oauth/{provider}/callback
-Handle OAuth callback from provider
-
-#### GET /api/oauth/credentials
-Get all stored OAuth credentials
-
-### Workflows API
-
-#### POST /api/contracts
-Create a new outcome contract
-```json
-{
-  "title": "Q1 Marketing Campaign",
-  "objective": "Create comprehensive marketing materials for product launch",
-  "deliverables": ["brief", "ads", "calendar"],
-  "data_rooms": ["room-id-1", "room-id-2"],
-  "rubric": {
-    "quality_threshold": 0.8,
-    "fact_check_required": true,
-    "brand_compliance": true,
-    "seo_optimization": false
-  }
-}
-```
-
-#### POST /api/contracts/{id}/compile
-Compile a contract into an executable workflow
-
-#### POST /api/workflows/{id}/execute
-Start workflow execution
-
-#### GET /api/workflows/{id}/deliverables
-Get deliverables for a workflow
-
-## 🔧 Configuration
-
-### Agent Configuration
-
-The system supports various agent types with configurable parameters:
-
-```json
-{
-  "workforce_agents": {
-    "brief_generator": {
-      "model": "gpt-4",
-      "temperature": 0.7,
-      "max_tokens": 2000,
-      "tools": ["rag_search", "web_search"]
-    },
-    "ad_copy_writer": {
-      "model": "gpt-4",
-      "temperature": 0.8,
-      "max_tokens": 1500,
-      "tools": ["rag_search", "sentiment_analysis"]
-    }
-  },
-  "evaluator_agents": {
-    "fact_checker": {
-      "model": "gpt-4",
-      "temperature": 0.2,
-      "confidence_threshold": 0.8,
-      "tools": ["rag_search", "web_search", "fact_verification"]
-    },
-    "brand_checker": {
-      "model": "gpt-4",
-      "temperature": 0.3,
-      "brand_guidelines_weight": 0.9,
-      "tools": ["rag_search", "brand_analysis"]
-    }
-  }
-}
-```
-
-### Data Source Configuration
-
-Each data source requires specific configuration parameters:
-
-- **Google Drive**: `folder_id` or `drive_id`
-- **Notion**: `database_id` or `page_id`
-- **OneDrive**: `site_id` and `drive_id`
-- **Dropbox**: `folder_path`
-
-## 🧪 Testing
-
-### Backend Tests
-```bash
-cd backend
-source venv/bin/activate
-python -m pytest tests/
-```
-
-### Frontend Tests
-```bash
-cd frontend
-pnpm test
-```
-
-### Integration Tests
-```bash
-# Run both backend and frontend, then:
-pnpm run test:e2e
-```
-
-## 📖 Documentation
-
-- [Agent System Documentation](AGENTS.md) - Detailed information about the agent architecture
-- [API Reference](docs/api.md) - Complete API documentation
-- [Deployment Guide](docs/deployment.md) - Production deployment instructions
-- [Development Guide](docs/development.md) - Development setup and guidelines
-- [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Development Guidelines
-
-- Follow PEP 8 for Python code
-- Use ESLint and Prettier for JavaScript/React code
-- Write tests for new features
-- Update documentation for API changes
-- Use conventional commit messages
+Contributions are welcome! Please feel free to submit a pull request.
 
 ## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
@@ -443,7 +265,10 @@ For support and questions:
 - **v0.9.0** - Beta release with basic features
 - **v0.1.0** - Alpha release for testing
 
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 ---
 
 Built with ❤️ by the development team
-

@@ -1,34 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 const StressReductionInterface = () => {
-  const [stressLevel, setStressLevel] = useState({
-    current: 0.6,
-    trend: 'stable',
-    factors: ['High task load', 'Tight deadlines']
-  });
-  const [ambientMode, setAmbientMode] = useState('ocean');
   const [isActive, setIsActive] = useState(false);
+  const [ambientMode, setAmbientMode] = useState('ocean');
+  const stressLevel = useRef(0.3);
 
   const ambientThemes = {
-    ocean: { colors: ['#0EA5E9', '#0284C7', '#0369A1'], particles: '🌊' },
-    forest: { colors: ['#10B981', '#059669', '#047857'], particles: '🍃' },
-    rain: { colors: ['#6B7280', '#4B5563', '#374151'], particles: '💧' },
+    ocean: { colors: ['#0ea5e9', '#0284c7', '#0369a1'], particles: '🌊' },
+    forest: { colors: ['#22c55e', '#16a34a', '#15803d'], particles: '🌿' },
+    sunset: { colors: ['#f97316', '#ea580c', '#dc2626'], particles: '🌅' },
+    space: { colors: ['#8b5cf6', '#7c3aed', '#6d28d9'], particles: '⭐' }
   };
-
-  const getStressColor = (level) => {
-    if (level < 0.3) return '#10B981';
-    if (level < 0.6) return '#F59E0B';
-    return '#EF4444';
-  };
-
-  useEffect(() => {
-    if (stressLevel.current > 0.7 && !isActive) {
-      setIsActive(true);
-    }
-  }, [stressLevel.current, isActive]);
 
   const currentTheme = ambientThemes[ambientMode];
+
+  const getStressColor = (level) => {
+    if (level < 0.3) return '#22c55e';
+    if (level < 0.6) return '#f59e0b';
+    return '#ef4444';
+  };
 
   return (
     <div className="w-full max-w-sm mx-auto bg-gray-800 text-white rounded-lg shadow-lg overflow-hidden">
