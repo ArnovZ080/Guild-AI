@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import AgentActivityTheaterView from '@/components/theater/AgentActivityTheaterView';
-import AgentCollaborationFlow from '@/components/theater/AgentCollaborationFlow';
-import AgentChatInterface from '@/components/theater/AgentChatInterface';
+import AgentActivityTheaterView from './AgentActivityTheaterView.jsx';
+import AgentCollaborationFlow from './AgentCollaborationFlow.jsx';
+import AgentChatInterface from './AgentChatInterface.jsx';
 const ActionTheater = () => {
   const [view, setView] = useState('chat');
   const renderContent = () => {
