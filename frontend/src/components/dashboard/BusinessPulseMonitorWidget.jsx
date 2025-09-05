@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useRealtimeData } from '../../hooks/useDataService.js';
 
 const BusinessPulseMonitorWidget = () => {
-  const { data: pulseData, isLoading, error } = useRealtimeData('businessPulse', {
+  // Use simulated data directly (no backend dependency)
+  const [displayData, setDisplayData] = useState({
     intensity: 0.7,
     activities: [
       { type: 'sales', count: 3 },
@@ -13,16 +13,21 @@ const BusinessPulseMonitorWidget = () => {
     ]
   });
 
-  // Use simulated data if backend is not available
-  const displayData = pulseData || {
-    intensity: 0.7,
-    activities: [
-      { type: 'sales', count: 3 },
-      { type: 'content', count: 5 },
-      { type: 'support', count: 2 },
-      { type: 'leads', count: 8 }
-    ]
-  };
+  // Simulate real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDisplayData(prev => ({
+        ...prev,
+        intensity: Math.max(0.3, Math.min(1.0, prev.intensity + (Math.random() - 0.5) * 0.1)),
+        activities: prev.activities.map(activity => ({
+          ...activity,
+          count: Math.max(1, activity.count + Math.floor((Math.random() - 0.5) * 2))
+        }))
+      }));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const pulseVariants = {
     animate: {
