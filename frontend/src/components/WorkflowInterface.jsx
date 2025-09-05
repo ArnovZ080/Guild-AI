@@ -17,11 +17,6 @@ const deliverableTypes = [
   { id: 'seo', name: 'SEO Checklist', icon: CheckCircle }
 ];
 
-const mockDataRooms = [
-  { id: 'room-1', name: 'Marketing Assets (Google Drive)' },
-  { id: 'room-2', name: 'Brand Guidelines (Local Workspace)' },
-];
-
 export function WorkflowInterface() {
   const [view, setView] = useState('form'); // 'form', 'approval', 'status'
   const [contractRequest, setContractRequest] = useState({
@@ -40,11 +35,6 @@ export function WorkflowInterface() {
   const handleDeliverableToggle = (id) => {
     const updated = contractRequest.deliverables.includes(id) ? contractRequest.deliverables.filter(i => i !== id) : [...contractRequest.deliverables, id];
     handleInputChange('deliverables', updated);
-  };
-
-  const handleDataRoomToggle = (id) => {
-    const updated = contractRequest.dataRooms.includes(id) ? contractRequest.dataRooms.filter(i => i !== id) : [...contractRequest.dataRooms, id];
-    handleInputChange('dataRooms', updated);
   };
 
   const createAndPlanWorkflow = async () => {
