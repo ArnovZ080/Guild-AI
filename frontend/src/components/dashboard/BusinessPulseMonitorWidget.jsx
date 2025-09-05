@@ -97,7 +97,7 @@ const BusinessPulseMonitorWidget = () => {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-white">
             <div className="text-2xl font-bold">
-              {Math.round(pulseData.intensity * 100)}%
+              {Math.round(displayData.intensity * 100)}%
             </div>
             <div className="text-sm opacity-80">Business Health</div>
           </div>
@@ -106,7 +106,7 @@ const BusinessPulseMonitorWidget = () => {
       
       {/* Activity Legend */}
       <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-        {pulseData.activities.map((activity) => (
+        {displayData.activities.map((activity) => (
           <div key={activity.type} className="flex items-center">
             <div 
               className="w-2 h-2 rounded-full mr-2" 
