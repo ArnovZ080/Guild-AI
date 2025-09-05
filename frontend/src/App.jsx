@@ -7,15 +7,6 @@ const WorkflowBuilderView = () => <div>Workflow Builder Placeholder</div>;
 const OnboardingFlow = ({ onOnboardingComplete }) => <div onClick={onOnboardingComplete}>Onboarding Placeholder. Click to continue.</div>;
 
 
-
-const DevNavigation = () => (
-  <nav className="bg-gray-900 text-white p-2 absolute top-0 left-0 z-50">
-    <Link to="/" className="mr-4">Dashboard</Link>
-    <Link to="/builder">Builder</Link>
-  </nav>
-);
-
-// A simple navigation component for easy switching during development
 const DevNavigation = () => (
   <nav className="bg-gray-900 text-white p-2 absolute top-0 left-0 z-50">
     <Link to="/" className="mr-4">Dashboard</Link>

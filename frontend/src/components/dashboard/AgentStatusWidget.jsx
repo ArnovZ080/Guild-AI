@@ -1,7 +1,10 @@
-
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 const AgentStatusWidget = () => {
-  const [agents] = useState([
+  // eslint-disable-next-line no-unused-vars
+  const [agents, setAgents] = useState([
+
     { id: '1', name: 'Research Agent', status: 'busy', efficiency: 0.92 },
     { id: '2', name: 'Content Agent', status: 'online', efficiency: 0.88 },
   ]);
@@ -12,14 +15,14 @@ const AgentStatusWidget = () => {
       <h3 className="font-semibold mb-4">Agent Status</h3>
       <div className="space-y-4">
         {agents.map((agent) => (
-          <div key={agent.id} className="p-2 hover:bg-gray-700 rounded-md transition-colors">
+          <motion.div key={agent.id} layout className="p-2 hover:bg-gray-700 rounded-md transition-colors">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getStatusColor(agent.status) }} />
+                <motion.div className="w-3 h-3 rounded-full" style={{ backgroundColor: getStatusColor(agent.status) }} />
                 <div><h4 className="font-medium text-sm">{agent.name}</h4></div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
         ))}
       </div>
