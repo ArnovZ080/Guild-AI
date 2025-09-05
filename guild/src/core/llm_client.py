@@ -3,6 +3,7 @@ import ollama
 import requests
 import json
 from guild.src.core.config import settings
+from guild.src.models.llm import Llm
 
 class LLMProvider(Protocol):
     """A protocol for LLM providers, ensuring they have a generate_json method."""
@@ -54,6 +55,42 @@ class TogetherAIProvider:
             return json.loads(response_content)
         except Exception as e:
             print(f"Error communicating with Together.ai: {e}")
+            raise
+
+class LlmClient:
+    """Client for interacting with LLM providers."""
+    
+    def __init__(self, llm_config: Llm):
+        self.llm_config = llm_config
+        if llm_config.provider == "together":
+            if not settings.TOGETHER_API_KEY:
+                raise ValueError("TOGETHER_API_KEY is not set for Together.ai provider")
+            self.provider = TogetherAIProvider()
+        elif llm_config.provider == "ollama":
+            self.provider = OllamaProvider()
+        else:
+            raise ValueError(f"Unsupported LLM provider: {llm_config.provider}")
+    
+    async def chat(self, prompt: str) -> str:
+        """Send a chat message and return the response as a string."""
+        try:
+            # For conversational prompts, use a simple text generation approach
+            if self.llm_config.provider == "ollama":
+                # Use Ollama's chat method directly for conversational responses
+                client = ollama.Client(host=settings.OLLAMA_HOST)
+                response = client.chat(
+                    model=self.llm_config.model,
+                    messages=[{'role': 'user', 'content': prompt}]
+                )
+                return response['message']['content']
+            else:
+                # Fallback to the existing method for other providers
+                result = self.provider.generate_json(prompt, self.llm_config.model)
+                if isinstance(result, dict):
+                    return json.dumps(result)
+                return str(result)
+        except Exception as e:
+            print(f"Error in LlmClient.chat: {e}")
             raise
 
 def get_llm_client() -> LLMProvider:

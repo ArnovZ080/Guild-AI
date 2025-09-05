@@ -1,12 +1,13 @@
 import json
 import asyncio
-from typing import Dict, Any, Callable
+from typing import Dict, Any, Callable, List
+from pydantic import BaseModel
 
 # Use absolute imports for clarity and robustness
 from guild.src.models.user_input import UserInput
 from guild.src.models.llm import Llm, LlmModels
-from guild.src.llm.llm_client import LlmClient
-from guild.src.models.workflow import Workflow, Task
+from guild.src.core.llm_client import LlmClient
+from guild.src.models.workflow import Task
 from guild.src.utils.logging_utils import get_logger
 
 # --- Import ALL Agent Classes ---
@@ -17,39 +18,46 @@ from guild.src.agents.chief_of_staff_agent import ChiefOfStaffAgent
 from guild.src.agents.strategy_agent import StrategyAgent
 from guild.src.agents.strategic_sounding_board_agent import StrategicSoundingBoardAgent
 from guild.src.agents.well_being_agent import WellBeingAgent
-from guild.src.agents.accountability_coach_agent import AccountabilityCoachAgent
+# Temporarily disabled most agents to fix import issues
+# from guild.src.agents.accountability_coach_agent import AccountabilityCoachAgent
 # Marketing & Growth
 from guild.src.agents.content_strategist import ContentStrategist
-from guild.src.agents.seo_agent import SEOAgent
+# from guild.src.agents.seo_agent import SEOAgent  # temporarily disabled
 from guild.src.agents.copywriter import Copywriter
-from guild.src.agents.paid_ads_agent import PaidAdsAgent
-from guild.src.agents.pr_outreach_agent import PROutreachAgent
-from guild.src.agents.community_manager_agent import CommunityManagerAgent
+# from guild.src.agents.paid_ads_agent import PaidAdsAgent
+# from guild.src.agents.pr_outreach_agent import PROutreachAgent
+# from guild.src.agents.community_manager_agent import CommunityManagerAgent
 # Sales & Revenue
-from guild.src.agents.sales_funnel_agent import SalesFunnelAgent
-from guild.src.agents.crm_agent import CRMAgent
-from guild.src.agents.outbound_sales_agent import OutboundSalesAgent
-from guild.src.agents.partnerships_agent import PartnershipsAgent
+# from guild.src.agents.sales_funnel_agent import SalesFunnelAgent
+# from guild.src.agents.crm_agent import CRMAgent
+# from guild.src.agents.outbound_sales_agent import OutboundSalesAgent
+# from guild.src.agents.partnerships_agent import PartnershipsAgent
 # Operations
-from guild.src.agents.project_manager_agent import ProjectManagerAgent
-from guild.src.agents.hr_agent import HRAgent
+# from guild.src.agents.project_manager_agent import ProjectManagerAgent
+# from guild.src.agents.hr_agent import HRAgent
 from guild.src.agents.training_agent import TrainingAgent
-from guild.src.agents.compliance_agent import ComplianceAgent
-from guild.src.agents.skill_development_agent import SkillDevelopmentAgent
-from guild.src.agents.outsourcing_agent import OutsourcingAgent
+# from guild.src.agents.compliance_agent import ComplianceAgent
+# from guild.src.agents.skill_development_agent import SkillDevelopmentAgent
+# from guild.src.agents.outsourcing_agent import OutsourcingAgent
 # Finance
-from guild.src.agents.bookkeeping_agent import BookkeepingAgent
-from guild.src.agents.investor_relations_agent import InvestorRelationsAgent
-from guild.src.agents.pricing_agent import PricingAgent
+# from guild.src.agents.bookkeeping_agent import BookkeepingAgent
+# from guild.src.agents.investor_relations_agent import InvestorRelationsAgent
+# from guild.src.agents.pricing_agent import PricingAgent
 # Product & Customer
-from guild.src.agents.product_manager_agent import ProductManagerAgent
-from guild.src.agents.customer_support_agent import CustomerSupportAgent
-from guild.src.agents.ux_ui_tester_agent import UXUITesterAgent
-from guild.src.agents.churn_predictor_agent import ChurnPredictorAgent
+# from guild.src.agents.product_manager_agent import ProductManagerAgent
+# from guild.src.agents.customer_support_agent import CustomerSupportAgent
+# from guild.src.agents.ux_ui_tester_agent import UXUITesterAgent
+# from guild.src.agents.churn_predictor_agent import ChurnPredictorAgent
 
 
 
 logger = get_logger(__name__)
+
+# Simple workflow model for orchestrator (not database model)
+class SimpleWorkflow(BaseModel):
+    """Simple workflow model for orchestrator operations."""
+    user_input: UserInput
+    tasks: List[Task]
 
 # --- The Master Agent Registry ---
 AGENT_REGISTRY = {
@@ -60,112 +68,114 @@ AGENT_REGISTRY = {
     "StrategyAgent": StrategyAgent,
     "StrategicSoundingBoardAgent": StrategicSoundingBoardAgent,
     "WellBeingAgent": WellBeingAgent,
-    "AccountabilityCoachAgent": AccountabilityCoachAgent,
+    # "AccountabilityCoachAgent": AccountabilityCoachAgent,  # temporarily disabled
     # Marketing & Growth
     "ContentStrategist": ContentStrategist,
-    "SEOAgent": SEOAgent,
+    # "SEOAgent": SEOAgent,  # temporarily disabled
     "Copywriter": Copywriter,
-    "PaidAdsAgent": PaidAdsAgent,
-    "PROutreachAgent": PROutreachAgent,
-    "CommunityManagerAgent": CommunityManagerAgent,
+    # "PaidAdsAgent": PaidAdsAgent,  # temporarily disabled
+    # "PROutreachAgent": PROutreachAgent,  # temporarily disabled
+    # "CommunityManagerAgent": CommunityManagerAgent,  # temporarily disabled
     # Sales & Revenue
-    "SalesFunnelAgent": SalesFunnelAgent,
-    "CRMAgent": CRMAgent,
-    "OutboundSalesAgent": OutboundSalesAgent,
-    "PartnershipsAgent": PartnershipsAgent,
+    # "SalesFunnelAgent": SalesFunnelAgent,  # temporarily disabled
+    # "CRMAgent": CRMAgent,  # temporarily disabled
+    # "OutboundSalesAgent": OutboundSalesAgent,  # temporarily disabled
+    # "PartnershipsAgent": PartnershipsAgent,  # temporarily disabled
     # Operations
-    "ProjectManagerAgent": ProjectManagerAgent,
-    "HRAgent": HRAgent,
+    # "ProjectManagerAgent": ProjectManagerAgent,  # temporarily disabled
+    # "HRAgent": HRAgent,  # temporarily disabled
     "TrainingAgent": TrainingAgent,
-    "ComplianceAgent": ComplianceAgent,
-    "SkillDevelopmentAgent": SkillDevelopmentAgent,
-    "OutsourcingAgent": OutsourcingAgent,
+    # "ComplianceAgent": ComplianceAgent,  # temporarily disabled
+    # "SkillDevelopmentAgent": SkillDevelopmentAgent,  # temporarily disabled
+    # "OutsourcingAgent": OutsourcingAgent,  # temporarily disabled
     # Finance
-    "BookkeepingAgent": BookkeepingAgent,
-    "InvestorRelationsAgent": InvestorRelationsAgent,
-    "PricingAgent": PricingAgent,
+    # "BookkeepingAgent": BookkeepingAgent,  # temporarily disabled
+    # "InvestorRelationsAgent": InvestorRelationsAgent,  # temporarily disabled
+    # "PricingAgent": PricingAgent,  # temporarily disabled
     # Product & Customer
-    "ProductManagerAgent": ProductManagerAgent,
-    "CustomerSupportAgent": CustomerSupportAgent,
-    "UXUITesterAgent": UXUITesterAgent,
-    "ChurnPredictorAgent": ChurnPredictorAgent,
+    # "ProductManagerAgent": ProductManagerAgent,  # temporarily disabled
+    # "CustomerSupportAgent": CustomerSupportAgent,  # temporarily disabled
+    # "UXUITesterAgent": UXUITesterAgent,  # temporarily disabled
+    # "ChurnPredictorAgent": ChurnPredictorAgent,  # temporarily disabled
 }
 
 # --- The Master Orchestrator Prompt ---
 DAG_GENERATION_PROMPT = """
-You are an expert AI Orchestrator, the central "brain" of a large AI workforce. Your role is to analyze a user's request and create a logical workflow (a Directed Acyclic Graph - DAG) of specialized AI agents to achieve the user's goal. You have a wide array of agents at your disposal.
+## Orchestrator Task: Create Intelligent Multi-Agent Workflow
 
-**1. Available Agents & Their Capabilities:**
+**User Request:** {objective}
+**Additional Context:** {additional_notes}
+**Available Agents:** JudgeAgent, ContentStrategist, Copywriter, TrainingAgent, ChiefOfStaffAgent, StrategyAgent
 
-*   **Executive Layer:**
-    *   `ChiefOfStaffAgent`: High-level coordinator. Use for complex, multi-departmental goals.
-    *   `StrategyAgent`: For deep strategic questions about market positioning, expansion, or business models.
-    *   `StrategicSoundingBoardAgent`: To critique or validate a new idea or decision.
-    *   `WellBeingAgent`: For tasks related to workload management and burnout prevention.
-    *   `AccountabilityCoachAgent`: For tasks related to goal tracking and motivation.
+**Your Role:** You are the Intelligent Orchestrator Agent, the central manager of the AI system. 
+Analyze the user request and create a step-by-step execution plan involving multiple AI agents.
 
-*   **Marketing & Growth Layer:**
-    *   `ContentStrategist`: Plans content calendars and high-level content themes.
-    *   `SEOAgent`: For all tasks related to organic search, keywords, and technical SEO.
-    *   `Copywriter`: Writes final copy (website, emails, ads) based on a strategy. Requires input from a strategy agent.
-    *   `PaidAdsAgent`: Manages and optimizes paid ad campaigns.
-    *   `PROutreachAgent`: For public relations, media outreach, and securing press.
-    *   `CommunityManagerAgent`: Manages social media engagement and community interactions.
+**Available Agent Capabilities:**
+- **JudgeAgent**: Quality control, rubric generation, and output evaluation
+- **ContentStrategist**: Content strategy, planning, and calendar creation
+- **Copywriter**: Content creation, writing, and copy generation
+- **TrainingAgent**: SOP creation, training materials, and process documentation
+- **ChiefOfStaffAgent**: Strategic coordination, delegation, and workflow optimization
+- **StrategyAgent**: Long-term planning, market analysis, and strategic decision-making
 
-*   **Sales & Revenue Layer:**
-    *   `SalesFunnelAgent`: Designs sales funnels (lead magnets, VSLs, checkout pages).
-    *   `CRMAgent`: Sets up CRM, lead scoring, and email automation. Depends on `SalesFunnelAgent`.
-    *   `OutboundSalesAgent`: For generating lead lists and drafting personalized cold outreach.
-    *   `PartnershipsAgent`: For identifying and planning affiliate or JV partnerships.
+**Task Instructions:**
+1. **Interpret User Request**: Understand the underlying goals and required outcomes
+2. **Identify Required Agents**: Select the most appropriate agents for each sub-task
+3. **Create Execution Plan**: Generate a logical, efficient DAG with clear dependencies
+4. **Define Task Sequence**: Ensure tasks flow logically from planning to execution to quality control
 
-*   **Operations Layer:**
-    *   `ProjectManagerAgent`: Breaks down any large goal into a detailed project plan with tasks and timelines.
-    *   `HRAgent`: For any hiring-related task (job descriptions, interview plans).
-    *   `TrainingAgent`: Creates Standard Operating Procedures (SOPs) for business processes.
-    *   `ComplianceAgent`: For legal and regulatory questions (e.g., GDPR, CCPA).
-    *   `SkillDevelopmentAgent`: Creates personalized learning plans for the user.
-    *   `OutsourcingAgent`: Creates a plan for hiring and managing freelancers for a specific task.
+**Output Format (JSON only):**
+{{
+  "workflow_name": "Descriptive name for this workflow",
+  "workflow_description": "Brief overview of what this workflow accomplishes",
+  "tasks": [
+    {{
+      "id": "task1",
+      "name": "Descriptive task name",
+      "agent_type": "AgentClassName",
+      "description": "Detailed description of what this task accomplishes",
+      "dependencies": [],
+      "expected_output": "What this task should produce",
+      "estimated_duration": "Estimated time to complete"
+    }}
+  ],
+  "quality_criteria": "What defines success for this workflow",
+  "success_metrics": ["Metric 1", "Metric 2"]
+}}
 
-*   **Finance Layer:**
-    *   `BookkeepingAgent`: Processes transactions and creates financial reports.
-    *   `InvestorRelationsAgent`: For creating pitch decks and investor updates.
-    *   `PricingAgent`: Analyzes and recommends pricing strategies for products/services.
+**Rules:**
+- Start with planning/strategy agents (ContentStrategist, StrategyAgent)
+- Include execution agents for content creation (Copywriter, TrainingAgent)
+- End with JudgeAgent for quality control and evaluation
+- Keep it simple but comprehensive (3-5 tasks max)
+- Ensure logical flow and dependencies
+- Consider the user's business context and goals
 
-*   **Product & Customer Layer:**
-    *   `ProductManagerAgent`: Gathers feedback and creates product roadmaps.
-    *   `CustomerSupportAgent`: Manages and responds to customer support tickets.
-    *   `UXUITesterAgent`: Analyzes a website/app for usability issues and suggests improvements.
-    *   `ChurnPredictorAgent`: Analyzes customer data to identify at-risk users.
-
-*   **Foundational Layer:**
-    *   `JudgeAgent`: **Crucial for quality control.** Should be the final step for most major deliverables to evaluate the quality of the primary agent's work.
-
-
-**2. User's Request:**
-*   **Primary Objective:** {objective}
-*   **Target Audience:** {audience}
-*   **Additional Notes:** {additional_notes}
-
-**3. Your Task:**
-    Based on the user's request, create a JSON object representing the workflow. The JSON must have a single key: "tasks", which is a list of task objects. Each task object must have `task_id`, `agent`, `description`, `dependencies`, and `expected_output`.
-
-**4. Important Rules:**
-*   **Logical Order:** Ensure dependencies create a logical flow (e.g., `Copywriter` depends on `ContentStrategist`).
-*   **Relevance:** Only include agents that are directly relevant to the user's objective.
-*   **Start with Strategy:** Most workflows should begin with a high-level strategy agent.
-*   **End with Quality Control:** Always include a `JudgeAgent` as the final step to evaluate the primary deliverable.
-
-
-**Now, generate the workflow for the user request above. Output JSON only.**
+Output ONLY valid JSON.
 """
 
 
 class Orchestrator:
+    """
+    The Intelligent Orchestrator Agent acts as the central manager of the entire AI system.
+    It analyzes user requests, autonomously decides which specialist agents are needed, 
+    and creates a step-by-step execution plan (Directed Acyclic Graph - DAG) for complex tasks.
+    """
+    
     def __init__(self, user_input: UserInput):
         self.user_input = user_input
-        self.llm_client = LlmClient(Llm(provider="together", model=LlmModels.LLAMA3_70B.value))
+        # Use configured provider from environment, fallback to ollama
+        import os
+        provider = os.getenv("LLM_PROVIDER", "ollama")
+        model = os.getenv("OLLAMA_MODEL", "tinyllama")
+        self.llm_client = LlmClient(Llm(provider=provider, model=model))
+        
+        # Available agents for orchestration
+        self.available_agents = list(AGENT_REGISTRY.keys())
+        self.system_status = "ready"
+        self.active_tasks = []
 
-    async def generate_workflow(self) -> Workflow:
+    async def generate_workflow(self) -> SimpleWorkflow:
 
         logger.info("Generating workflow by analyzing user input...")
         prompt = DAG_GENERATION_PROMPT.format(
@@ -183,14 +193,14 @@ class Orchestrator:
 
             workflow_data = json.loads(response_str)
             tasks = [Task(**task_data) for task_data in workflow_data.get("tasks", [])]
-            workflow = Workflow(user_input=self.user_input, tasks=tasks)
+            workflow = SimpleWorkflow(user_input=self.user_input, tasks=tasks)
             logger.info(f"Successfully generated workflow with {len(tasks)} tasks.")
             return workflow
         except (json.JSONDecodeError, TypeError) as e:
             logger.error(f"Failed to decode or process LLM response into JSON. Error: {e}. Response: {response_str}")
             raise ValueError("Could not generate a valid workflow from the LLM response.")
 
-    async def execute_workflow(self, workflow: Workflow, on_step_complete: Callable) -> Dict[str, Any]:
+    async def execute_workflow(self, workflow: SimpleWorkflow, on_step_complete: Callable) -> Dict[str, Any]:
         logger.info(f"Starting execution of workflow for objective: {workflow.user_input.objective}")
         execution_context: Dict[str, Any] = {}
 

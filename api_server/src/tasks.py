@@ -7,9 +7,9 @@ from .database import SessionLocal
 from . import models
 
 # Corrected imports for the top-level packages
-from core.orchestrator import Orchestrator
-from models.user_input import UserInput
-from models.workflow import Workflow as PydanticWorkflow, Task as PydanticTask
+from guild.src.core.orchestrator import Orchestrator
+from guild.src.models.user_input import UserInput
+from guild.src.models.workflow import Workflow as PydanticWorkflow, Task as PydanticTask
 
 
 @celery_app.task(bind=True)

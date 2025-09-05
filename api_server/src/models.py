@@ -10,9 +10,11 @@ class OutcomeContract(Base):
     id = Column(String(50), primary_key=True, index=True)
     title = Column(String(200), nullable=False)
     objective = Column(Text, nullable=False)
-    deliverables = Column(JSON, default=[])
-    data_rooms = Column(JSON, default=[])
-    rubric = Column(JSON, default={})
+    target_audience = Column(JSON, default=lambda: {})  # Added missing field
+    additional_notes = Column(Text, nullable=True)  # Added missing field
+    deliverables = Column(JSON, default=lambda: [])
+    data_rooms = Column(JSON, default=lambda: [])
+    rubric = Column(JSON, default=lambda: {})
     status = Column(String(20), default='draft', index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -47,8 +49,8 @@ class AgentExecution(Base):
     node_id = Column(String(100), nullable=False) # From the DAG definition
     agent_name = Column(String(100), nullable=False)
     status = Column(String(20), default='pending')
-    input_data = Column(JSON, default={})
-    output_data = Column(JSON, default={})
+    input_data = Column(JSON, default=lambda: {})
+    output_data = Column(JSON, default=lambda: {})
     error_message = Column(Text, nullable=True)
     execution_time = Column(Float, nullable=True)
 
@@ -75,7 +77,7 @@ class DataRoom(Base):
     id = Column(String(50), primary_key=True, index=True)
     name = Column(String(200), nullable=False)
     provider = Column(String(50), nullable=False)
-    config = Column(JSON, default={})
+    config = Column(JSON, default=lambda: {})
     read_only = Column(Boolean, default=True)
     last_sync_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -89,5 +91,5 @@ class ConnectorCredential(Base):
     access_token = Column(Text, nullable=False)
     refresh_token = Column(Text, nullable=True)
     expires_at = Column(DateTime, nullable=True)
-    scopes = Column(JSON, default=[])
+    scopes = Column(JSON, default=lambda: [])
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -6,4 +6,5 @@ const ProgressMomentumTracker = () => {
     </div>
   );
 };
+
 export default ProgressMomentumTracker;

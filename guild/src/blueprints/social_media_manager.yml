@@ -1,0 +1,43 @@
+id: social_media_manager
+name: Social Media Content Manager
+description: "Generates and posts weekly social media content based on trending topics."
+
+# This blueprint can be triggered on a schedule
+trigger:
+  type: schedule
+  cron: "0 9 * * 1" # Every Monday at 9 AM
+  
+steps:
+  - name: research_topics
+    agent: research_agent
+    input: "Find 3 trending topics in the AI startup space for this week."
+    output: trending_topics
+
+  - name: generate_content_ideas
+    agent: content_strategist
+    input: 
+      topics: "{{ steps.research_topics.output }}"
+      prompt: "Generate 5 content ideas for Twitter and LinkedIn based on these topics."
+    output: content_ideas
+
+  - name: write_posts
+    agent: copywriter_agent
+    # This step will be run for each idea from the previous step
+    loop: "{{ steps.generate_content_ideas.output }}"
+    input: "Write a 280-character Twitter post and a 500-word LinkedIn article for the idea: {{ loop.item.idea_text }}."
+    output: social_media_posts # This will be a list of generated posts
+
+  - name: request_approval
+    agent: human_in_the_loop # A special agent that pauses for user confirmation
+    input:
+      message: "Here are the social media posts for the week. Please review and approve."
+      items: "{{ steps.write_posts.output }}"
+    condition: "{{ result.approved == true }}"
+
+  - name: post_content
+    agent: visual_agent # Or an agent with direct API access to social media
+    loop: "{{ steps.request_approval.output.approved_items }}"
+    input:
+      app: "LinkedIn"
+      action: "create_post"
+      content: "{{ loop.item.linkedin_text }}"

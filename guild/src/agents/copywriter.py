@@ -1,7 +1,7 @@
 from guild.src.models.user_input import UserInput
 from guild.src.models.agent import Agent, AgentCallback
 from guild.src.models.llm import Llm, LlmModels
-from guild.src.llm.llm_client import LlmClient
+from guild.src.core.llm_client import LlmClient
 from guild.src.tools.search import search_and_summarize
 from guild.src.utils.logging_utils import get_logger
 from guild.src.utils.decorators import inject_knowledge

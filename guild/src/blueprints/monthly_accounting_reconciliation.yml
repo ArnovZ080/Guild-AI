@@ -1,0 +1,110 @@
+id: monthly_accounting_reconciliation
+name: End-of-Month Accounting Reconciliation
+description: "Automated monthly financial close, reconciliation, and reporting for accurate financial statements."
+
+trigger:
+  type: schedule
+  cron: "0 9 1 * *" # First day of each month at 9 AM
+
+steps:
+  - name: gather_monthly_transactions
+    agent: scraper_agent
+    input: "Collect all financial transactions, expenses, and income for the previous month from all sources."
+    output: monthly_transactions
+
+  - name: reconcile_bank_accounts
+    agent: visual_agent
+    input:
+      skill: "xero_expense_categorization"
+      data: "{{ steps.gather_monthly_transactions.output }}"
+      prompt: "Reconcile all bank accounts and credit cards with Xero for the previous month"
+    output: bank_reconciliation
+
+  - name: categorize_all_expenses
+    agent: bookkeeping_agent
+    loop: "{{ steps.monthly_transactions.output.expenses }}"
+    input:
+      expense: "{{ loop.item }}"
+      prompt: "Ensure proper categorization and add any missing expense details"
+    output: categorized_expenses
+
+  - name: update_excel_tracking
+    agent: visual_agent
+    input:
+      skill: "excel_expense_tracking"
+      data: "{{ steps.categorized_expenses.output }}"
+      prompt: "Update monthly expense tracking spreadsheet with all categorized expenses"
+    output: excel_updated
+
+  - name: generate_monthly_invoices
+    agent: bookkeeping_agent
+    input:
+      prompt: "Generate all outstanding invoices for completed work in the previous month"
+      data: "{{ steps.monthly_transactions.output.income }}"
+    output: monthly_invoices
+
+  - name: create_xero_invoices
+    agent: visual_agent
+    loop: "{{ steps.generate_monthly_invoices.output }}"
+    input:
+      skill: "xero_invoice_creation"
+      invoice_data: "{{ loop.item }}"
+    output: xero_invoices_created
+
+  - name: calculate_monthly_totals
+    agent: visual_agent
+    input:
+      skill: "cost_analysis_reporting"
+      data: "{{ steps.categorized_expenses.output }}"
+      prompt: "Calculate monthly totals for all expense categories and income sources"
+    output: monthly_totals
+
+  - name: generate_cashflow_analysis
+    agent: visual_agent
+    input:
+      skill: "cashflow_analysis_excel"
+      data: "{{ steps.monthly_totals.output }}"
+      prompt: "Generate comprehensive cash flow analysis for the previous month"
+    output: monthly_cashflow
+
+  - name: create_financial_statements
+    agent: content_strategist
+    input:
+      transactions: "{{ steps.monthly_transactions.output }}"
+      reconciliation: "{{ steps.bank_reconciliation.output }}"
+      totals: "{{ steps.monthly_totals.output }}"
+      cashflow: "{{ steps.monthly_cashflow.output }}"
+      prompt: "Create professional monthly financial statements (P&L, Balance Sheet, Cash Flow)"
+    output: financial_statements
+
+  - name: identify_financial_anomalies
+    agent: evaluation_agent
+    input:
+      statements: "{{ steps.create_financial_statements.output }}"
+      prompt: "Analyze financial statements for anomalies, trends, or areas requiring attention"
+    output: financial_anomalies
+
+  - name: generate_monthly_report
+    agent: content_strategist
+    input:
+      statements: "{{ steps.create_financial_statements.output }}"
+      anomalies: "{{ steps.identify_financial_anomalies.output }}"
+      prompt: "Create executive summary monthly financial report with key insights and recommendations"
+    output: monthly_financial_report
+
+  - name: send_financial_reports
+    agent: email_agent
+    input:
+      to: "{{ config.financial_stakeholders }}"
+      subject: "Monthly Financial Report - {{ date }}"
+      body: "{{ steps.generate_monthly_report.output }}"
+      attachments: ["{{ steps.financial_statements.output }}", "{{ steps.monthly_financial_report.output }}"]
+    output: reports_sent
+
+  - name: update_accounting_calendar
+    agent: visual_agent
+    input:
+      skill: "calendar_scheduling"
+      data: "{{ steps.reports_sent.output }}"
+      prompt: "Schedule follow-up meetings for any financial anomalies or planning discussions"
+    output: calendar_updated
