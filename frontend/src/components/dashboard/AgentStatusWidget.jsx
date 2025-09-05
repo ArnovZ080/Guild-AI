@@ -46,7 +46,10 @@ const AgentStatusWidget = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl text-white">
+    <div className="p-6 rounded-2xl" style={{
+      background: 'linear-gradient(to bottom right, #111827, #1f2937)',
+      color: 'white'
+    }}>
       <h3 className="text-lg font-semibold mb-6 flex items-center">
         <span className="mr-2">🤖</span>
         Agent Workforce
@@ -56,7 +59,8 @@ const AgentStatusWidget = () => {
         {agents.map((agent) => (
           <motion.div 
             key={agent.id} 
-            className="p-4 bg-gray-800/50 rounded-xl hover:bg-gray-700/50 transition-colors cursor-pointer"
+            className="p-4 rounded-xl transition-colors cursor-pointer"
+            style={{ backgroundColor: 'rgba(31, 41, 55, 0.5)' }}
             whileHover={{ scale: 1.02, x: 4 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -65,8 +69,11 @@ const AgentStatusWidget = () => {
                 <div className="relative">
                   <div className="text-2xl">{agent.personality}</div>
                   <motion.div 
-                    className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-gray-800"
-                    style={{ backgroundColor: getStatusColor(agent.status) }}
+                    className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2"
+                    style={{ 
+                      borderColor: '#1f2937',
+                      backgroundColor: getStatusColor(agent.status)
+                    }}
                     {...getStatusAnimation(agent.status)}
                   />
                 </div>
@@ -82,7 +89,7 @@ const AgentStatusWidget = () => {
               </div>
               
               {/* Efficiency indicator */}
-              <div className="w-12 h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="w-12 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#374151' }}>
                 <motion.div
                   className="h-full bg-gradient-to-r from-green-500 to-blue-500 rounded-full"
                   style={{ width: `${agent.efficiency * 100}%` }}

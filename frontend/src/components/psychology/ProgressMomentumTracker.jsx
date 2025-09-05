@@ -30,7 +30,10 @@ const ProgressMomentumTracker = () => {
   const currentMessage = getMomentumMessage(momentum);
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-800 p-6 rounded-2xl text-white">
+    <div className="p-6 rounded-2xl" style={{
+      background: 'linear-gradient(to bottom right, #111827, #1f2937)',
+      color: 'white'
+    }}>
       <h3 className="text-lg font-semibold mb-6 flex items-center">
         <span className="mr-2">🌊</span>
         Momentum Flow
@@ -43,7 +46,7 @@ const ProgressMomentumTracker = () => {
           <span className="text-2xl">{currentMessage.emoji}</span>
         </div>
         
-        <div className="relative h-16 bg-gray-800/50 rounded-xl overflow-hidden">
+        <div className="relative h-16 rounded-xl overflow-hidden" style={{ backgroundColor: 'rgba(31, 41, 55, 0.5)' }}>
           {/* Wave background */}
           <motion.div
             className="absolute inset-0 opacity-20"
@@ -82,7 +85,7 @@ const ProgressMomentumTracker = () => {
       {/* Weekly rhythm */}
       <div>
         <h4 className="text-sm font-medium text-gray-300 mb-3">Weekly Rhythm</h4>
-        <div className="flex justify-between items-end h-20 bg-gray-800/30 rounded-lg p-2">
+        <div className="flex justify-between items-end h-20 rounded-lg p-2" style={{ backgroundColor: 'rgba(31, 41, 55, 0.3)' }}>
           {weeklyData.map((day, index) => (
             <div key={day.day} className="flex flex-col items-center space-y-1">
               <motion.div
