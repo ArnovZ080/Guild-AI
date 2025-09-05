@@ -2,21 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const BusinessPulseMonitorWidget = () => {
-  // Use simulated data directly (no backend dependency)
-  const [displayData, setDisplayData] = useState({
-    intensity: 0.7,
+  const [pulseData, setPulseData] = useState({
+    intensity: 0.75,
+    rhythm: 1.2,
     activities: [
-      { type: 'sales', count: 3 },
-      { type: 'content', count: 5 },
-      { type: 'support', count: 2 },
-      { type: 'leads', count: 8 }
+      { type: 'sales', count: 3, color: '#FFD700' },
+      { type: 'content', count: 5, color: '#87CEEB' },
+      { type: 'support', count: 2, color: '#98FB98' },
+      { type: 'leads', count: 8, color: '#DDA0DD' }
     ]
   });
 
-  // Simulate real-time updates
   useEffect(() => {
     const interval = setInterval(() => {
-      setDisplayData(prev => ({
+      setPulseData(prev => ({
         ...prev,
         intensity: Math.max(0.3, Math.min(1.0, prev.intensity + (Math.random() - 0.5) * 0.1)),
         activities: prev.activities.map(activity => ({
@@ -25,98 +24,106 @@ const BusinessPulseMonitorWidget = () => {
         }))
       }));
     }, 3000);
-
     return () => clearInterval(interval);
   }, []);
 
-  const pulseVariants = {
-    animate: {
-      scale: [1, 1.1, 1],
-      opacity: [0.6, 1, 0.6],
-      transition: {
-        duration: 2 / displayData.intensity,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    }
-  };
-
-  const getActivityColor = (type) => {
-    const colors = {
-      sales: '#FFD700', // Gold
-      content: '#87CEEB', // Sky blue
-      support: '#98FB98', // Pale green
-      leads: '#DDA0DD' // Plum
-    };
-    return colors[type] || '#FFFFFF';
-  };
-
-  // Always show the sophisticated component, even if backend is not available
-
   return (
-    <div className="bg-gray-800 p-4 rounded-lg h-full text-white flex flex-col items-center justify-center">
-      <h3 className="font-semibold mb-4">Business Pulse - DEBUG</h3>
-      <div className="text-sm mb-2">Intensity: {displayData.intensity}</div>
-      <div className="text-sm mb-2">Activities: {displayData.activities.length}</div>
-      <div className="relative w-64 h-64">
-        {/* Main Pulse Circle */}
-        <motion.div
-          className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-green-400"
-          variants={pulseVariants}
-          animate="animate"
-          style={{
-            background: `radial-gradient(circle, rgba(59, 130, 246, ${displayData.intensity}) 0%, rgba(16, 185, 129, ${displayData.intensity * 0.5}) 100%)`
-          }}
-        />
-        
-        {/* Activity Particles */}
-        {displayData.activities.map((activity, index) => (
-          <div key={activity.type}>
-            {Array.from({ length: activity.count }).map((_, particleIndex) => (
-              <motion.div
-                key={`${activity.type}-${particleIndex}`}
-                className="absolute w-2 h-2 rounded-full"
-                style={{
-                  backgroundColor: getActivityColor(activity.type),
-                  left: `${50 + 30 * Math.cos((index * 90 + particleIndex * 20) * Math.PI / 180)}%`,
-                  top: `${50 + 30 * Math.sin((index * 90 + particleIndex * 20) * Math.PI / 180)}%`,
-                }}
-                animate={{
-                  scale: [0.5, 1, 0.5],
-                  opacity: [0.3, 1, 0.3],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  delay: particleIndex * 0.2,
-                }}
-              />
-            ))}
-          </div>
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 rounded-2xl text-white relative overflow-hidden">
+      {/* Ambient background particles */}
+      <div className="absolute inset-0 overflow-hidden">
+        {Array.from({ length: 20 }).map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 bg-blue-400 rounded-full opacity-30"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.3, 0.8, 0.3],
+              scale: [0.5, 1, 0.5],
+            }}
+            transition={{
+              duration: 4 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2,
+            }}
+          />
         ))}
+      </div>
+
+      <div className="relative z-10">
+        <h3 className="text-lg font-semibold mb-6 flex items-center">
+          <span className="mr-2">💓</span>
+          Business Pulse
+        </h3>
         
-        {/* Center Info */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-white">
-            <div className="text-2xl font-bold">
-              {Math.round(displayData.intensity * 100)}%
+        <div className="flex items-center justify-center mb-6">
+          <div className="relative w-32 h-32">
+            {/* Main pulse circle */}
+            <motion.div
+              className="absolute inset-0 rounded-full border-4 border-blue-400"
+              animate={{
+                scale: [1, 1.1, 1],
+                borderColor: ['#60A5FA', '#34D399', '#60A5FA'],
+              }}
+              transition={{
+                duration: 2 / pulseData.intensity,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            
+            {/* Inner glow */}
+            <motion.div
+              className="absolute inset-2 rounded-full bg-gradient-to-r from-blue-500/20 to-green-500/20"
+              animate={{
+                opacity: [0.4, 0.8, 0.4],
+              }}
+              transition={{
+                duration: 2 / pulseData.intensity,
+                repeat: Infinity,
+              }}
+            />
+            
+            {/* Center display */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-2xl font-bold">
+                  {Math.round(pulseData.intensity * 100)}%
+                </div>
+                <div className="text-xs opacity-80">Health</div>
+              </div>
             </div>
-            <div className="text-sm opacity-80">Business Health</div>
           </div>
         </div>
-      </div>
-      
-      {/* Activity Legend */}
-      <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-        {displayData.activities.map((activity) => (
-          <div key={activity.type} className="flex items-center">
-            <div 
-              className="w-2 h-2 rounded-full mr-2" 
-              style={{ backgroundColor: getActivityColor(activity.type) }}
-            />
-            <span className="capitalize">{activity.type}: {activity.count}</span>
-          </div>
-        ))}
+
+        {/* Activity indicators */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {pulseData.activities.map((activity, index) => (
+            <motion.div
+              key={activity.type}
+              className="flex items-center p-2 bg-gray-800/50 rounded-lg"
+              whileHover={{ scale: 1.02 }}
+            >
+              <motion.div
+                className="w-3 h-3 rounded-full mr-2"
+                style={{ backgroundColor: activity.color }}
+                animate={{
+                  scale: [1, 1.2, 1],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: index * 0.2,
+                }}
+              />
+              <span className="capitalize flex-1">{activity.type}</span>
+              <span className="font-medium">{activity.count}</span>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </div>
   );
