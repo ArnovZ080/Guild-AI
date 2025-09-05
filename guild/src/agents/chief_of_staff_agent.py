@@ -1,105 +1,160 @@
-import json
-import asyncio
-
-from guild.src.models.user_input import UserInput, Audience
-from guild.src.models.agent import Agent, AgentCallback
-from guild.src.models.llm import Llm, LlmModels
-from guild.src.core.llm_client import LlmClient
-from guild.src.utils.logging_utils import get_logger
-from guild.src.utils.decorators import inject_knowledge
-
-logger = get_logger(__name__)
-
-PROMPT_TEMPLATE = """
-You are the Chief of Staff Agent, the primary coordinator and strategic facilitator for the solo-founder. Your role is to act as the CEO's right hand, managing the overall workflow of the AI system, optimizing the utilization of all other agents, and ensuring alignment with the solo-founder's overarching business objectives.
-
-**1. Foundational Analysis (Do not include in output):**
-    *   **User's Immediate Need/Goal:** {user_request}
-    *   **Current Business Status Summary:** {current_business_status}
-    *   **Overarching Strategic Directives:** {strategic_directives}
-    *   **Key Insights & Knowledge (from web search on strategic coordination):** {knowledge}
-
-**2. Your Task:**
-    Based on the foundational analysis, your primary task is to **formulate a high-level execution plan**. This is NOT about executing the tasks themselves, but about creating the strategic DAG (Directed Acyclic Graph) that the Orchestrator will use. You must decide which agents are needed, in what order, to address the user's request in the context of the overall business strategy.
-
-**3. Output Format (JSON only):**
-    {{
-      "executive_summary": "A brief, 2-3 sentence overview of the user's request and the proposed plan.",
-      "proposed_workflow": [
-        {{
-          "step": 1,
-          "agent_to_use": "e.g., 'StrategyAgent'",
-          "task_description": "A clear instruction for what this agent needs to accomplish.",
-          "dependencies": [],
-          "expected_output": "A description of the deliverable from this agent."
-        }},
-        {{
-          "step": 2,
-          "agent_to_use": "e.g., 'SalesFunnelAgent'",
-          "task_description": "e.g., 'Based on the new strategy, design a sales funnel.'",
-          "dependencies": ["Step 1"],
-          "expected_output": "A complete sales funnel plan."
-        }}
-      ],
-      "rationale": "A brief explanation of why this specific sequence of agents and tasks was chosen.",
-      "monitoring_kpis": ["A list of key metrics that should be tracked to measure the success of this plan."]
-    }}
+"""
+Chief of Staff Agent - Coordinates priorities, meetings, and task delegation across all other agents.
 """
 
+from typing import Dict, List, Any, Optional
+from pydantic import BaseModel, Field
+from ..core.base_agent import BaseAgent
 
-class ChiefOfStaffAgent(Agent):
-    def __init__(self, user_input: UserInput, current_business_status: str, strategic_directives: str, callback: AgentCallback = None):
+
+class ChiefOfStaffAgent(BaseAgent):
+    """
+    Chief of Staff Agent - Strategic coordination and task prioritization
+    
+    Responsibilities:
+    - Coordinate priorities across all agents
+    - Schedule and manage meetings
+    - Delegate tasks to appropriate agents
+    - Monitor progress and ensure deadlines are met
+    """
+    
+    def __init__(self, **kwargs):
         super().__init__(
-            "Chief of Staff Agent",
-            "Coordinates priorities and task delegation across all other agents.",
-            user_input,
-            callback=callback
+            name="Chief of Staff Agent",
+            role="Strategic coordination and task prioritization",
+            **kwargs
         )
-        self.current_business_status = current_business_status
-        self.strategic_directives = strategic_directives
-        self.llm_client = LlmClient(
-            Llm(
-                provider="together",
-                model=LlmModels.LLAMA3_70B.value
-            )
-        )
-
-    @inject_knowledge
-    async def run(self, knowledge: str | None = None) -> str:
-        self._send_start_callback()
-        logger.info(f"Running Chief of Staff agent for request: {self.user_input.objective}")
-
-        prompt = PROMPT_TEMPLATE.format(
-            user_request=self.user_input.objective,
-            current_business_status=self.current_business_status,
-            strategic_directives=self.strategic_directives,
-            knowledge=knowledge,
-        )
-
-        self._send_llm_start_callback(prompt, "together", LlmModels.LLAMA3_70B.value)
-        response = await self.llm_client.chat(prompt)
-        self._send_llm_end_callback(response)
-
-        logger.info("Chief of Staff agent finished.")
-        self._send_end_callback(response)
-        return response
-
-
-if __name__ == '__main__':
-    async def main():
-        user_input = UserInput(
-            objective="Our user growth has stalled. We need a plan to re-ignite growth for our SaaS product.",
-        )
-
-        current_business_status = "MRR is flat at $5k/month. Churn is at 8%. Website traffic is down 15% month-over-month."
-        strategic_directives = "The main company goal for Q3 is to increase user acquisition by 30%."
-
-        agent = ChiefOfStaffAgent(
-            user_input,
-            current_business_status=current_business_status,
-            strategic_directives=strategic_directives
-        )
-        result = await agent.run()
-        print(json.dumps(json.loads(result), indent=2))
-
-    asyncio.run(main())
+        self.task_priorities: Dict[str, Any] = {}
+        self.meeting_schedules: Dict[str, Any] = {}
+        self.agent_workloads: Dict[str, int] = {}
+    
+    async def coordinate_priorities(self, tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Coordinate and prioritize tasks across all agents"""
+        try:
+            prioritized_tasks = []
+            
+            for task in tasks:
+                priority = self._calculate_priority(task)
+                task_info = {
+                    "task_id": task.get("id", ""),
+                    "priority": priority,
+                    "deadline": task.get("deadline"),
+                    "assigned_agent": task.get("assigned_agent"),
+                    "status": "pending"
+                }
+                prioritized_tasks.append(task_info)
+                self.task_priorities[task_info["task_id"]] = task_info
+            
+            # Sort by priority
+            sorted_tasks = sorted(prioritized_tasks, key=lambda x: x["priority"], reverse=True)
+            
+            return {
+                "status": "success",
+                "coordinated_tasks": len(sorted_tasks),
+                "priority_summary": self._generate_priority_summary(sorted_tasks)
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to coordinate priorities: {str(e)}"
+            }
+    
+    async def schedule_meeting(self, meeting_details: Dict[str, Any]) -> Dict[str, Any]:
+        """Schedule and coordinate meetings"""
+        try:
+            meeting = {
+                "meeting_id": meeting_details.get("id", ""),
+                "title": meeting_details.get("title", ""),
+                "participants": meeting_details.get("participants", []),
+                "scheduled_time": meeting_details.get("scheduled_time", ""),
+                "agenda": meeting_details.get("agenda", [])
+            }
+            
+            self.meeting_schedules[meeting["meeting_id"]] = meeting
+            
+            return {
+                "status": "success",
+                "meeting_id": meeting["meeting_id"],
+                "scheduled_time": meeting["scheduled_time"],
+                "participants": meeting["participants"]
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to schedule meeting: {str(e)}"
+            }
+    
+    async def delegate_task(self, task: Dict[str, Any], target_agent: str) -> Dict[str, Any]:
+        """Delegate a specific task to a target agent"""
+        try:
+            task_id = task.get("id", "")
+            if task_id in self.task_priorities:
+                self.task_priorities[task_id]["assigned_agent"] = target_agent
+                self.task_priorities[task_id]["status"] = "assigned"
+            
+            self.agent_workloads[target_agent] = self.agent_workloads.get(target_agent, 0) + 1
+            
+            return {
+                "status": "success",
+                "task_id": task_id,
+                "assigned_agent": target_agent
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to delegate task: {str(e)}"
+            }
+    
+    async def monitor_progress(self) -> Dict[str, Any]:
+        """Monitor progress across all agents and tasks"""
+        try:
+            progress_report = {
+                "total_tasks": len(self.task_priorities),
+                "completed_tasks": len([t for t in self.task_priorities.values() if t.get("status") == "completed"]),
+                "in_progress_tasks": len([t for t in self.task_priorities.values() if t.get("status") == "in_progress"]),
+                "agent_workloads": self.agent_workloads
+            }
+            
+            return {
+                "status": "success",
+                "progress_report": progress_report
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to monitor progress: {str(e)}"
+            }
+    
+    def _calculate_priority(self, task: Dict[str, Any]) -> int:
+        """Calculate task priority based on various factors"""
+        priority = 5  # Base priority
+        
+        # Adjust based on deadline urgency
+        if task.get("deadline"):
+            priority += 2
+        
+        # Adjust based on task importance
+        importance = task.get("importance", "medium")
+        if importance == "high":
+            priority += 2
+        elif importance == "low":
+            priority -= 1
+        
+        return min(max(priority, 1), 10)
+    
+    def _generate_priority_summary(self, tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Generate a summary of task priorities"""
+        high_priority = len([t for t in tasks if t["priority"] >= 8])
+        medium_priority = len([t for t in tasks if 5 <= t["priority"] < 8])
+        low_priority = len([t for t in tasks if t["priority"] < 5])
+        
+        return {
+            "high_priority_tasks": high_priority,
+            "medium_priority_tasks": medium_priority,
+            "low_priority_tasks": low_priority,
+            "total_tasks": len(tasks)
+        }
