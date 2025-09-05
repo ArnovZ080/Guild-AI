@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-
-
-// Placeholders for components to be created later
-const CommandCenter = () => <div className="p-4"><h2 className="text-xl font-bold">Command Center</h2></div>;
-const ActionTheater = () => <div className="p-4"><h2 className="text-xl font-bold">Action Theater</h2></div>;
-const AchievementCelebration = () => <div className="absolute bottom-4 right-4">Achievement Placeholder</div>;
-const StressReductionInterface = () => <div className="absolute top-20 right-4">Stress Placeholder</div>;
+import CommandCenter from '../components/dashboard/CommandCenter.jsx';
+import ActionTheater from '../components/theater/ActionTheater.jsx';
+import AchievementCelebration from '../components/psychology/AchievementCelebration.jsx';
+import StressReductionInterface from '../components/psychology/StressReductionInterface.jsx';
 
 
 const MainLayout = () => {

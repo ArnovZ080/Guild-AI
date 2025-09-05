@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import MainLayout from '@/layouts/MainLayout';
+import MainLayout from './layouts/MainLayout.jsx';
 // Placeholder for WorkflowBuilderView, will be created in a later step
 const WorkflowBuilderView = () => <div>Workflow Builder Placeholder</div>;
 // Placeholder for OnboardingFlow
