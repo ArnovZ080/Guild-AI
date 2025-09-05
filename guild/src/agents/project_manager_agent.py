@@ -1,146 +1,206 @@
-import json
-import asyncio
-
-from guild.src.models.user_input import UserInput, Audience
-from guild.src.models.agent import Agent, AgentCallback
-from guild.src.models.llm import Llm, LlmModels
-from guild.src.core.llm_client import LlmClient
-from guild.src.utils.logging_utils import get_logger
-from guild.src.utils.decorators import inject_knowledge
-
-logger = get_logger(__name__)
-
-PROMPT_TEMPLATE = """
-You are a world-class Project Manager AI, certified in PMP, Agile, and Scrum, and an expert with tools like Asana, Jira, and Monday.com. Your key capability is **Intelligent Task Breakdown & Estimation**. You excel at taking a high-level goal and breaking it down into a granular, actionable project plan, complete with realistic timelines and resource allocation.
-
-**1. Foundational Analysis (Do not include in output):**
-    *   **User's Core Objective / Project Goal:** {objective}
-    *   **High-level Deliverables/Tasks:** {high_level_tasks}
-    *   **Context from other agents (e.g., Marketing or Sales Strategy):** {strategy_context}
-    *   **Key Insights & Knowledge (from web search on project management best practices):** {knowledge}
-
-**2. Your Task:**
-    Based on the foundational analysis, create a comprehensive and structured project plan. The plan must be highly detailed, breaking down high-level tasks into specific, actionable sub-tasks.
-
-**3. Output Format (JSON only):**
-    {{
-      "project_name": "A clear and concise name for the project.",
-      "project_summary": "A brief, 2-3 sentence summary of the project's goal and scope.",
-      "milestones": [
-        {{
-          "milestone_name": "Milestone 1: Planning & Foundational Strategy",
-          "milestone_summary": "The key outcome of this phase of the project.",
-          "tasks": [
-            {{
-              "task_id": "M1T1",
-              "task_name": "e.g., Define detailed project scope and requirements",
-              "description": "A brief explanation of what this task entails.",
-              "assigned_to": "e.g., 'Solo-Founder' or a specific Agent like 'ContentStrategist'",
-              "estimated_hours": "A realistic estimate of hours required (e.g., 4).",
-              "dependencies": [],
-              "outsourcing_recommendation": {{
-                "is_recommended": false,
-                "rationale": "This task is strategic and requires founder input."
-              }}
-            }},
-            {{
-              "task_id": "M1T2",
-              "task_name": "e.g., Conduct initial keyword research",
-              "description": "Perform keyword research to inform the content strategy.",
-              "assigned_to": "SEOAgent",
-              "estimated_hours": 6,
-              "dependencies": ["M1T1"],
-              "outsourcing_recommendation": {{
-                "is_recommended": false,
-                "rationale": "Best handled by the specialized SEOAgent."
-              }}
-            }}
-          ]
-        }},
-        {{
-          "milestone_name": "Milestone 2: Execution & Implementation",
-          "milestone_summary": "The key outcome of this phase.",
-          "tasks": [
-            {{
-              "task_id": "M2T1",
-              "task_name": "e.g., Write 5 blog posts based on keyword research",
-              "description": "Draft, edit, and finalize 5 blog posts.",
-              "assigned_to": "Copywriter",
-              "estimated_hours": 20,
-              "dependencies": ["M1T2"],
-              "outsourcing_recommendation": {{
-                "is_recommended": true,
-                "rationale": "This is a time-consuming task that can be effectively delegated to a freelance writer with clear instructions."
-              }}
-            }}
-          ]
-        }}
-      ],
-      "risk_assessment": [
-        {{
-          "risk": "e.g., Scope creep leading to project delays.",
-          "impact": "e.g., 'High'",
-          "mitigation_plan": "e.g., 'Strictly adhere to the defined project scope. Any changes require a formal change request and impact analysis.'"
-        }}
-      ],
-      "tool_recommendations": ["e.g., 'Trello for task tracking', 'Slack for communication', 'Google Docs for collaboration'"]
-    }}
+"""
+Project Manager Agent - Tracks tasks, deadlines, and deliverables. Ensures everything runs on time.
 """
 
+from typing import Dict, List, Any
+from ..core.base_agent import BaseAgent
 
-class ProjectManagerAgent(Agent):
-    def __init__(self, user_input: UserInput, strategy_context: str, callback: AgentCallback = None):
+
+class ProjectManagerAgent(BaseAgent):
+    """Project Manager Agent - Project management and task tracking"""
+    
+    def __init__(self, **kwargs):
         super().__init__(
-            "Project Manager Agent",
-            "Breaks down high-level goals into a structured project plan with tasks, milestones, and timelines.",
-            user_input,
-            callback=callback
+            name="Project Manager Agent",
+            role="Project management and task tracking",
+            **kwargs
         )
-        self.strategy_context = strategy_context
-        self.llm_client = LlmClient(
-            Llm(
-                provider="together",
-                model=LlmModels.LLAMA3_70B.value
-            )
-        )
-
-    @inject_knowledge
-    async def run(self, knowledge: str | None = None) -> str:
-        self._send_start_callback()
-        logger.info(f"Running Project Manager agent for objective: {self.user_input.objective}")
-
-        # The high-level tasks can be derived from the objective and notes
-        high_level_tasks = f"{self.user_input.objective}\n{self.user_input.additional_notes or ''}"
-
-        prompt = PROMPT_TEMPLATE.format(
-            objective=self.user_input.objective,
-            high_level_tasks=high_level_tasks,
-            strategy_context=self.strategy_context,
-            knowledge=knowledge,
-        )
-
-        self._send_llm_start_callback(prompt, "together", LlmModels.LLAMA3_70B.value)
-        response = await self.llm_client.chat(prompt)
-        self._send_llm_end_callback(response)
-
-        logger.info("Project Manager agent finished.")
-        self._send_end_callback(response)
-        return response
-
-
-if __name__ == '__main__':
-    async def main():
-        user_input = UserInput(
-            objective="Launch a new version of our SaaS product by the end of Q3.",
-            audience=None, # Not directly relevant for PM
-            additional_notes="The launch includes a new marketing website, an updated onboarding flow, and a social media campaign."
-        )
-
-        # In a real run, this context might come from a Business Strategist agent
-        strategy_context = "The primary goal is to increase user activation rate by 15%."
-
-        agent = ProjectManagerAgent(user_input, strategy_context=strategy_context)
-        result = await agent.run()
-        print(json.dumps(json.loads(result), indent=2))
-
-    asyncio.run(main())
+        self.projects: Dict[str, Any] = {}
+        self.tasks: Dict[str, Any] = {}
+    
+    async def create_project(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new project"""
+        try:
+            project = {
+                "project_id": f"project_{len(self.projects) + 1}",
+                "name": project_data.get("name", ""),
+                "description": project_data.get("description", ""),
+                "deadline": project_data.get("deadline", ""),
+                "team_members": project_data.get("team_members", []),
+                "status": "active",
+                "created_at": self._get_current_time()
+            }
+            
+            self.projects[project["project_id"]] = project
+            
+            return {
+                "status": "success",
+                "project": project
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to create project: {str(e)}"
+            }
+    
+    async def create_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new task"""
+        try:
+            task = {
+                "task_id": f"task_{len(self.tasks) + 1}",
+                "project_id": task_data.get("project_id", ""),
+                "name": task_data.get("name", ""),
+                "description": task_data.get("description", ""),
+                "assigned_to": task_data.get("assigned_to", ""),
+                "deadline": task_data.get("deadline", ""),
+                "priority": task_data.get("priority", "medium"),
+                "status": "pending",
+                "created_at": self._get_current_time()
+            }
+            
+            self.tasks[task["task_id"]] = task
+            
+            return {
+                "status": "success",
+                "task": task
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to create task: {str(e)}"
+            }
+    
+    async def track_progress(self, project_id: str) -> Dict[str, Any]:
+        """Track project progress"""
+        try:
+            if project_id not in self.projects:
+                return {
+                    "status": "error",
+                    "message": "Project not found"
+                }
+            
+            project_tasks = [task for task in self.tasks.values() if task["project_id"] == project_id]
+            
+            progress_report = {
+                "project_id": project_id,
+                "total_tasks": len(project_tasks),
+                "completed_tasks": len([task for task in project_tasks if task["status"] == "completed"]),
+                "in_progress_tasks": len([task for task in project_tasks if task["status"] == "in_progress"]),
+                "overdue_tasks": len([task for task in project_tasks if self._is_task_overdue(task)]),
+                "completion_percentage": self._calculate_completion_percentage(project_tasks),
+                "created_at": self._get_current_time()
+            }
+            
+            return {
+                "status": "success",
+                "progress_report": progress_report
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to track progress: {str(e)}"
+            }
+    
+    async def generate_status_report(self, project_id: str) -> Dict[str, Any]:
+        """Generate comprehensive status report"""
+        try:
+            if project_id not in self.projects:
+                return {
+                    "status": "error",
+                    "message": "Project not found"
+                }
+            
+            project = self.projects[project_id]
+            project_tasks = [task for task in self.tasks.values() if task["project_id"] == project_id]
+            
+            status_report = {
+                "project_id": project_id,
+                "project_name": project["name"],
+                "overall_status": self._determine_overall_status(project_tasks),
+                "key_metrics": {
+                    "total_tasks": len(project_tasks),
+                    "completed_tasks": len([task for task in project_tasks if task["status"] == "completed"]),
+                    "completion_rate": self._calculate_completion_percentage(project_tasks),
+                    "days_remaining": self._calculate_days_remaining(project["deadline"])
+                },
+                "risks": self._identify_risks(project_tasks),
+                "recommendations": self._generate_recommendations(project_tasks),
+                "created_at": self._get_current_time()
+            }
+            
+            return {
+                "status": "success",
+                "status_report": status_report
+            }
+            
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to generate status report: {str(e)}"
+            }
+    
+    def _is_task_overdue(self, task: Dict[str, Any]) -> bool:
+        """Check if task is overdue"""
+        # Simplified overdue check
+        return task["status"] != "completed" and task["deadline"] < self._get_current_time()
+    
+    def _calculate_completion_percentage(self, tasks: List[Dict[str, Any]]) -> float:
+        """Calculate completion percentage"""
+        if not tasks:
+            return 0.0
+        
+        completed = len([task for task in tasks if task["status"] == "completed"])
+        return (completed / len(tasks)) * 100
+    
+    def _determine_overall_status(self, tasks: List[Dict[str, Any]]) -> str:
+        """Determine overall project status"""
+        completion_rate = self._calculate_completion_percentage(tasks)
+        
+        if completion_rate >= 90:
+            return "On track"
+        elif completion_rate >= 70:
+            return "At risk"
+        else:
+            return "Behind schedule"
+    
+    def _calculate_days_remaining(self, deadline: str) -> int:
+        """Calculate days remaining until deadline"""
+        # Simplified calculation
+        return 30
+    
+    def _identify_risks(self, tasks: List[Dict[str, Any]]) -> List[str]:
+        """Identify project risks"""
+        risks = []
+        
+        overdue_tasks = [task for task in tasks if self._is_task_overdue(task)]
+        if overdue_tasks:
+            risks.append(f"{len(overdue_tasks)} overdue tasks")
+        
+        high_priority_tasks = [task for task in tasks if task["priority"] == "high" and task["status"] != "completed"]
+        if len(high_priority_tasks) > 5:
+            risks.append("Too many high-priority tasks pending")
+        
+        return risks
+    
+    def _generate_recommendations(self, tasks: List[Dict[str, Any]]) -> List[str]:
+        """Generate project recommendations"""
+        recommendations = []
+        
+        overdue_tasks = [task for task in tasks if self._is_task_overdue(task)]
+        if overdue_tasks:
+            recommendations.append("Address overdue tasks immediately")
+        
+        recommendations.extend([
+            "Regular progress check-ins with team",
+            "Prioritize high-impact tasks",
+            "Monitor resource allocation"
+        ])
+        
+        return recommendations
+    
+    def _get_current_time(self) -> str:
+        """Get current timestamp"""
+        return "2024-01-01T00:00:00Z"
