@@ -9,12 +9,12 @@ import logging
 import json
 import time
 from typing import Dict, List, Any, Optional, Tuple
-from dataclass import dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
 from guild.src.core.learning.pattern_extractor import UIPattern, ActionPattern, WorkflowPattern
 from guild.src.core.learning.session_recorder import DemonstrationSession
-from guild.src.core.workflow_builder.workflow_builder import VisualWorkflowBuilder
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class GeneratedSkill:
 class SkillGenerator:
     """Generates new visual skill templates from learned patterns."""
     
-    def __init__(self, workflow_builder: VisualWorkflowBuilder):
+    def __init__(self, workflow_builder=None):
         self.workflow_builder = workflow_builder
         
         # Generation settings
@@ -51,6 +51,11 @@ class SkillGenerator:
         self.skill_templates: Dict[str, Dict[str, Any]] = {}
         
         logger.info("SkillGenerator initialized successfully")
+    
+    def set_workflow_builder(self, workflow_builder):
+        """Set the workflow builder after initialization to break circular imports."""
+        self.workflow_builder = workflow_builder
+        logger.info("Workflow builder set for SkillGenerator")
     
     def generate_skills_from_patterns(self, patterns: Dict[str, Any]) -> List[GeneratedSkill]:
         """Generate new skills from extracted patterns."""

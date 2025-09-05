@@ -1,12 +1,66 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from guild.src.core.models.schemas import Document, SourceProvenance
-from guild.src.core.vision import VisualAutomationTool
+# Conditional import for vision components
+try:
+    from guild.src.core.vision import VisualAutomationTool
+    VISION_AVAILABLE = True
+except ImportError:
+    VisualAutomationTool = None
+    VISION_AVAILABLE = False
+    print("Warning: VisualAutomationTool not available - computer vision tools disabled")
 
 from guild.src.core import vector_store
+from guild.src.core.enhanced_rag_pipeline import get_enhanced_rag_pipeline
 
-def rag_search(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+def rag_search(query: str, top_k: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     """
-    Performs a RAG search using the integrated vector store.
+    Performs a RAG search using the enhanced RAG pipeline with MarkItDown integration.
+    
+    Args:
+        query: Search query.
+        top_k: Number of top results to return.
+        filters: Optional filters for the search results.
+    
+    Returns:
+        List of search results with source provenance.
+    """
+    try:
+        # Use the enhanced RAG pipeline for better search capabilities
+        pipeline = get_enhanced_rag_pipeline()
+        search_hits = pipeline.search(query=query, top_k=top_k, filters=filters)
+        
+        # Format the results into the application's expected format
+        results = []
+        for hit in search_hits:
+            payload = hit['payload']
+            result = {
+                'content': payload.get('chunk_text', ''),
+                'score': hit['score'],
+                'source_provenance': SourceProvenance(
+                    provider=payload.get('provider', 'unknown'),
+                    data_room_id=payload.get('data_room_id', 'unknown'),
+                    source_id=payload.get('document_id', 'unknown'),
+                    path=payload.get('path', 'unknown'),
+                    chunk_ids=[hit['id']],  # The point ID can serve as a chunk ID
+                    confidence=hit['score']
+                ),
+                # Enhanced metadata from MarkItDown processing
+                'conversion_method': payload.get('conversion_method', 'unknown'),
+                'original_format': payload.get('original_format', 'unknown'),
+                'chunk_count': payload.get('chunk_count', 1)
+            }
+            results.append(result)
+
+        return results
+        
+    except Exception as e:
+        print(f"Error in enhanced RAG search: {e}")
+        # Fall back to basic vector store search
+        return _fallback_rag_search(query, top_k)
+
+def _fallback_rag_search(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    """
+    Fallback RAG search using the basic vector store.
     
     Args:
         query: Search query.
@@ -40,157 +94,120 @@ def rag_search(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
 
 def validate_search_confidence(results: List[Dict[str, Any]], min_confidence: float = 0.55) -> Dict[str, Any]:
     """
-    Validate search results confidence and return status.
+    Validates search results against a minimum confidence threshold.
     
     Args:
-        results: Search results from rag_search.
-        min_confidence: Minimum confidence threshold.
+        results: List of search results to validate.
+        min_confidence: Minimum confidence score required (0.0 to 1.0).
     
     Returns:
-        Validation status and recommendations.
+        Dictionary with validation results and filtered results.
     """
     if not results:
         return {
-            'status': 'no_results',
-            'message': 'No relevant documents found',
-            'action': 'clarify_query'
+            "is_valid": False,
+            "confidence_score": 0.0,
+            "filtered_results": [],
+            "validation_message": "No search results found."
         }
     
-    avg_confidence = sum(r['source_provenance']['confidence'] for r in results) / len(results)
+    # Calculate average confidence
+    total_confidence = sum(result.get('score', 0) for result in results)
+    avg_confidence = total_confidence / len(results)
     
-    if avg_confidence < min_confidence:
-        return {
-            'status': 'low_confidence',
-            'average_confidence': avg_confidence,
-            'message': f'Search confidence ({avg_confidence:.2f}) below threshold ({min_confidence})',
-            'action': 'request_clarification'
-        }
+    # Filter results by confidence threshold
+    filtered_results = [
+        result for result in results 
+        if result.get('score', 0) >= min_confidence
+    ]
     
-    return {
-        'status': 'sufficient',
-        'average_confidence': avg_confidence,
-        'message': 'Search results have sufficient confidence',
-        'action': 'proceed'
+    validation_result = {
+        "is_valid": avg_confidence >= min_confidence,
+        "confidence_score": avg_confidence,
+        "filtered_results": filtered_results,
+        "total_results": len(results),
+        "filtered_count": len(filtered_results),
+        "validation_message": (
+            f"Search validation {'passed' if avg_confidence >= min_confidence else 'failed'}. "
+            f"Average confidence: {avg_confidence:.3f}, "
+            f"Threshold: {min_confidence:.3f}, "
+            f"Results: {len(filtered_results)}/{len(results)} passed filter."
+        )
     }
-
-def format_citations(results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    Format search results into citation format for UI display.
     
-    Args:
-        results: Search results from rag_search.
+    return validation_result
+
+def get_rag_capabilities() -> Dict[str, Any]:
+    """
+    Get information about the RAG system capabilities.
     
     Returns:
-        Formatted citations.
+        Dictionary with RAG system information and supported formats.
     """
-    citations = []
-    
-    for i, result in enumerate(results):
-        provenance = result['source_provenance']
-        citation = {
-            'id': i + 1,
-            'provider': provenance['provider'],
-            'path': provenance['path'],
-            'confidence': provenance['confidence'],
-            'excerpt': result['content'][:200] + '...' if len(result['content']) > 200 else result['content'],
-            'data_room_id': provenance['data_room_id'],
-            'source_id': provenance['source_id']
+    try:
+        pipeline = get_enhanced_rag_pipeline()
+        return pipeline.get_processing_stats()
+    except Exception as e:
+        print(f"Error getting RAG capabilities: {e}")
+        return {
+            "error": str(e),
+            "pipeline_type": "basic_rag",
+            "capabilities": {
+                "langchain_formats": ['.pdf', '.html', '.htm', '.txt', '.md'],
+                "markitdown_available": False
+            }
         }
-        citations.append(citation)
-    
-    return citations
 
-
-# --- Visual Automation Tools ---
-
-# Global instance of VisualAutomationTool
-_visual_tool = None
-
-def get_visual_automation_tool() -> VisualAutomationTool:
+def process_document_enhanced(file_path: str, document_metadata: Dict[str, Any]) -> bool:
     """
-    Get or create the VisualAutomationTool instance.
-    
-    Returns:
-        VisualAutomationTool instance
-    """
-    global _visual_tool
-    if _visual_tool is None:
-        _visual_tool = VisualAutomationTool()
-    return _visual_tool
-
-def click_ui_element(element_description: str) -> str:
-    """
-    Click a UI element based on natural language description.
+    Process a document using the enhanced RAG pipeline.
     
     Args:
-        element_description: Description of the element to click
+        file_path: Path to the document file
+        document_metadata: Metadata to attach to the indexed chunks
         
     Returns:
-        Result of the click action
+        True if processing was successful, False otherwise
     """
-    tool = get_visual_automation_tool()
-    return tool.click_element(element_description)
+    try:
+        pipeline = get_enhanced_rag_pipeline()
+        return pipeline.process_document(file_path, document_metadata)
+    except Exception as e:
+        print(f"Error processing document with enhanced pipeline: {e}")
+        return False
 
-def type_in_ui_element(text: str, element_description: str) -> str:
+def process_audio_file(audio_path: str, document_metadata: Dict[str, Any]) -> bool:
     """
-    Type text into a UI element based on natural language description.
+    Process an audio file by transcribing it.
     
     Args:
-        text: Text to type
-        element_description: Description of the target element
+        audio_path: Path to the audio file
+        document_metadata: Metadata to attach to the indexed chunks
         
     Returns:
-        Result of the typing action
+        True if processing was successful, False otherwise
     """
-    tool = get_visual_automation_tool()
-    return tool.type_text(text, element_description)
+    try:
+        pipeline = get_enhanced_rag_pipeline()
+        return pipeline.process_audio(audio_path, document_metadata)
+    except Exception as e:
+        print(f"Error processing audio file: {e}")
+        return False
 
-def read_ui_text(area_description: str) -> str:
+def process_youtube_video(youtube_url: str, document_metadata: Dict[str, Any]) -> bool:
     """
-    Read text from a UI area based on natural language description.
+    Process a YouTube video by transcribing it.
     
     Args:
-        area_description: Description of the area to read
+        youtube_url: YouTube URL to process
+        document_metadata: Metadata to attach to the indexed chunks
         
     Returns:
-        Extracted text or error message
+        True if processing was successful, False otherwise
     """
-    tool = get_visual_automation_tool()
-    return tool.read_text(area_description)
-
-def take_ui_screenshot(output_path: str = None) -> str:
-    """
-    Take a screenshot of the current UI.
-    
-    Args:
-        output_path: Optional path to save the screenshot
-        
-    Returns:
-        Result of the screenshot action
-    """
-    tool = get_visual_automation_tool()
-    return tool.take_screenshot(output_path)
-
-def scroll_ui(direction: str, amount: int) -> str:
-    """
-    Scroll the UI in a specified direction.
-    
-    Args:
-        direction: Direction to scroll ("up", "down", "left", "right")
-        amount: Number of pixels to scroll
-        
-    Returns:
-        Result of the scroll action
-    """
-    tool = get_visual_automation_tool()
-    return tool.scroll(direction, amount)
-
-def get_current_ui_state() -> Dict[str, Any]:
-    """
-    Get the current state of the UI.
-    
-    Returns:
-        Dictionary containing UI state information
-    """
-    tool = get_visual_automation_tool()
-    return tool.get_ui_state()
+    try:
+        pipeline = get_enhanced_rag_pipeline()
+        return pipeline.process_youtube(youtube_url, document_metadata)
+    except Exception as e:
+        print(f"Error processing YouTube video: {e}")
+        return False

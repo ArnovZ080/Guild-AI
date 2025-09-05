@@ -24,6 +24,21 @@ dependencies = [
     "opencv-python",
     "easyocr",
     "numpy",
+    # MarkItDown for handling non-LLM-ready document formats
+    "markitdown[pdf,docx,pptx,xlsx,audio-transcription,youtube-transcription]",
+    # Advanced web scraping and data processing
+    "scrapy",
+    "beautifulsoup4",
+    "pandas",
+    "openpyxl",
+    "phonenumbers",
+    "email-validator",
+    "faker",
+    # Image and video processing
+    "diffusers",
+    "transformers",
+    "moviepy",
+    "soundfile",
     # "omni-parser",  # Placeholder for OmniParser library
 ]
 

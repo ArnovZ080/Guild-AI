@@ -64,7 +64,7 @@ WSGI_APPLICATION = 'api_server.src.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'guild_ai'),
+        'NAME': os.getenv('POSTGRES_DB', 'workflow_db'),
         'USER': os.getenv('POSTGRES_USER', 'postgres'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'password'),
         'HOST': os.getenv('POSTGRES_HOST', 'db'),

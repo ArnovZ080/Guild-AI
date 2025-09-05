@@ -10,8 +10,14 @@ services:
     ports:
       - "5001:5000"
     command: uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=workflow_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - db
       - minio
@@ -47,8 +53,10 @@ services:
   # Database
   db:
     image: postgres:15
-    env_file:
-      - .env
+    environment:
+      POSTGRES_DB: workflow_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -177,8 +185,14 @@ services:
     volumes:
       - ./api_server:/app/api_server
       - ./guild:/app/guild
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=workflow_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - redis
       - db
@@ -191,14 +205,21 @@ services:
       dockerfile: ./api_server/Dockerfile
     command: >
       sh -c "
-      python manage.py migrate &&
-      celery -A api_server.src.celery_app.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      cd /app/api_server &&
+      python src/manage.py migrate &&
+      celery -A src.celery_app.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
       "
     volumes:
       - ./api_server:/app/api_server
       - ./guild:/app/guild
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=workflow_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       - redis
       - db

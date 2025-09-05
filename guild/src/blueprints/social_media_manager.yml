@@ -33,6 +33,7 @@ steps:
       message: "Here are the social media posts for the week. Please review and approve."
       items: "{{ steps.write_posts.output }}"
     condition: "{{ result.approved == true }}"
+    output: approved_items
 
   - name: post_content
     agent: visual_agent # Or an agent with direct API access to social media
@@ -41,3 +42,4 @@ steps:
       app: "LinkedIn"
       action: "create_post"
       content: "{{ loop.item.linkedin_text }}"
+    output: posted_content

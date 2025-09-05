@@ -49,7 +49,9 @@ from guild.src.agents.training_agent import TrainingAgent
 # from guild.src.agents.ux_ui_tester_agent import UXUITesterAgent
 # from guild.src.agents.churn_predictor_agent import ChurnPredictorAgent
 
-
+# Vision & Learning
+from guild.src.agents.visual_agent import VisualAgent
+from guild.src.agents.vision_enhanced_training_agent import VisionEnhancedTrainingAgent
 
 logger = get_logger(__name__)
 
@@ -97,6 +99,10 @@ AGENT_REGISTRY = {
     # "CustomerSupportAgent": CustomerSupportAgent,  # temporarily disabled
     # "UXUITesterAgent": UXUITesterAgent,  # temporarily disabled
     # "ChurnPredictorAgent": ChurnPredictorAgent,  # temporarily disabled
+    
+    # Vision & Learning
+    "VisualAgent": VisualAgent,
+    "VisionEnhancedTrainingAgent": VisionEnhancedTrainingAgent,
 }
 
 # --- The Master Orchestrator Prompt ---

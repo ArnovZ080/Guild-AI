@@ -25,6 +25,24 @@ A comprehensive web application that orchestrates AI agents with connected data 
 - Product listing packages
 - SEO optimization checklists
 
+### Advanced Integrations
+- **Web Scraping**: Scrapy-based lead generation with data enrichment
+- **Lead Personalization**: Sales psychology-based outreach automation
+- **Financial Automation**: Accounting reports and financial health analysis
+- **Content Creation**: AI-powered image, video, and audio generation
+- **Visual Automation**: PyAutoGUI + Selenium for any application automation
+- **Document Processing**: MarkItDown for handling non-LLM-ready formats
+
+### Specialized AI Agents
+- **🎯 Executive Layer**: Chief of Staff, Strategy, and Business Strategist agents
+- **🎨 Content Creation**: Brief Generator, Ad Copy, Content Strategist, Social Media, and Writer agents
+- **🔍 Research & Data**: Research, Advanced Scraper, Lead Personalization, and Data Enrichment agents
+- **💰 Financial & Business**: Accounting and Analytics agents
+- **🎨 Creative & Media**: Image Generation, Voice, Video Editor, and Document Processing agents
+- **🤖 Automation**: Unified Automation, Visual Automation, and Selenium Automation agents
+- **🔍 Evaluator League**: Judge, Fact Checker, Brand Checker, and SEO Evaluator agents
+- **🎛️ Orchestration**: Workflow Manager, Pre-flight Planner, Contract Compiler, and Quality Controller agents
+
 ## 🏗️ Architecture
 
 The system follows a microservices architecture with clear separation between frontend, backend, and data layers:
@@ -73,6 +91,7 @@ The system follows a microservices architecture with clear separation between fr
            │
            ▼
     Qdrant + LlamaIndex (embeddings & retrieval)
+    + MarkItDown (document conversion & transcription)
 ```
 
 ## 📋 Prerequisites
@@ -143,6 +162,12 @@ QDRANT_API_KEY=your-qdrant-api-key
 # OpenAI Configuration
 OPENAI_API_KEY=your-openai-api-key
 OPENAI_API_BASE=https://api.openai.com/v1
+
+# MarkItDown Configuration (for document conversion & transcription)
+MARKITDOWN_ENABLE_PLUGINS=true
+MARKITDOWN_MAX_FILE_SIZE_MB=100
+MARKITDOWN_AUDIO_TRANSCRIPTION=true
+MARKITDOWN_YOUTUBE_TRANSCRIPTION=true
 
 # Agent Configuration
 AGENT_MAX_ITERATIONS=3
@@ -356,27 +381,65 @@ For support and questions:
 
 ## 🗺️ Roadmap
 
-### Phase 1 (Current)
+### Phase 1 (Completed)
 - ✅ Basic workflow orchestration
 - ✅ Data room management
 - ✅ OAuth integrations
 - ✅ Agent system foundation
+- ✅ MarkItDown document processing integration
+- ✅ Advanced web scraping with Scrapy
+- ✅ Data enrichment and lead validation
+- ✅ Enhanced agent prompts and guidelines
+- ✅ Creative media generation (images, video, audio)
+- ✅ Financial automation and accounting reports
+- ✅ Visual and web automation capabilities
 
-### Phase 2 (Next)
-- [ ] Advanced agent prompts and tools
-- [ ] Real-time workflow monitoring
-- [ ] Enhanced quality evaluation
-- [ ] Performance analytics dashboard
+### Phase 2 (Current - Backend Complete)
+- ✅ Advanced agent prompts and tools
+- ✅ Lead personalization and sales psychology
+- ✅ Content strategy and calendar generation
+- ✅ Multi-format document processing
+- ✅ Local AI model integration (no API costs)
+- ✅ Comprehensive automation framework
+- [ ] Real-time workflow monitoring dashboard
+- [ ] Performance analytics and reporting
+- [ ] Frontend integration and user interface
 
-### Phase 3 (Future)
-- [ ] Multi-tenant support
+### Phase 3 (Next - Frontend Integration)
+- [ ] Complete web application interface
+- [ ] Real-time agent execution monitoring
+- [ ] Interactive workflow builder
 - [ ] Advanced scheduling and automation
+- [ ] User management and authentication
+- [ ] Multi-tenant support
+
+### Phase 4 (Future)
 - [ ] Custom agent development tools
 - [ ] Enterprise integrations
+- [ ] Advanced AI model fine-tuning
+- [ ] Marketplace for custom agents
+- [ ] API ecosystem and third-party integrations
 
 ## 🏷️ Version History
 
+- **v2.0.0** - Complete backend with advanced integrations (Current)
+  - Advanced web scraping with Scrapy
+  - Lead personalization and sales psychology
+  - Creative media generation (images, video, audio)
+  - Financial automation and accounting
+  - Visual and web automation
+  - Enhanced agent prompts and guidelines
+  - MarkItDown document processing
+- **v1.5.0** - Enhanced agent capabilities
+  - Advanced scraper agent with ethical guidelines
+  - Content strategist with multi-platform planning
+  - Lead personalization with sales psychology
+  - Creative media generation agents
 - **v1.0.0** - Initial release with core functionality
+  - Basic workflow orchestration
+  - Data room management
+  - OAuth integrations
+  - Agent system foundation
 - **v0.9.0** - Beta release with basic features
 - **v0.1.0** - Alpha release for testing
 
