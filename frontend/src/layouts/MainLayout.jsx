@@ -21,13 +21,13 @@ const MainLayout = () => {
 
             className="flex flex-col h-full"
           >
-            <header className="h-1/3 bg-gray-800 p-4 shadow-lg z-10 overflow-y-auto">
+            <header className="h-2/3 bg-gray-800 p-4 shadow-lg z-10 overflow-y-auto">
               <CommandCenter />
             </header>
-            <section className="h-1/3 bg-gray-700 p-4">
+            <section className="h-1/6 bg-gray-700 p-4">
               <ActionTheater />
             </section>
-            <footer className="h-1/3 bg-gray-800 p-4 border-t border-gray-700">
+            <footer className="h-1/6 bg-gray-800 p-4 border-t border-gray-700">
               <h2 className="text-lg font-semibold">Zone 3: Opportunity Horizon</h2>
             </footer>
           </motion.div>
