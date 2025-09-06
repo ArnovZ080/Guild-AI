@@ -1,134 +1,129 @@
-import json
-import asyncio
-
-from guild.src.models.user_input import UserInput, Audience
-from guild.src.models.agent import Agent, AgentCallback
-from guild.src.models.llm import Llm, LlmModels
-from guild.src.core.llm_client import LlmClient
-from guild.src.utils.logging_utils import get_logger
-from guild.src.utils.decorators import inject_knowledge
-
-logger = get_logger(__name__)
-
-PROMPT_TEMPLATE = """
-You are the Training Agent, an expert in instructional design and technical writing. Your role is to create and update an internal library of Standard Operating Procedures (SOPs) and to deliver micro-trainings. Your goal is to ensure consistent processes and effective knowledge transfer within the business.
-
-**1. Foundational Analysis (Do not include in output):**
-    *   **Training/SOP Need:** {training_need}
-    *   **Source Information / Process Steps:** {source_information}
-    *   **Target Audience (for this SOP):** {target_audience}
-    *   **Key Insights & Knowledge (from web search on instructional design):** {knowledge}
-
-**2. Your Task:**
-    Based on the foundational analysis, generate a comprehensive and easy-to-understand Standard Operating Procedure (SOP) document.
-
-**3. Output Format (JSON only):**
-    {{
-      "sop_document": {{
-        "title": "A clear, descriptive title for the SOP (e.g., 'SOP: How to Onboard a New Client').",
-        "document_id": "e.g., 'SOP-CLIENT-001'",
-        "version": "1.0",
-        "purpose": "A brief, one-sentence explanation of what this process achieves.",
-        "scope": "Clearly define what is covered and what is not covered by this SOP.",
-        "roles_and_responsibilities": [
-            {{
-                "role": "e.g., 'Solo-Founder'",
-                "responsibilities": ["e.g., 'Final approval of client contract.'"]
-            }},
-            {{
-                "role": "e.g., 'Virtual Assistant'",
-                "responsibilities": ["e.g., 'Setting up client in the project management tool.'"]
-            }}
-        ],
-        "procedure": [
-            {{
-                "step": 1,
-                "title": "e.g., 'Initial Client Call'",
-                "instruction": "A detailed, step-by-step instruction for this part of the process.",
-                "quality_check": "A specific point to verify before moving to the next step (e.g., 'Confirm client has signed the proposal.')."
-            }},
-            {{
-                "step": 2,
-                "title": "e.g., 'Create Client Folder in Google Drive'",
-                "instruction": "Provide the exact steps, including naming conventions (e.g., 'Navigate to 'Clients' folder. Create new folder named [Client Name] - [YYYY-MM-DD]').",
-                "quality_check": "e.g., 'Ensure folder structure matches the standard template.'"
-            }}
-        ],
-        "troubleshooting_and_faqs": [
-            {{
-                "question": "e.g., 'What if the client asks for a discount?'",
-                "answer": "e.g., 'Refer to the 'Pricing Agent's' latest guidelines. Do not approve discounts without consulting the solo-founder.'"
-            }}
-        ],
-        "related_documents": ["List any other SOPs or documents that are referenced (e.g., 'SOP-CONTRACT-002: Contract Generation')."]
-      }}
-    }}
+"""
+Training Agent - Builds and updates internal SOP libraries and delivers micro-trainings
 """
 
+from typing import Dict, List, Any
+from dataclasses import dataclass
+from datetime import datetime
 
-class TrainingAgent(Agent):
-    def __init__(self, user_input: UserInput, source_information: str, target_audience: str, callback: AgentCallback = None):
-        # user_input.objective holds the training_need
-        super().__init__(
-            "Training Agent",
-            "Builds and updates internal Standard Operating Procedure (SOP) libraries.",
-            user_input,
-            callback=callback
+@dataclass
+class TrainingModule:
+    module_id: str
+    title: str
+    description: str
+    duration_minutes: int
+
+@dataclass
+class SOPDocument:
+    sop_id: str
+    title: str
+    process_steps: List[Dict[str, Any]]
+
+class TrainingAgent:
+    """Training Agent - Builds and updates internal SOP libraries and delivers micro-trainings"""
+    
+    def __init__(self, name: str = "Training Agent"):
+        self.name = name
+        self.role = "Training & Development Specialist"
+        self.expertise = [
+            "Training Program Design",
+            "SOP Development",
+            "Micro-Learning",
+            "Knowledge Management"
+        ]
+    
+    def create_training_module(self, 
+                             topic: str,
+                             target_audience: str,
+                             learning_objectives: List[str]) -> TrainingModule:
+        """Create comprehensive training module"""
+        
+        # Calculate duration based on topic complexity
+        duration = self._calculate_module_duration(topic)
+        
+        # Generate module ID
+        module_id = f"training_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        return TrainingModule(
+            module_id=module_id,
+            title=topic,
+            description=f"This training module covers {topic}. Participants will learn key concepts and practical applications.",
+            duration_minutes=duration
         )
-        self.source_information = source_information
-        self.target_audience = target_audience
-        self.llm_client = LlmClient(
-            Llm(
-                provider="together",
-                model=LlmModels.LLAMA3_70B.value
-            )
+    
+    def _calculate_module_duration(self, topic: str) -> int:
+        """Calculate total module duration"""
+        
+        topic_lower = topic.lower()
+        
+        if "advanced" in topic_lower or "complex" in topic_lower:
+            return 60
+        elif "basic" in topic_lower or "introductory" in topic_lower:
+            return 20
+        else:
+            return 40
+    
+    def create_sop_document(self, 
+                          process_name: str,
+                          process_description: str,
+                          stakeholders: List[str]) -> SOPDocument:
+        """Create comprehensive Standard Operating Procedure document"""
+        
+        # Create process steps
+        process_steps = self._create_process_steps(process_name, stakeholders)
+        
+        # Generate SOP ID
+        sop_id = f"sop_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        return SOPDocument(
+            sop_id=sop_id,
+            title=f"SOP: {process_name}",
+            process_steps=process_steps
         )
-
-    @inject_knowledge
-    async def run(self, knowledge: str | None = None) -> str:
-        self._send_start_callback()
-        logger.info(f"Running Training agent for need: {self.user_input.objective}")
-
-        prompt = PROMPT_TEMPLATE.format(
-            training_need=self.user_input.objective,
-            source_information=self.source_information,
-            target_audience=self.target_audience,
-            knowledge=knowledge,
-        )
-
-        self._send_llm_start_callback(prompt, "together", LlmModels.LLAMA3_70B.value)
-        response = await self.llm_client.chat(prompt)
-        self._send_llm_end_callback(response)
-
-        logger.info("Training agent finished.")
-        self._send_end_callback(response)
-        return response
-
-
-if __name__ == '__main__':
-    async def main():
-        user_input = UserInput(
-            objective="Create an SOP for publishing a new blog post.",
-        )
-
-        source_information = """
-        The process is:
-        1. Get the final draft from the Copywriter Agent.
-        2. Create a new post in WordPress.
-        3. Paste the content and format it with headings, bold text, etc.
-        4. Run it through the SEO Agent to get metadata and keyword suggestions.
-        5. Add the meta description and title.
-        6. Find a relevant stock photo and upload it as the featured image.
-        7. Schedule the post to be published.
-        """
-        target_audience = "A new Virtual Assistant who is not familiar with our specific workflow."
-
-        agent = TrainingAgent(
-            user_input,
-            source_information=source_information,
-            target_audience=target_audience
-        )
-        result = await agent.run()
-        print(json.dumps(json.loads(result), indent=2))
-
-    asyncio.run(main())
+    
+    def _create_process_steps(self, process_name: str, stakeholders: List[str]) -> List[Dict[str, Any]]:
+        """Create detailed process steps"""
+        
+        steps = []
+        num_steps = 5  # Default number of steps
+        
+        for i in range(num_steps):
+            step = {
+                "step_number": i + 1,
+                "title": f"Step {i + 1}: {self._generate_step_title(i + 1)}",
+                "description": f"Detailed description of step {i + 1}",
+                "responsible_party": self._assign_responsible_party(i + 1, stakeholders),
+                "estimated_time": f"{i + 1}0 minutes"
+            }
+            steps.append(step)
+        
+        return steps
+    
+    def _generate_step_title(self, step_number: int) -> str:
+        """Generate step title"""
+        
+        titles = ["Initiate Process", "Gather Information", "Process Data", "Review Results", "Complete Task"]
+        return titles[min(step_number - 1, len(titles) - 1)]
+    
+    def _assign_responsible_party(self, step_number: int, stakeholders: List[str]) -> str:
+        """Assign responsible party for step"""
+        
+        if not stakeholders:
+            return "Process Owner"
+        
+        return stakeholders[(step_number - 1) % len(stakeholders)]
+    
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Get agent information and capabilities"""
+        
+        return {
+            "name": self.name,
+            "role": self.role,
+            "expertise": self.expertise,
+            "capabilities": [
+                "Training module design and development",
+                "SOP creation and maintenance",
+                "Micro-learning content creation",
+                "Knowledge management system design"
+            ]
+        }

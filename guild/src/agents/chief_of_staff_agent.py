@@ -1,160 +1,134 @@
 """
-Chief of Staff Agent - Coordinates priorities, meetings, and task delegation across all other agents.
+Chief of Staff Agent - Strategic coordination and task prioritization
 """
 
-from typing import Dict, List, Any, Optional
-from pydantic import BaseModel, Field
-from ..core.base_agent import BaseAgent
+from typing import Dict, List, Any
+from dataclasses import dataclass
+from datetime import datetime
 
+@dataclass
+class ExecutionPlan:
+    plan_id: str
+    user_request: str
+    delegated_tasks: List[Dict[str, Any]]
+    recommendations: List[str]
 
-class ChiefOfStaffAgent(BaseAgent):
-    """
-    Chief of Staff Agent - Strategic coordination and task prioritization
+class ChiefOfStaffAgent:
+    """Chief of Staff Agent - Strategic coordinator and task prioritization specialist"""
     
-    Responsibilities:
-    - Coordinate priorities across all agents
-    - Schedule and manage meetings
-    - Delegate tasks to appropriate agents
-    - Monitor progress and ensure deadlines are met
-    """
+    def __init__(self, name: str = "Chief of Staff Agent"):
+        self.name = name
+        self.role = "Strategic Coordinator"
+        self.expertise = [
+            "Strategic Planning",
+            "Task Prioritization",
+            "Delegation",
+            "Workflow Optimization",
+            "Cross-functional Coordination"
+        ]
     
-    def __init__(self, **kwargs):
-        super().__init__(
-            name="Chief of Staff Agent",
-            role="Strategic coordination and task prioritization",
-            **kwargs
+    def analyze_user_request(self, 
+                           user_request: str,
+                           current_business_status: Dict[str, Any],
+                           strategic_directives: List[str]) -> ExecutionPlan:
+        """Analyze user request and create comprehensive execution plan"""
+        
+        # Parse user request
+        core_intent = self._parse_user_request(user_request)
+        
+        # Identify required agents
+        required_agents = self._identify_required_agents(core_intent)
+        
+        # Delegate tasks
+        delegated_tasks = self._delegate_tasks(required_agents, core_intent)
+        
+        # Generate recommendations
+        recommendations = self._generate_recommendations(core_intent)
+        
+        plan_id = f"exec_plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        return ExecutionPlan(
+            plan_id=plan_id,
+            user_request=user_request,
+            delegated_tasks=delegated_tasks,
+            recommendations=recommendations
         )
-        self.task_priorities: Dict[str, Any] = {}
-        self.meeting_schedules: Dict[str, Any] = {}
-        self.agent_workloads: Dict[str, int] = {}
     
-    async def coordinate_priorities(self, tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Coordinate and prioritize tasks across all agents"""
-        try:
-            prioritized_tasks = []
-            
-            for task in tasks:
-                priority = self._calculate_priority(task)
-                task_info = {
-                    "task_id": task.get("id", ""),
-                    "priority": priority,
-                    "deadline": task.get("deadline"),
-                    "assigned_agent": task.get("assigned_agent"),
-                    "status": "pending"
-                }
-                prioritized_tasks.append(task_info)
-                self.task_priorities[task_info["task_id"]] = task_info
-            
-            # Sort by priority
-            sorted_tasks = sorted(prioritized_tasks, key=lambda x: x["priority"], reverse=True)
-            
-            return {
-                "status": "success",
-                "coordinated_tasks": len(sorted_tasks),
-                "priority_summary": self._generate_priority_summary(sorted_tasks)
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to coordinate priorities: {str(e)}"
-            }
-    
-    async def schedule_meeting(self, meeting_details: Dict[str, Any]) -> Dict[str, Any]:
-        """Schedule and coordinate meetings"""
-        try:
-            meeting = {
-                "meeting_id": meeting_details.get("id", ""),
-                "title": meeting_details.get("title", ""),
-                "participants": meeting_details.get("participants", []),
-                "scheduled_time": meeting_details.get("scheduled_time", ""),
-                "agenda": meeting_details.get("agenda", [])
-            }
-            
-            self.meeting_schedules[meeting["meeting_id"]] = meeting
-            
-            return {
-                "status": "success",
-                "meeting_id": meeting["meeting_id"],
-                "scheduled_time": meeting["scheduled_time"],
-                "participants": meeting["participants"]
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to schedule meeting: {str(e)}"
-            }
-    
-    async def delegate_task(self, task: Dict[str, Any], target_agent: str) -> Dict[str, Any]:
-        """Delegate a specific task to a target agent"""
-        try:
-            task_id = task.get("id", "")
-            if task_id in self.task_priorities:
-                self.task_priorities[task_id]["assigned_agent"] = target_agent
-                self.task_priorities[task_id]["status"] = "assigned"
-            
-            self.agent_workloads[target_agent] = self.agent_workloads.get(target_agent, 0) + 1
-            
-            return {
-                "status": "success",
-                "task_id": task_id,
-                "assigned_agent": target_agent
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to delegate task: {str(e)}"
-            }
-    
-    async def monitor_progress(self) -> Dict[str, Any]:
-        """Monitor progress across all agents and tasks"""
-        try:
-            progress_report = {
-                "total_tasks": len(self.task_priorities),
-                "completed_tasks": len([t for t in self.task_priorities.values() if t.get("status") == "completed"]),
-                "in_progress_tasks": len([t for t in self.task_priorities.values() if t.get("status") == "in_progress"]),
-                "agent_workloads": self.agent_workloads
-            }
-            
-            return {
-                "status": "success",
-                "progress_report": progress_report
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to monitor progress: {str(e)}"
-            }
-    
-    def _calculate_priority(self, task: Dict[str, Any]) -> int:
-        """Calculate task priority based on various factors"""
-        priority = 5  # Base priority
+    def _parse_user_request(self, user_request: str) -> Dict[str, Any]:
+        """Parse user request to identify core intent and requirements"""
         
-        # Adjust based on deadline urgency
-        if task.get("deadline"):
-            priority += 2
+        request_lower = user_request.lower()
         
-        # Adjust based on task importance
-        importance = task.get("importance", "medium")
-        if importance == "high":
-            priority += 2
-        elif importance == "low":
-            priority -= 1
-        
-        return min(max(priority, 1), 10)
-    
-    def _generate_priority_summary(self, tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Generate a summary of task priorities"""
-        high_priority = len([t for t in tasks if t["priority"] >= 8])
-        medium_priority = len([t for t in tasks if 5 <= t["priority"] < 8])
-        low_priority = len([t for t in tasks if t["priority"] < 5])
+        if any(word in request_lower for word in ["create", "build", "develop"]):
+            intent = "creation"
+        elif any(word in request_lower for word in ["analyze", "research"]):
+            intent = "analysis"
+        elif any(word in request_lower for word in ["optimize", "improve"]):
+            intent = "optimization"
+        else:
+            intent = "general_assistance"
         
         return {
-            "high_priority_tasks": high_priority,
-            "medium_priority_tasks": medium_priority,
-            "low_priority_tasks": low_priority,
-            "total_tasks": len(tasks)
+            "primary_intent": intent,
+            "urgency": "normal",
+            "complexity": "medium"
+        }
+    
+    def _identify_required_agents(self, core_intent: Dict[str, Any]) -> List[str]:
+        """Determine which specialized agents are needed"""
+        
+        intent_type = core_intent["primary_intent"]
+        
+        if intent_type == "creation":
+            return ["Content Strategist Agent", "Writer Agent"]
+        elif intent_type == "analysis":
+            return ["Research & Scraper Agent", "Analytics Agent"]
+        elif intent_type == "optimization":
+            return ["SEO Agent", "Paid Ads Agent"]
+        else:
+            return ["Strategy Agent", "Project Manager Agent"]
+    
+    def _delegate_tasks(self, required_agents: List[str], core_intent: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Delegate specific tasks to agents"""
+        
+        tasks = []
+        
+        for i, agent in enumerate(required_agents):
+            task = {
+                "task_id": f"task_{i+1}",
+                "assigned_agent": agent,
+                "task_description": f"Complete {core_intent['primary_intent']} task",
+                "priority": "high" if i == 0 else "medium",
+                "deadline": "2 hours"
+            }
+            tasks.append(task)
+        
+        return tasks
+    
+    def _generate_recommendations(self, core_intent: Dict[str, Any]) -> List[str]:
+        """Generate strategic recommendations"""
+        
+        recommendations = []
+        
+        if core_intent["primary_intent"] == "optimization":
+            recommendations.append("Implement A/B testing to measure effectiveness")
+            recommendations.append("Establish baseline metrics before changes")
+        
+        recommendations.append("Monitor progress and adjust as needed")
+        
+        return recommendations
+    
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Get agent information"""
+        
+        return {
+            "name": self.name,
+            "role": self.role,
+            "expertise": self.expertise,
+            "capabilities": [
+                "User request analysis",
+                "Agent coordination",
+                "Task delegation",
+                "Strategic recommendations"
+            ]
         }
