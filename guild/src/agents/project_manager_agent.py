@@ -1,206 +1,210 @@
 """
-Project Manager Agent - Tracks tasks, deadlines, and deliverables. Ensures everything runs on time.
+Project Manager Agent - Tracks tasks, deadlines, and deliverables
 """
 
-from typing import Dict, List, Any
-from ..core.base_agent import BaseAgent
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 
+@dataclass
+class ProjectTask:
+    task_id: str
+    task_name: str
+    assigned_agent: str
+    estimated_time: int
+    status: str
 
-class ProjectManagerAgent(BaseAgent):
-    """Project Manager Agent - Project management and task tracking"""
+@dataclass
+class ProjectPlan:
+    project_id: str
+    project_name: str
+    goal: str
+    tasks: List[ProjectTask]
+    timeline: Dict[str, Any]
+
+class ProjectManagerAgent:
+    """Project Manager Agent - Tracks tasks, deadlines, and deliverables"""
     
-    def __init__(self, **kwargs):
-        super().__init__(
-            name="Project Manager Agent",
-            role="Project management and task tracking",
-            **kwargs
+    def __init__(self, name: str = "Project Manager Agent"):
+        self.name = name
+        self.role = "Project Management Specialist"
+        self.expertise = [
+            "Project Management",
+            "Task Breakdown",
+            "Timeline Creation",
+            "Resource Allocation"
+        ]
+    
+    def create_project_plan(self, 
+                          project_goal: str,
+                          high_level_tasks: List[str]) -> ProjectPlan:
+        """Create comprehensive project plan with task breakdown and timeline"""
+        
+        # Break down high-level tasks
+        detailed_tasks = self._break_down_tasks(high_level_tasks, project_goal)
+        
+        # Create timeline
+        project_timeline = self._create_project_timeline(detailed_tasks)
+        
+        # Generate project ID
+        project_id = f"project_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        
+        return ProjectPlan(
+            project_id=project_id,
+            project_name=f"Project_{project_goal.replace(' ', '_')}",
+            goal=project_goal,
+            tasks=detailed_tasks,
+            timeline=project_timeline
         )
-        self.projects: Dict[str, Any] = {}
-        self.tasks: Dict[str, Any] = {}
     
-    async def create_project(self, project_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new project"""
-        try:
-            project = {
-                "project_id": f"project_{len(self.projects) + 1}",
-                "name": project_data.get("name", ""),
-                "description": project_data.get("description", ""),
-                "deadline": project_data.get("deadline", ""),
-                "team_members": project_data.get("team_members", []),
-                "status": "active",
-                "created_at": self._get_current_time()
-            }
+    def _break_down_tasks(self, high_level_tasks: List[str], project_goal: str) -> List[ProjectTask]:
+        """Break down high-level tasks into detailed, actionable sub-tasks"""
+        
+        detailed_tasks = []
+        task_counter = 1
+        
+        for high_level_task in high_level_tasks:
+            # Generate sub-tasks based on task type
+            sub_tasks = self._generate_sub_tasks(high_level_task)
             
-            self.projects[project["project_id"]] = project
-            
-            return {
-                "status": "success",
-                "project": project
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to create project: {str(e)}"
-            }
+            for sub_task in sub_tasks:
+                task = ProjectTask(
+                    task_id=f"task_{task_counter:03d}",
+                    task_name=sub_task["name"],
+                    assigned_agent=sub_task["assigned_agent"],
+                    estimated_time=sub_task["estimated_time"],
+                    status="not_started"
+                )
+                detailed_tasks.append(task)
+                task_counter += 1
+        
+        return detailed_tasks
     
-    async def create_task(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new task"""
-        try:
-            task = {
-                "task_id": f"task_{len(self.tasks) + 1}",
-                "project_id": task_data.get("project_id", ""),
-                "name": task_data.get("name", ""),
-                "description": task_data.get("description", ""),
-                "assigned_to": task_data.get("assigned_to", ""),
-                "deadline": task_data.get("deadline", ""),
-                "priority": task_data.get("priority", "medium"),
-                "status": "pending",
-                "created_at": self._get_current_time()
-            }
-            
-            self.tasks[task["task_id"]] = task
-            
-            return {
-                "status": "success",
-                "task": task
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to create task: {str(e)}"
-            }
-    
-    async def track_progress(self, project_id: str) -> Dict[str, Any]:
-        """Track project progress"""
-        try:
-            if project_id not in self.projects:
-                return {
-                    "status": "error",
-                    "message": "Project not found"
-                }
-            
-            project_tasks = [task for task in self.tasks.values() if task["project_id"] == project_id]
-            
-            progress_report = {
-                "project_id": project_id,
-                "total_tasks": len(project_tasks),
-                "completed_tasks": len([task for task in project_tasks if task["status"] == "completed"]),
-                "in_progress_tasks": len([task for task in project_tasks if task["status"] == "in_progress"]),
-                "overdue_tasks": len([task for task in project_tasks if self._is_task_overdue(task)]),
-                "completion_percentage": self._calculate_completion_percentage(project_tasks),
-                "created_at": self._get_current_time()
-            }
-            
-            return {
-                "status": "success",
-                "progress_report": progress_report
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to track progress: {str(e)}"
-            }
-    
-    async def generate_status_report(self, project_id: str) -> Dict[str, Any]:
-        """Generate comprehensive status report"""
-        try:
-            if project_id not in self.projects:
-                return {
-                    "status": "error",
-                    "message": "Project not found"
-                }
-            
-            project = self.projects[project_id]
-            project_tasks = [task for task in self.tasks.values() if task["project_id"] == project_id]
-            
-            status_report = {
-                "project_id": project_id,
-                "project_name": project["name"],
-                "overall_status": self._determine_overall_status(project_tasks),
-                "key_metrics": {
-                    "total_tasks": len(project_tasks),
-                    "completed_tasks": len([task for task in project_tasks if task["status"] == "completed"]),
-                    "completion_rate": self._calculate_completion_percentage(project_tasks),
-                    "days_remaining": self._calculate_days_remaining(project["deadline"])
+    def _generate_sub_tasks(self, high_level_task: str) -> List[Dict[str, Any]]:
+        """Generate specific sub-tasks for a high-level task"""
+        
+        task_lower = high_level_task.lower()
+        
+        if "create" in task_lower or "develop" in task_lower:
+            return [
+                {
+                    "name": f"Research and planning for {high_level_task}",
+                    "assigned_agent": "Research & Scraper Agent",
+                    "estimated_time": 4
                 },
-                "risks": self._identify_risks(project_tasks),
-                "recommendations": self._generate_recommendations(project_tasks),
-                "created_at": self._get_current_time()
-            }
-            
-            return {
-                "status": "success",
-                "status_report": status_report
-            }
-            
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to generate status report: {str(e)}"
-            }
-    
-    def _is_task_overdue(self, task: Dict[str, Any]) -> bool:
-        """Check if task is overdue"""
-        # Simplified overdue check
-        return task["status"] != "completed" and task["deadline"] < self._get_current_time()
-    
-    def _calculate_completion_percentage(self, tasks: List[Dict[str, Any]]) -> float:
-        """Calculate completion percentage"""
-        if not tasks:
-            return 0.0
-        
-        completed = len([task for task in tasks if task["status"] == "completed"])
-        return (completed / len(tasks)) * 100
-    
-    def _determine_overall_status(self, tasks: List[Dict[str, Any]]) -> str:
-        """Determine overall project status"""
-        completion_rate = self._calculate_completion_percentage(tasks)
-        
-        if completion_rate >= 90:
-            return "On track"
-        elif completion_rate >= 70:
-            return "At risk"
+                {
+                    "name": f"Design and prototype {high_level_task}",
+                    "assigned_agent": "Content Strategist Agent",
+                    "estimated_time": 6
+                },
+                {
+                    "name": f"Implement and test {high_level_task}",
+                    "assigned_agent": "Project Manager Agent",
+                    "estimated_time": 8
+                }
+            ]
+        elif "analyze" in task_lower or "research" in task_lower:
+            return [
+                {
+                    "name": f"Data collection for {high_level_task}",
+                    "assigned_agent": "Research & Scraper Agent",
+                    "estimated_time": 3
+                },
+                {
+                    "name": f"Data analysis and insights for {high_level_task}",
+                    "assigned_agent": "Analytics Agent",
+                    "estimated_time": 5
+                },
+                {
+                    "name": f"Report generation for {high_level_task}",
+                    "assigned_agent": "Writer Agent",
+                    "estimated_time": 3
+                }
+            ]
         else:
-            return "Behind schedule"
+            return [
+                {
+                    "name": f"Planning for {high_level_task}",
+                    "assigned_agent": "Strategy Agent",
+                    "estimated_time": 3
+                },
+                {
+                    "name": f"Execution of {high_level_task}",
+                    "assigned_agent": "Project Manager Agent",
+                    "estimated_time": 5
+                }
+            ]
     
-    def _calculate_days_remaining(self, deadline: str) -> int:
-        """Calculate days remaining until deadline"""
-        # Simplified calculation
-        return 30
+    def _create_project_timeline(self, tasks: List[ProjectTask]) -> Dict[str, Any]:
+        """Create project timeline with milestones"""
+        
+        current_date = datetime.now()
+        total_hours = sum(task.estimated_time for task in tasks)
+        
+        timeline = {
+            "start_date": current_date,
+            "end_date": current_date + timedelta(hours=total_hours),
+            "total_duration_hours": total_hours,
+            "milestones": [
+                {
+                    "name": "Project Start",
+                    "date": current_date
+                },
+                {
+                    "name": "Project Complete",
+                    "date": current_date + timedelta(hours=total_hours)
+                }
+            ]
+        }
+        
+        return timeline
     
-    def _identify_risks(self, tasks: List[Dict[str, Any]]) -> List[str]:
-        """Identify project risks"""
-        risks = []
+    def track_project_progress(self, 
+                             project_plan: ProjectPlan,
+                             task_updates: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Track project progress and identify issues"""
         
-        overdue_tasks = [task for task in tasks if self._is_task_overdue(task)]
-        if overdue_tasks:
-            risks.append(f"{len(overdue_tasks)} overdue tasks")
+        progress_report = {
+            "project_id": project_plan.project_id,
+            "overall_progress": 0.0,
+            "completed_tasks": 0,
+            "in_progress_tasks": 0,
+            "delayed_tasks": 0
+        }
         
-        high_priority_tasks = [task for task in tasks if task["priority"] == "high" and task["status"] != "completed"]
-        if len(high_priority_tasks) > 5:
-            risks.append("Too many high-priority tasks pending")
+        total_tasks = len(project_plan.tasks)
         
-        return risks
+        for task in project_plan.tasks:
+            # Find task update
+            task_update = next((update for update in task_updates if update.get("task_id") == task.task_id), None)
+            
+            if task_update:
+                task.status = task_update.get("status", task.status)
+            
+            # Count tasks by status
+            if task.status == "completed":
+                progress_report["completed_tasks"] += 1
+            elif task.status == "in_progress":
+                progress_report["in_progress_tasks"] += 1
+            elif task.status == "delayed":
+                progress_report["delayed_tasks"] += 1
+        
+        # Calculate overall progress
+        progress_report["overall_progress"] = progress_report["completed_tasks"] / total_tasks if total_tasks > 0 else 0
+        
+        return progress_report
     
-    def _generate_recommendations(self, tasks: List[Dict[str, Any]]) -> List[str]:
-        """Generate project recommendations"""
-        recommendations = []
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Get agent information and capabilities"""
         
-        overdue_tasks = [task for task in tasks if self._is_task_overdue(task)]
-        if overdue_tasks:
-            recommendations.append("Address overdue tasks immediately")
-        
-        recommendations.extend([
-            "Regular progress check-ins with team",
-            "Prioritize high-impact tasks",
-            "Monitor resource allocation"
-        ])
-        
-        return recommendations
-    
-    def _get_current_time(self) -> str:
-        """Get current timestamp"""
-        return "2024-01-01T00:00:00Z"
+        return {
+            "name": self.name,
+            "role": self.role,
+            "expertise": self.expertise,
+            "capabilities": [
+                "Project planning and task breakdown",
+                "Timeline creation and management",
+                "Resource allocation",
+                "Progress tracking and reporting"
+            ]
+        }
