@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BusinessPulseMonitor } from './BusinessPulseMonitor';
-import { AgentActivityTheater } from './AgentActivityTheater';
-import { FinancialFlowVisualization } from './FinancialFlowVisualization';
-import { CustomerJourneyConstellation } from './CustomerJourneyConstellation';
-import { ProgressMomentumTracker } from './ProgressMomentumTracker';
-import { AchievementCelebration } from './AchievementCelebration';
-import { StressReductionInterface } from './StressReductionInterface';
+import AgentActivityTheaterView from './theater/AgentActivityTheaterView';
+import FinancialFlowVisualization from './visualizations/FinancialFlowVisualization';
+import CustomerJourneyConstellation from './visualizations/CustomerJourneyConstellation';
+import ProgressMomentumTracker from './psychology/ProgressMomentumTracker';
+import AchievementCelebration from './psychology/AchievementCelebration';
+import StressReductionInterface from './psychology/StressReductionInterface';
 import DataRoomManager from './DataRoomManager';
 import MarketingCampaignCreator from './MarketingCampaignCreator';
 import OAuthConnections from './OAuthConnections';
@@ -29,7 +29,7 @@ const MainDashboard = () => {
   const renderWidget = (widget) => {
     const components = {
       BusinessPulseMonitor: <BusinessPulseMonitor />,
-      AgentActivityTheater: <AgentActivityTheater />,
+      AgentActivityTheater: <AgentActivityTheaterView />,
       FinancialFlowVisualization: <FinancialFlowVisualization />,
       CustomerJourneyConstellation: <CustomerJourneyConstellation />,
       ProgressMomentumTracker: <ProgressMomentumTracker />,
@@ -164,7 +164,7 @@ const MainDashboard = () => {
             
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-xl font-semibold mb-6 text-gray-800">Agent Management</h3>
-              <AgentActivityTheater />
+              <AgentActivityTheaterView />
             </div>
           </motion.div>
         )}
