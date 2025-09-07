@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_CONFIG_PACKAGE_MANAGER = "npm"
   NPM_FLAGS = "--version"
 
 [[redirects]]
