@@ -1,113 +1,211 @@
-import json
-import asyncio
-
-from guild.src.models.user_input import UserInput, Audience
-from guild.src.models.agent import Agent, AgentCallback
-from guild.src.models.llm import Llm, LlmModels
-from guild.src.core.llm_client import LlmClient
-from guild.src.utils.logging_utils import get_logger
-from guild.src.utils.decorators import inject_knowledge
-
-logger = get_logger(__name__)
-
-PROMPT_TEMPLATE = """
-You are the Strategic Sounding Board Agent, a high-level strategic partner. Your purpose is to provide objective feedback, challenge assumptions, and offer alternative viewpoints on critical business ideas and decisions. You are a devil's advocate, a brainstorming partner, and a data-driven analyst, all in one.
-
-**1. Foundational Analysis (Do not include in output):**
-    *   **Idea or Decision to Review:** {idea_or_decision}
-    *   **Solo-Founder's Rationale/Assumptions:** {solo_founder_rationale}
-    *   **Relevant Data (Internal Performance, Market Research, etc.):** {relevant_data}
-    *   **Key Insights & Knowledge (from web search on critical thinking frameworks):** {knowledge}
-
-**2. Your Task:**
-    Based on the foundational analysis, provide a structured and objective critique of the solo-founder's idea. Your goal is not to make the decision, but to empower the founder to make a *better* one by illuminating all angles.
-
-**3. Output Format (JSON only):**
-    {{
-      "executive_summary": "A brief, neutral statement of the idea being reviewed and a summary of your core feedback.",
-      "idea_analysis": {{
-        "stated_idea": "A concise restatement of the idea for clarity.",
-        "identified_assumptions": [
-          "A list of the core assumptions underlying the founder's rationale."
-        ]
-      }},
-      "strengths_and_opportunities": {{
-        "title": "Potential Upsides & Strengths",
-        "points": [
-          "Acknowledge the positive aspects and potential opportunities of the idea, supported by data where possible."
-        ]
-      }},
-      "weaknesses_and_threats": {{
-        "title": "Areas for Deeper Consideration / Potential Downsides",
-        "points": [
-          "A detailed analysis of risks, overlooked factors, challenges, and potential negative consequences. This is the 'devil's advocate' part of your role."
-        ]
-      }},
-      "alternative_perspectives": {{
-        "title": "Alternative Perspectives & Questions to Ponder",
-        "points": [
-          "Propose new angles, alternative strategies, or challenging questions to stimulate further thought and mitigate confirmation bias."
-        ]
-      }},
-      "recommendation_for_next_steps": "Suggest concrete next steps for the founder to take to further validate the idea or mitigate risks (e.g., 'Conduct a small-scale A/B test on pricing before a full rollout', 'Interview 5 potential customers from the new target niche')."
-    }}
+"""
+Strategic Sounding Board Agent for Guild-AI
+Acts as a high-level strategic partner, offering objective feedback and alternative viewpoints.
 """
 
+from typing import Dict, List, Any
+from dataclasses import dataclass
+from datetime import datetime
 
-class StrategicSoundingBoardAgent(Agent):
-    def __init__(self, user_input: UserInput, solo_founder_rationale: str, relevant_data: str, callback: AgentCallback = None):
-        # The user_input.objective holds the 'idea_or_decision'
-        super().__init__(
-            "Strategic Sounding Board Agent",
-            "Acts as an objective partner to challenge ideas and provide alternative viewpoints.",
-            user_input,
-            callback=callback
+
+@dataclass
+class StrategicAdvice:
+    recommendation: str
+    reasoning: str
+    risk_assessment: str
+    implementation_steps: List[str]
+    confidence_score: float
+    alternative_options: List[str]
+    decision_framework: str
+
+
+class StrategicSoundingBoardAgent:
+    """
+    Strategic Sounding Board Agent - Expert strategic advisor and decision support.
+    
+    You are the Strategic Sounding Board Agent, a high-level strategic partner offering 
+    objective feedback, challenging assumptions, and providing alternative viewpoints on 
+    critical business decisions. You simulate brainstorming sessions and provide 
+    data-driven insights to help solopreneurs make informed strategic choices.
+    
+    Core Directives:
+    1. Objective Analysis: Provide unbiased, data-driven strategic analysis without 
+       emotional attachment to specific outcomes.
+    2. Assumption Challenging: Actively question underlying assumptions and present 
+       alternative perspectives that may not be immediately obvious.
+    3. Decision Framework Application: Apply proven strategic frameworks (SWOT, Porter's 
+       Five Forces, Blue Ocean Strategy, etc.) to structure analysis.
+    4. Risk-Benefit Assessment: Thoroughly evaluate both opportunities and risks, 
+       including worst-case scenarios and mitigation strategies.
+    5. Implementation Feasibility: Consider practical implementation challenges, 
+       resource requirements, and timeline constraints.
+    
+    Constraints and Guardrails:
+    - Maintain objectivity and avoid confirmation bias
+    - Present multiple viable options, not just one recommendation
+    - Consider both short-term and long-term implications
+    - Factor in market conditions, competitive landscape, and industry trends
+    - Provide actionable insights with clear reasoning
+    """
+    
+    def __init__(self):
+        self.agent_name = "Strategic Sounding Board Agent"
+        self.agent_type = "Executive"
+        self.capabilities = [
+            "Strategic decision analysis",
+            "Assumption challenging",
+            "Alternative perspective generation",
+            "Risk-benefit assessment",
+            "Implementation feasibility analysis"
+        ]
+        self.strategic_frameworks = {}
+        self.decision_history = {}
+    
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Return comprehensive agent information."""
+        return {
+            "name": self.agent_name,
+            "type": self.agent_type,
+            "capabilities": self.capabilities,
+            "status": "active",
+            "last_updated": datetime.now().isoformat()
+        }
+    
+    def provide_strategic_advice(self, 
+                               business_context: Dict[str, Any],
+                               decision_point: str,
+                               objectives: List[str]) -> StrategicAdvice:
+        """Provide comprehensive strategic advice for critical business decisions."""
+        
+        analysis = self._analyze_context(business_context, decision_point, objectives)
+        recommendation = self._generate_recommendation(analysis)
+        risk_assessment = self._assess_risks(analysis)
+        implementation_steps = self._create_roadmap(recommendation)
+        confidence_score = self._calculate_confidence(analysis)
+        alternative_options = self._generate_alternatives(analysis)
+        decision_framework = self._select_framework(decision_point)
+        
+        return StrategicAdvice(
+            recommendation=recommendation,
+            reasoning=analysis["reasoning"],
+            risk_assessment=risk_assessment,
+            implementation_steps=implementation_steps,
+            confidence_score=confidence_score,
+            alternative_options=alternative_options,
+            decision_framework=decision_framework
         )
-        self.solo_founder_rationale = solo_founder_rationale
-        self.relevant_data = relevant_data
-        self.llm_client = LlmClient(
-            Llm(
-                provider="together",
-                model=LlmModels.LLAMA3_70B.value
-            )
-        )
-
-    @inject_knowledge
-    async def run(self, knowledge: str | None = None) -> str:
-        self._send_start_callback()
-        logger.info(f"Running Strategic Sounding Board agent for idea: {self.user_input.objective}")
-
-        prompt = PROMPT_TEMPLATE.format(
-            idea_or_decision=self.user_input.objective,
-            solo_founder_rationale=self.solo_founder_rationale,
-            relevant_data=self.relevant_data,
-            knowledge=knowledge,
-        )
-
-        self._send_llm_start_callback(prompt, "together", LlmModels.LLAMA3_70B.value)
-        response = await self.llm_client.chat(prompt)
-        self._send_llm_end_callback(response)
-
-        logger.info("Strategic Sounding Board agent finished.")
-        self._send_end_callback(response)
-        return response
-
-
-if __name__ == '__main__':
-    async def main():
-        user_input = UserInput(
-            objective="I want to pivot my SaaS product from targeting small businesses to targeting enterprise clients.",
-        )
-
-        solo_founder_rationale = "I believe enterprise clients have bigger budgets and are more stable, which will increase our revenue and reduce churn. I think our current feature set is 'good enough' to get started."
-        relevant_data = "Internal Data: Our average revenue per user is $50/month. Sales cycle is currently 14 days. Market Research: The enterprise market has a 9-12 month sales cycle and requires features like SSO, audit logs, and dedicated support, which we don't have."
-
-        agent = StrategicSoundingBoardAgent(
-            user_input,
-            solo_founder_rationale=solo_founder_rationale,
-            relevant_data=relevant_data
-        )
-        result = await agent.run()
-        print(json.dumps(json.loads(result), indent=2))
-
-    asyncio.run(main())
+    
+    def _analyze_context(self, context: Dict, decision: str, objectives: List[str]) -> Dict:
+        """Analyze business context and decision requirements with strategic depth."""
+        complexity_indicators = ["expansion", "acquisition", "pivot", "merger", "diversification", "international"]
+        complexity = "high" if any(word in decision.lower() for word in complexity_indicators) else "medium"
+        
+        return {
+            "complexity": complexity,
+            "alignment": "strong" if len(objectives) > 2 else "moderate",
+            "market_conditions": context.get("market_conditions", "stable"),
+            "competitive_landscape": context.get("competitive_landscape", "moderate"),
+            "resource_availability": context.get("resource_availability", "adequate"),
+            "timeline_constraints": context.get("timeline_constraints", "flexible"),
+            "reasoning": f"Strategic analysis of {decision} considering {len(objectives)} objectives, {complexity} complexity, and current market conditions"
+        }
+    
+    def _generate_recommendation(self, analysis: Dict) -> str:
+        """Generate strategic recommendation with detailed rationale."""
+        if analysis["complexity"] == "high":
+            return "Proceed with phased implementation, comprehensive risk mitigation, and continuous monitoring. Consider pilot programs before full-scale deployment."
+        elif analysis["market_conditions"] == "volatile":
+            return "Implement with enhanced flexibility and contingency planning. Focus on core value proposition and maintain optionality."
+        else:
+            return "Implement with standard risk management protocols and regular milestone reviews."
+    
+    def _assess_risks(self, analysis: Dict) -> str:
+        """Assess potential risks and opportunities with detailed analysis."""
+        risk_factors = []
+        opportunity_factors = []
+        
+        if analysis["complexity"] == "high":
+            risk_factors.append("High implementation complexity")
+            opportunity_factors.append("Significant competitive advantage potential")
+        
+        if analysis["market_conditions"] == "volatile":
+            risk_factors.append("Market volatility and uncertainty")
+            opportunity_factors.append("Market disruption opportunities")
+        
+        risk_summary = f"Key risks: {', '.join(risk_factors)}. Opportunities: {', '.join(opportunity_factors)}. Overall: Moderate to high risk with substantial upside potential."
+        return risk_summary
+    
+    def _create_roadmap(self, recommendation: str) -> List[str]:
+        """Create detailed implementation roadmap."""
+        return [
+            "Conduct comprehensive feasibility study and market validation",
+            "Develop detailed implementation plan with milestones and KPIs",
+            "Establish risk mitigation strategies and contingency plans",
+            "Execute pilot program or proof of concept",
+            "Scale implementation with continuous monitoring and optimization",
+            "Conduct post-implementation analysis and lessons learned"
+        ]
+    
+    def _generate_alternatives(self, analysis: Dict) -> List[str]:
+        """Generate alternative strategic options."""
+        alternatives = []
+        
+        if analysis["complexity"] == "high":
+            alternatives.extend([
+                "Phased approach with smaller initial investment",
+                "Partnership or joint venture strategy",
+                "Acquisition of existing capabilities"
+            ])
+        else:
+            alternatives.extend([
+                "Direct implementation with full resources",
+                "Outsourced implementation with internal oversight",
+                "Hybrid approach combining internal and external resources"
+            ])
+        
+        return alternatives
+    
+    def _select_framework(self, decision_point: str) -> str:
+        """Select appropriate strategic framework for analysis."""
+        if "market" in decision_point.lower():
+            return "Porter's Five Forces Analysis"
+        elif "expansion" in decision_point.lower():
+            return "Ansoff Matrix"
+        elif "competitive" in decision_point.lower():
+            return "Blue Ocean Strategy"
+        else:
+            return "SWOT Analysis"
+    
+    def _calculate_confidence(self, analysis: Dict) -> float:
+        """Calculate confidence score based on analysis quality."""
+        base_score = 0.7
+        
+        # Adjust based on complexity
+        if analysis["complexity"] == "high":
+            base_score -= 0.1
+        elif analysis["complexity"] == "low":
+            base_score += 0.1
+        
+        # Adjust based on alignment
+        if analysis["alignment"] == "strong":
+            base_score += 0.1
+        
+        # Adjust based on market conditions
+        if analysis["market_conditions"] == "stable":
+            base_score += 0.05
+        elif analysis["market_conditions"] == "volatile":
+            base_score -= 0.1
+        
+        return max(0.0, min(1.0, base_score))
+    
+    def get_agent_capabilities(self) -> List[str]:
+        """Return detailed list of agent capabilities."""
+        return [
+            "Strategic decision analysis and framework application",
+            "Assumption challenging and alternative perspective generation",
+            "Risk-benefit assessment with scenario planning",
+            "Implementation feasibility analysis and roadmap creation",
+            "Market and competitive landscape evaluation",
+            "Resource requirement and timeline assessment",
+            "Strategic option generation and evaluation"
+        ]

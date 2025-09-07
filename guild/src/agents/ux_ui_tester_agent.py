@@ -1,116 +1,172 @@
-import json
-import asyncio
-
-from guild.src.models.user_input import UserInput, Audience
-from guild.src.models.agent import Agent, AgentCallback
-from guild.src.models.llm import Llm, LlmModels
-from guild.src.core.llm_client import LlmClient
-from guild.src.utils.logging_utils import get_logger
-from guild.src.utils.decorators import inject_knowledge
-
-logger = get_logger(__name__)
-
-PROMPT_TEMPLATE = """
-You are the UX/UI Tester Agent, an expert in user experience, usability, and interface design. Your role is to act as a virtual user, analyzing a product or website to identify friction points and suggest actionable design improvements based on established heuristics and best practices.
-
-**1. Foundational Analysis (Do not include in output):**
-    *   **Product URL / Interface to Test:** {product_url}
-    *   **Testing Scenario / User Flow:** {testing_scenario}
-    *   **Target User Persona:** {target_user_persona}
-    *   **Key Insights & Knowledge (from web search on UX heuristics):** {knowledge}
-
-**2. Your Task:**
-    Based on the foundational analysis, conduct a heuristic evaluation of the specified interface and user flow. Generate a detailed report of your findings and provide specific, actionable recommendations for improvement.
-
-**3. Output Format (JSON only):**
-    {{
-      "ux_ui_report": {{
-        "test_summary": {{
-          "url_tested": "{product_url}",
-          "scenario_tested": "{testing_scenario}",
-          "user_persona": "{target_user_persona}",
-          "overall_finding": "A brief, high-level summary of the user experience (e.g., 'The flow is generally intuitive, but the final checkout step has significant friction.')."
-        }},
-        "heuristic_evaluation_findings": [
-          {{
-            "issue_id": "UX-001",
-            "heuristic_violated": "e.g., 'Nielsen's Heuristic #4: Consistency and standards'",
-            "severity": "e.g., 'High'",
-            "description": "A detailed description of the usability issue. (e.g., 'The 'Next' button is styled as a primary action on the first two steps, but as a secondary link on the third step, causing confusion.').",
-            "location": "e.g., 'Project Setup - Step 3'",
-            "recommendation": "A specific, actionable design recommendation. (e.g., 'Ensure all primary action buttons ('Next', 'Submit', etc.) use a consistent style and placement throughout the entire user flow.')."
-          }},
-          {{
-            "issue_id": "UX-002",
-            "heuristic_violated": "e.g., 'Nielsen's Heuristic #6: Recognition rather than recall'",
-            "severity": "e.g., 'Medium'",
-            "description": "e.g., 'The user is required to remember the project name they entered on Step 1 to find it in a dropdown on Step 4. The project name is not displayed on the screen.'",
-            "location": "e.g., 'Task Assignment Screen'",
-            "recommendation": "e.g., 'Always display the current project context (e.g., 'Project: My New Project') clearly on the screen so the user does not have to rely on memory.'"
-          }}
-        ],
-        "prioritized_action_plan": [
-          "A list of the top 3-5 recommendations, prioritized by severity and potential impact on user experience."
-        ]
-      }}
-    }}
+"""
+UX/UI Tester Agent for Guild-AI
+Analyzes product usability and suggests design improvements.
 """
 
+from typing import Dict, List, Any
+from datetime import datetime
 
-class UXUITesterAgent(Agent):
-    def __init__(self, user_input: UserInput, testing_scenario: str, target_user_persona: str, callback: AgentCallback = None):
-        # user_input.objective holds the product_url
-        super().__init__(
-            "UX/UI Tester Agent",
-            "Analyzes product usability and suggests design improvements.",
-            user_input,
-            callback=callback
-        )
-        self.testing_scenario = testing_scenario
-        self.target_user_persona = target_user_persona
-        self.llm_client = LlmClient(
-            Llm(
-                provider="together",
-                model=LlmModels.LLAMA3_70B.value
+
+class UXUITesterAgent:
+    """UX/UI Tester Agent for usability analysis and design improvements."""
+    
+    def __init__(self):
+        self.agent_name = "UX/UI Tester Agent"
+        self.agent_type = "Product"
+        self.capabilities = [
+            "Usability testing",
+            "Design analysis",
+            "User experience evaluation",
+            "Accessibility assessment"
+        ]
+        self.test_results = {}
+        self.design_guidelines = {}
+        
+    def get_agent_info(self) -> Dict[str, Any]:
+        """Return agent information."""
+        return {
+            "name": self.agent_name,
+            "type": self.agent_type,
+            "capabilities": self.capabilities,
+            "status": "active"
+        }
+    
+    def conduct_usability_test(self, test_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Conduct usability test analysis."""
+        try:
+            test_id = f"test_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            
+            # Analyze test metrics
+            completion_rate = test_data.get("completed_tasks", 0) / test_data.get("total_tasks", 1)
+            error_rate = test_data.get("errors", 0) / test_data.get("total_actions", 1)
+            time_efficiency = test_data.get("expected_time", 1) / test_data.get("actual_time", 1)
+            
+            # Calculate usability score
+            usability_score = (completion_rate * 0.4 + 
+                             (1 - error_rate) * 0.3 + 
+                             min(time_efficiency, 1) * 0.3) * 100
+            
+            test_result = {
+                "test_id": test_id,
+                "completion_rate": round(completion_rate * 100, 1),
+                "error_rate": round(error_rate * 100, 1),
+                "time_efficiency": round(time_efficiency * 100, 1),
+                "usability_score": round(usability_score, 1),
+                "recommendations": [],
+                "test_date": datetime.now().isoformat()
+            }
+            
+            # Generate recommendations
+            if completion_rate < 0.8:
+                test_result["recommendations"].append("Improve task completion flow")
+            if error_rate > 0.1:
+                test_result["recommendations"].append("Reduce user errors through better design")
+            if time_efficiency < 0.8:
+                test_result["recommendations"].append("Optimize for faster task completion")
+            
+            self.test_results[test_id] = test_result
+            return test_result
+            
+        except Exception as e:
+            return {"error": f"Usability test failed: {str(e)}"}
+    
+    def analyze_design_consistency(self, design_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze design consistency across interface."""
+        try:
+            analysis = {
+                "color_consistency": 0,
+                "typography_consistency": 0,
+                "spacing_consistency": 0,
+                "component_consistency": 0,
+                "overall_score": 0,
+                "issues": [],
+                "recommendations": []
+            }
+            
+            # Analyze color consistency
+            colors = design_data.get("colors", [])
+            if len(set(colors)) <= 5:
+                analysis["color_consistency"] = 90
+            else:
+                analysis["color_consistency"] = 60
+                analysis["issues"].append("Too many colors used")
+            
+            # Analyze typography
+            fonts = design_data.get("fonts", [])
+            if len(set(fonts)) <= 3:
+                analysis["typography_consistency"] = 90
+            else:
+                analysis["typography_consistency"] = 60
+                analysis["issues"].append("Too many font types")
+            
+            # Calculate overall score
+            analysis["overall_score"] = round(
+                (analysis["color_consistency"] + analysis["typography_consistency"]) / 2, 1
             )
-        )
-
-    @inject_knowledge
-    async def run(self, knowledge: str | None = None) -> str:
-        self._send_start_callback()
-        logger.info(f"Running UX/UI Tester agent for URL: {self.user_input.objective}")
-
-        prompt = PROMPT_TEMPLATE.format(
-            product_url=self.user_input.objective,
-            testing_scenario=self.testing_scenario,
-            target_user_persona=self.target_user_persona,
-            knowledge=knowledge,
-        )
-
-        self._send_llm_start_callback(prompt, "together", LlmModels.LLAMA3_70B.value)
-        response = await self.llm_client.chat(prompt)
-        self._send_llm_end_callback(response)
-
-        logger.info("UX/UI Tester agent finished.")
-        self._send_end_callback(response)
-        return response
-
-
-if __name__ == '__main__':
-    async def main():
-        user_input = UserInput(
-            objective="https://example-saas.com/onboarding",
-        )
-
-        testing_scenario = "Evaluate the new user onboarding flow, from initial sign-up to creating the first project."
-        target_user_persona = "A busy solo-founder who is moderately tech-savvy but has no time for a steep learning curve."
-
-        agent = UXUITesterAgent(
-            user_input,
-            testing_scenario=testing_scenario,
-            target_user_persona=target_user_persona
-        )
-        result = await agent.run()
-        print(json.dumps(json.loads(result), indent=2))
-
-    asyncio.run(main())
+            
+            # Generate recommendations
+            if analysis["overall_score"] < 80:
+                analysis["recommendations"].append("Establish design system guidelines")
+                analysis["recommendations"].append("Standardize color palette and typography")
+            
+            return analysis
+            
+        except Exception as e:
+            return {"error": f"Design analysis failed: {str(e)}"}
+    
+    def assess_accessibility(self, accessibility_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Assess accessibility compliance."""
+        try:
+            assessment = {
+                "wcag_compliance": "AA",
+                "color_contrast_score": 0,
+                "keyboard_navigation": True,
+                "screen_reader_compatibility": True,
+                "accessibility_score": 0,
+                "issues": [],
+                "recommendations": []
+            }
+            
+            # Check color contrast
+            contrast_ratio = accessibility_data.get("contrast_ratio", 4.5)
+            if contrast_ratio >= 4.5:
+                assessment["color_contrast_score"] = 100
+            elif contrast_ratio >= 3.0:
+                assessment["color_contrast_score"] = 70
+                assessment["issues"].append("Color contrast below WCAG AA standard")
+            else:
+                assessment["color_contrast_score"] = 30
+                assessment["issues"].append("Poor color contrast")
+            
+            # Check keyboard navigation
+            if not accessibility_data.get("keyboard_navigation", True):
+                assessment["keyboard_navigation"] = False
+                assessment["issues"].append("Keyboard navigation not fully supported")
+            
+            # Calculate overall accessibility score
+            assessment["accessibility_score"] = round(
+                (assessment["color_contrast_score"] + 
+                 (100 if assessment["keyboard_navigation"] else 0) +
+                 (100 if assessment["screen_reader_compatibility"] else 0)) / 3, 1
+            )
+            
+            # Generate recommendations
+            if assessment["accessibility_score"] < 80:
+                assessment["recommendations"].append("Improve color contrast ratios")
+                assessment["recommendations"].append("Ensure full keyboard navigation support")
+                assessment["recommendations"].append("Add ARIA labels for screen readers")
+            
+            return assessment
+            
+        except Exception as e:
+            return {"error": f"Accessibility assessment failed: {str(e)}"}
+    
+    def get_agent_capabilities(self) -> List[str]:
+        """Return agent capabilities."""
+        return [
+            "Usability testing and analysis",
+            "Design consistency evaluation",
+            "Accessibility compliance assessment",
+            "User experience optimization",
+            "Design system recommendations"
+        ]

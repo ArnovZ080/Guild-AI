@@ -1,228 +1,267 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import ReactFlow, {
-  ReactFlowProvider,
-  useNodesState,
-  useEdgesState,
-  Controls,
-  Background,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
-
-import { Button } from './ui/button';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Textarea } from './ui/textarea';
-import { Label } from './ui/label';
-import { Loader2, CheckCircle, XCircle, FileText, BrainCircuit, Bot } from 'lucide-react';
-
-const API_URL = '/api'; // Use the Vite proxy to connect to local backend
-
-const nodeStatusIcons = {
-    pending: <FileText className="h-4 w-4 text-gray-500" />,
-    running: <Loader2 className="h-4 w-4 animate-spin text-blue-500" />,
-    completed: <CheckCircle className="h-4 w-4 text-green-500" />,
-    failed: <XCircle className="h-4 w-4 text-red-500" />,
-};
-
-const CustomNode = ({ data }) => (
-    <Card className={`border-2 ${data.status === 'running' ? 'border-blue-500' : 'border-transparent'}`}>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{data.label}</CardTitle>
-            {nodeStatusIcons[data.status] || <FileText className="h-4 w-4 text-gray-500" />}
-        </CardHeader>
-        <CardContent>
-            <p className="text-xs text-muted-foreground">{data.description}</p>
-        </CardContent>
-    </Card>
-);
-
-const nodeTypes = { custom: CustomNode };
+import { Badge } from './ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 const MarketingCampaignCreator = () => {
-    const [view, setView] = useState('input'); // 'input', 'approval', 'monitoring'
-    const [objective, setObjective] = useState('');
-    const [audienceDesc, setAudienceDesc] = useState('');
-    const [notes, setNotes] = useState('');
+  const [campaigns, setCampaigns] = useState([]);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newCampaign, setNewCampaign] = useState({
+    name: '',
+    type: 'email',
+    targetAudience: '',
+    budget: '',
+    duration: '',
+    goals: ''
+  });
 
-    const [workflow, setWorkflow] = useState(null);
-    const [workflowId, setWorkflowId] = useState(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
+  const campaignTypes = [
+    { id: 'email', name: 'Email Marketing', icon: '📧', color: 'bg-blue-100 text-blue-800' },
+    { id: 'social', name: 'Social Media', icon: '📱', color: 'bg-green-100 text-green-800' },
+    { id: 'content', name: 'Content Marketing', icon: '📝', color: 'bg-purple-100 text-purple-800' },
+    { id: 'paid', name: 'Paid Advertising', icon: '💰', color: 'bg-yellow-100 text-yellow-800' },
+    { id: 'seo', name: 'SEO Campaign', icon: '🔍', color: 'bg-indigo-100 text-indigo-800' }
+  ];
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
-    // --- API Calls ---
-    const generatePlan = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(`${API_URL}/workflows/contracts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    objective,
-                    target_audience: { description: audienceDesc },
-                    additional_notes: notes,
-                }),
-            });
-            if (!response.ok) throw new Error('Failed to generate plan.');
-            const data = await response.json();
-            setWorkflow(data.workflow_definition);
-            setWorkflowId(data.id);
-            setView('approval');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
+  const handleCreateCampaign = () => {
+    if (newCampaign.name && newCampaign.type) {
+      const campaign = {
+        ...newCampaign,
+        id: Date.now().toString(),
+        status: 'draft',
+        createdAt: new Date().toISOString(),
+        metrics: {
+          reach: 0,
+          engagement: 0,
+          conversions: 0
         }
-    };
+      };
+      setCampaigns(prev => [...prev, campaign]);
+      setNewCampaign({
+        name: '',
+        type: 'email',
+        targetAudience: '',
+        budget: '',
+        duration: '',
+        goals: ''
+      });
+      setShowCreateDialog(false);
+    }
+  };
 
-    const approveAndExecute = async () => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const response = await fetch(`${API_URL}/workflows/${workflowId}/approve`, {
-                method: 'POST',
-            });
-            if (!response.ok) throw new Error('Failed to approve and execute workflow.');
-            setView('monitoring');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  const getCampaignType = (typeId) => {
+    return campaignTypes.find(t => t.id === typeId) || campaignTypes[0];
+  };
 
-    const pollWorkflowStatus = useCallback(async () => {
-        if (view !== 'monitoring' || !workflowId) return;
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Marketing Campaigns</h2>
+          <p className="text-gray-600">Create and manage your marketing campaigns</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          Create Campaign
+        </Button>
+      </div>
 
-        try {
-            const response = await fetch(`${API_URL}/workflows/${workflowId}/status`);
-            if (!response.ok) return; // Don't throw error on failed poll
-            const data = await response.json();
+      {/* Campaign Types Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {campaignTypes.map((type) => (
+          <motion.div
+            key={type.id}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => {
+                setNewCampaign(prev => ({ ...prev, type: type.id }));
+                setShowCreateDialog(true);
+              }}
+            >
+              <CardContent className="p-4 text-center">
+                <div className="text-3xl mb-2">{type.icon}</div>
+                <h3 className="font-medium text-sm">{type.name}</h3>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
 
-            // Update node statuses
-            setNodes((nds) =>
-                nds.map((node) => {
-                    const execution = data.executions.find((ex) => ex.node_id === node.id);
-                    return { ...node, data: { ...node.data, status: execution ? execution.status : 'pending' } };
-                })
-            );
-
-            // If workflow is finished, stop polling
-            if (data.status === 'completed' || data.status === 'failed') {
-                // Polling stops in useEffect cleanup
-                return;
-            }
-
-        } catch (err) {
-            console.error("Polling error:", err);
-        }
-    }, [view, workflowId, setNodes]);
-
-    // --- Effects ---
-    useEffect(() => {
-        if (workflow) {
-            const initialNodes = workflow.tasks.map((task, i) => ({
-                id: task.task_id,
-                type: 'custom',
-                data: { label: task.agent, description: task.description, status: 'pending' },
-                position: { x: i * 250, y: 100 },
-            }));
-            const initialEdges = workflow.tasks.flatMap(task =>
-                task.dependencies.map(dep => ({
-                    id: `e-${dep}-${task.task_id}`,
-                    source: dep,
-                    target: task.task_id,
-                    animated: true,
-                }))
-            );
-            setNodes(initialNodes);
-            setEdges(initialEdges);
-        }
-    }, [workflow, setNodes, setEdges]);
-
-    useEffect(() => {
-        if (view === 'monitoring') {
-            const interval = setInterval(pollWorkflowStatus, 3000); // Poll every 3 seconds
-            return () => clearInterval(interval);
-        }
-    }, [view, pollWorkflowStatus]);
-
-    // --- Render Logic ---
-    const renderInputView = () => (
-        <Card className="w-full max-w-2xl">
+      {/* Campaigns List */}
+      <div className="space-y-4">
+        {campaigns.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-gray-400 text-6xl mb-4">🚀</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns yet</h3>
+              <p className="text-gray-600 mb-4">Create your first marketing campaign to get started</p>
+              <Button onClick={() => setShowCreateDialog(true)}>
+                Create Campaign
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          campaigns.map((campaign) => {
+            const type = getCampaignType(campaign.type);
+            return (
+              <motion.div
+                key={campaign.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <Card>
             <CardHeader>
-                <CardTitle className="flex items-center"><BrainCircuit className="mr-2" /> New Marketing Campaign</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <form onSubmit={generatePlan}>
-                    <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">{type.icon}</span>
                         <div>
-                            <Label htmlFor="objective">Primary Objective</Label>
-                            <Textarea id="objective" value={objective} onChange={e => setObjective(e.target.value)} placeholder="e.g., Launch our new AI-powered copywriting tool and get 1,000 signups." required />
+                          <CardTitle className="text-lg">{campaign.name}</CardTitle>
+                          <p className="text-sm text-gray-600">{type.name}</p>
+                        </div>
+                      </div>
+                      <Badge className={type.color}>
+                        {campaign.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <h4 className="font-medium text-gray-900 mb-2">Target Audience</h4>
+                        <p className="text-sm text-gray-600">{campaign.targetAudience || 'Not specified'}</p>
                         </div>
                         <div>
-                            <Label htmlFor="audience">Target Audience</Label>
-                            <Textarea id="audience" value={audienceDesc} onChange={e => setAudienceDesc(e.target.value)} placeholder="e.g., Marketing professionals and small business owners interested in AI and content creation." required />
+                        <h4 className="font-medium text-gray-900 mb-2">Budget</h4>
+                        <p className="text-sm text-gray-600">{campaign.budget || 'Not specified'}</p>
                         </div>
                         <div>
-                            <Label htmlFor="notes">Additional Notes</Label>
-                            <Textarea id="notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="e.g., Focus on social media marketing and a strong landing page. We need to be better than Copy.ai." />
+                        <h4 className="font-medium text-gray-900 mb-2">Duration</h4>
+                        <p className="text-sm text-gray-600">{campaign.duration || 'Not specified'}</p>
                         </div>
                     </div>
-                    {error && <p className="text-red-500 mt-4">{error}</p>}
-                    <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
-                        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Generate AI Plan'}
+                    {campaign.goals && (
+                      <div className="mt-4">
+                        <h4 className="font-medium text-gray-900 mb-2">Goals</h4>
+                        <p className="text-sm text-gray-600">{campaign.goals}</p>
+                      </div>
+                    )}
+                    <div className="flex justify-end space-x-2 mt-4">
+                      <Button variant="outline" size="sm">
+                        Edit
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Launch
                     </Button>
-                </form>
+                    </div>
             </CardContent>
         </Card>
-    );
+              </motion.div>
+            );
+          })
+        )}
+      </div>
 
-    const renderApprovalView = () => (
-        <div className="w-full h-[70vh] flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 text-center">Approve AI-Generated Plan</h2>
-            <div className="flex-grow border rounded-lg">
-                <ReactFlowProvider>
-                    <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} fitView nodeTypes={nodeTypes}>
-                        <Background />
-                        <Controls />
-                    </ReactFlow>
-                </ReactFlowProvider>
+      {/* Create Campaign Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Campaign</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Campaign Name
+              </label>
+              <Input
+                placeholder="Enter campaign name"
+                value={newCampaign.name}
+                onChange={(e) => setNewCampaign(prev => ({ ...prev, name: e.target.value }))}
+              />
             </div>
-            <div className="flex justify-end gap-4 mt-4">
-                <Button variant="outline" onClick={() => setView('input')}>Back</Button>
-                <Button onClick={approveAndExecute} disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Approve & Execute'}
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Campaign Type
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {campaignTypes.map((type) => (
+                  <Button
+                    key={type.id}
+                    variant={newCampaign.type === type.id ? 'default' : 'outline'}
+                    onClick={() => setNewCampaign(prev => ({ ...prev, type: type.id }))}
+                    className="justify-start"
+                  >
+                    <span className="mr-2">{type.icon}</span>
+                    {type.name}
                 </Button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Target Audience
+              </label>
+              <Input
+                placeholder="Describe your target audience"
+                value={newCampaign.targetAudience}
+                onChange={(e) => setNewCampaign(prev => ({ ...prev, targetAudience: e.target.value }))}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Budget
+                </label>
+                <Input
+                  placeholder="e.g., $1000"
+                  value={newCampaign.budget}
+                  onChange={(e) => setNewCampaign(prev => ({ ...prev, budget: e.target.value }))}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Duration
+                </label>
+                <Input
+                  placeholder="e.g., 30 days"
+                  value={newCampaign.duration}
+                  onChange={(e) => setNewCampaign(prev => ({ ...prev, duration: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Goals
+              </label>
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded-md"
+                rows="3"
+                placeholder="What do you want to achieve with this campaign?"
+                value={newCampaign.goals}
+                onChange={(e) => setNewCampaign(prev => ({ ...prev, goals: e.target.value }))}
+              />
+        </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateCampaign}>
+                Create Campaign
+              </Button>
             </div>
         </div>
-    );
-
-    const renderMonitoringView = () => (
-         <div className="w-full h-[70vh] flex flex-col">
-            <h2 className="text-2xl font-bold mb-4 text-center flex items-center justify-center">
-                <Bot className="mr-2" /> AI Team is At Work
-            </h2>
-            <div className="flex-grow border rounded-lg">
-                <ReactFlowProvider>
-                    <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} fitView nodeTypes={nodeTypes}>
-                        <Background />
-                        <Controls />
-                    </ReactFlow>
-                </ReactFlowProvider>
-            </div>
-        </div>
-    );
-
-    return (
-        <div className="p-4 flex justify-center items-center h-full">
-            {view === 'input' && renderInputView()}
-            {view === 'approval' && renderApprovalView()}
-            {view === 'monitoring' && renderMonitoringView()}
+        </DialogContent>
+      </Dialog>
         </div>
     );
 };
