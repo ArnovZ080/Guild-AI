@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Textarea } from './ui/textarea';
+import { Checkbox } from './ui/checkbox';
 import { FileText, Target, Clock, Users, CheckCircle } from 'lucide-react';
 import WorkflowStatusPage from './WorkflowStatusPage';
 import WorkflowVisualizer from './WorkflowVisualizer';
@@ -15,6 +15,11 @@ const deliverableTypes = [
   { id: 'calendar', name: 'Calendar', icon: Clock },
   { id: 'listing', name: 'Listing Pack', icon: Users },
   { id: 'seo', name: 'SEO Checklist', icon: CheckCircle }
+];
+
+const mockDataRooms = [
+  { id: 'room-1', name: 'Marketing Assets (Google Drive)' },
+  { id: 'room-2', name: 'Brand Guidelines (Local Workspace)' },
 ];
 
 export function WorkflowInterface() {
@@ -35,6 +40,11 @@ export function WorkflowInterface() {
   const handleDeliverableToggle = (id) => {
     const updated = contractRequest.deliverables.includes(id) ? contractRequest.deliverables.filter(i => i !== id) : [...contractRequest.deliverables, id];
     handleInputChange('deliverables', updated);
+  };
+
+  const handleDataRoomToggle = (id) => {
+    const updated = contractRequest.dataRooms.includes(id) ? contractRequest.dataRooms.filter(i => i !== id) : [...contractRequest.dataRooms, id];
+    handleInputChange('dataRooms', updated);
   };
 
   const createAndPlanWorkflow = async () => {
