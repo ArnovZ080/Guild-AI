@@ -42,7 +42,7 @@ const FinancialFlowVisualization = () => {
 
   return (
     <div className="w-full h-full bg-gradient-to-b from-blue-50 to-green-50 rounded-lg p-6 relative overflow-hidden">
-      <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Flow - DEBUG</h3>
+      <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Flow</h3>
       <div className="text-sm mb-2">Revenue: ${totalRevenue}</div>
       <div className="text-sm mb-2">Expenses: ${totalExpenses}</div>
       

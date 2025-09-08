@@ -90,22 +90,52 @@ const MainDashboard = () => {
       <main className="p-6">
         {selectedZone === 'overview' && (
           <motion.div
-            className="grid grid-cols-6 gap-6 auto-rows-fr"
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {widgets.map((widget) => (
-              <motion.div
-                key={widget.id}
-                className={`bg-white rounded-lg shadow-lg p-6 ${getWidgetSize(widget.size)}`}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">{widget.title}</h3>
-                {renderWidget(widget)}
-              </motion.div>
-            ))}
+            {/* Top Row */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Business Pulse</h3>
+                <BusinessPulseMonitor />
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Progress Momentum</h3>
+                <ProgressMomentumTracker />
+              </div>
+            </div>
+            
+            {/* Middle Row */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Agent Activity</h3>
+                <AgentActivityTheaterView />
+              </div>
+            </div>
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Financial Flow</h3>
+                <FinancialFlowVisualization />
+              </div>
+            </div>
+            
+            {/* Bottom Row */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Customer Journey</h3>
+                <CustomerJourneyConstellation />
+              </div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Sales Funnel</h3>
+                <SalesFunnelVisualizer />
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -166,6 +196,11 @@ const MainDashboard = () => {
               <h3 className="text-xl font-semibold mb-6 text-gray-800">Agent Management</h3>
               <AgentActivityTheaterView />
             </div>
+            
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-xl font-semibold mb-6 text-gray-800">Marketing Campaigns</h3>
+              <MarketingCampaignCreator />
+            </div>
           </motion.div>
         )}
 
@@ -208,11 +243,6 @@ const MainDashboard = () => {
                 <OAuthConnections />
               </div>
             </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Marketing Campaigns</h3>
-              <MarketingCampaignCreator />
-            </div>
           </motion.div>
         )}
       </main>
@@ -222,10 +252,6 @@ const MainDashboard = () => {
         <AchievementCelebration />
       </div>
 
-      {/* Stress Monitor (appears when needed) */}
-      <div className="fixed top-20 right-4 z-40">
-        <StressReductionInterface />
-      </div>
     </div>
   );
 };

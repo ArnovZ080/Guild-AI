@@ -90,7 +90,7 @@ const BusinessPulseMonitor = () => {
       
       {/* Center Info */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center text-white">
+        <div className="text-center text-gray-800">
           <div className="text-2xl font-bold">
             {Math.round(pulseData.intensity * 100)}%
           </div>
@@ -99,7 +99,7 @@ const BusinessPulseMonitor = () => {
       </div>
 
       {/* Legend */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-center space-x-4 text-xs text-white">
+      <div className="absolute bottom-0 left-0 right-0 flex justify-center space-x-4 text-xs text-gray-600">
         <div className="flex items-center space-x-1">
           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: getActivityColor('sales') }}></div>
           <span>Sales</span>
