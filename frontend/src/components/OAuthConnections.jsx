@@ -4,75 +4,82 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
+// Move availableServices outside component to prevent recreation on every render
+const availableServices = [
+  {
+    id: 'google_drive',
+    name: 'Google Drive',
+    description: 'Access and sync your Google Drive files',
+    icon: '📁',
+    color: 'bg-blue-100 text-blue-800',
+    connected: false
+  },
+  {
+    id: 'notion',
+    name: 'Notion',
+    description: 'Connect your Notion workspace and databases',
+    icon: '📝',
+    color: 'bg-gray-100 text-gray-800',
+    connected: false
+  },
+  {
+    id: 'onedrive',
+    name: 'OneDrive',
+    description: 'Sync files from your Microsoft OneDrive',
+    icon: '☁️',
+    color: 'bg-blue-100 text-blue-800',
+    connected: false
+  },
+  {
+    id: 'dropbox',
+    name: 'Dropbox',
+    description: 'Access your Dropbox files and folders',
+    icon: '📦',
+    color: 'bg-blue-100 text-blue-800',
+    connected: false
+  },
+  {
+    id: 'slack',
+    name: 'Slack',
+    description: 'Connect your Slack workspace for notifications',
+    icon: '💬',
+    color: 'bg-purple-100 text-purple-800',
+    connected: false
+  },
+  {
+    id: 'github',
+    name: 'GitHub',
+    description: 'Access your GitHub repositories and issues',
+    icon: '🐙',
+    color: 'bg-gray-100 text-gray-800',
+    connected: false
+  }
+];
+
 const OAuthConnections = () => {
   const [connections, setConnections] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const availableServices = [
-    {
-      id: 'google_drive',
-      name: 'Google Drive',
-      description: 'Access and sync your Google Drive files',
-      icon: '📁',
-      color: 'bg-blue-100 text-blue-800',
-      connected: false
-    },
-    {
-      id: 'notion',
-      name: 'Notion',
-      description: 'Connect your Notion workspace and databases',
-      icon: '📝',
-      color: 'bg-gray-100 text-gray-800',
-      connected: false
-    },
-    {
-      id: 'onedrive',
-      name: 'OneDrive',
-      description: 'Sync files from your Microsoft OneDrive',
-      icon: '☁️',
-      color: 'bg-blue-100 text-blue-800',
-      connected: false
-    },
-    {
-      id: 'dropbox',
-      name: 'Dropbox',
-      description: 'Access your Dropbox files and folders',
-      icon: '📦',
-      color: 'bg-blue-100 text-blue-800',
-      connected: false
-    },
-    {
-      id: 'slack',
-      name: 'Slack',
-      description: 'Connect your Slack workspace for notifications',
-      icon: '💬',
-      color: 'bg-purple-100 text-purple-800',
-      connected: false
-    },
-    {
-      id: 'github',
-      name: 'GitHub',
-      description: 'Access your GitHub repositories and issues',
-      icon: '🐙',
-      color: 'bg-gray-100 text-gray-800',
-      connected: false
-    }
-  ];
-
   useEffect(() => {
     // Simulate loading connections
     setTimeout(() => {
-      // Mock some connected services
-      const mockConnections = availableServices.map(service => ({
-        ...service,
-        connected: Math.random() > 0.5,
-        lastSync: service.connected ? new Date(Date.now() - Math.random() * 86400000).toISOString() : null,
-        status: service.connected ? (Math.random() > 0.8 ? 'error' : 'active') : 'disconnected'
-      }));
+      // Mock some connected services - use a fixed seed for consistent results
+      const mockConnections = availableServices.map((service, index) => {
+        // Use index-based "randomness" for consistent results
+        const isConnected = index % 3 === 0; // Every 3rd service is connected
+        const hasError = index % 7 === 0; // Every 7th service has an error
+        
+        return {
+          ...service,
+          connected: isConnected,
+          lastSync: isConnected ? new Date(Date.now() - (index * 3600000)).toISOString() : null,
+          status: isConnected ? (hasError ? 'error' : 'active') : 'disconnected'
+        };
+      });
       setConnections(mockConnections);
       setIsLoading(false);
     }, 1000);
-  }, [availableServices]);
+  }, []); // Empty dependency array - only run once on mount
 
   const handleConnect = (serviceId) => {
     setConnections(prev => prev.map(conn => 
