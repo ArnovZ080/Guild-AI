@@ -1,11 +1,13 @@
 [build]
   publish = "build"
-  command = "npm run build"
+  command = "npm install && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
   NPM_CONFIG_PACKAGE_MANAGER = "npm"
   NPM_FLAGS = "--version"
+  NPM_CONFIG_FUND = "false"
+  NPM_CONFIG_AUDIT = "false"
 
 [[redirects]]
   from = "/*"
