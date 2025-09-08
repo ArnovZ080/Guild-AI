@@ -176,17 +176,15 @@ const DataRoomManager = () => {
 
       {/* Data Rooms Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <AnimatePresence>
-          {filteredDataRooms.map((room) => (
-            <DataRoomCard
-              key={room.id}
-              dataRoom={room}
-              onSelect={handleSelectDataRoom}
-              onEdit={handleEditDataRoom}
-              onDelete={handleDeleteDataRoom}
-            />
-          ))}
-        </AnimatePresence>
+        {filteredDataRooms.map((room) => (
+          <DataRoomCard
+            key={room.id}
+            dataRoom={room}
+            onSelect={handleSelectDataRoom}
+            onEdit={handleEditDataRoom}
+            onDelete={handleDeleteDataRoom}
+          />
+        ))}
       </div>
 
       {filteredDataRooms.length === 0 && (
