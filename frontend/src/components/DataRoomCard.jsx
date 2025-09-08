@@ -5,7 +5,7 @@ import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 
 const DataRoomCard = ({ dataRoom, onSelect, onEdit, onDelete }) => {
-  const { id, name, description, type, status, lastUpdated, documentCount } = dataRoom;
+  const { name, description, type, status, lastUpdated, documentCount } = dataRoom;
 
   const getStatusColor = (status) => {
     switch (status) {

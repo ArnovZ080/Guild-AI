@@ -72,7 +72,7 @@ const OAuthConnections = () => {
       setConnections(mockConnections);
       setIsLoading(false);
     }, 1000);
-  }, []);
+  }, [availableServices]);
 
   const handleConnect = (serviceId) => {
     setConnections(prev => prev.map(conn => 
