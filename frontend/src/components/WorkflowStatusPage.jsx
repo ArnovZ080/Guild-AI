@@ -85,23 +85,23 @@ const WorkflowStatusPage = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'running': return 'bg-green-100 text-green-800';
-      case 'completed': return 'bg-blue-100 text-blue-800';
-      case 'paused': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'running': return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200';
+      case 'completed': return 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border border-blue-200';
+      case 'paused': return 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200';
+      case 'failed': return 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200';
+      case 'pending': return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
+      default: return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
     }
   };
 
   const getAgentStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'running': return 'bg-blue-100 text-blue-800';
-      case 'paused': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      case 'pending': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed': return 'bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200';
+      case 'running': return 'bg-gradient-to-r from-blue-50 to-cyan-50 text-blue-700 border border-blue-200';
+      case 'paused': return 'bg-gradient-to-r from-yellow-50 to-amber-50 text-yellow-700 border border-yellow-200';
+      case 'failed': return 'bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border border-red-200';
+      case 'pending': return 'bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border border-gray-200';
+      default: return 'bg-gradient-to-r from-gray-50 to-slate-50 text-gray-700 border border-gray-200';
     }
   };
 
@@ -244,7 +244,18 @@ const WorkflowStatusPage = () => {
                     <span>Progress</span>
                     <span>{workflow.progress}%</span>
                   </div>
-                  <Progress value={workflow.progress} className="h-2" />
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full transition-all duration-500 ${
+                        workflow.progress >= 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
+                        workflow.progress >= 75 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
+                        workflow.progress >= 50 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' :
+                        workflow.progress >= 25 ? 'bg-gradient-to-r from-orange-400 to-red-500' :
+                        'bg-gradient-to-r from-gray-400 to-slate-500'
+                      }`}
+                      style={{ width: `${workflow.progress}%` }}
+                    ></div>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -330,7 +341,18 @@ const WorkflowStatusPage = () => {
                     <span>Overall Progress</span>
                     <span>{selectedWorkflow.progress}%</span>
                   </div>
-                  <Progress value={selectedWorkflow.progress} className="h-3" />
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className={`h-3 rounded-full transition-all duration-500 ${
+                        selectedWorkflow.progress >= 100 ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
+                        selectedWorkflow.progress >= 75 ? 'bg-gradient-to-r from-blue-400 to-cyan-500' :
+                        selectedWorkflow.progress >= 50 ? 'bg-gradient-to-r from-yellow-400 to-amber-500' :
+                        selectedWorkflow.progress >= 25 ? 'bg-gradient-to-r from-orange-400 to-red-500' :
+                        'bg-gradient-to-r from-gray-400 to-slate-500'
+                      }`}
+                      style={{ width: `${selectedWorkflow.progress}%` }}
+                    ></div>
+                  </div>
                 </div>
 
                 {/* Agent Status */}

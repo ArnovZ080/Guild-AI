@@ -14,16 +14,21 @@ const DialogTrigger = React.forwardRef(({ className, asChild = false, ...props }
 DialogTrigger.displayName = "DialogTrigger"
 
 const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg",
-      className
-    )}
-    {...props}
-  >
-    {children}
-  </div>
+  <>
+    {/* Backdrop */}
+    <div className="fixed inset-0 z-40 bg-black/50" />
+    {/* Content */}
+    <div
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg duration-200 sm:rounded-lg",
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </div>
+  </>
 ))
 DialogContent.displayName = "DialogContent"
 
