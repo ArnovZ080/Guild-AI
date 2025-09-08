@@ -99,12 +99,25 @@ const OpportunityRadar = () => {
           />
         ))}
         
-        {/* Grid Lines */}
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, index) => (
+        {/* Grid Lines - Cardinal Points */}
+        {[0, 90, 180, 270].map((angle, index) => (
           <div
             key={index}
-            className="absolute w-0.5 h-24 bg-green-400 bg-opacity-30 origin-bottom"
+            className="absolute w-0.5 bg-green-400 bg-opacity-50 origin-bottom"
             style={{
+              height: '100px',
+              transform: `rotate(${angle}deg) translateY(-100px)`,
+            }}
+          />
+        ))}
+        
+        {/* Grid Lines - Diagonal Points */}
+        {[45, 135, 225, 315].map((angle, index) => (
+          <div
+            key={index}
+            className="absolute w-0.5 bg-green-400 bg-opacity-30 origin-bottom"
+            style={{
+              height: '100px',
               transform: `rotate(${angle}deg) translateY(-100px)`,
             }}
           />
@@ -113,8 +126,9 @@ const OpportunityRadar = () => {
 
       {/* Scanning Line */}
       <motion.div
-        className="absolute w-0.5 h-24 bg-green-400 origin-bottom"
+        className="absolute w-0.5 bg-green-400 origin-bottom"
         style={{
+          height: '100px',
           left: '50%',
           bottom: '50%',
           transformOrigin: 'bottom center',
