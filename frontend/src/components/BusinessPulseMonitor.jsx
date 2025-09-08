@@ -51,7 +51,7 @@ const BusinessPulseMonitor = () => {
   }, []);
 
   return (
-    <div className="relative w-80 h-80 mx-auto">
+    <div className="relative w-full h-full max-w-64 max-h-64 mx-auto">
       {/* Main Pulse Circle */}
       <motion.div
         className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-green-400"

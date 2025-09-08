@@ -58,20 +58,20 @@ const ProjectPlanDisplay = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'pending': return 'bg-gray-100 text-gray-800';
-      case 'planning': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'completed': return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200';
+      case 'in-progress': return 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800 border border-blue-200';
+      case 'pending': return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
+      case 'planning': return 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200';
+      default: return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
     }
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'high': return 'bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200';
+      case 'medium': return 'bg-gradient-to-r from-yellow-100 to-amber-100 text-yellow-800 border border-yellow-200';
+      case 'low': return 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200';
+      default: return 'bg-gradient-to-r from-gray-100 to-slate-100 text-gray-800 border border-gray-200';
     }
   };
 

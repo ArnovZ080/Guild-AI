@@ -36,17 +36,11 @@ const SalesFunnelVisualizer = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Sales Funnel</h2>
-        <p className="text-gray-600">Visualize your customer journey and conversion rates</p>
-      </div>
-
+    <div className="space-y-4 h-full">
       {/* Funnel Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Visitors</p>
@@ -60,7 +54,7 @@ const SalesFunnelVisualizer = () => {
         </Card>
         
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Conversions</p>
@@ -74,7 +68,7 @@ const SalesFunnelVisualizer = () => {
         </Card>
         
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-2">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Overall Conversion</p>

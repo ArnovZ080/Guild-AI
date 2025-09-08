@@ -4,6 +4,7 @@ import { BusinessPulseMonitor } from './BusinessPulseMonitor';
 import AgentActivityTheaterView from './theater/AgentActivityTheaterView';
 import FinancialFlowVisualization from './visualizations/FinancialFlowVisualization';
 import CustomerJourneyConstellation from './visualizations/CustomerJourneyConstellation';
+import OpportunityRadar from './visualizations/OpportunityRadar';
 import ProgressMomentumTracker from './psychology/ProgressMomentumTracker';
 import AchievementCelebration from './psychology/AchievementCelebration';
 import StressReductionInterface from './psychology/StressReductionInterface';
@@ -134,6 +135,14 @@ const MainDashboard = () => {
               <div className="bg-white rounded-lg shadow-lg p-6 h-80">
                 <h3 className="text-lg font-semibold mb-4 text-gray-800">Sales Funnel</h3>
                 <SalesFunnelVisualizer />
+              </div>
+            </div>
+            
+            {/* Fourth Row - Opportunity Radar */}
+            <div className="lg:col-span-3">
+              <div className="bg-white rounded-lg shadow-lg p-6 h-80">
+                <h3 className="text-lg font-semibold mb-4 text-gray-800">Opportunity Radar</h3>
+                <OpportunityRadar />
               </div>
             </div>
           </motion.div>
