@@ -1,12 +1,11 @@
 from fastapi import FastAPI
-from guild.src.core.config import settings
-from .database import engine, Base
-from . import models
 from fastapi.middleware.cors import CORSMiddleware
 import os
 
-# Create all database tables
-Base.metadata.create_all(bind=engine)
+# Skip database initialization for demo
+# from .database import engine, Base
+# from . import models
+# Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI(
@@ -30,19 +29,24 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     print("Starting up Guild API server...")
-    print(f"Loaded settings: DATABASE_URL={settings.DATABASE_URL}")
+    print("Server ready to handle agent interactions!")
 
 
-from api_server.src.routes import workflows, data_rooms, onboarding, schedules, webhooks, vision, voice
+# Import only the agents route for demo
+from .routes import agents
 
-app.include_router(workflows.router)
-app.include_router(data_rooms.router)
-app.include_router(onboarding.router)
-# app.include_router(workflow_builder.router)  # Temporarily disabled due to vision dependency issues
-app.include_router(schedules.router)
-app.include_router(webhooks.router)
-app.include_router(vision.router)
-app.include_router(voice.router)
+# Include only the agents router for demo
+app.include_router(agents.router)
+
+# Comment out other routes that depend on database
+# from api_server.src.routes import workflows, data_rooms, onboarding, schedules, webhooks, vision, voice
+# app.include_router(workflows.router)
+# app.include_router(data_rooms.router)
+# app.include_router(onboarding.router)
+# app.include_router(schedules.router)
+# app.include_router(webhooks.router)
+# app.include_router(vision.router)
+# app.include_router(voice.router)
 
 
 @app.get("/health")

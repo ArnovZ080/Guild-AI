@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAgentInteraction } from '../hooks/useAgentInteraction';
 import { BusinessPulseMonitor } from './BusinessPulseMonitor';
 import AgentActivityTheaterView from './theater/AgentActivityTheaterView';
 import FinancialFlowVisualization from './visualizations/FinancialFlowVisualization';
@@ -16,6 +17,7 @@ import SalesFunnelVisualizer from './SalesFunnelVisualizer';
 import WorkflowStatusPage from './WorkflowStatusPage';
 
 const MainDashboard = () => {
+  const { executeAgentAction, isLoading, error, result } = useAgentInteraction();
   const [widgets] = useState([
     { id: '1', component: 'BusinessPulseMonitor', title: 'Business Pulse', size: 'medium', position: { x: 0, y: 0 } },
     { id: '2', component: 'AgentActivityTheater', title: 'Agent Activity', size: 'large', position: { x: 1, y: 0 } },
@@ -180,27 +182,124 @@ const MainDashboard = () => {
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-xl font-semibold mb-6 text-gray-800">Quick Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <button className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                  🚀 Launch Campaign
+                <button 
+                  className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => executeAgentAction('launch_campaign', {
+                    name: 'Q1 Growth Campaign',
+                    target_audience: 'tech startups',
+                    budget: 5000,
+                    duration: 30,
+                    channels: ['social', 'email', 'content']
+                  })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Processing...' : '🚀 Launch Campaign'}
                 </button>
-                <button className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-                  📊 Generate Report
+                <button 
+                  className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => executeAgentAction('generate_report', {
+                    report_type: 'performance',
+                    filters: {
+                      date_range: '30d',
+                      metrics: ['traffic', 'conversions', 'revenue']
+                    }
+                  })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Processing...' : '📊 Generate Report'}
                 </button>
-                <button className="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-                  🎯 Set Goals
+                <button 
+                  className="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => executeAgentAction('set_goals', {
+                    goals: [
+                      'Increase revenue by 25%',
+                      'Acquire 100 new customers',
+                      'Launch 3 new products',
+                      'Improve customer satisfaction to 95%'
+                    ]
+                  })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Processing...' : '🎯 Set Goals'}
                 </button>
-                <button className="p-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                  🔍 Research Market
+                <button 
+                  className="p-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => executeAgentAction('research_market', {
+                    query: 'AI automation tools market trends 2024'
+                  })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Processing...' : '🔍 Research Market'}
                 </button>
-                <button className="p-4 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
-                  ✍️ Create Content
+                <button 
+                  className="p-4 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => executeAgentAction('create_content', {
+                    content_request: {
+                      topic: 'AI-Powered Business Automation',
+                      format: 'blog_post',
+                      audience: 'entrepreneurs',
+                      tone: 'professional'
+                    }
+                  })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Processing...' : '✍️ Create Content'}
                 </button>
-                <button className="p-4 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
-                  📈 Analyze Performance
+                <button 
+                  className="p-4 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={() => executeAgentAction('analyze_performance', {
+                    metrics: {
+                      traffic: 15000,
+                      conversions: 150,
+                      revenue: 25000,
+                      period: '30d'
+                    }
+                  })}
+                  disabled={isLoading}
+                >
+                  {isLoading ? '⏳ Processing...' : '📈 Analyze Performance'}
                 </button>
               </div>
             </div>
             
+            {/* Agent Results Display */}
+            {(result || error) && (
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-4 text-gray-800">Agent Response</h3>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <div className="flex items-center">
+                      <span className="text-red-500 text-xl mr-2">⚠️</span>
+                      <div>
+                        <h4 className="text-red-800 font-medium">Error</h4>
+                        <p className="text-red-600 text-sm">{error}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {result && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center mb-3">
+                      <span className="text-green-500 text-xl mr-2">✅</span>
+                      <h4 className="text-green-800 font-medium">Success</h4>
+                    </div>
+                    <div className="space-y-2">
+                      {result.workflow_id && (
+                        <p className="text-sm text-gray-600">
+                          <strong>Workflow ID:</strong> {result.workflow_id}
+                        </p>
+                      )}
+                      <div className="bg-white rounded p-3 border">
+                        <pre className="text-sm text-gray-700 whitespace-pre-wrap">
+                          {JSON.stringify(result.data, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-xl font-semibold mb-6 text-gray-800">Agent Management</h3>
               <AgentActivityTheaterView />
