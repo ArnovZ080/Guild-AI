@@ -76,18 +76,6 @@ const AchievementCelebration = () => {
 
   return (
     <div className="absolute bottom-4 right-4 z-50">
-      {/* Achievement Trigger Buttons (for demo) */}
-      <div className="mb-4 space-y-2">
-        {sampleAchievements.map((achievement) => (
-          <button
-            key={achievement.id}
-            onClick={() => triggerAchievement(achievement)}
-            className="block w-full px-3 py-1 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600 transition-colors"
-          >
-            {achievement.title}
-          </button>
-        ))}
-      </div>
 
       {/* Celebration Overlay */}
       <AnimatePresence>
