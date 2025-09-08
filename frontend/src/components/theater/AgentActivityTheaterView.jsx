@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
 
 const AgentActivityTheaterView = () => {
-  const [agents, setAgents] = useState([
+  const [agents] = useState([
     {
       id: 'research-1',
       name: 'Research Agent',
@@ -49,9 +48,9 @@ const AgentActivityTheaterView = () => {
     }
   ]);
 
-  const [selectedAgent, setSelectedAgent] = useState(null);
-  const [workflows, setWorkflows] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [selectedAgent] = useState(null);
+  const [workflows] = useState([]);
+  const [isLoading] = useState(false);
 
   return (
     <div className="relative w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-lg overflow-hidden">

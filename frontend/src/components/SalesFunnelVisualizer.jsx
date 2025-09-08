@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 
 const SalesFunnelVisualizer = () => {
-  const [funnelData, setFunnelData] = useState({
+  const [funnelData] = useState({
     awareness: { count: 1000, conversion: 100, color: 'bg-red-500' },
     interest: { count: 800, conversion: 80, color: 'bg-orange-500' },
     consideration: { count: 400, conversion: 40, color: 'bg-yellow-500' },

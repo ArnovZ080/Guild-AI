@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 
 const ProgressMomentumTracker = () => {
-  const [momentum, setMomentum] = useState(0.75);
-  const [weeklyData, setWeeklyData] = useState([
+  const [momentum] = useState(0.75);
+  const [weeklyData] = useState([
     { day: 'Mon', value: 0.6, energy: 'steady' },
     { day: 'Tue', value: 0.8, energy: 'high' },
     { day: 'Wed', value: 0.4, energy: 'low' },

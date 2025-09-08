@@ -8,6 +8,7 @@
   NPM_FLAGS = "--version"
   NPM_CONFIG_FUND = "false"
   NPM_CONFIG_AUDIT = "false"
+  CI = "false"
 
 [[redirects]]
   from = "/*"
