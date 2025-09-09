@@ -4,19 +4,16 @@ FROM node:20-alpine as builder
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-lock.yaml ./
-
-# Install pnpm
-RUN npm install -g pnpm
+COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN npm ci
 
 # Copy source code
 COPY . .
 
 # Build the application
-RUN pnpm run build
+RUN npm run build
 
 # Production stage
 FROM nginx:alpine
