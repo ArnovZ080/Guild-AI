@@ -19,10 +19,10 @@ from guild.src.agents.strategy_agent import StrategyAgent
 from guild.src.agents.strategic_sounding_board_agent import StrategicSoundingBoardAgent
 from guild.src.agents.well_being_agent import WellBeingAgent
 # Temporarily disabled most agents to fix import issues
-# from guild.src.agents.accountability_coach_agent import AccountabilityCoachAgent
+from guild.src.agents.accountability_coach_agent import AccountabilityCoachAgent
 # Marketing & Growth
 from guild.src.agents.content_strategist import ContentStrategist
-# from guild.src.agents.seo_agent import SEOAgent  # temporarily disabled
+from guild.src.agents.seo_agent import SEOAgent
 from guild.src.agents.copywriter import Copywriter
 # from guild.src.agents.paid_ads_agent import PaidAdsAgent
 # from guild.src.agents.pr_outreach_agent import PROutreachAgent
@@ -70,10 +70,10 @@ AGENT_REGISTRY = {
     "StrategyAgent": StrategyAgent,
     "StrategicSoundingBoardAgent": StrategicSoundingBoardAgent,
     "WellBeingAgent": WellBeingAgent,
-    # "AccountabilityCoachAgent": AccountabilityCoachAgent,  # temporarily disabled
+    "AccountabilityCoachAgent": AccountabilityCoachAgent,
     # Marketing & Growth
     "ContentStrategist": ContentStrategist,
-    # "SEOAgent": SEOAgent,  # temporarily disabled
+    "SEOAgent": SEOAgent,
     "Copywriter": Copywriter,
     # "PaidAdsAgent": PaidAdsAgent,  # temporarily disabled
     # "PROutreachAgent": PROutreachAgent,  # temporarily disabled

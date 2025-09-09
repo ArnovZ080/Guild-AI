@@ -1,7 +1,7 @@
 // Agent Service for interacting with Guild AI agents
 class AgentService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8001';
+    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
   }
 
   // Generic agent interaction method
