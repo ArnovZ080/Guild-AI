@@ -10,6 +10,8 @@ services:
     ports:
       - "5001:5000"
     command: uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000
+    env_file:
+      - .env.dev
     environment:
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
