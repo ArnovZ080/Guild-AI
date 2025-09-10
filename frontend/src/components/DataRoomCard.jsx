@@ -1,100 +1,103 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
-import { Button } from './ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { RefreshCw, Settings, Trash2, FolderOpen } from 'lucide-react'
 
-const DataRoomCard = ({ dataRoom, onSelect, onEdit, onDelete }) => {
-  const { name, description, type, status, lastUpdated, documentCount } = dataRoom;
+const providerIcons = {
+  workspace: '💼',
+  gdrive: '📁',
+  notion: '📝',
+  onedrive: '☁️',
+  dropbox: '📦'
+}
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'syncing': return 'bg-yellow-100 text-yellow-800';
-      case 'error': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+const providerNames = {
+  workspace: 'Workspace',
+  gdrive: 'Google Drive',
+  notion: 'Notion',
+  onedrive: 'OneDrive',
+  dropbox: 'Dropbox'
+}
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'google_drive': return '📁';
-      case 'notion': return '📝';
-      case 'onedrive': return '☁️';
-      case 'dropbox': return '📦';
-      case 'workspace': return '💼';
-      default: return '📄';
-    }
-  };
+export function DataRoomCard({ dataRoom, onSync, onEdit, onDelete, onViewDocuments }) {
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Never'
+    return new Date(dateString).toLocaleDateString()
+  }
+
+  const getStatusColor = (lastSync) => {
+    if (!lastSync) return 'destructive'
+    const daysSinceSync = (Date.now() - new Date(lastSync).getTime()) / (1000 * 60 * 60 * 24)
+    if (daysSinceSync < 1) return 'default'
+    if (daysSinceSync < 7) return 'secondary'
+    return 'destructive'
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
-    >
-      <Card className="h-full cursor-pointer hover:shadow-lg transition-shadow">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">{getTypeIcon(type)}</span>
-              <CardTitle className="text-lg">{name}</CardTitle>
+    <Card className="w-full">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{providerIcons[dataRoom.provider]}</span>
+            <div>
+              <CardTitle className="text-lg">{dataRoom.name}</CardTitle>
+              <CardDescription>{providerNames[dataRoom.provider]}</CardDescription>
             </div>
-            <Badge className={getStatusColor(status)}>
-              {status}
-            </Badge>
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600 line-clamp-2">
-            {description || 'No description available'}
-          </p>
-          
-          <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>{documentCount || 0} documents</span>
-            <span>Updated {lastUpdated}</span>
+          <Badge variant={getStatusColor(dataRoom.last_sync_at)}>
+            {dataRoom.read_only ? 'Read-only' : 'Read-write'}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          <div className="text-sm text-muted-foreground">
+            Last sync: {formatDate(dataRoom.last_sync_at)}
           </div>
           
-          <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(dataRoom);
-              }}
-              className="flex-1"
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onSync(dataRoom.id)}
+              className="flex items-center gap-1"
             >
-              View
+              <RefreshCw className="h-4 w-4" />
+              Sync
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(dataRoom);
-              }}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onViewDocuments(dataRoom.id)}
+              className="flex items-center gap-1"
             >
-              Edit
+              <FolderOpen className="h-4 w-4" />
+              Documents
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(dataRoom);
-              }}
-              className="text-red-600 hover:text-red-700"
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(dataRoom)}
+              className="flex items-center gap-1"
             >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onDelete(dataRoom.id)}
+              className="flex items-center gap-1 text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
               Delete
             </Button>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-};
-
-export default DataRoomCard;
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
