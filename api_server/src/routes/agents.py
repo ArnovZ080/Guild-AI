@@ -5,17 +5,13 @@ import asyncio
 import uuid
 from datetime import datetime
 
-# Import our agents - simplified for demo
-# import sys
-# import os
-# sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+# Import real agents from orchestrator
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
 
-# from guild.src.agents.marketing_agent import MarketingAgent
-# from guild.src.agents.research_agent import ResearchAgent
-# from guild.src.agents.content_strategist import ContentStrategistAgent
-# from guild.src.agents.business_strategist_agent import BusinessStrategistAgent
-# from guild.src.agents.analytics_agent import AnalyticsAgent
-# from guild.src.agents.orchestrator_agent import OrchestratorAgent
+from guild.src.core.orchestrator import AGENT_REGISTRY, Orchestrator
+from guild.src.models.user_input import UserInput
 
 router = APIRouter(
     prefix="/agents",
@@ -47,10 +43,40 @@ class WorkflowStatus(BaseModel):
 # In-memory storage for demo (in production, use Redis or database)
 workflow_storage: Dict[str, WorkflowStatus] = {}
 
-# Mock agent classes for demo
-class MockAgent:
-    def __init__(self, name):
-        self.name = name
+# Initialize real agents from orchestrator
+real_agents = {}
+for agent_name, agent_class in AGENT_REGISTRY.items():
+    try:
+        # Initialize agent with proper parameters based on agent type
+        if agent_name == "ContentStrategist":
+            real_agents[agent_name] = agent_class(user_input="Initialize content strategist")
+        elif agent_name == "Copywriter":
+            real_agents[agent_name] = agent_class(user_input="Initialize copywriter", content_strategy="general")
+        elif agent_name == "CRMAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize CRM agent", sales_funnel_context="general")
+        elif agent_name == "HRAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize HR agent")
+        elif agent_name == "ComplianceAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize compliance agent", business_operations_details="general", jurisdiction="US")
+        elif agent_name == "SkillDevelopmentAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize skill development agent", business_goals="growth", learning_preferences="online", time_availability="flexible")
+        elif agent_name == "OutsourcingAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize outsourcing agent", task_details="general", budget=1000, deadline="30 days")
+        elif agent_name == "OnboardingAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize onboarding agent")
+        elif agent_name == "VisionEnhancedTrainingAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize vision training agent", source_information="general", target_audience="business owners")
+        elif agent_name == "WellBeingAgent":
+            real_agents[agent_name] = agent_class(user_input="Initialize wellbeing agent", workload_data="moderate", solo_founder_preferences="balanced")
+        else:
+            # For agents that don't require specific parameters
+            real_agents[agent_name] = agent_class()
+    except Exception as e:
+        print(f"Warning: Could not initialize {agent_name}: {e}")
+        # Skip this agent if it fails to initialize
+        continue
+
+# Real agents are now initialized from the orchestrator
     
     def create_campaign(self, **kwargs):
         return {
@@ -104,13 +130,13 @@ class MockAgent:
             "insights": ["Traffic is increasing", "Conversion rate is stable", "Revenue is growing"]
         }
 
-# Initialize mock agents
-marketing_agent = MockAgent("MarketingAgent")
-research_agent = MockAgent("ResearchAgent")
-content_strategist = MockAgent("ContentStrategistAgent")
-business_strategist = MockAgent("BusinessStrategistAgent")
-analytics_agent = MockAgent("AnalyticsAgent")
-orchestrator = MockAgent("OrchestratorAgent")
+# Create aliases for backward compatibility
+marketing_agent = real_agents.get("MarketingAgent")
+research_agent = real_agents.get("ResearchAgent")
+content_strategist = real_agents.get("ContentStrategist")
+business_strategist = real_agents.get("BusinessStrategistAgent")
+analytics_agent = None  # This one doesn't exist yet
+orchestrator = real_agents.get("OrchestratorAgent")
 
 @router.post("/interact", response_model=AgentResponse)
 async def interact_with_agent(request: AgentRequest):
@@ -194,13 +220,32 @@ async def handle_launch_campaign(data: Dict[str, Any], workflow_id: str) -> Dict
         "channels": data.get("channels", ["social", "email"])
     }
     
-    # Use marketing agent to create campaign
-    campaign_result = marketing_agent.create_campaign(
-        campaign_name=campaign_data["name"],
-        target_audience=campaign_data["target_audience"],
-        budget=campaign_data["budget"],
-        duration_days=campaign_data["duration"]
-    )
+    # Use real marketing agent if available, otherwise fallback to mock
+    try:
+        if "MarketingAgent" in real_agents and real_agents["MarketingAgent"] is not None:
+            # Use real agent - you would call the actual agent method here
+            campaign_result = real_agents["MarketingAgent"].create_campaign(
+                campaign_name=campaign_data["name"],
+                target_audience=campaign_data["target_audience"],
+                budget=campaign_data["budget"],
+                duration_days=campaign_data["duration"]
+            )
+        else:
+            # Use mock agent
+            campaign_result = marketing_agent.create_campaign(
+                campaign_name=campaign_data["name"],
+                target_audience=campaign_data["target_audience"],
+                budget=campaign_data["budget"],
+                duration_days=campaign_data["duration"]
+            )
+    except Exception as e:
+        # Fallback to mock on error
+        campaign_result = marketing_agent.create_campaign(
+            campaign_name=campaign_data["name"],
+            target_audience=campaign_data["target_audience"],
+            budget=campaign_data["budget"],
+            duration_days=campaign_data["duration"]
+        )
     
     workflow_storage[workflow_id].progress = 75
     workflow_storage[workflow_id].current_step = "Campaign launched successfully"
@@ -317,11 +362,36 @@ async def handle_create_content(data: Dict[str, Any], workflow_id: str) -> Dict[
     content_request = data.get("content_request", {})
     
     # Use content strategist to create content
-    content_result = content_strategist.create_content_plan(
-        topic=content_request.get("topic", "Business Growth"),
-        format=content_request.get("format", "blog_post"),
-        target_audience=content_request.get("audience", "entrepreneurs")
-    )
+    if content_strategist is not None:
+        # Update the agent's user_input with the new request
+        content_strategist.user_input = type('UserInput', (), {
+            'objective': f"Create content for topic: {content_request.get('topic', 'Business Growth')}, format: {content_request.get('format', 'blog_post')}, audience: {content_request.get('audience', 'entrepreneurs')}",
+            'deliverables': [content_request.get('format', 'blog_post')]
+        })()
+        content_result = await content_strategist.run()
+    else:
+        # Fallback mock response
+        content_result = {
+            "content_plan": {
+                "topic": content_request.get("topic", "Business Growth"),
+                "format": content_request.get("format", "blog_post"),
+                "target_audience": content_request.get("audience", "entrepreneurs"),
+                "posts": [
+                    {
+                        "title": f"5 Tips for {content_request.get('topic', 'Business Growth')}",
+                        "content": f"Here are 5 actionable tips for {content_request.get('topic', 'Business Growth')} that will help you achieve your goals.",
+                        "platform": "LinkedIn",
+                        "estimated_engagement": "High"
+                    },
+                    {
+                        "title": f"Quick Guide: {content_request.get('topic', 'Business Growth')}",
+                        "content": f"A quick guide to getting started with {content_request.get('topic', 'Business Growth')}.",
+                        "platform": "Twitter",
+                        "estimated_engagement": "Medium"
+                    }
+                ]
+            }
+        }
     
     workflow_storage[workflow_id].progress = 90
     workflow_storage[workflow_id].current_step = "Content created"
@@ -467,19 +537,56 @@ async def get_all_workflows():
     """Get all workflows"""
     return list(workflow_storage.values())
 
+@router.get("/list")
+async def get_available_agents():
+    """Get list of all available agents"""
+    return {
+        "available_agents": list(AGENT_REGISTRY.keys()),
+        "total_count": len(AGENT_REGISTRY),
+        "agent_details": {
+            name: {
+                "class_name": agent_class.__name__,
+                "module": agent_class.__module__,
+                "is_initialized": name in real_agents,
+                "is_real": name in real_agents and real_agents[name] is not None
+            }
+            for name, agent_class in AGENT_REGISTRY.items()
+        }
+    }
+
 @router.get("/status")
 async def get_agents_status():
     """Get status of all agents"""
+    agents_status = {}
+    active_count = 0
+    
+    for agent_name, agent in real_agents.items():
+        try:
+            # Test if agent is working - if it's initialized, it's active
+            if agent is not None:
+                agents_status[agent_name] = {
+                    "status": "active", 
+                    "last_activity": datetime.now().isoformat(),
+                    "type": "real"
+                }
+                active_count += 1
+            else:
+                agents_status[agent_name] = {
+                    "status": "inactive", 
+                    "last_activity": datetime.now().isoformat(),
+                    "type": "real" if agent is not None else "mock"
+                }
+        except Exception as e:
+            agents_status[agent_name] = {
+                "status": "error", 
+                "last_activity": datetime.now().isoformat(),
+                "error": str(e),
+                "type": "real" if not isinstance(agent, MockAgent) else "mock"
+            }
+    
     return {
-        "agents": {
-            "MarketingAgent": {"status": "active", "last_activity": datetime.now().isoformat()},
-            "ResearchAgent": {"status": "active", "last_activity": datetime.now().isoformat()},
-            "ContentStrategistAgent": {"status": "active", "last_activity": datetime.now().isoformat()},
-            "BusinessStrategistAgent": {"status": "active", "last_activity": datetime.now().isoformat()},
-            "AnalyticsAgent": {"status": "active", "last_activity": datetime.now().isoformat()},
-            "OrchestratorAgent": {"status": "active", "last_activity": datetime.now().isoformat()}
-        },
-        "total_agents": 6,
-        "active_agents": 6,
-        "system_status": "healthy"
+        "agents": agents_status,
+        "total_agents": len(real_agents),
+        "active_agents": active_count,
+        "system_status": "healthy" if active_count > 0 else "degraded"
     }

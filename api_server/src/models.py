@@ -86,10 +86,21 @@ class DataRoom(Base):
 class ConnectorCredential(Base):
     __tablename__ = 'connector_credentials'
 
-    id = Column(Integer, primary_key=True, index=True)
-    provider = Column(String(50), unique=True, nullable=False)
+    id = Column(String(50), primary_key=True, index=True)
+    provider = Column(String(50), nullable=False)
+    account_id = Column(String(200), nullable=False)
+    account_name = Column(String(200), nullable=True)
     access_token = Column(Text, nullable=False)
     refresh_token = Column(Text, nullable=True)
     expires_at = Column(DateTime, nullable=True)
     scopes = Column(JSON, default=lambda: [])
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class OAuthState(Base):
+    __tablename__ = 'oauth_states'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    state = Column(String(100), unique=True, index=True, nullable=False)
+    provider = Column(String(50), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

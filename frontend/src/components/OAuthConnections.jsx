@@ -1,272 +1,246 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Badge } from './ui/badge';
-
-// Move availableServices outside component to prevent recreation on every render
-const availableServices = [
-  {
-    id: 'google_drive',
-    name: 'Google Drive',
-    description: 'Access and sync your Google Drive files',
-    icon: '📁',
-    color: 'bg-blue-100 text-blue-800',
-    connected: false
-  },
-  {
-    id: 'notion',
-    name: 'Notion',
-    description: 'Connect your Notion workspace and databases',
-    icon: '📝',
-    color: 'bg-gray-100 text-gray-800',
-    connected: false
-  },
-  {
-    id: 'onedrive',
-    name: 'OneDrive',
-    description: 'Sync files from your Microsoft OneDrive',
-    icon: '☁️',
-    color: 'bg-blue-100 text-blue-800',
-    connected: false
-  },
-  {
-    id: 'dropbox',
-    name: 'Dropbox',
-    description: 'Access your Dropbox files and folders',
-    icon: '📦',
-    color: 'bg-blue-100 text-blue-800',
-    connected: false
-  },
-  {
-    id: 'slack',
-    name: 'Slack',
-    description: 'Connect your Slack workspace for notifications',
-    icon: '💬',
-    color: 'bg-purple-100 text-purple-800',
-    connected: false
-  },
-  {
-    id: 'github',
-    name: 'GitHub',
-    description: 'Access your GitHub repositories and issues',
-    icon: '🐙',
-    color: 'bg-gray-100 text-gray-800',
-    connected: false
-  }
-];
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Cloud, 
+  CheckCircle, 
+  AlertCircle, 
+  ExternalLink, 
+  RefreshCw,
+  Database,
+  FileText,
+  Users
+} from 'lucide-react';
 
 const OAuthConnections = () => {
   const [connections, setConnections] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(null);
 
   useEffect(() => {
-    // Simulate loading connections
-    setTimeout(() => {
-      // Mock some connected services - use a fixed seed for consistent results
-      const mockConnections = availableServices.map((service, index) => {
-        // Use index-based "randomness" for consistent results
-        const isConnected = index % 3 === 0; // Every 3rd service is connected
-        const hasError = index % 7 === 0; // Every 7th service has an error
-        
-        return {
-          ...service,
-          connected: isConnected,
-          lastSync: isConnected ? new Date(Date.now() - (index * 3600000)).toISOString() : null,
-          status: isConnected ? (hasError ? 'error' : 'active') : 'disconnected'
-        };
-      });
-      setConnections(mockConnections);
-      setIsLoading(false);
-    }, 1000);
-  }, []); // Empty dependency array - only run once on mount
+    fetchConnections();
+  }, []);
 
-  const handleConnect = (serviceId) => {
-    setConnections(prev => prev.map(conn => 
-      conn.id === serviceId 
-        ? { ...conn, connected: true, status: 'active', lastSync: new Date().toISOString() }
-        : conn
-    ));
-  };
-
-  const handleDisconnect = (serviceId) => {
-    setConnections(prev => prev.map(conn => 
-      conn.id === serviceId 
-        ? { ...conn, connected: false, status: 'disconnected', lastSync: null }
-        : conn
-    ));
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'error': return 'bg-red-100 text-red-800';
-      case 'disconnected': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const fetchConnections = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/oauth/providers`);
+      const data = await response.json();
+      
+      if (data.providers) {
+        setConnections(data.providers.map(provider => ({
+          ...provider,
+          connected: false, // This would come from your backend
+          status: 'available'
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching OAuth providers:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const formatLastSync = (lastSync) => {
-    if (!lastSync) return 'Never';
-    const date = new Date(lastSync);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${diffDays}d ago`;
+  const handleConnect = async (provider) => {
+    setConnecting(provider.name);
+    try {
+      // Start OAuth flow
+      const response = await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/oauth/${provider.name}/start`,
+        { method: 'POST' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.auth_url) {
+          // Open OAuth flow in new window
+          const popup = window.open(
+            data.auth_url,
+            'oauth',
+            'width=600,height=700,scrollbars=yes,resizable=yes'
+          );
+          
+          // Listen for OAuth completion
+          const checkClosed = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(checkClosed);
+              setConnecting(null);
+              fetchConnections(); // Refresh connections
+            }
+          }, 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Error starting OAuth flow:', error);
+      setConnecting(null);
+    }
   };
 
-  if (isLoading) {
+  const handleDisconnect = async (provider) => {
+    try {
+      await fetch(
+        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/oauth/credentials/${provider.id}`,
+        { method: 'DELETE' }
+      );
+      fetchConnections(); // Refresh connections
+    } catch (error) {
+      console.error('Error disconnecting:', error);
+    }
+  };
+
+  const getProviderIcon = (name) => {
+    switch (name.toLowerCase()) {
+      case 'gdrive':
+      case 'google drive':
+        return '🔵';
+      case 'dropbox':
+        return '🔷';
+      case 'notion':
+        return '📝';
+      case 'onedrive':
+        return '🔷';
+      default:
+        return '☁️';
+    }
+  };
+
+  const getProviderDescription = (name) => {
+    switch (name.toLowerCase()) {
+      case 'gdrive':
+      case 'google drive':
+        return 'Access your Google Drive files and documents';
+      case 'dropbox':
+        return 'Connect to your Dropbox storage and files';
+      case 'notion':
+        return 'Import your Notion pages and databases';
+      case 'onedrive':
+        return 'Access your Microsoft OneDrive files';
+      default:
+        return 'Connect to your cloud storage';
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="flex items-center justify-center p-8">
+        <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
+        <span className="ml-2 text-gray-600">Loading connections...</span>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">OAuth Connections</h2>
-        <p className="text-gray-600">Manage your connected services and integrations</p>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Data Connections
+        </h1>
+        <p className="text-gray-600">
+          Connect your cloud storage and productivity tools to enable seamless data integration with Guild-AI.
+        </p>
       </div>
 
-      {/* Connection Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Connected</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {connections.filter(c => c.connected).length}
-                </p>
-              </div>
-              <div className="text-2xl">🔗</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Available</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {connections.length}
-                </p>
-              </div>
-              <div className="text-2xl">⚙️</div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Errors</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {connections.filter(c => c.status === 'error').length}
-                </p>
-              </div>
-              <div className="text-2xl">⚠️</div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {connections.map((service) => (
+      <div className="grid gap-6 md:grid-cols-2">
+        {connections.map((connection) => (
           <motion.div
-            key={service.id}
+            key={connection.name}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
           >
-            <Card className="h-full">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-3xl">{service.icon}</span>
-                    <div>
-                      <CardTitle className="text-lg">{service.name}</CardTitle>
-                      <p className="text-sm text-gray-600">{service.description}</p>
-                    </div>
-                  </div>
-                  <Badge className={getStatusColor(service.status)}>
-                    {service.status}
-                  </Badge>
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center">
+                <span className="text-3xl mr-3">
+                  {getProviderIcon(connection.name)}
+                </span>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {connection.name}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {getProviderDescription(connection.name)}
+                  </p>
                 </div>
-              </CardHeader>
+              </div>
               
-              <CardContent className="space-y-4">
-                {service.connected && (
-                  <div className="text-sm text-gray-600">
-                    <p>Last sync: {formatLastSync(service.lastSync)}</p>
+              <div className="flex items-center">
+                {connection.connected ? (
+                  <div className="flex items-center text-green-600">
+                    <CheckCircle className="w-5 h-5 mr-1" />
+                    <span className="text-sm font-medium">Connected</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-gray-400">
+                    <AlertCircle className="w-5 h-5 mr-1" />
+                    <span className="text-sm">Not connected</span>
                   </div>
                 )}
-                
-                <div className="flex space-x-2">
-                  {service.connected ? (
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center text-sm text-gray-500 mb-2">
+                <Database className="w-4 h-4 mr-1" />
+                <span>Status: {connection.status}</span>
+              </div>
+              {connection.connected && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span>Ready for document processing</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              {connection.connected ? (
+                <button
+                  onClick={() => handleDisconnect(connection)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleConnect(connection)}
+                  disabled={connecting === connection.name}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                >
+                  {connecting === connection.name ? (
                     <>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => handleDisconnect(service.id)}
-                      >
-                        Disconnect
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => console.log('Sync', service.id)}
-                      >
-                        Sync Now
-                      </Button>
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                      Connecting...
                     </>
                   ) : (
-                    <Button 
-                      size="sm" 
-                      className="flex-1"
-                      onClick={() => handleConnect(service.id)}
-                    >
+                    <>
+                      <ExternalLink className="w-4 h-4 mr-2" />
                       Connect
-                    </Button>
+                    </>
                   )}
-                </div>
-              </CardContent>
-            </Card>
+                </button>
+              )}
+            </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Help Section */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">
-            <div className="text-4xl mb-4">🔧</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Need Help with Integrations?
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Our support team can help you set up and troubleshoot any integration issues.
-            </p>
-            <Button variant="outline">
-              Contact Support
-            </Button>
+      <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="flex items-start">
+          <div className="flex-shrink-0">
+            <Users className="w-6 h-6 text-blue-600" />
           </div>
-        </CardContent>
-      </Card>
+          <div className="ml-3">
+            <h3 className="text-lg font-medium text-blue-900">
+              Why connect your data sources?
+            </h3>
+            <div className="mt-2 text-sm text-blue-700">
+              <ul className="list-disc list-inside space-y-1">
+                <li>Automatically process documents from your cloud storage</li>
+                <li>Enable AI agents to access your business data</li>
+                <li>Create personalized content based on your files</li>
+                <li>Streamline your workflow with integrated data sources</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

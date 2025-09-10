@@ -13,6 +13,15 @@ psycopg2-binary
 httpx
 pytest
 
+# OAuth and Cloud Storage
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+dropbox
+
+# File upload support
+python-multipart
+
 # Task Queue
 celery
 redis
@@ -30,3 +39,74 @@ pytesseract>=0.3.10
 # - pytesseract: Lightweight OCR using Tesseract engine
 # - Pillow: Image processing
 # - numpy: Numerical computing
+
+# === COMPLETE DEPENDENCY SET FOR ALL AGENTS ===
+
+# Data Processing & Analytics
+pandas>=2.0.0
+openpyxl>=3.1.0
+xlrd>=2.0.0
+
+# AI/ML Dependencies
+torch>=2.0.0
+transformers>=4.30.0
+diffusers>=0.21.0
+sentence-transformers>=2.2.0
+accelerate>=0.20.0
+
+# Computer Vision & Image Processing
+opencv-python>=4.8.0
+Pillow>=10.0.0
+easyocr>=1.7.0
+
+# Video & Audio Processing
+moviepy>=1.0.3
+soundfile>=0.12.0
+librosa>=0.10.0
+
+# Web Scraping & Automation
+scrapy>=2.10.0
+selenium>=4.10.0
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+playwright>=1.35.0
+
+# Document Processing
+markitdown[pdf,docx,pptx,xlsx,audio-transcription,youtube-transcription]>=0.0.1a0
+pypdf>=3.15.0
+python-docx>=0.8.11
+python-pptx>=0.6.21
+
+# Data Validation & Processing
+phonenumbers>=8.13.0
+email-validator>=2.0.0
+faker>=19.0.0
+
+# Vector Database & Search
+qdrant-client>=1.6.0
+chromadb>=0.4.0
+
+# API Integrations
+google-api-python-client>=2.90.0
+google-auth-httplib2>=0.1.0
+google-auth-oauthlib>=1.0.0
+dropbox>=11.36.0
+hubspot-api-client>=7.0.0
+
+# Automation & UI
+pyautogui>=0.9.54
+pynput>=1.7.6
+
+# Database & Storage
+sqlalchemy>=2.0.0
+alembic>=1.11.0
+redis>=4.6.0
+
+# Monitoring & Logging
+prometheus-client>=0.17.0
+structlog>=23.1.0
+
+# Development & Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.24.0

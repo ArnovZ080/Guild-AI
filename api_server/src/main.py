@@ -32,11 +32,13 @@ async def startup_event():
     print("Server ready to handle agent interactions!")
 
 
-# Import only the agents route for demo
-from .routes import agents
+# Import routes
+from .routes import agents, oauth, document_processing
 
-# Include only the agents router for demo
+# Include routers
 app.include_router(agents.router)
+app.include_router(oauth.router)
+app.include_router(document_processing.router)
 
 # Comment out other routes that depend on database
 # from api_server.src.routes import workflows, data_rooms, onboarding, schedules, webhooks, vision, voice
