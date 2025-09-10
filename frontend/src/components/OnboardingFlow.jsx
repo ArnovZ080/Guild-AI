@@ -1,117 +1,142 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Loader2, Bot, User } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useEffect } from 'react';
+import ChatInterface from './ChatInterface.jsx';
 
-const API_URL = 'http://localhost:8000'; // Adjust if your API is elsewhere
+const ONBOARDING_QUESTIONS = [
+  "Tell me about your business. What do you do?",
+  "How many people are in your business?",
+  "How long have you been doing this?",
+  "Who is your ideal client for your product or service?",
+  "Do you have a specific client avatar? If not, it’s okay, we can build one later.",
+  "What products or services do you sell, or would you like to sell?",
+  "What is your pricing strategy? Just broadly, we can go into details later.",
+  "What is your current turnover? I know you don’t trust me yet, so you can give me a ballpark figure.",
+  "What are your turnover goals for the next 6 months? And for the next year?",
+  "What are your biggest pain points in your business right now?",
+  "What social media platforms are you on, and what does your follower situation look like?",
+  "Tell me more about your brand. Do you have a specific brand voice?",
+  "What are your brand colours, and are there any specific fonts you would like to use?",
+  "Finally, where do you see yourself with this brand in 5 years? Dream big and tell me your vision."
+];
 
 const OnboardingFlow = ({ onOnboardingComplete }) => {
-    const [sessionId] = useState(uuidv4());
-    const [conversation, setConversation] = useState([]);
-    const [userInput, setUserInput] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
-    const [currentState, setCurrentState] = useState('GREETING');
-    const messagesEndRef = useRef(null);
+  const [step, setStep] = useState('welcome'); // welcome, questioning, setup, complete
+  const [messages, setMessages] = useState([]);
+  const [actions, setActions] = useState([]);
+  const [inputPlaceholder, setInputPlaceholder] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
 
-    useEffect(scrollToBottom, [conversation]);
+  // Initial welcome message
+  useEffect(() => {
+    setMessages([
+      {
+        id: 'welcome',
+        type: 'assistant',
+        content: "Hello! Welcome to Guild! Your AI Company of 1. To get the most out of us, I am going to ask you some questions to get to know you, your business, and your goals a bit better. Once we have that all down, I can walk you through the setup procedures and show you some of the epic things we can do for you. Sounds Good?",
+        timestamp: new Date(),
+      }
+    ]);
+    setActions(['Start']);
+    setInputPlaceholder('');
+  }, []);
 
-    // Start the conversation on component mount
-    useEffect(() => {
-        const startConversation = async () => {
-            try {
-                const response = await fetch(`${API_URL}/onboarding/start`, { method: 'POST' });
-                if (!response.ok) throw new Error('Failed to start onboarding.');
-                const data = await response.json();
+  const handleActionClick = (action) => {
+    if (action === 'Start' && step === 'welcome') {
+      setStep('questioning');
+      setActions([]);
+      askNextQuestion();
+    }
+    // Handle other actions for setup phase later
+  };
 
-                setConversation(prev => [...prev, { sender: 'agent', text: data.agent_response }]);
-                setCurrentState(data.next_state);
-            } catch (error) {
-                setConversation(prev => [...prev, { sender: 'agent', text: `Error: ${error.message}` }]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        startConversation();
-    }, []);
+  const askNextQuestion = (index = currentQuestionIndex) => {
+    if (index < ONBOARDING_QUESTIONS.length) {
+      setIsLoading(true);
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          id: `q-${index}`,
+          type: 'assistant',
+          content: ONBOARDING_QUESTIONS[index],
+          timestamp: new Date(),
+        }]);
+        setInputPlaceholder(`Your answer to: "${ONBOARDING_QUESTIONS[index].substring(0, 40)}..."`);
+        setIsLoading(false);
+      }, 800);
+    } else {
+      // All questions answered
+      moveToSetupPhase();
+    }
+  };
 
-    const handleSendMessage = async (e) => {
-        e.preventDefault();
-        if (!userInput.trim() || isLoading) return;
+  const handleSendMessage = (messageText) => {
+    if (step !== 'questioning' || isLoading) return;
 
-        const userMessage = { sender: 'user', text: userInput };
-        setConversation(prev => [...prev, userMessage]);
-        setUserInput('');
-        setIsLoading(true);
+    // Add user's answer to messages
+    setMessages(prev => [...prev, {
+      id: `ans-${currentQuestionIndex}`,
+      type: 'user',
+      content: messageText,
+      timestamp: new Date(),
+    }]);
 
-        try {
-            const response = await fetch(`${API_URL}/onboarding/converse`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    current_state: currentState,
-                    user_response: userInput,
-                }),
-            });
-            if (!response.ok) throw new Error('Failed to get agent response.');
-            const data = await response.json();
+    // Store the answer
+    setAnswers(prev => ({ ...prev, [currentQuestionIndex]: messageText }));
 
-            setConversation(prev => [...prev, { sender: 'agent', text: data.agent_response }]);
-            setCurrentState(data.next_state);
+    // Move to the next question
+    const nextIndex = currentQuestionIndex + 1;
+    setCurrentQuestionIndex(nextIndex);
+    askNextQuestion(nextIndex);
+  };
 
-            if (data.is_complete) {
-                // In a real app, we'd save the output_document and then call onOnboardingComplete
-                setTimeout(() => {
-                    onOnboardingComplete();
-                }, 3000); // Wait 3 seconds before completing
-            }
-        } catch (error) {
-            setConversation(prev => [...prev, { sender: 'agent', text: `Error: ${error.message}` }]);
-        } finally {
-            setIsLoading(false);
+  const moveToSetupPhase = () => {
+      setStep('setup');
+      setIsLoading(true);
+      setInputPlaceholder('');
+      setTimeout(() => {
+          setMessages(prev => [...prev, {
+              id: 'setup-start',
+              type: 'assistant',
+              content: "Okay great! Now that we understand a bit more about your business and what you want to achieve, let’s get you hooked up and ready to go! Your data privacy is our top priority so we can do it one of two ways. We can either create a folder for ourselves on your desktop that we will use to store all the relevant company information we need, or we can store it “off site’ in a secure cloud database to save you some space if you’re okay with that. Which would you prefer? You can always change it later",
+              timestamp: new Date(),
+          }]);
+          setActions(['On-site', 'Off-site']);
+          setIsLoading(false);
+      }, 1200);
+  };
+
+  const handleNewConversation = () => {
+      // For now, this just resets the onboarding, but could be adapted
+      setStep('welcome');
+      setCurrentQuestionIndex(0);
+      setAnswers({});
+      // Re-trigger the initial useEffect
+       setMessages([
+        {
+          id: 'welcome',
+          type: 'assistant',
+          content: "Hello! Welcome to Guild! Your AI Company of 1. To get the most out of us, I am going to ask you some questions to get to know you, your business, and your goals a bit better. Once we have that all down, I can walk you through the setup procedures and show you some of the epic things we can do for you. Sounds Good?",
+          timestamp: new Date(),
         }
-    };
+      ]);
+      setActions(['Start']);
+      setInputPlaceholder('');
+  }
 
-    return (
-        <div className="flex justify-center items-center h-full p-4">
-            <Card className="w-full max-w-2xl h-[80vh] flex flex-col">
-                <CardHeader>
-                    <CardTitle className="flex items-center"><Bot className="mr-2" /> Onboarding Assistant</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow overflow-y-auto space-y-4">
-                    {conversation.map((msg, index) => (
-                        <div key={index} className={`flex items-start gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
-                            {msg.sender === 'agent' && <Bot className="h-6 w-6 text-blue-500" />}
-                            <div className={`rounded-lg p-3 max-w-[80%] ${msg.sender === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                                <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                            </div>
-                            {msg.sender === 'user' && <User className="h-6 w-6" />}
-                        </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                </CardContent>
-                <div className="p-4 border-t">
-                    <form onSubmit={handleSendMessage} className="flex gap-2">
-                        <Input
-                            value={userInput}
-                            onChange={(e) => setUserInput(e.target.value)}
-                            placeholder="Type your response..."
-                            disabled={isLoading}
-                        />
-                        <Button type="submit" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send'}
-                        </Button>
-                    </form>
-                </div>
-            </Card>
-        </div>
-    );
+  return (
+    <ChatInterface
+      messages={messages}
+      onSendMessage={handleSendMessage}
+      onActionClick={handleActionClick}
+      isLoading={isLoading}
+      chatHistory={[]} // Placeholder for now
+      onNewConversation={handleNewConversation}
+      onNavigateToDashboard={onOnboardingComplete}
+      inputPlaceholder={inputPlaceholder}
+      actions={actions}
+    />
+  );
 };
 
 export default OnboardingFlow;
