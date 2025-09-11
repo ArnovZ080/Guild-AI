@@ -1,6 +1,11 @@
 """
 Enhanced Agent Prompts for Guild-AI
 
+⚠️  DEPRECATED: This module is deprecated as of the comprehensive agent update.
+Individual agent files now contain superior structured prompts with advanced
+features including dynamic context injection, RAG integration, and robust
+error handling. This file is kept for historical reference only.
+
 This module contains refined, high-performance agent prompts based on proven
 strategies from commercial LLM systems and best practices in prompt engineering.
 """
