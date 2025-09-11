@@ -100,7 +100,7 @@ const OAuthConnections = () => {
       default:
         return '☁️';
     }
-  };
+  }
 
   const getProviderDescription = (name) => {
     switch (name.toLowerCase()) {
@@ -242,7 +242,5 @@ const OAuthConnections = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-export default OAuthConnections;
+  )
+}
