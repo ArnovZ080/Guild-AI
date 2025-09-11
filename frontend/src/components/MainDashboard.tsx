@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BusinessPulseMonitor } from './BusinessPulseMonitor';
-import { AgentActivityTheater } from './AgentActivityTheater';
+import AgentActivityTheaterView from './theater/AgentActivityTheaterView';
 import { FinancialFlowVisualization } from './FinancialFlowVisualization';
 import { CustomerJourneyConstellation } from './CustomerJourneyConstellation';
 import { ProgressMomentumTracker } from './ProgressMomentumTracker';
@@ -29,7 +29,7 @@ export const MainDashboard: React.FC = () => {
   const renderWidget = (widget: Widget) => {
     const components = {
       BusinessPulseMonitor: <BusinessPulseMonitor />,
-      AgentActivityTheater: <AgentActivityTheater />,
+      AgentActivityTheater: <AgentActivityTheaterView />,
       FinancialFlowVisualization: <FinancialFlowVisualization />,
       CustomerJourneyConstellation: <CustomerJourneyConstellation />,
       ProgressMomentumTracker: <ProgressMomentumTracker />,
@@ -156,7 +156,7 @@ export const MainDashboard: React.FC = () => {
 
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-xl font-semibold mb-6 text-gray-800">Agent Management</h3>
-              <AgentActivityTheater />
+              <AgentActivityTheaterView />
             </div>
           </motion.div>
         )}
