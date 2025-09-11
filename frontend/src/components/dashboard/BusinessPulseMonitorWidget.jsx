@@ -28,10 +28,7 @@ const BusinessPulseMonitorWidget = () => {
   }, []);
 
   return (
-    <div className="p-6 rounded-2xl relative overflow-hidden" style={{
-      background: 'linear-gradient(to bottom right, #111827, #1f2937, #111827)',
-      color: 'white'
-    }}>
+    <div className="p-6 rounded-2xl relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800 text-white">
       {/* Ambient background particles */}
       <div className="absolute inset-0 overflow-hidden">
         {Array.from({ length: 20 }).map((_, i) => (
@@ -107,8 +104,7 @@ const BusinessPulseMonitorWidget = () => {
           {pulseData.activities.map((activity, index) => (
             <motion.div
               key={activity.type}
-              className="flex items-center p-2 rounded-lg"
-            style={{ backgroundColor: 'rgba(31, 41, 55, 0.5)' }}
+              className="flex items-center p-2 rounded-lg bg-slate-800/50"
               whileHover={{ scale: 1.02 }}
             >
               <motion.div
