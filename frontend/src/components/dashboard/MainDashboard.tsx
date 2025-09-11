@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { BusinessPulseMonitor } from './BusinessPulseMonitor';
-import AgentActivityTheaterView from './theater/AgentActivityTheaterView';
-import { FinancialFlowVisualization } from './FinancialFlowVisualization';
-import { CustomerJourneyConstellation } from './CustomerJourneyConstellation';
-import { ProgressMomentumTracker } from './ProgressMomentumTracker';
-import { AchievementCelebration } from './AchievementCelebration';
-import { StressReductionInterface } from './StressReductionInterface';
+import { AgentActivityTheater } from '../theater/AgentActivityTheater';
+import { FinancialFlowVisualization } from '../visualizations/FinancialFlowVisualization';
+import { CustomerJourneyConstellation } from '../visualizations/CustomerJourneyConstellation';
+import { ProgressMomentumTracker } from '../visualizations/ProgressMomentumTracker';
+import { AchievementCelebration } from '../psychological/AchievementCelebration';
+import { StressReductionInterface } from '../psychological/StressReductionInterface';
 
 interface Widget {
   id: string;
@@ -29,7 +29,7 @@ export const MainDashboard: React.FC = () => {
   const renderWidget = (widget: Widget) => {
     const components = {
       BusinessPulseMonitor: <BusinessPulseMonitor />,
-      AgentActivityTheater: <AgentActivityTheaterView />,
+      AgentActivityTheater: <AgentActivityTheater />,
       FinancialFlowVisualization: <FinancialFlowVisualization />,
       CustomerJourneyConstellation: <CustomerJourneyConstellation />,
       ProgressMomentumTracker: <ProgressMomentumTracker />,
@@ -156,7 +156,7 @@ export const MainDashboard: React.FC = () => {
 
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-xl font-semibold mb-6 text-gray-800">Agent Management</h3>
-              <AgentActivityTheaterView />
+              <AgentActivityTheater />
             </div>
           </motion.div>
         )}
