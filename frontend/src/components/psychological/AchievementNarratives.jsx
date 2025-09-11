@@ -14,7 +14,7 @@ import {
   Crown,
   Sparkles
 } from 'lucide-react';
-import { cn } from '../../utils';
+import { cn } from '@/utils';
 
 // Achievement Types and Categories
 export const AchievementTypes = {
