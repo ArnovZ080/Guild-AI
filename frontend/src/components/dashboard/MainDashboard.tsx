@@ -47,6 +47,7 @@ export const MainDashboard: React.FC = () => {
           actionTheater={<AgentActivityTheater />}
           opportunityHorizon={<OpportunityRadar />}
         />
+
       </div>
     </div>
   );
