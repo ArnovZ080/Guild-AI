@@ -1,175 +1,53 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BusinessPulseMonitor } from './BusinessPulseMonitor';
-import { AgentActivityTheater } from '../theater/AgentActivityTheater';
-import { FinancialFlowVisualization } from '../visualizations/FinancialFlowVisualization';
-import { CustomerJourneyConstellation } from '../visualizations/CustomerJourneyConstellation';
-import { ProgressMomentumTracker } from '../visualizations/ProgressMomentumTracker';
-import { AchievementCelebration } from '../psychological/AchievementCelebration';
-import { StressReductionInterface } from '../psychological/StressReductionInterface';
-
-interface Widget {
-  id: string;
-  component: string;
-  title: string;
-  size: 'small' | 'medium' | 'large';
-  position: { x: number; y: number };
-}
+import DashboardLayout from '../layouts/DashboardLayout.jsx';
+import CommandCenter from './CommandCenter.jsx';
+import { AgentActivityTheater } from '../theater/AgentActivityTheater.tsx';
+import OpportunityRadar from '../visualizations/OpportunityRadar.jsx';
+import { useCelebrations } from '../psychological/MicroCelebrations.jsx';
 
 export const MainDashboard: React.FC = () => {
-  const [widgets, setWidgets] = useState<Widget[]>([
-    { id: '1', component: 'BusinessPulseMonitor', title: 'Business Pulse', size: 'medium', position: { x: 0, y: 0 } },
-    { id: '2', component: 'AgentActivityTheater', title: 'Agent Activity', size: 'large', position: { x: 1, y: 0 } },
-    { id: '3', component: 'FinancialFlowVisualization', title: 'Financial Flow', size: 'large', position: { x: 0, y: 1 } },
-    { id: '4', component: 'ProgressMomentumTracker', title: 'Momentum', size: 'medium', position: { x: 2, y: 0 } },
-  ]);
+  const { triggerCelebration } = useCelebrations();
 
-  const [selectedZone, setSelectedZone] = useState<'overview' | 'detail' | 'action'>('overview');
-
-  const renderWidget = (widget: Widget) => {
-    const components = {
-      BusinessPulseMonitor: <BusinessPulseMonitor />,
-      AgentActivityTheater: <AgentActivityTheater />,
-      FinancialFlowVisualization: <FinancialFlowVisualization />,
-      CustomerJourneyConstellation: <CustomerJourneyConstellation />,
-      ProgressMomentumTracker: <ProgressMomentumTracker />,
-      AchievementCelebration: <AchievementCelebration />,
-      StressReductionInterface: <StressReductionInterface />,
-    };
-
-    return components[widget.component as keyof typeof components] || <div>Widget not found</div>;
-  };
-
-  const getWidgetSize = (size: string) => {
-    const sizes = {
-      small: 'col-span-1 row-span-1',
-      medium: 'col-span-2 row-span-1',
-      large: 'col-span-3 row-span-2'
-    };
-    return sizes[size as keyof typeof sizes];
-  };
+  useEffect(() => {
+    if (triggerCelebration) {
+      triggerCelebration('MILESTONE', {
+        message: "Dashboard loaded! Ready to grow your business! 🚀"
+      });
+    }
+  }, [triggerCelebration]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Guild AI Dashboard</h1>
-            <p className="text-gray-600">Your AI workforce at a glance</p>
-          </div>
-
-          {/* Zone Selector */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            {['overview', 'detail', 'action'].map((zone) => (
-              <button
-                key={zone}
-                onClick={() => setSelectedZone(zone as any)}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all capitalize ${
-                  selectedZone === zone
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {zone}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="p-6">
-        {selectedZone === 'overview' && (
+    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        {Array.from({ length: 20 }).map((_, i) => (
           <motion.div
-            className="grid grid-cols-6 gap-6 auto-rows-fr"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            {widgets.map((widget) => (
-              <motion.div
-                key={widget.id}
-                className={`bg-white rounded-lg shadow-lg p-6 ${getWidgetSize(widget.size)}`}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 300 }}
-              >
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">{widget.title}</h3>
-                {renderWidget(widget)}
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {selectedZone === 'detail' && (
-          <motion.div
-            className="space-y-6"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Detailed Analytics</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <FinancialFlowVisualization />
-                <CustomerJourneyConstellation />
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Performance Tracking</h3>
-              <ProgressMomentumTracker />
-            </div>
-          </motion.div>
-        )}
-
-        {selectedZone === 'action' && (
-          <motion.div
-            className="space-y-6"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Quick Actions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <button className="p-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                  🚀 Launch Campaign
-                </button>
-                <button className="p-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-                  📊 Generate Report
-                </button>
-                <button className="p-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
-                  🎯 Set Goals
-                </button>
-                <button className="p-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                  🔍 Research Market
-                </button>
-                <button className="p-4 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors">
-                  ✍️ Create Content
-                </button>
-                <button className="p-4 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors">
-                  📈 Analyze Performance
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-xl font-semibold mb-6 text-gray-800">Agent Management</h3>
-              <AgentActivityTheater />
-            </div>
-          </motion.div>
-        )}
-      </main>
-
-      {/* Floating Achievement System */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <AchievementCelebration />
+            key={i}
+            className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-20"
+            animate={{
+              y: [0, -100, 0],
+              opacity: [0.2, 0.6, 0.2]
+            }}
+            transition={{
+              duration: 4 + Math.random() * 2,
+              repeat: Infinity,
+              delay: Math.random() * 2
+            }}
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`
+            }}
+          />
+        ))}
       </div>
 
-      {/* Stress Monitor (appears when needed) */}
-      <div className="fixed top-20 right-4 z-40">
-        <StressReductionInterface />
+      <div className="relative z-10">
+        <DashboardLayout
+          commandCenter={<CommandCenter />}
+          actionTheater={<AgentActivityTheater />}
+          opportunityHorizon={<OpportunityRadar />}
+        />
+
       </div>
     </div>
   );
