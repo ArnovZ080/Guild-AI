@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Star, Sparkles, Heart, Zap, Trophy } from 'lucide-react';
-import { cn } from '@/utils';
+import { cn } from '../../lib/utils';
 
 // Celebration Types
 export const CelebrationType = {

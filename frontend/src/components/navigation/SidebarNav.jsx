@@ -14,7 +14,7 @@ import {
   FileText,
   Sparkles
 } from 'lucide-react';
-import { cn } from '../../utils';
+import { cn } from '../../lib/utils';
 import { useAdaptiveMode } from '../adaptive/AdaptiveModeContext';
 
 const navigationItems = [
