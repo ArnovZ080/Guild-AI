@@ -235,12 +235,12 @@ class SkillDevelopmentAgent(Agent):
             self.skill_assessments = {}
         else:
             # Legacy initialization for backward compatibility
-        super().__init__(
-            "Skill Development & Learning Agent",
-            "Identifies solo-founder's skill gaps and curates a personalized learning plan.",
-            user_input,
-            callback=callback
-        )
+            super().__init__(
+                "Skill Development & Learning Agent",
+                "Identifies solo-founder's skill gaps and curates a personalized learning plan.",
+                user_input,
+                callback=callback
+            )
             self.agent_name = "Skill Development Agent"
             self.agent_type = "Learning & Development"
             self.capabilities = [
