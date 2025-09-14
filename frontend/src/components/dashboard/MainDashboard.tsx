@@ -8,6 +8,7 @@ import { useCelebrations } from '../psychological/MicroCelebrations.jsx';
 import { AchievementCelebration } from '../psychological/AchievementCelebration.tsx';
 import { StressReductionInterface } from '../psychological/StressReductionInterface.tsx';
 
+
 export const MainDashboard: React.FC = () => {
   const { triggerCelebration } = useCelebrations();
 
@@ -19,6 +20,7 @@ export const MainDashboard: React.FC = () => {
           message: "Dashboard loaded! Ready to grow your business! 🚀"
         });
       }, 1000);
+
     }
   }, [triggerCelebration]);
 
@@ -37,5 +39,6 @@ export const MainDashboard: React.FC = () => {
         <StressReductionInterface />
       </div>
     </>
+
   );
 };

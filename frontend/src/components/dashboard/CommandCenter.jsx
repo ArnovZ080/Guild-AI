@@ -1,6 +1,10 @@
 import React from 'react';
 // Correctly import default and named exports
+// Correctly import default and named exports
 import ContentPerformanceGarden from '../visualizations/ContentPerformanceGarden.jsx';
+import OpportunityRadar from '../visualizations/OpportunityRadar.jsx';
+import { CustomerJourneyConstellation } from '../visualizations/CustomerJourneyConstellation.tsx';
+import { ProgressMomentumTracker } from '../visualizations/ProgressMomentumTracker.tsx';
 import OpportunityRadar from '../visualizations/OpportunityRadar.jsx';
 import { CustomerJourneyConstellation } from '../visualizations/CustomerJourneyConstellation.tsx';
 import { ProgressMomentumTracker } from '../visualizations/ProgressMomentumTracker.tsx';

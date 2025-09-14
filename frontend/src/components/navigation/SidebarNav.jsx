@@ -185,7 +185,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
 
   return (
     <motion.div
-      className="fixed left-0 top-0 h-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-white/20 dark:border-slate-700/20 z-50 shadow-2xl"
+      className="fixed left-0 top-0 h-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 z-50 shadow-xl"
       variants={sidebarVariants}
       animate={expanded ? "expanded" : "collapsed"}
       onHoverStart={() => !expanded && onExpandedChange(true)}
@@ -194,7 +194,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
       <div className="flex flex-col h-full">
         {/* Logo/Brand Area */}
         <motion.div 
-          className="p-4 border-b border-white/10 dark:border-slate-700/20"
+          className="p-4 border-b border-gray-200 dark:border-gray-700"
           layout
         >
           <motion.div
@@ -388,7 +388,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
 
         {/* Mode Indicator */}
         <motion.div 
-          className="p-4 border-t border-white/10 dark:border-slate-700/20"
+          className="p-4 border-t border-gray-200 dark:border-gray-700"
           layout
         >
           <AnimatePresence>

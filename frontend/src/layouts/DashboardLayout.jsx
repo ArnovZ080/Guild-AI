@@ -18,6 +18,7 @@ const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) =
         return `${baseClasses} from-forest-mist via-forest-spring to-forest-growth dark:from-forest-shadow dark:via-emerald-950 dark:to-teal-950`;
       case 'evening':
         return `${baseClasses} from-amber-200 via-orange-300 to-rose-300 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950`;
+
       default:
         return `${baseClasses} from-gray-50 via-slate-50 to-zinc-50 dark:from-slate-900 dark:via-slate-950 dark:to-zinc-950`;
     }
@@ -54,6 +55,7 @@ const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) =
         {/* Zone 1: Command Center (Top Third) */}
         <motion.header
           className="command-center p-6"
+
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
@@ -70,6 +72,7 @@ const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) =
                 currentMode === 'morning' && "text-sky-night dark:text-sky-dawn",
                 currentMode === 'active' && "text-forest-deep dark:text-forest-spring",
                 currentMode === 'evening' && "text-orange-900 dark:text-amber-200"
+
               )}>
                 {currentMode === 'morning' && "Good Morning - Your Business Awaits"}
                 {currentMode === 'active' && "Active Management - Full Speed Ahead"}
@@ -102,6 +105,7 @@ const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) =
         {/* Zone 2: Action Theater (Middle Third) */}
         <motion.main
           className="action-theater flex-1 overflow-auto"
+
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
@@ -122,6 +126,7 @@ const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) =
         {/* Zone 3: Opportunity Horizon (Bottom Third) */}
         <motion.footer
           className="opportunity-horizon"
+
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
@@ -137,7 +142,7 @@ const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) =
           </div>
         </motion.footer>
       </motion.div>
-    </div>
+
   );
 };
 

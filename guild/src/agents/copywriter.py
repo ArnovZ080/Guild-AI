@@ -174,12 +174,12 @@ class Copywriter(Agent):
             ]
         else:
             # Legacy initialization for backward compatibility
-        super().__init__(
-            "Copywriter",
-            "Writes compelling copy based on a content strategy.",
-            user_input,
-            callback=callback
-        )
+            super().__init__(
+                "Copywriter",
+                "Writes compelling copy based on a content strategy.",
+                user_input,
+                callback=callback
+            )
             self.agent_name = "Copywriter Agent"
             self.agent_type = "Content & Marketing"
             self.capabilities = [
@@ -338,7 +338,7 @@ class Copywriter(Agent):
     async def run_legacy(self, knowledge: str | None = None) -> str:
         """Legacy run method for backward compatibility."""
         if hasattr(self, '_send_start_callback'):
-        self._send_start_callback()
+            self._send_start_callback()
         logger.info(f"Running Copywriter agent for objective: {getattr(self.user_input, 'objective', 'General copywriting')}")
 
         prompt = PROMPT_TEMPLATE.format(
@@ -352,11 +352,11 @@ class Copywriter(Agent):
             self._send_llm_start_callback(prompt, "ollama", "tinyllama")
         response = await self.llm_client.chat(prompt)
         if hasattr(self, '_send_llm_end_callback'):
-        self._send_llm_end_callback(response)
+            self._send_llm_end_callback(response)
 
         logger.info(f"Copywriter agent finished. Output: {response}")
         if hasattr(self, '_send_end_callback'):
-        self._send_end_callback(response)
+            self._send_end_callback(response)
         return response
 
 if __name__ == '__main__':

@@ -35,7 +35,6 @@
     ]
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^18.19.124",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",

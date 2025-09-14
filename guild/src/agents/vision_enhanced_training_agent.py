@@ -210,12 +210,12 @@ class VisionEnhancedTrainingAgent(Agent):
             self.demonstrations_recorded = []
         else:
             # Legacy initialization for backward compatibility
-        super().__init__(
-            "Vision-Enhanced Training Agent",
-            "Creates visual SOPs and learns from demonstrations using computer vision.",
-            user_input,
-            callback=callback
-        )
+            super().__init__(
+                "Vision-Enhanced Training Agent",
+                "Creates visual SOPs and learns from demonstrations using computer vision.",
+                user_input,
+                callback=callback
+            )
             self.agent_name = "Vision Enhanced Training Agent"
             self.agent_type = "Training & Vision"
             self.capabilities = [

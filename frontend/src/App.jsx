@@ -3,6 +3,7 @@ import { AdaptiveModeProvider } from './components/adaptive/AdaptiveModeContext.
 import { CelebrationProvider } from './components/psychological/MicroCelebrations.jsx';
 import { MainDashboard } from './components/dashboard/MainDashboard.tsx';
 import './App.css';
+import './index.css';
 
 function App() {
   return (

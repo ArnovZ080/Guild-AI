@@ -15,6 +15,7 @@ def run_verification():
         # Give a little extra time for animations to settle
         page.wait_for_timeout(2000) # Increased wait time
 
+
         # Take a screenshot of the entire page
         screenshot_path = "jules-scratch/verification/verification.png"
         page.screenshot(path=screenshot_path)
