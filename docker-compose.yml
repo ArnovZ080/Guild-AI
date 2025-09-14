@@ -1,0 +1,229 @@
+services:
+  # API Server (FastAPI)
+  backend:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    ports:
+      - "5001:5000"
+    command: uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000
+    env_file:
+      - .env.dev
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=workflow_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+      - LLM_PROVIDER=ollama
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=http://localhost:5001/api/oauth/gdrive/callback
+      - FASTAPI_SECRET_KEY=${FASTAPI_SECRET_KEY}
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5001
+    depends_on:
+      - db
+      - minio
+      - qdrant
+      - redis
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+      - ./api_server/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: workflow_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 90s
+
+  # MinIO (Object Storage)
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - .env.dev
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Qdrant (Vector Database)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: guild-ai-qdrant-1
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # Redis (Caching and Task Queue)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Log Aggregation - Loki
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+
+  # Log Collection - Promtail
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./monitoring/promtail.yml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - ./api_server/logs:/app/logs:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    restart: unless-stopped
+      
+  # Celery Worker (Task Processing)
+  celery:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    command: celery -A api_server.src.celery_app.celery worker --loglevel=info
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=workflow_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+      
+  # Celery Beat (Scheduled Tasks)
+  celery-beat:
+    build:
+      context: .
+      dockerfile: ./api_server/Dockerfile
+    command: >
+      sh -c "
+      cd /app/api_server &&
+      python src/manage.py migrate &&
+      celery -A src.celery_app.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      "
+    volumes:
+      - ./api_server:/app/api_server
+      - ./guild:/app/guild
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=workflow_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+      - db
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
+  qdrant_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  loki_data:
+
+networks:
+  default:
+    driver: bridge

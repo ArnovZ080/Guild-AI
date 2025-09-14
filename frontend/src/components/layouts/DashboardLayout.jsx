@@ -10,17 +10,17 @@ const DashboardLayout = ({ children, commandCenter, actionTheater, opportunityHo
 
   // Dynamic layout adjustments based on adaptive mode
   const getLayoutClasses = () => {
-    const baseClasses = "min-h-screen bg-gradient-to-br transition-all duration-1000";
+    const baseClasses = "min-h-screen transition-all duration-1000";
     
     switch (currentMode) {
       case 'morning':
-        return `${baseClasses} from-sky-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-950 dark:to-indigo-950`;
+        return `${baseClasses} bg-gradient-dawn`;
       case 'active':
-        return `${baseClasses} from-emerald-50 via-teal-50 to-cyan-50 dark:from-slate-900 dark:via-emerald-950 dark:to-teal-950`;
+        return `${baseClasses} bg-gradient-growth`;
       case 'evening':
-        return `${baseClasses} from-amber-50 via-orange-50 to-rose-50 dark:from-slate-900 dark:via-amber-950 dark:to-orange-950`;
+        return `${baseClasses} bg-gradient-to-br from-earth-sand via-warning-warm to-warning-glow dark:from-amber-900 dark:via-orange-950 dark:to-rose-950`;
       default:
-        return `${baseClasses} from-gray-50 via-slate-50 to-zinc-50 dark:from-slate-900 dark:via-slate-950 dark:to-zinc-950`;
+        return `${baseClasses} bg-gradient-calm`;
     }
   };
 
