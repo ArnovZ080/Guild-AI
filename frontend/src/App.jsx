@@ -18,6 +18,7 @@ import VoiceView from './views/VoiceView.jsx';
 import OnboardingView from './views/OnboardingView.jsx';
 import ConnectorsView from './views/ConnectorsView.jsx';
 import GrowthView from './views/GrowthView.jsx';
+import AchievementsView from './views/AchievementsView.jsx';
 import './App.css';
 import './index.css';
 
@@ -114,7 +115,7 @@ function App() {
         } />
             <Route path="/achievements" element={
               <DashboardLayout>
-                <ComingSoonView title="Achievements" description="Milestone tracking and celebrations coming soon" />
+                <AchievementsView />
               </DashboardLayout>
             } />
             <Route path="/growth" element={
