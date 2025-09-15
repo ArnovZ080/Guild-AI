@@ -124,10 +124,176 @@ const mockGoals = [
   }
 ];
 
+// Goal Card Component
+const GoalCard = ({ goal, onClick }) => {
+  const daysRemaining = Math.ceil((goal.targetDate - new Date()) / (1000 * 60 * 60 * 24));
+  
+  return (
+    <motion.div
+      className="bg-white rounded-lg shadow-lg p-6 cursor-pointer hover:shadow-xl transition-shadow"
+      onClick={() => onClick(goal)}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">{goal.title}</h3>
+        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getGoalTypeStyle(goal.type)}`}>
+          {goal.type}
+        </span>
+      </div>
+      
+      <p className="text-gray-600 text-sm mb-4">{goal.description}</p>
+      
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">Progress</span>
+          <span className="font-medium">{goal.progress}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${goal.progress}%` }}
+          />
+        </div>
+      </div>
+      
+      <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
+        <span>{daysRemaining} days left</span>
+        <span className="capitalize">{goal.status}</span>
+      </div>
+    </motion.div>
+  );
+};
+
+// Goal Detail Modal Component
+const GoalDetailModal = ({ goal, isOpen, onClose, onEdit, onUpdateProgress, onAIInsights }) => {
+  if (!isOpen || !goal) return null;
+  
+  const daysRemaining = Math.ceil((goal.targetDate - new Date()) / (1000 * 60 * 60 * 24));
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">{goal.title}</h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="space-y-6">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+              <p className="text-gray-600">{goal.description}</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Type</h4>
+                <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getGoalTypeStyle(goal.type)}`}>
+                  {goal.type}
+                </span>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">Priority</h4>
+                <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                  goal.priority === 'high' ? 'bg-red-100 text-red-800' :
+                  goal.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  {goal.priority}
+                </span>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Progress</h4>
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 bg-gray-200 rounded-full h-3">
+                  <div 
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                    style={{ width: `${goal.progress}%` }}
+                  />
+                </div>
+                <span className="text-sm font-medium text-gray-900">{goal.progress}%</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{goal.metrics.current}</div>
+                <div className="text-sm text-gray-500">Current</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{goal.metrics.target}</div>
+                <div className="text-sm text-gray-500">Target</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-900">{daysRemaining}</div>
+                <div className="text-sm text-gray-500">Days Left</div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 mb-3">Milestones</h4>
+              <div className="space-y-2">
+                {goal.milestones.map(milestone => (
+                  <div key={milestone.id} className="flex items-center space-x-3">
+                    {milestone.completed ? (
+                      <CheckCircle className="w-5 h-5 text-green-500" />
+                    ) : (
+                      <Clock className="w-5 h-5 text-gray-400" />
+                    )}
+                    <span className={`text-sm ${milestone.completed ? 'text-green-700 line-through' : 'text-gray-700'}`}>
+                      {milestone.title}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {milestone.dueDate.toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-8 flex space-x-3">
+            <button
+              onClick={() => onEdit(goal)}
+              className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Edit className="w-4 h-4" />
+              <span>Edit Goal</span>
+            </button>
+            <button
+              onClick={() => onUpdateProgress(goal)}
+              className="flex-1 flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Update Progress</span>
+            </button>
+            <button
+              onClick={() => onAIInsights(goal)}
+              className="flex-1 flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              <Brain className="w-4 h-4" />
+              <span>AI Insights</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const GoalsView = () => {
   const [goals, setGoals] = useState(mockGoals);
-  const [selectedGoal, setSelectedGoal] = useState(null);
   const [showAddGoal, setShowAddGoal] = useState(false);
+  const [showGoalDetailModal, setShowGoalDetailModal] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState(null);
   const [filterType, setFilterType] = useState('all');
   const [filterTimeframe, setFilterTimeframe] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -147,22 +313,38 @@ const GoalsView = () => {
   const [goalClarification, setGoalClarification] = useState({});
   const { triggerCelebration } = useCelebrations();
 
-  // Handler functions for goal modal buttons
+  // Goal detail modal handlers
+  const handleGoalClick = (goal) => {
+    setSelectedGoal(goal);
+    setShowGoalDetailModal(true);
+  };
+
   const handleEditGoal = (goal) => {
     console.log('Editing goal:', goal.title);
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Opening goal editor for "${goal.title}"... ✏️`,
+      message: `Editing goal: ${goal.title} ✏️`,
       intensity: 'normal'
     });
-    // In real implementation, this would open the goal editor
+    // In real implementation, this would open an edit form
   };
 
   const handleUpdateProgress = (goal) => {
     console.log('Updating progress for goal:', goal.title);
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Updating progress for "${goal.title}"... 📈`,
+      message: `Updating progress for: ${goal.title} 📊`,
       intensity: 'normal'
     });
+    // In real implementation, this would open a progress update form
+  };
+
+  const handleAIInsights = (goal) => {
+    console.log('Getting AI insights for goal:', goal.title);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `AI insights generated for: ${goal.title} 🤖`,
+      intensity: 'high'
+    });
+    // In real implementation, this would trigger AI analysis
+  };
     // In real implementation, this would open the progress update modal
   };
 
@@ -690,13 +872,20 @@ const GoalsView = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
           {filteredGoals.map(goal => (
-            <GoalCard key={goal.id} goal={goal} />
+            <GoalCard key={goal.id} goal={goal} onClick={handleGoalClick} />
           ))}
         </AnimatePresence>
       </div>
 
       {/* Goal Detail Modal */}
-      <GoalDetailModal />
+      <GoalDetailModal 
+        goal={selectedGoal}
+        isOpen={showGoalDetailModal}
+        onClose={() => setShowGoalDetailModal(false)}
+        onEdit={handleEditGoal}
+        onUpdateProgress={handleUpdateProgress}
+        onAIInsights={handleAIInsights}
+      />
 
       {/* Add Goal Modal with Agent Clarification */}
       {showAddGoal && (

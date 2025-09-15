@@ -95,6 +95,48 @@ const allAgents = [
   { id: '52', name: 'Sustainability Agent', category: 'sustainability', type: 'management', status: 'active', capabilities: ['Sustainability tracking', 'ESG reporting', 'Environmental impact'], description: 'Sustainability tracking and ESG reporting' }
 ];
 
+// Generate agent-specific activity data
+const getAgentActivityData = (agent) => {
+  const baseActivities = {
+    'Research Agent': [
+      { id: 1, action: 'Scraped competitor websites', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Analyzed pricing and features from 12 competitor websites', websites: ['competitor1.com', 'competitor2.com', 'competitor3.com'] },
+      { id: 2, action: 'Generated market analysis report', timestamp: '2024-01-15 13:45', status: 'completed', details: 'Created comprehensive market analysis with 25 data points', reportType: 'market-analysis', pages: 15 },
+      { id: 3, action: 'Updated lead database', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Enriched 150 customer profiles with additional data', recordsUpdated: 150 },
+      { id: 4, action: 'Analyzed social media trends', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Monitored 8 platforms for trending topics', platforms: ['Twitter', 'LinkedIn', 'Facebook', 'Instagram'] },
+      { id: 5, action: 'Researching new opportunities', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Currently analyzing emerging market trends...', progress: 65 }
+    ],
+    'Marketing Agent': [
+      { id: 1, action: 'Created ad campaign variations', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Generated 5 ad variations for Q1 campaign', variations: 5, platforms: ['Google Ads', 'Facebook', 'LinkedIn'] },
+      { id: 2, action: 'Optimized landing pages', timestamp: '2024-01-15 13:45', status: 'completed', details: 'A/B tested 3 landing page variations', pagesOptimized: 3, conversionImprovement: '12%' },
+      { id: 3, action: 'Scheduled social media content', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Scheduled 8 posts across 3 platforms', postsScheduled: 8, platforms: ['Twitter', 'LinkedIn', 'Instagram'] },
+      { id: 4, action: 'Analyzed campaign performance', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Generated performance report for last week', campaignsAnalyzed: 3, avgROI: '340%' },
+      { id: 5, action: 'Creating email sequence', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Building automated email sequence for new leads...', emailsCreated: 3, totalEmails: 7 }
+    ],
+    'Sales Agent': [
+      { id: 1, action: 'Qualified 15 new leads', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Contacted and qualified 15 leads from marketing campaign', leadsQualified: 15, conversionRate: '23%' },
+      { id: 2, action: 'Scheduled 8 demo calls', timestamp: '2024-01-15 13:45', status: 'completed', details: 'Booked demo calls with qualified prospects', demosScheduled: 8, avgValue: '$2,500' },
+      { id: 3, action: 'Followed up with prospects', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Sent personalized follow-up emails to 25 prospects', emailsSent: 25, responseRate: '18%' },
+      { id: 4, action: 'Updated CRM records', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Updated 40 customer records with latest interactions', recordsUpdated: 40 },
+      { id: 5, action: 'Preparing proposal', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Creating custom proposal for Enterprise Solutions Inc...', proposalValue: '$45,000', completion: 80 }
+    ],
+    'Content Agent': [
+      { id: 1, action: 'Published blog post', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Published "AI Trends 2024" blog post', wordCount: 1200, views: 2340, shares: 89 },
+      { id: 2, action: 'Created social media graphics', timestamp: '2024-01-15 13:45', status: 'completed', details: 'Designed 6 social media graphics for campaign', graphicsCreated: 6, platforms: ['Instagram', 'LinkedIn', 'Twitter'] },
+      { id: 3, action: 'Wrote email newsletter', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Created weekly newsletter for 2,500 subscribers', subscribers: 2500, openRate: '24%' },
+      { id: 4, action: 'Updated website content', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Updated product descriptions and pricing pages', pagesUpdated: 5 },
+      { id: 5, action: 'Writing case study', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Creating case study for TechCorp Solutions...', wordCount: 800, targetWords: 1500 }
+    ]
+  };
+
+  return baseActivities[agent.name] || [
+    { id: 1, action: 'Processing data', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Completed data processing task' },
+    { id: 2, action: 'Generating report', timestamp: '2024-01-15 13:45', status: 'completed', details: 'Generated automated report' },
+    { id: 3, action: 'Updating systems', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Updated system configurations' },
+    { id: 4, action: 'Monitoring performance', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Monitored system performance metrics' },
+    { id: 5, action: 'Running analysis', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Currently running data analysis...' }
+  ];
+};
+
 const AgentsView = () => {
   const { agents, loading } = useAgentStatus();
   const [searchTerm, setSearchTerm] = useState('');
@@ -645,14 +687,8 @@ const AgentsView = () => {
               </div>
 
               <div className="space-y-4">
-                {/* Mock activity data */}
-                {[
-                  { id: 1, action: 'Generated marketing campaign', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Created 5 ad variations for Q1 campaign' },
-                  { id: 2, action: 'Analyzed competitor data', timestamp: '2024-01-15 13:45', status: 'completed', details: 'Scraped and analyzed 12 competitor websites' },
-                  { id: 3, action: 'Updated customer database', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Enriched 150 customer profiles with additional data' },
-                  { id: 4, action: 'Scheduled social media posts', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Scheduled 8 posts across 3 platforms' },
-                  { id: 5, action: 'Generated financial report', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Processing Q4 financial data...' }
-                ].map(activity => (
+                {/* Agent-specific activity data */}
+                {getAgentActivityData(selectedAgent).map(activity => (
                   <div key={activity.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-gray-900">{activity.action}</h3>
@@ -668,6 +704,72 @@ const AgentsView = () => {
                       </div>
                     </div>
                     <p className="text-gray-600 text-sm mb-3">{activity.details}</p>
+                    
+                    {/* Additional Activity Details */}
+                    {activity.websites && (
+                      <div className="mb-3">
+                        <p className="text-xs text-gray-500 mb-1">Websites analyzed:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {activity.websites.map((site, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
+                              {site}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {activity.platforms && (
+                      <div className="mb-3">
+                        <p className="text-xs text-gray-500 mb-1">Platforms:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {activity.platforms.map((platform, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
+                              {platform}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {(activity.leadsQualified || activity.demosScheduled || activity.recordsUpdated) && (
+                      <div className="mb-3 grid grid-cols-2 gap-2 text-xs">
+                        {activity.leadsQualified && (
+                          <div className="bg-blue-50 p-2 rounded">
+                            <span className="font-medium text-blue-800">Leads Qualified:</span>
+                            <span className="text-blue-600 ml-1">{activity.leadsQualified}</span>
+                          </div>
+                        )}
+                        {activity.demosScheduled && (
+                          <div className="bg-green-50 p-2 rounded">
+                            <span className="font-medium text-green-800">Demos Scheduled:</span>
+                            <span className="text-green-600 ml-1">{activity.demosScheduled}</span>
+                          </div>
+                        )}
+                        {activity.recordsUpdated && (
+                          <div className="bg-purple-50 p-2 rounded">
+                            <span className="font-medium text-purple-800">Records Updated:</span>
+                            <span className="text-purple-600 ml-1">{activity.recordsUpdated}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {activity.progress && (
+                      <div className="mb-3">
+                        <div className="flex justify-between text-xs text-gray-600 mb-1">
+                          <span>Progress</span>
+                          <span>{activity.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${activity.progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => {

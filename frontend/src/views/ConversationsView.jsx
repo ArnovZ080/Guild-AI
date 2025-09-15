@@ -152,6 +152,7 @@ const mockConversations = [
 const ConversationsView = () => {
   const [conversations, setConversations] = useState(mockConversations);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [showConversationModal, setShowConversationModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -161,6 +162,48 @@ const ConversationsView = () => {
   const [filterDateRange, setFilterDateRange] = useState('all');
   const [sortBy, setSortBy] = useState('lastActivity');
   const { triggerCelebration } = useCelebrations();
+
+  // Conversation modal handlers
+  const handleConversationClick = (conversation) => {
+    setSelectedConversation(conversation);
+    setShowConversationModal(true);
+  };
+
+  const handleReply = (conversation) => {
+    console.log('Replying to conversation:', conversation.id);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Replying to: ${conversation.subject} 💬`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would open a reply form
+  };
+
+  const handleStar = (conversation) => {
+    console.log('Starring conversation:', conversation.id);
+    setConversations(prev => prev.map(conv => 
+      conv.id === conversation.id 
+        ? { ...conv, starred: !conv.starred }
+        : conv
+    ));
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: conversation.starred ? 'Unstarred conversation' : 'Starred conversation ⭐',
+      intensity: 'normal'
+    });
+  };
+
+  const handleArchive = (conversation) => {
+    console.log('Archiving conversation:', conversation.id);
+    setConversations(prev => prev.map(conv => 
+      conv.id === conversation.id 
+        ? { ...conv, status: 'archived' }
+        : conv
+    ));
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Archived: ${conversation.subject} 📁`,
+      intensity: 'normal'
+    });
+    setShowConversationModal(false);
+  };
 
   // Handler functions for conversation modal buttons
   const handleReply = (conversation) => {

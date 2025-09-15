@@ -21,6 +21,7 @@ interface Task {
 }
 
 export const AgentActivityTheater: React.FC = () => {
+  const [hoveredAgent, setHoveredAgent] = useState<Agent | null>(null);
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: 'research-1',
@@ -188,6 +189,8 @@ export const AgentActivityTheater: React.FC = () => {
               repeat: agent.status === 'working' ? Infinity : 0,
             }}
             whileHover={{ scale: 1.2 }}
+            onMouseEnter={() => setHoveredAgent(agent)}
+            onMouseLeave={() => setHoveredAgent(null)}
           >
             {/* Agent Avatar with Personality */}
             <div className="relative">
@@ -267,6 +270,66 @@ export const AgentActivityTheater: React.FC = () => {
           />
         );
       })}
+
+      {/* Agent Hover Tooltip */}
+      <AnimatePresence>
+        {hoveredAgent && (
+          <motion.div
+            className="absolute bg-white rounded-lg shadow-xl border p-4 z-50 max-w-xs"
+            style={{
+              left: `${hoveredAgent.position.x + 5}%`,
+              top: `${hoveredAgent.position.y - 10}%`,
+            }}
+            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex items-center space-x-3 mb-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${getAgentColor(hoveredAgent.type, hoveredAgent.status).color}`}>
+                {getAgentIcon(hoveredAgent.type)}
+              </div>
+              <div>
+                <h4 className="font-semibold text-gray-900">{hoveredAgent.name}</h4>
+                <p className="text-xs text-gray-600 capitalize">{hoveredAgent.type} Agent</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Status:</span>
+                <span className={`text-sm font-medium capitalize ${
+                  hoveredAgent.status === 'working' ? 'text-green-600' :
+                  hoveredAgent.status === 'collaborating' ? 'text-blue-600' :
+                  hoveredAgent.status === 'completed' ? 'text-gray-600' :
+                  'text-yellow-600'
+                }`}>
+                  {hoveredAgent.status}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Progress:</span>
+                <span className="text-sm font-medium">{(hoveredAgent.progress * 100).toFixed(0)}%</span>
+              </div>
+              
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-sm text-gray-700 font-medium">Current Task:</p>
+                <p className="text-sm text-gray-600 mt-1">{hoveredAgent.currentTask}</p>
+              </div>
+              
+              <div className="pt-2 border-t border-gray-200">
+                <p className="text-sm text-gray-700 font-medium">Recent Activity:</p>
+                <ul className="text-xs text-gray-600 mt-1 space-y-1">
+                  <li>• Connected to 3 other agents</li>
+                  <li>• Processed 12 data points</li>
+                  <li>• Generated 2 reports</li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Theater Controls */}
       <div className="absolute bottom-4 right-4 flex space-x-2">
