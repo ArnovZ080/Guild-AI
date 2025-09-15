@@ -5,7 +5,7 @@ import {
   ExternalLink, Key, Shield, Zap, Database, Globe,
   DollarSign, Users, Calendar, FileText, Camera,
   BarChart, Wrench, Plus, X, Eye, EyeOff, Video,
-  Play, Pause, Square, Monitor, MousePointer, Save
+  Play, Pause, Square, Monitor, MousePointer, Save, MessageSquare
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
 

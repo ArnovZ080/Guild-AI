@@ -130,29 +130,29 @@ const OpportunityRadar = () => {
             }}
           />
         ))}
+        
+        {/* Scanning Line */}
+        <motion.div
+          className="absolute w-0.5 bg-green-400"
+          style={{
+            height: '100px',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            transformOrigin: 'center center',
+          }}
+          animate={{
+            rotate: scanAngle,
+          }}
+          transition={{
+            duration: 0.1,
+            ease: 'linear',
+          }}
+        >
+          {/* Scan Line Glow */}
+          <div className="absolute inset-0 bg-green-400 opacity-50 blur-sm" />
+        </motion.div>
       </div>
-
-      {/* Scanning Line */}
-      <motion.div
-        className="absolute w-0.5 bg-green-400"
-        style={{
-          height: '100px',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-          transformOrigin: 'center center',
-        }}
-        animate={{
-          rotate: scanAngle,
-        }}
-        transition={{
-          duration: 0.1,
-          ease: 'linear',
-        }}
-      >
-        {/* Scan Line Glow */}
-        <div className="absolute inset-0 bg-green-400 opacity-50 blur-sm" />
-      </motion.div>
 
       {/* Center Point */}
       <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-green-400 rounded-full">

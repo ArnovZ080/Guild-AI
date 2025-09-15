@@ -5,7 +5,11 @@ import { FinancialFlowVisualization } from '../components/visualizations/Financi
 import OpportunityRadar from '../components/visualizations/OpportunityRadar.jsx';
 import ContentPerformanceGarden from '../components/visualizations/ContentPerformanceGarden.jsx';
 import MarketingCampaignCreator from '../components/MarketingCampaignCreator.jsx';
+import CustomerJourneyConstellation from '../components/visualizations/CustomerJourneyConstellation.jsx';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import ActionTheater from '../components/theater/ActionTheater.jsx';
+import AgentActivityTheater from '../components/theater/AgentActivityTheater.tsx';
+import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
 
 // Enhanced Command Center with real data
@@ -637,6 +641,15 @@ const DashboardView = () => {
                 <OpportunityRadar />
               </div>
             </div>
+            
+            {/* Customer Journey Constellation */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Users className="w-5 h-5 mr-2 text-purple-500" />
+                Customer Journey Constellation
+              </h3>
+              <CustomerJourneyConstellation customers={[]} />
+            </div>
           </motion.div>
         )}
 
@@ -649,25 +662,31 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
+            {/* Agent Activity Theater */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-purple-500" />
-                AI Insights & Recommendations
+                <Brain className="w-5 h-5 mr-2 text-purple-500" />
+                Agent Activity Theater
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-900 mb-2">Growth Opportunity</h4>
-                  <p className="text-blue-800 text-sm">Your content engagement is up 23%. Consider increasing posting frequency to capitalize on this momentum.</p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-900 mb-2">Efficiency Tip</h4>
-                  <p className="text-green-800 text-sm">Your lead generation workflow is performing well. Consider automating follow-up sequences to scale further.</p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h4 className="font-semibold text-purple-900 mb-2">Strategic Insight</h4>
-                  <p className="text-purple-800 text-sm">Market analysis shows increased demand in your sector. Perfect timing to launch that new service offering.</p>
-                </div>
-              </div>
+              <AgentActivityTheater />
+            </div>
+            
+            {/* Action Theater */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Target className="w-5 h-5 mr-2 text-blue-500" />
+                Action Theater
+              </h3>
+              <ActionTheater />
+            </div>
+            
+            {/* Agent Collaboration Flow */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Users className="w-5 h-5 mr-2 text-green-500" />
+                Agent Collaboration Flow
+              </h3>
+              <AgentCollaborationFlow />
             </div>
           </motion.div>
         )}

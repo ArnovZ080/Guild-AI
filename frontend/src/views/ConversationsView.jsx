@@ -23,7 +23,8 @@ import {
   Play,
   Pause,
   Download,
-  DollarSign
+  DollarSign,
+  Zap
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 
