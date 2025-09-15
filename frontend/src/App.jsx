@@ -1,15 +1,133 @@
-import React from 'react';
-import { AdaptiveModeProvider } from './components/adaptive/AdaptiveModeContext.jsx';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
 import { CelebrationProvider } from './components/psychological/MicroCelebrations.jsx';
-import { MainDashboard } from './components/dashboard/MainDashboard.tsx';
+import DashboardLayout from './components/layouts/DashboardLayout.jsx';
+import DashboardView from './views/DashboardView.jsx';
+import AgentsView from './views/AgentsView.jsx';
+import WorkflowsView from './views/WorkflowsView.jsx';
+import AnalyticsView from './views/AnalyticsView.jsx';
+import ComingSoonView from './views/ComingSoonView.jsx';
+import ChatInterface from './components/chat/ChatInterface.jsx';
+import CalendarView from './views/CalendarView.jsx';
+import CustomersView from './views/CustomersView.jsx';
+import GoalsView from './views/GoalsView.jsx';
+import ConversationsView from './views/ConversationsView.jsx';
+import DocumentsView from './views/DocumentsView.jsx';
+import VoiceView from './views/VoiceView.jsx';
+import OnboardingView from './views/OnboardingView.jsx';
+import ConnectorsView from './views/ConnectorsView.jsx';
 import './App.css';
 import './index.css';
 
 function App() {
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if onboarding is completed
+    const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
+    setIsOnboardingCompleted(onboardingCompleted);
+    setIsLoading(false);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading Guild...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AdaptiveModeProvider>
       <CelebrationProvider>
-        <MainDashboard />
+        <Router>
+          <Routes>
+            <Route path="/" element={
+              isOnboardingCompleted ? 
+                <Navigate to="/chat" replace /> : 
+                <Navigate to="/onboarding" replace />
+            } />
+            <Route path="/onboarding" element={<OnboardingView />} />
+            <Route path="/chat" element={
+              <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
+            } />
+            <Route path="/dashboard" element={
+              <DashboardLayout>
+                <DashboardView />
+              </DashboardLayout>
+            } />
+            <Route path="/agents" element={
+              <DashboardLayout>
+                <AgentsView />
+              </DashboardLayout>
+            } />
+            <Route path="/workflows" element={
+              <DashboardLayout>
+                <WorkflowsView />
+              </DashboardLayout>
+            } />
+            <Route path="/analytics" element={
+              <DashboardLayout>
+                <AnalyticsView />
+              </DashboardLayout>
+            } />
+            <Route path="/customers" element={
+              <DashboardLayout>
+                <CustomersView />
+              </DashboardLayout>
+            } />
+            <Route path="/goals" element={
+              <DashboardLayout>
+                <GoalsView />
+              </DashboardLayout>
+            } />
+            <Route path="/calendar" element={
+              <DashboardLayout>
+                <CalendarView />
+              </DashboardLayout>
+            } />
+            <Route path="/conversations" element={
+              <DashboardLayout>
+                <ConversationsView />
+              </DashboardLayout>
+            } />
+            <Route path="/documents" element={
+              <DashboardLayout>
+                <DocumentsView />
+              </DashboardLayout>
+            } />
+        <Route path="/voice" element={
+          <DashboardLayout>
+            <VoiceView />
+          </DashboardLayout>
+        } />
+        <Route path="/connectors" element={
+          <DashboardLayout>
+            <ConnectorsView />
+          </DashboardLayout>
+        } />
+            <Route path="/achievements" element={
+              <DashboardLayout>
+                <ComingSoonView title="Achievements" description="Milestone tracking and celebrations coming soon" />
+              </DashboardLayout>
+            } />
+            <Route path="/growth" element={
+              <DashboardLayout>
+                <ComingSoonView title="Growth Analytics" description="Growth metrics and insights coming soon" />
+              </DashboardLayout>
+            } />
+            <Route path="/settings" element={
+              <DashboardLayout>
+                <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
+              </DashboardLayout>
+            } />
+          </Routes>
+        </Router>
       </CelebrationProvider>
     </AdaptiveModeProvider>
   );

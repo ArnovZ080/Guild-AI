@@ -1,0 +1,110 @@
+[
+  {
+    "name": "Lead Enrichment Pipeline",
+    "description": "Takes raw leads (emails, LinkedIn URLs, or company names), enriches them with data from LinkedIn, Apollo, or Clearbit, and stores the result in the CRM.",
+    "trigger": "new_lead",
+    "n8n_workflow_id": "lead_enrichment_01",
+    "inputs": ["email", "company_name", "linkedin_url"],
+    "outputs": ["enriched_contact", "crm_record"],
+    "category": "sales"
+  },
+  {
+    "name": "Abandoned Cart Recovery",
+    "description": "Detects abandoned carts, triggers automated reminders via email/SMS/WhatsApp, and logs interactions.",
+    "trigger": "cart_abandoned",
+    "n8n_workflow_id": "abandoned_cart_01",
+    "inputs": ["customer_email", "cart_items"],
+    "outputs": ["reminder_sent", "crm_update"],
+    "category": "ecommerce"
+  },
+  {
+    "name": "Competitor Monitoring",
+    "description": "Tracks competitor websites, social media, and press releases. Alerts when a new product, campaign, or content piece is launched.",
+    "trigger": "schedule_daily",
+    "n8n_workflow_id": "competitor_watch_01",
+    "inputs": ["competitor_urls", "keywords"],
+    "outputs": ["alert_summary", "stored_report"],
+    "category": "marketing"
+  },
+  {
+    "name": "Reputation Management",
+    "description": "Monitors brand mentions, collects reviews, and pushes summaries to Slack/CRM. Flags negative sentiment for fast response.",
+    "trigger": "schedule_hourly",
+    "n8n_workflow_id": "reviews_collector_01",
+    "inputs": ["brand_name", "channels"],
+    "outputs": ["mention_summary", "sentiment_report"],
+    "category": "marketing"
+  },
+  {
+    "name": "Upsell Trigger Engine",
+    "description": "Detects when a customer purchases a product, and triggers an upsell/cross-sell workflow automatically.",
+    "trigger": "purchase_complete",
+    "n8n_workflow_id": "upsell_trigger_01",
+    "inputs": ["customer_id", "product_id"],
+    "outputs": ["upsell_offer_sent"],
+    "category": "sales"
+  },
+  {
+    "name": "Customer Success Alerts",
+    "description": "Monitors usage metrics, churn signals, or support activity. Alerts Customer Success or auto-triggers retention workflows.",
+    "trigger": "schedule_daily",
+    "n8n_workflow_id": "success_alerts_01",
+    "inputs": ["customer_id", "usage_metrics"],
+    "outputs": ["alert_sent", "task_created"],
+    "category": "customer"
+  },
+  {
+    "name": "Automated Onboarding Flow",
+    "description": "Kicks off onboarding sequence after signup, including welcome email, Slack invite, and task creation in project management tool.",
+    "trigger": "new_signup",
+    "n8n_workflow_id": "onboarding_flow_01",
+    "inputs": ["user_email", "user_name"],
+    "outputs": ["welcome_email_sent", "slack_invite", "task_created"],
+    "category": "operations"
+  },
+  {
+    "name": "Affiliate/Partner Tracking",
+    "description": "Captures affiliate traffic, logs conversions, and updates dashboards or payouts automatically.",
+    "trigger": "affiliate_conversion",
+    "n8n_workflow_id": "affiliate_tracking_01",
+    "inputs": ["partner_id", "conversion_event"],
+    "outputs": ["commission_record", "dashboard_update"],
+    "category": "sales"
+  },
+  {
+    "name": "Proactive Outreach Sequencer",
+    "description": "Runs cold email or LinkedIn outreach sequences with A/B tested messaging, logging responses in CRM.",
+    "trigger": "schedule_daily",
+    "n8n_workflow_id": "outreach_sequencer_01",
+    "inputs": ["lead_list", "templates"],
+    "outputs": ["emails_sent", "crm_update"],
+    "category": "sales"
+  },
+  {
+    "name": "Content Repurposing Engine",
+    "description": "Takes a single piece of content (blog, video, podcast) and auto-generates multiple formats (tweets, LinkedIn posts, emails).",
+    "trigger": "new_content",
+    "n8n_workflow_id": "content_repurpose_01",
+    "inputs": ["content_url", "content_text"],
+    "outputs": ["social_snippets", "email_drafts"],
+    "category": "marketing"
+  },
+  {
+    "name": "AI-Powered Support Escalation",
+    "description": "Routes support tickets to the right agent. Escalates urgent issues to Slack/WhatsApp and updates CRM.",
+    "trigger": "new_ticket",
+    "n8n_workflow_id": "support_escalation_01",
+    "inputs": ["ticket_id", "customer_priority"],
+    "outputs": ["ticket_routed", "alert_sent"],
+    "category": "customer"
+  },
+  {
+    "name": "Finance & Cash Flow Alerts",
+    "description": "Monitors bank accounts, invoices, and cash flow. Sends proactive alerts when thresholds are breached.",
+    "trigger": "schedule_daily",
+    "n8n_workflow_id": "cashflow_alerts_01",
+    "inputs": ["account_id", "thresholds"],
+    "outputs": ["alert_sent", "report_generated"],
+    "category": "finance"
+  }
+]

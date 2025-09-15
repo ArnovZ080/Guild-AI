@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AgentAvatar } from '../agents/AgentAvatars';
 
 interface Agent {
   id: string;
   name: string;
-  type: 'research' | 'marketing' | 'sales' | 'support' | 'content';
+  type: 'research' | 'marketing' | 'sales' | 'support' | 'content' | 'content-strategist' | 'analytics' | 'strategy' | 'automation';
   status: 'idle' | 'working' | 'collaborating' | 'completed';
   currentTask: string;
   position: { x: number; y: number };
@@ -51,11 +52,29 @@ export const AgentActivityTheater: React.FC = () => {
     {
       id: 'content-1',
       name: 'Content Agent',
-      type: 'content',
+      type: 'content-strategist',
       status: 'idle',
       currentTask: 'Waiting for brief',
       position: { x: 40, y: 70 },
       progress: 0
+    },
+    {
+      id: 'analytics-1',
+      name: 'Analytics Agent',
+      type: 'analytics',
+      status: 'working',
+      currentTask: 'Processing performance data',
+      position: { x: 25, y: 85 },
+      progress: 0.65
+    },
+    {
+      id: 'strategy-1',
+      name: 'Strategy Agent',
+      type: 'strategy',
+      status: 'collaborating',
+      currentTask: 'Developing growth plan',
+      position: { x: 75, y: 40 },
+      progress: 0.3
     }
   ]);
 
@@ -170,47 +189,40 @@ export const AgentActivityTheater: React.FC = () => {
             }}
             whileHover={{ scale: 1.2 }}
           >
-            {/* Agent Avatar */}
-            <motion.div
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg relative"
-              style={{
-                backgroundColor: color,
-                opacity: opacity,
-              }}
-            >
-              <span className="text-lg">{getAgentIcon(agent.type)}</span>
-
-              {/* Status Ring */}
-              {agent.status === 'working' && (
-                <motion.div
-                  className="absolute inset-0 rounded-full border-2 border-white"
-                  animate={{
-                    rotate: 360,
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
-                />
-              )}
-
+            {/* Agent Avatar with Personality */}
+            <div className="relative">
+              <AgentAvatar 
+                agentId={agent.type} 
+                status={agent.status} 
+                size="medium"
+                showTooltip={false}
+                animated={true}
+              />
+              
               {/* Progress Ring */}
               {agent.progress > 0 && (
                 <svg className="absolute inset-0 w-full h-full -rotate-90">
                   <circle
                     cx="50%"
                     cy="50%"
-                    r="20"
+                    r="24"
                     fill="none"
-                    stroke="white"
+                    stroke="rgba(255,255,255,0.3)"
                     strokeWidth="2"
-                    strokeDasharray={`${agent.progress * 125.6} 125.6`}
+                  />
+                  <motion.circle
+                    cx="50%"
+                    cy="50%"
+                    r="24"
+                    fill="none"
+                    stroke="#10B981"
+                    strokeWidth="2"
+                    strokeDasharray={`${agent.progress * 150} 150`}
                     className="transition-all duration-500"
                   />
                 </svg>
               )}
-            </motion.div>
+            </div>
 
             {/* Agent Info Tooltip */}
             <motion.div

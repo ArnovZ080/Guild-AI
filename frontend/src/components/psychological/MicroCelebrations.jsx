@@ -6,11 +6,15 @@ import { cn } from '../../lib/utils';
 // Celebration Types
 export const CelebrationType = {
   TASK_COMPLETE: 'task_complete',
+  MILESTONE_REACHED: 'milestone_reached',
+  GOAL_ACHIEVED: 'goal_achieved',
+  STREAK_EXTENDED: 'streak_extended',
+  EFFICIENCY_BOOST: 'efficiency_boost',
+  BREAKTHROUGH: 'breakthrough',
+  COLLABORATION: 'collaboration',
   MILESTONE: 'milestone',
   STREAK: 'streak',
-  EFFICIENCY: 'efficiency',
-  COLLABORATION: 'collaboration',
-  BREAKTHROUGH: 'breakthrough'
+  EFFICIENCY: 'efficiency'
 };
 
 // Celebration Configurations

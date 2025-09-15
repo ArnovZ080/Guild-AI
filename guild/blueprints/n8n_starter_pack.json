@@ -1,0 +1,101 @@
+{
+  "automation.social_posting": {
+    "name": "Social Media Auto Poster",
+    "description": "Posts Guild-generated content across Twitter, LinkedIn, Instagram, and Facebook.",
+    "blueprint": {
+      "nodes": [
+        { "id": "1", "name": "Guild Content", "type": "webhook" },
+        { "id": "2", "name": "Format Posts", "type": "function" },
+        { "id": "3", "name": "Twitter", "type": "twitter" },
+        { "id": "4", "name": "LinkedIn", "type": "linkedin" },
+        { "id": "5", "name": "Instagram", "type": "instagram" },
+        { "id": "6", "name": "Facebook", "type": "facebook" }
+      ],
+      "connections": {
+        "1": ["2"],
+        "2": ["3", "4", "5", "6"]
+      }
+    }
+  },
+  "automation.email_campaign": {
+    "name": "Email Campaign Launcher",
+    "description": "Takes Guild-generated email sequences and launches them in Mailchimp, SendGrid, or Gmail.",
+    "blueprint": {
+      "nodes": [
+        { "id": "1", "name": "Guild Emails", "type": "webhook" },
+        { "id": "2", "name": "Format Emails", "type": "function" },
+        { "id": "3", "name": "Mailchimp", "type": "mailchimp" },
+        { "id": "4", "name": "SendGrid", "type": "sendgrid" },
+        { "id": "5", "name": "Gmail", "type": "gmail" }
+      ],
+      "connections": {
+        "1": ["2"],
+        "2": ["3", "4", "5"]
+      }
+    }
+  },
+  "automation.crm_sync": {
+    "name": "CRM Lead Sync",
+    "description": "Captures Guild-generated leads and syncs them into HubSpot or Pipedrive with tags.",
+    "blueprint": {
+      "nodes": [
+        { "id": "1", "name": "Guild Leads", "type": "webhook" },
+        { "id": "2", "name": "Format Leads", "type": "function" },
+        { "id": "3", "name": "HubSpot", "type": "hubspot" },
+        { "id": "4", "name": "Pipedrive", "type": "pipedrive" }
+      ],
+      "connections": {
+        "1": ["2"],
+        "2": ["3", "4"]
+      }
+    }
+  },
+  "automation.real_estate": {
+    "name": "Real Estate Lead Funnel",
+    "description": "Scrapes listings, syncs leads into CRM, and sends follow-up emails automatically.",
+    "blueprint": {
+      "nodes": [
+        { "id": "1", "name": "Scraper Agent", "type": "webhook" },
+        { "id": "2", "name": "Leads Formatter", "type": "function" },
+        { "id": "3", "name": "HubSpot", "type": "hubspot" },
+        { "id": "4", "name": "Gmail", "type": "gmail" }
+      ],
+      "connections": {
+        "1": ["2"],
+        "2": ["3", "4"]
+      }
+    }
+  },
+  "automation.blog_to_social": {
+    "name": "Blog to Social Amplifier",
+    "description": "Takes Guild-generated or RSS blog posts and publishes highlights to social channels.",
+    "blueprint": {
+      "nodes": [
+        { "id": "1", "name": "Guild Blog Feed", "type": "webhook" },
+        { "id": "2", "name": "Extract Highlights", "type": "function" },
+        { "id": "3", "name": "Twitter", "type": "twitter" },
+        { "id": "4", "name": "LinkedIn", "type": "linkedin" }
+      ],
+      "connections": {
+        "1": ["2"],
+        "2": ["3", "4"]
+      }
+    }
+  },
+  "automation.support_escalation": {
+    "name": "Support Escalation Workflow",
+    "description": "Routes flagged support tickets into Zendesk or Intercom for escalation.",
+    "blueprint": {
+      "nodes": [
+        { "id": "1", "name": "Guild Support Agent", "type": "webhook" },
+        { "id": "2", "name": "Check Priority", "type": "if" },
+        { "id": "3", "name": "Zendesk", "type": "zendesk" },
+        { "id": "4", "name": "Intercom", "type": "intercom" }
+      ],
+      "connections": {
+        "1": ["2"],
+        "2": ["3", "4"]
+      }
+    }
+  }
+}

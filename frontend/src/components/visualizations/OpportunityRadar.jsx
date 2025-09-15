@@ -95,6 +95,9 @@ const OpportunityRadar = () => {
             style={{
               width: `${radius * 200}px`,
               height: `${radius * 200}px`,
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
             }}
           />
         ))}
@@ -103,10 +106,13 @@ const OpportunityRadar = () => {
         {[0, 90, 180, 270].map((angle, index) => (
           <div
             key={index}
-            className="absolute w-0.5 bg-green-400 bg-opacity-50 origin-bottom"
+            className="absolute w-0.5 bg-green-400 bg-opacity-50"
             style={{
               height: '100px',
-              transform: `rotate(${angle}deg) translateY(-100px)`,
+              left: '50%',
+              top: '50%',
+              transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+              transformOrigin: 'center',
             }}
           />
         ))}
@@ -115,10 +121,13 @@ const OpportunityRadar = () => {
         {[45, 135, 225, 315].map((angle, index) => (
           <div
             key={index}
-            className="absolute w-0.5 bg-green-400 bg-opacity-30 origin-bottom"
+            className="absolute w-0.5 bg-green-400 bg-opacity-30"
             style={{
               height: '100px',
-              transform: `rotate(${angle}deg) translateY(-100px)`,
+              left: '50%',
+              top: '50%',
+              transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+              transformOrigin: 'center',
             }}
           />
         ))}
@@ -126,12 +135,13 @@ const OpportunityRadar = () => {
 
       {/* Scanning Line */}
       <motion.div
-        className="absolute w-0.5 bg-green-400 origin-bottom"
+        className="absolute w-0.5 bg-green-400"
         style={{
           height: '100px',
           left: '50%',
-          bottom: '50%',
-          transformOrigin: 'bottom center',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          transformOrigin: 'center bottom',
         }}
         animate={{
           rotate: scanAngle,

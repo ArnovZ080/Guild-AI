@@ -31,6 +31,10 @@ module.exports = {
         'forest-deep': '#16A34A',
         'forest-shadow': '#14532D',
 
+        'earth-sand': '#FEF3C7',
+        'warning-warm': '#F59E0B',
+        'warning-glow': '#F97316',
+
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

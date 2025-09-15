@@ -15,9 +15,16 @@ import {
   Sparkles
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { useAdaptiveMode } from '../adaptive/AdaptiveModeContext';
+import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
 const navigationItems = [
+  {
+    id: 'chat',
+    label: 'AI Assistant',
+    icon: MessageSquare,
+    category: 'primary',
+    description: 'Chat with your AI business assistant'
+  },
   {
     id: 'dashboard',
     label: 'Dashboard',
@@ -94,6 +101,13 @@ const navigationItems = [
     icon: Sparkles,
     category: 'utility',
     description: 'Your progress story'
+  },
+  {
+    id: 'connectors',
+    label: 'Connectors',
+    icon: Zap,
+    category: 'utility',
+    description: 'External integrations'
   },
   {
     id: 'settings',

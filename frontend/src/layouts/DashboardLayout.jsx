@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarNav } from '../navigation/SidebarNav.jsx';
-import { useAdaptiveMode } from '../adaptive/AdaptiveModeContext.jsx';
+import { useAdaptiveMode } from '../contexts/AdaptiveModeContext.jsx';
 import { cn } from '../lib/utils';
 
 const DashboardLayout = ({ commandCenter, actionTheater, opportunityHorizon }) => {

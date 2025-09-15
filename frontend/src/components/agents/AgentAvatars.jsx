@@ -1,369 +1,331 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Brain, 
-  Target, 
-  TrendingUp, 
-  Users, 
-  DollarSign, 
-  FileText, 
-  Shield, 
-  Lightbulb,
-  MessageSquare,
-  Calendar,
-  Search,
-  Zap,
-  Heart,
-  BookOpen,
-  Briefcase,
-  PieChart,
-  Sparkles
-} from 'lucide-react';
-import { cn } from '../../utils';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Brain, Search, PenTool, TrendingUp, MessageCircle, BarChart3, Zap } from 'lucide-react';
 
-// Agent personality definitions
-export const agentPersonalities = {
-  'chief-of-staff': {
-    name: 'Chief of Staff Agent',
-    avatar: '👔',
-    icon: Briefcase,
-    personality: 'Professional, organized, strategic',
+const agentPersonalities = {
+  'research': {
+    name: 'Research Agent',
+    personality: 'Analytical Detective',
+    avatar: '🔍',
+    icon: Search,
     colors: {
-      primary: 'from-slate-600 to-slate-800',
-      secondary: 'bg-slate-100 dark:bg-slate-800',
-      text: 'text-slate-700 dark:text-slate-300'
+      primary: '#3B82F6',
+      secondary: '#93C5FD',
+      accent: '#1E40AF'
     },
-    traits: ['Organized', 'Strategic', 'Reliable'],
-    description: 'Your executive assistant and strategic coordinator'
+    traits: ['Methodical', 'Thorough', 'Data-driven'],
+    voice: 'I dig deep to find the insights that matter.',
+    statusMessages: {
+      idle: 'Ready to investigate',
+      working: 'Analyzing data patterns',
+      completed: 'Insights discovered'
+    }
+  },
+  'content-strategist': {
+    name: 'Content Strategist',
+    personality: 'Creative Storyteller',
+    avatar: '✍️',
+    icon: PenTool,
+    colors: {
+      primary: '#10B981',
+      secondary: '#6EE7B7',
+      accent: '#047857'
+    },
+    traits: ['Creative', 'Engaging', 'Brand-focused'],
+    voice: 'I craft stories that connect and convert.',
+    statusMessages: {
+      idle: 'Inspired and ready',
+      working: 'Crafting compelling content',
+      completed: 'Story delivered'
+    }
+  },
+  'marketing': {
+    name: 'Marketing Agent',
+    personality: 'Growth Catalyst',
+    avatar: '📈',
+    icon: TrendingUp,
+    colors: {
+      primary: '#8B5CF6',
+      secondary: '#C4B5FD',
+      accent: '#6D28D9'
+    },
+    traits: ['Strategic', 'Results-driven', 'Innovative'],
+    voice: 'I turn insights into growth opportunities.',
+    statusMessages: {
+      idle: 'Strategizing next moves',
+      working: 'Optimizing campaigns',
+      completed: 'Growth achieved'
+    }
+  },
+  'support': {
+    name: 'Customer Success Agent',
+    personality: 'Empathetic Helper',
+    avatar: '🎧',
+    icon: MessageCircle,
+    colors: {
+      primary: '#F59E0B',
+      secondary: '#FCD34D',
+      accent: '#D97706'
+    },
+    traits: ['Empathetic', 'Solution-focused', 'Patient'],
+    voice: 'I ensure every customer feels valued and heard.',
+    statusMessages: {
+      idle: 'Ready to assist',
+      working: 'Helping customers',
+      completed: 'Issue resolved'
+    }
+  },
+  'analytics': {
+    name: 'Analytics Agent',
+    personality: 'Numbers Wizard',
+    avatar: '📊',
+    icon: BarChart3,
+    colors: {
+      primary: '#EF4444',
+      secondary: '#FCA5A5',
+      accent: '#DC2626'
+    },
+    traits: ['Precise', 'Insightful', 'Pattern-focused'],
+    voice: 'I turn data into actionable intelligence.',
+    statusMessages: {
+      idle: 'Crunching numbers',
+      working: 'Analyzing metrics',
+      completed: 'Insights ready'
+    }
   },
   'strategy': {
     name: 'Strategy Agent',
+    personality: 'Visionary Planner',
     avatar: '🎯',
-    icon: Target,
-    personality: 'Visionary, analytical, forward-thinking',
+    icon: Brain,
     colors: {
-      primary: 'from-purple-600 to-indigo-800',
-      secondary: 'bg-purple-100 dark:bg-purple-900',
-      text: 'text-purple-700 dark:text-purple-300'
+      primary: '#6366F1',
+      secondary: '#A5B4FC',
+      accent: '#4338CA'
     },
-    traits: ['Visionary', 'Analytical', 'Strategic'],
-    description: 'Long-term planning and strategic guidance'
+    traits: ['Visionary', 'Strategic', 'Big-picture'],
+    voice: 'I see the path to your biggest goals.',
+    statusMessages: {
+      idle: 'Planning ahead',
+      working: 'Developing strategy',
+      completed: 'Strategy complete'
+    }
   },
-  'content-strategist': {
-    name: 'Content Strategist Agent',
-    avatar: '✍️',
-    icon: FileText,
-    personality: 'Creative, articulate, brand-focused',
+  'automation': {
+    name: 'Automation Agent',
+    personality: 'Efficiency Expert',
+    avatar: '⚡',
+    icon: Zap,
     colors: {
-      primary: 'from-emerald-600 to-teal-800',
-      secondary: 'bg-emerald-100 dark:bg-emerald-900',
-      text: 'text-emerald-700 dark:text-emerald-300'
+      primary: '#EC4899',
+      secondary: '#F9A8D4',
+      accent: '#BE185D'
     },
-    traits: ['Creative', 'Articulate', 'Brand-focused'],
-    description: 'Content planning and brand storytelling'
-  },
-  'seo': {
-    name: 'SEO Agent',
-    avatar: '🔍',
-    icon: Search,
-    personality: 'Technical, detail-oriented, growth-focused',
-    colors: {
-      primary: 'from-blue-600 to-cyan-800',
-      secondary: 'bg-blue-100 dark:bg-blue-900',
-      text: 'text-blue-700 dark:text-blue-300'
-    },
-    traits: ['Technical', 'Detail-oriented', 'Growth-focused'],
-    description: 'Search optimization and organic growth'
-  },
-  'paid-ads': {
-    name: 'Paid Ads Agent',
-    avatar: '📊',
-    icon: TrendingUp,
-    personality: 'Data-driven, performance-focused, ROI-oriented',
-    colors: {
-      primary: 'from-orange-600 to-red-800',
-      secondary: 'bg-orange-100 dark:bg-orange-900',
-      text: 'text-orange-700 dark:text-orange-300'
-    },
-    traits: ['Data-driven', 'Performance-focused', 'ROI-oriented'],
-    description: 'Paid advertising and campaign optimization'
-  },
-  'community-manager': {
-    name: 'Community Manager Agent',
-    avatar: '💬',
-    icon: MessageSquare,
-    personality: 'Social, empathetic, engaging',
-    colors: {
-      primary: 'from-pink-600 to-rose-800',
-      secondary: 'bg-pink-100 dark:bg-pink-900',
-      text: 'text-pink-700 dark:text-pink-300'
-    },
-    traits: ['Social', 'Empathetic', 'Engaging'],
-    description: 'Community engagement and social presence'
-  },
-  'sales-funnel': {
-    name: 'Sales Funnel Agent',
-    avatar: '🎯',
-    icon: Target,
-    personality: 'Conversion-focused, persuasive, systematic',
-    colors: {
-      primary: 'from-green-600 to-emerald-800',
-      secondary: 'bg-green-100 dark:bg-green-900',
-      text: 'text-green-700 dark:text-green-300'
-    },
-    traits: ['Conversion-focused', 'Persuasive', 'Systematic'],
-    description: 'Sales funnel optimization and conversion'
-  },
-  'bookkeeping': {
-    name: 'Bookkeeping Agent',
-    avatar: '💰',
-    icon: DollarSign,
-    personality: 'Precise, methodical, compliance-focused',
-    colors: {
-      primary: 'from-yellow-600 to-amber-800',
-      secondary: 'bg-yellow-100 dark:bg-yellow-900',
-      text: 'text-yellow-700 dark:text-yellow-300'
-    },
-    traits: ['Precise', 'Methodical', 'Compliance-focused'],
-    description: 'Financial tracking and bookkeeping'
-  },
-  'customer-support': {
-    name: 'Customer Support Agent',
-    avatar: '🤝',
-    icon: Heart,
-    personality: 'Helpful, patient, solution-oriented',
-    colors: {
-      primary: 'from-teal-600 to-cyan-800',
-      secondary: 'bg-teal-100 dark:bg-teal-900',
-      text: 'text-teal-700 dark:text-teal-300'
-    },
-    traits: ['Helpful', 'Patient', 'Solution-oriented'],
-    description: 'Customer service and support excellence'
-  },
-  'well-being': {
-    name: 'Well-being Agent',
-    avatar: '🧘',
-    icon: Heart,
-    personality: 'Caring, mindful, balance-focused',
-    colors: {
-      primary: 'from-violet-600 to-purple-800',
-      secondary: 'bg-violet-100 dark:bg-violet-900',
-      text: 'text-violet-700 dark:text-violet-300'
-    },
-    traits: ['Caring', 'Mindful', 'Balance-focused'],
-    description: 'Work-life balance and wellness guidance'
+    traits: ['Efficient', 'Systematic', 'Optimization-focused'],
+    voice: 'I streamline processes for maximum efficiency.',
+    statusMessages: {
+      idle: 'Optimizing workflows',
+      working: 'Automating processes',
+      completed: 'Efficiency improved'
+    }
   }
 };
 
-// Agent Avatar Component
 export const AgentAvatar = ({ 
   agentId, 
-  size = 'md', 
-  showName = false, 
-  showStatus = false,
-  status = 'idle',
-  className,
-  onClick 
+  status = 'idle', 
+  size = 'medium',
+  showTooltip = true,
+  animated = true,
+  onClick
 }) => {
+  const [isHovered, setIsHovered] = useState(false);
   const agent = agentPersonalities[agentId];
+  
   if (!agent) return null;
 
   const sizeClasses = {
-    xs: 'w-6 h-6 text-xs',
-    sm: 'w-8 h-8 text-sm',
-    md: 'w-12 h-12 text-base',
-    lg: 'w-16 h-16 text-lg',
-    xl: 'w-20 h-20 text-xl'
+    small: 'w-8 h-8 text-sm',
+    medium: 'w-12 h-12 text-lg',
+    large: 'w-16 h-16 text-xl'
+  };
+
+  const statusAnimations = {
+    idle: animated ? { scale: [1, 1.05, 1] } : {},
+    working: animated ? { 
+      scale: [1, 1.1, 1],
+      rotate: [0, 5, -5, 0]
+    } : {},
+    completed: animated ? {
+      scale: [1, 1.2, 1],
+      rotate: [0, 360]
+    } : {}
   };
 
   const statusColors = {
-    idle: 'bg-gray-400',
-    working: 'bg-blue-500 animate-pulse',
-    completed: 'bg-green-500',
-    error: 'bg-red-500'
+    idle: agent.colors.secondary,
+    working: agent.colors.primary,
+    completed: agent.colors.accent
   };
 
-  const AgentIcon = agent.icon;
-
   return (
-    <motion.div
-      className={cn("relative inline-flex flex-col items-center gap-2", className)}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      onClick={onClick}
-    >
-      {/* Avatar Circle */}
-      <div className={cn(
-        "relative rounded-full flex items-center justify-center cursor-pointer",
-        "bg-gradient-to-br shadow-lg border-2 border-white dark:border-slate-700",
-        agent.colors.primary,
-        sizeClasses[size]
-      )}>
-        {/* Emoji Avatar */}
-        <span className="text-white font-medium">
-          {agent.avatar}
-        </span>
-        
-        {/* Icon Overlay */}
-        <div className="absolute inset-0 rounded-full bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-          <AgentIcon className="w-1/2 h-1/2 text-white" />
-        </div>
+    <div className="relative inline-block">
+      <motion.div
+        className={`
+          ${sizeClasses[size]} 
+          rounded-full flex items-center justify-center cursor-pointer
+          shadow-lg border-2 border-white
+          font-bold text-white
+        `}
+        style={{ 
+          backgroundColor: statusColors[status],
+          color: 'white'
+        }}
+        animate={statusAnimations[status]}
+        transition={{ 
+          duration: 2, 
+          repeat: status === 'working' ? Infinity : 0,
+          ease: "easeInOut"
+        }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={onClick}
+      >
+        <span>{agent.avatar}</span>
+      </motion.div>
 
-        {/* Status Indicator */}
-        {showStatus && (
+      {/* Status indicator */}
+      <motion.div
+        className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white"
+        style={{ backgroundColor: statusColors[status] }}
+        animate={status === 'working' ? {
+          scale: [1, 1.3, 1],
+          opacity: [0.8, 1, 0.8]
+        } : {}}
+        transition={{ duration: 1, repeat: Infinity }}
+      />
+
+      {/* Tooltip */}
+      <AnimatePresence>
+        {showTooltip && isHovered && (
           <motion.div
-            className={cn(
-              "absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white dark:border-slate-700",
-              statusColors[status]
-            )}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          />
+            className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50"
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-sm shadow-xl max-w-xs">
+              <div className="font-semibold">{agent.name}</div>
+              <div className="text-gray-300 text-xs">{agent.statusMessages[status]}</div>
+              <div className="text-gray-400 text-xs italic mt-1">"{agent.voice}"</div>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                <div className="border-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+          </motion.div>
         )}
-      </div>
-
-      {/* Agent Name */}
-      {showName && (
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className={cn("text-xs font-medium", agent.colors.text)}>
-            {agent.name}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            {agent.traits[0]}
-          </div>
-        </motion.div>
-      )}
-    </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 
-// Agent Card Component
-export const AgentCard = ({ agentId, isActive = false, onClick, showDetails = true }) => {
+export const AgentTeam = ({ activeAgents = [], onAgentSelect, layout = 'horizontal' }) => {
+  const layoutClasses = {
+    horizontal: 'flex space-x-4',
+    vertical: 'flex flex-col space-y-4',
+    grid: 'grid grid-cols-3 gap-4'
+  };
+
+  return (
+    <div className={layoutClasses[layout]}>
+      {activeAgents.map((agentId, index) => (
+        <motion.div
+          key={agentId}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.1 }}
+        >
+          <AgentAvatar
+            agentId={agentId}
+            status="working"
+            size="medium"
+            onClick={() => onAgentSelect?.(agentId)}
+          />
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Agent Personality Panel
+export const AgentPersonalityPanel = ({ agentId, isOpen, onClose }) => {
   const agent = agentPersonalities[agentId];
+  
   if (!agent) return null;
 
   return (
-    <motion.div
-      className={cn(
-        "p-4 rounded-xl border cursor-pointer transition-all duration-200",
-        "hover:shadow-lg hover:scale-105",
-        isActive 
-          ? "border-blue-500 bg-blue-50 dark:bg-blue-950/50 shadow-md" 
-          : "border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-800",
-        agent.colors.secondary
-      )}
-      onClick={onClick}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
-    >
-      <div className="flex items-start gap-3">
-        <AgentAvatar agentId={agentId} size="md" showStatus />
-        
-        {showDetails && (
-          <div className="flex-1 min-w-0">
-            <h3 className={cn("font-semibold text-sm", agent.colors.text)}>
-              {agent.name}
-            </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-              {agent.description}
-            </p>
-            
-            {/* Personality Traits */}
-            <div className="flex flex-wrap gap-1 mt-2">
-              {agent.traits.map((trait, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                >
-                  {trait}
-                </span>
-              ))}
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div 
+                className="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl text-white font-bold"
+                style={{ backgroundColor: agent.colors.primary }}
+              >
+                {agent.avatar}
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">{agent.name}</h2>
+              <p className="text-lg text-gray-600">{agent.personality}</p>
             </div>
-          </div>
-        )}
-      </div>
-    </motion.div>
-  );
-};
 
-// Agent Team Display
-export const AgentTeam = ({ activeAgents = [], onAgentSelect }) => {
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-        Your AI Team
-      </h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {activeAgents.map((agentId) => (
-          <AgentCard
-            key={agentId}
-            agentId={agentId}
-            onClick={() => onAgentSelect?.(agentId)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Personality Traits</h3>
+                <div className="flex flex-wrap gap-2">
+                  {agent.traits.map(trait => (
+                    <span 
+                      key={trait}
+                      className="px-3 py-1 rounded-full text-sm font-medium text-white"
+                      style={{ backgroundColor: agent.colors.secondary, color: agent.colors.accent }}
+                    >
+                      {trait}
+                    </span>
+                  ))}
+                </div>
+              </div>
 
-// Agent Status Bar
-export const AgentStatusBar = ({ agents = [] }) => {
-  return (
-    <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Active Agents:
-      </span>
-      <div className="flex items-center gap-1">
-        {agents.map((agent) => (
-          <AgentAvatar
-            key={agent.id}
-            agentId={agent.id}
-            size="sm"
-            showStatus
-            status={agent.status}
-          />
-        ))}
-      </div>
-      <div className="ml-auto text-xs text-gray-500 dark:text-gray-400">
-        {agents.filter(a => a.status === 'working').length} working
-      </div>
-    </div>
-  );
-};
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-2">Agent Voice</h3>
+                <p className="text-gray-700 italic">"{agent.voice}"</p>
+              </div>
+            </div>
 
-// Agent Selector
-export const AgentSelector = ({ availableAgents, selectedAgents, onSelectionChange }) => {
-  const handleToggle = (agentId) => {
-    const newSelection = selectedAgents.includes(agentId)
-      ? selectedAgents.filter(id => id !== agentId)
-      : [...selectedAgents, agentId];
-    onSelectionChange(newSelection);
-  };
-
-  return (
-    <div className="space-y-3">
-      <h4 className="font-medium text-gray-900 dark:text-gray-100">
-        Select Agents for this Task
-      </h4>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        {availableAgents.map((agentId) => (
-          <AgentCard
-            key={agentId}
-            agentId={agentId}
-            isActive={selectedAgents.includes(agentId)}
-            onClick={() => handleToggle(agentId)}
-            showDetails={false}
-          />
-        ))}
-      </div>
-    </div>
+            <button
+              onClick={onClose}
+              className="w-full mt-6 py-3 rounded-lg font-semibold text-white transition-colors"
+              style={{ backgroundColor: agent.colors.primary }}
+            >
+              Close
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
