@@ -205,33 +205,6 @@ const ConversationsView = () => {
     setShowConversationModal(false);
   };
 
-  // Handler functions for conversation modal buttons
-  const handleReply = (conversation) => {
-    console.log('Replying to conversation:', conversation.subject);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Opening reply composer for "${conversation.subject}"... 💬`,
-      intensity: 'normal'
-    });
-    // In real implementation, this would open the reply composer
-  };
-
-  const handleStar = (conversation) => {
-    console.log('Starring conversation:', conversation.subject);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Conversation "${conversation.subject}" starred! ⭐`,
-      intensity: 'normal'
-    });
-    // In real implementation, this would toggle the star status
-  };
-
-  const handleArchive = (conversation) => {
-    console.log('Archiving conversation:', conversation.subject);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Conversation "${conversation.subject}" archived! 📁`,
-      intensity: 'normal'
-    });
-    // In real implementation, this would archive the conversation
-  };
 
   // Filter and sort conversations
   const filteredConversations = conversations
