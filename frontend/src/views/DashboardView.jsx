@@ -5,7 +5,7 @@ import { FinancialFlowVisualization } from '../components/visualizations/Financi
 import OpportunityRadar from '../components/visualizations/OpportunityRadar.jsx';
 import ContentPerformanceGarden from '../components/visualizations/ContentPerformanceGarden.jsx';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
-import { BarChart3, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign } from 'lucide-react';
+import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign } from 'lucide-react';
 
 // Enhanced Command Center with real data
 const EnhancedCommandCenter = () => {
@@ -210,7 +210,7 @@ const DashboardView = () => {
   const { triggerCelebration } = useCelebrations();
 
   const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'overview', label: 'Overview', icon: BarChart },
     { id: 'content', label: 'Content Garden', icon: Sprout },
     { id: 'visualizations', label: 'Visualizations', icon: Radar },
     { id: 'insights', label: 'Insights', icon: Sparkles }
@@ -485,7 +485,7 @@ const DashboardView = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
+                  <BarChart className="w-5 h-5 mr-2 text-blue-500" />
                   Financial Flow
                 </h3>
                 <FinancialFlowVisualization />
