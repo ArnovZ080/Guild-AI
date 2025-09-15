@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Brain, Zap, Users, BarChart3, Settings, Play, Pause, RotateCcw, 
+  Brain, Zap, Users, BarChart, Settings, Play, Pause, RotateCcw, 
   Search, Filter, Eye, MessageSquare, Phone, Mail, Calendar, Target,
   DollarSign, TrendingUp, FileText, Image, Video, Mic, Camera,
   Globe, Database, Shield, Lightbulb, Briefcase, Heart, Star,
@@ -152,7 +152,7 @@ const AgentsView = () => {
     const icons = {
       strategy: Brain,
       creation: FileText,
-      analysis: BarChart3,
+      analysis: BarChart,
       automation: Zap,
       quality: Shield,
       management: Settings,

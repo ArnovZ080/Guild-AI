@@ -4,7 +4,7 @@ import {
   ArrowRight, CheckCircle, User, Building, Target, DollarSign, 
   MessageSquare, Palette, Calendar, Globe, Mail, Database,
   Shield, Zap, Brain, Users, TrendingUp, FileText, Camera,
-  Mic, Headphones, Settings, Star, Heart, Lightbulb
+  Mic, Headphones, Settings, Star, Heart, Lightbulb, BarChart
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
 
@@ -208,9 +208,9 @@ const OnboardingAgent = ({ onComplete }) => {
     { id: 'zendesk', name: 'Zendesk', icon: Headphones, category: 'support' },
     { id: 'intercom', name: 'Intercom', icon: Headphones, category: 'support' },
     { id: 'freshdesk', name: 'Freshdesk', icon: Headphones, category: 'support' },
-    { id: 'google_analytics', name: 'Google Analytics', icon: BarChart3, category: 'analytics' },
-    { id: 'mixpanel', name: 'Mixpanel', icon: BarChart3, category: 'analytics' },
-    { id: 'hotjar', name: 'Hotjar', icon: BarChart3, category: 'analytics' },
+    { id: 'google_analytics', name: 'Google Analytics', icon: BarChart, category: 'analytics' },
+    { id: 'mixpanel', name: 'Mixpanel', icon: BarChart, category: 'analytics' },
+    { id: 'hotjar', name: 'Hotjar', icon: BarChart, category: 'analytics' },
     { id: 'other', name: 'Other Software', icon: Settings, category: 'other' }
   ];
 

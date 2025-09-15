@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Zap, Play, Pause, Square, Clock, CheckCircle, AlertCircle, BarChart3,
+  Zap, Play, Pause, Square, Clock, CheckCircle, AlertCircle, BarChart,
   Plus, Search, Filter, Eye, Settings, Brain, Globe, Database,
   Workflow, GitBranch, Target, Users, DollarSign, TrendingUp,
   Calendar, Bell, Shield, Activity, RefreshCw, Download, Upload,
@@ -200,7 +200,7 @@ const WorkflowsView = () => {
       'HubSpot': Database,
       'Mailchimp': Mail,
       'Slack': MessageSquare,
-      'Google Analytics': BarChart3,
+      'Google Analytics': BarChart,
       'LinkedIn': Users,
       'Facebook': Globe,
       'Twitter': Globe,

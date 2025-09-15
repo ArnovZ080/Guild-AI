@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  BarChart3, TrendingUp, TrendingDown, Users, DollarSign, Target, Eye, MousePointer,
+  BarChart, TrendingUp, TrendingDown, Users, DollarSign, Target, Eye, MousePointer,
   Filter, Calendar, Download, RefreshCw, Brain, Zap, Activity, PieChart,
   ArrowUpRight, ArrowDownRight, Clock, CheckCircle, AlertCircle, Star,
   TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon
@@ -310,7 +310,7 @@ const AnalyticsView = () => {
         {/* Tabs */}
         <div className="flex items-center space-x-2">
           {[
-            { id: 'overview', label: 'Overview', icon: BarChart3 },
+            { id: 'overview', label: 'Overview', icon: BarChart },
             { id: 'financial', label: 'Financial', icon: DollarSign },
             { id: 'content', label: 'Content', icon: Target },
             { id: 'progress', label: 'Progress', icon: TrendingUp }
@@ -394,7 +394,7 @@ const AnalyticsView = () => {
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Traffic Overview</h3>
                 <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
                   <div className="text-center">
-                    <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+                    <BarChart className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500">Traffic chart would be here</p>
                     <p className="text-sm text-gray-400">Integration with charting library needed</p>
                   </div>

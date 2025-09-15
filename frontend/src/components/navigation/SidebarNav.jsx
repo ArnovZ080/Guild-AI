@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, 
-  BarChart3, 
+  BarChart, 
   Users, 
   Settings, 
   Zap, 
@@ -49,7 +49,7 @@ const navigationItems = [
   {
     id: 'analytics',
     label: 'Analytics',
-    icon: BarChart3,
+    icon: BarChart,
     category: 'primary',
     description: 'Performance insights'
   },

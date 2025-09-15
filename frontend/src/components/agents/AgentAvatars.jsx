@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Search, PenTool, TrendingUp, MessageCircle, BarChart3, Zap } from 'lucide-react';
+import { Brain, Search, PenTool, TrendingUp, MessageCircle, BarChart, Zap } from 'lucide-react';
 
 const agentPersonalities = {
   'research': {
@@ -79,7 +79,7 @@ const agentPersonalities = {
     name: 'Analytics Agent',
     personality: 'Numbers Wizard',
     avatar: '📊',
-    icon: BarChart3,
+    icon: BarChart,
     colors: {
       primary: '#EF4444',
       secondary: '#FCA5A5',

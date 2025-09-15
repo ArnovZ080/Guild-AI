@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Zap, Play, Pause, Square, Clock, CheckCircle, AlertCircle, BarChart3,
+  Zap, Play, Pause, Square, Clock, CheckCircle, AlertCircle, BarChart,
   Plus, Search, Filter, Eye, Settings, Brain, Globe, Database,
   Workflow, GitBranch, Target, Users, DollarSign, TrendingUp,
   Calendar, Bell, Shield, Activity, RefreshCw, Download, Upload,

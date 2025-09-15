@@ -4,7 +4,7 @@ import {
   Settings, Search, Filter, CheckCircle, AlertCircle, 
   ExternalLink, Key, Shield, Zap, Database, Globe,
   DollarSign, Users, Calendar, FileText, Camera,
-  BarChart3, Wrench, Plus, X, Eye, EyeOff
+  BarChart, Wrench, Plus, X, Eye, EyeOff
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
 

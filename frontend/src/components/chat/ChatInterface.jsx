@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, MessageSquare, BarChart3, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
+import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations';
 import { AgentAvatar } from '../agents/AgentAvatars';
 
@@ -318,7 +318,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
               onClick={onNavigateToDashboard}
               className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-2"
             >
-              <BarChart3 className="w-4 h-4" />
+              <BarChart className="w-4 h-4" />
               <span>View Dashboard</span>
             </button>
             <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-2">
