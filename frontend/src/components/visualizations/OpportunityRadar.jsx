@@ -86,6 +86,21 @@ const OpportunityRadar = () => {
       
       {/* Radar Grid */}
       <div className="absolute inset-0 flex items-center justify-center">
+        {/* Center Point */}
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-green-400 rounded-full z-10">
+          <motion.div
+            className="absolute inset-0 bg-green-400 rounded-full"
+            animate={{
+              scale: [1, 1.5, 1],
+              opacity: [0.7, 1, 0.7],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+        </div>
         {/* Concentric Circles */}
         {[0.2, 0.4, 0.6, 0.8].map((radius, index) => (
           <div
@@ -151,22 +166,9 @@ const OpportunityRadar = () => {
         >
           {/* Scan Line Glow */}
           <div className="absolute inset-0 bg-green-400 opacity-50 blur-sm" />
+          {/* Scan Line Tip */}
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-400 rounded-full" />
         </motion.div>
-      </div>
-
-      {/* Center Point */}
-      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-green-400 rounded-full">
-        <motion.div
-          className="absolute inset-0 bg-green-400 rounded-full"
-          animate={{
-            scale: [1, 1.5, 1],
-            opacity: [1, 0.5, 1],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-          }}
-        />
       </div>
 
       {/* Opportunities */}
