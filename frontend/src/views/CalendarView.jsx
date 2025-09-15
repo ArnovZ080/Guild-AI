@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Filter,
   Search,
-  Sync,
+  RefreshCw,
   ExternalLink,
   Brain,
   X
@@ -453,7 +453,7 @@ const CalendarView = () => {
           <h1 className="text-3xl font-bold text-gray-900">CEO's Diary</h1>
           <div className="flex items-center space-x-4">
             <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
-              <Sync className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4" />
               <span>Sync Calendars</span>
             </button>
             <button className="flex items-center space-x-2 text-green-600 hover:text-green-700">
