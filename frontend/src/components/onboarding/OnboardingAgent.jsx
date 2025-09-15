@@ -18,6 +18,8 @@ const OnboardingAgent = ({ onComplete }) => {
   const [showCapabilities, setShowCapabilities] = useState(false);
   const [selectedSoftware, setSelectedSoftware] = useState([]);
   const [sensitiveDataStorage, setSensitiveDataStorage] = useState('');
+  const [generalDataStorage, setGeneralDataStorage] = useState('');
+  const [selectedStoragePlatforms, setSelectedStoragePlatforms] = useState([]);
   const [showScreenRecording, setShowScreenRecording] = useState(false);
   const [recordingSoftware, setRecordingSoftware] = useState(null);
   const { triggerCelebration } = useCelebrations();
@@ -266,8 +268,10 @@ const OnboardingAgent = ({ onComplete }) => {
     // Store integration data
     const integrationData = {
       sensitiveDataStorage,
+      generalDataStorage,
       selectedSoftware,
-      storagePlatforms: [], // Add selected storage platforms
+      selectedStoragePlatforms,
+      storagePlatforms: selectedStoragePlatforms, // Add selected storage platforms
       socialPlatforms: [], // Add selected social platforms
       emailPlatforms: [], // Add selected email platforms
       screenRecordingEnabled: selectedSoftware.length > 0
@@ -464,7 +468,12 @@ const OnboardingAgent = ({ onComplete }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <motion.button
-            className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+            onClick={() => setGeneralDataStorage('local')}
+            className={`p-6 border-2 rounded-lg transition-colors text-left ${
+              generalDataStorage === 'local' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+            }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -476,7 +485,12 @@ const OnboardingAgent = ({ onComplete }) => {
           </motion.button>
           
           <motion.button
-            className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-left"
+            onClick={() => setGeneralDataStorage('cloud')}
+            className={`p-6 border-2 rounded-lg transition-colors text-left ${
+              generalDataStorage === 'cloud' 
+                ? 'border-green-500 bg-green-50' 
+                : 'border-gray-200 hover:border-green-500 hover:bg-green-50'
+            }`}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -576,10 +590,22 @@ const OnboardingAgent = ({ onComplete }) => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {storagePlatforms.map((platform) => {
             const Icon = platform.icon;
+            const isSelected = selectedStoragePlatforms.includes(platform.id);
             return (
               <motion.button
                 key={platform.id}
-                className="p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors text-center"
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedStoragePlatforms(prev => prev.filter(id => id !== platform.id));
+                  } else {
+                    setSelectedStoragePlatforms(prev => [...prev, platform.id]);
+                  }
+                }}
+                className={`p-4 border-2 rounded-lg transition-colors text-center ${
+                  isSelected 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50'
+                }`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -652,6 +678,37 @@ const OnboardingAgent = ({ onComplete }) => {
           <p className="text-sm text-yellow-700">
             If you use a platform that we don't have direct API access to, we can record your screen actions and learn how to automate those tasks for you in the future. This is completely secure and only records the specific actions you show us.
           </p>
+        </div>
+      </div>
+
+      {/* Setup Summary */}
+      <div className="bg-white rounded-lg shadow-lg p-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Setup Summary</h2>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Sensitive Data Storage:</span>
+            <span className="font-medium text-gray-900">
+              {sensitiveDataStorage ? (sensitiveDataStorage === 'local' ? 'Local Storage' : 'Secure Cloud') : 'Not selected'}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">General Data Storage:</span>
+            <span className="font-medium text-gray-900">
+              {generalDataStorage ? (generalDataStorage === 'local' ? 'On-site' : 'Off-site') : 'Not selected'}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Business Software:</span>
+            <span className="font-medium text-gray-900">
+              {selectedSoftware.length} selected
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">Storage Platforms:</span>
+            <span className="font-medium text-gray-900">
+              {selectedStoragePlatforms.length} selected
+            </span>
+          </div>
         </div>
       </div>
 
