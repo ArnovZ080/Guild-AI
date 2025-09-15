@@ -5,7 +5,7 @@ import {
   Search, Filter, Eye, MessageSquare, Phone, Mail, Calendar, Target,
   DollarSign, TrendingUp, FileText, Image, Video, Mic, Camera,
   Globe, Database, Shield, Lightbulb, Briefcase, Heart, Star,
-  ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle
+  ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone
 } from 'lucide-react';
 import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
