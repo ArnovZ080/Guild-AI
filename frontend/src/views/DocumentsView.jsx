@@ -200,10 +200,11 @@ const DocumentsView = () => {
   const handleViewDocument = (document) => {
     console.log('Viewing document:', document.name);
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Opening ${document.name}... 📄`,
+      message: `Opening ${document.name} in document viewer... 📄`,
       intensity: 'normal'
     });
-    // In real implementation, this would open the document viewer
+    // In real implementation, this would open the document viewer with the actual document content
+    alert(`Document Viewer: Opening "${document.name}"\n\nType: ${document.type.toUpperCase()}\nSize: ${document.size}\nVersion: ${document.version}\n\nThis would display the actual document content in a viewer.`);
   };
 
   const handleDownloadDocument = (document, format = 'original') => {
@@ -228,6 +229,7 @@ const DocumentsView = () => {
       intensity: 'normal'
     });
     // In real implementation, this would trigger the document processing agent
+    alert(`AI Re-analysis: Processing "${document.name}"\n\nThis would trigger the Document Processing Agent to:\n- Re-analyze content with latest AI models\n- Update insights and recommendations\n- Refresh confidence scores\n- Generate new actionable insights`);
   };
 
   const handleAcceptRecommendations = (document) => {
@@ -237,6 +239,8 @@ const DocumentsView = () => {
       intensity: 'high'
     });
     // In real implementation, this would trigger agents to implement recommendations
+    const recommendations = document.aiInsights.recommendations.join('\n- ');
+    alert(`Accepting Recommendations: "${document.name}"\n\nRecommendations to implement:\n- ${recommendations}\n\nThis would trigger the appropriate agents to:\n- Create action plans for each recommendation\n- Schedule implementation tasks\n- Monitor progress and results\n- Report back on completion status`);
   };
 
   const handleSendShare = () => {
@@ -676,7 +680,7 @@ const DocumentsView = () => {
                   </button>
                   
                   {/* Accept and Initiate Recommendations Button */}
-                  {selectedDocument?.recommendations && selectedDocument.recommendations.length > 0 && (
+                  {selectedDocument?.aiInsights?.recommendations && selectedDocument.aiInsights.recommendations.length > 0 && (
                     <button 
                       onClick={() => handleAcceptRecommendations(selectedDocument)}
                       className="w-full flex items-center justify-center space-x-2 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
