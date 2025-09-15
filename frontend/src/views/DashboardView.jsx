@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBusinessMetrics, useAgentStatus, useWorkflows } from '../hooks/useApiData.js';
 import { FinancialFlowVisualization } from '../components/visualizations/FinancialFlowVisualization.tsx';
 import OpportunityRadar from '../components/visualizations/OpportunityRadar.jsx';
-import { ContentPerformanceGarden } from '../components/visualizations/ContentPerformanceGarden.jsx';
+import ContentPerformanceGarden from '../components/visualizations/ContentPerformanceGarden.jsx';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import { BarChart3, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign } from 'lucide-react';
 
