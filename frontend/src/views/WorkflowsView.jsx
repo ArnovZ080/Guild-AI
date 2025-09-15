@@ -5,7 +5,7 @@ import {
   Plus, Search, Filter, Eye, Settings, Brain, Globe, Database,
   Workflow, GitBranch, Target, Users, DollarSign, TrendingUp,
   Calendar, Bell, Shield, Activity, RefreshCw, Download, Upload,
-  Link, Zap as ZapIcon, ArrowRight, ArrowDown, Wrench, FileText
+  Link, Zap as ZapIcon, ArrowRight, ArrowDown, Wrench, FileText, Network
 } from 'lucide-react';
 import { useWorkflows } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
@@ -196,7 +196,7 @@ const WorkflowsView = () => {
     const icons = {
       'Zapier': Wrench,
       'Make.com': Workflow,
-      'N8N': Wrench,
+      'N8N': Network,
       'HubSpot': Database,
       'Mailchimp': Mail,
       'Slack': MessageSquare,
@@ -470,7 +470,7 @@ const WorkflowsView = () => {
           </div>
           <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
             <div className="p-2 bg-purple-100 rounded-lg">
-              <N8N className="w-6 h-6 text-purple-600" />
+              <Network className="w-6 h-6 text-purple-600" />
             </div>
             <div>
               <div className="font-semibold text-gray-900">N8N</div>

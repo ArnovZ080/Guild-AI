@@ -123,7 +123,7 @@ const AgentsView = () => {
       executive: 'bg-purple-100 text-purple-800 border-purple-200',
       content: 'bg-blue-100 text-blue-800 border-blue-200',
       research: 'bg-green-100 text-green-800 border-green-200',
-      financial: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      financial: 'bg-white text-gray-800 border-gray-200',
       creative: 'bg-pink-100 text-pink-800 border-pink-200',
       automation: 'bg-orange-100 text-orange-800 border-orange-200',
       evaluation: 'bg-red-100 text-red-800 border-red-200',

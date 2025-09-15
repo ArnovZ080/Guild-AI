@@ -22,7 +22,8 @@ import {
   ChevronUp,
   Play,
   Pause,
-  Download
+  Download,
+  DollarSign
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 

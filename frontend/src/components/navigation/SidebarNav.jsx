@@ -187,12 +187,10 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
 
   const getIconClasses = (item) => {
     const isActive = activeItem === item.id;
-    const priority = getItemPriority(item.id);
     
     return cn(
       "w-5 h-5 transition-all duration-200",
       isActive ? "text-blue-400" : "text-slate-600 dark:text-slate-300",
-      priority === 'high' && "text-blue-500",
       "group-hover:text-blue-400 group-hover:scale-110"
     );
   };
