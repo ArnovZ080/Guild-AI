@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MomentumData {
   current: number;
@@ -37,6 +37,7 @@ export const ProgressMomentumTracker: React.FC = () => {
     { day: 'Sun', value: 82 }
   ]);
 
+  const [selectedAction, setSelectedAction] = useState<MomentumAction | null>(null);
   const [momentumActions] = useState<MomentumAction[]>([
     {
       id: '1',
@@ -311,10 +312,7 @@ export const ProgressMomentumTracker: React.FC = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
-                onClick={() => {
-                  console.log('Viewing momentum action details:', action.action);
-                  alert(`Action Details:\n\nAction: ${action.action}\nImpact: ${Math.abs(action.impact * 100).toFixed(0)}%\nCategory: ${action.category}\nDescription: ${action.description}\n\nAgent Involvement: This would show which agents were involved, what was executed, and the specific results that led to this momentum change.`);
-                }}
+                onClick={() => setSelectedAction(action)}
               >
                 <div className="flex-shrink-0">
                   <span className="text-lg">{getCategoryIcon(action.category)}</span>
@@ -362,6 +360,73 @@ export const ProgressMomentumTracker: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Action Detail Modal */}
+      <AnimatePresence>
+        {selectedAction && (
+          <motion.div
+            className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedAction(null)}
+          >
+            <motion.div
+              className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 ${getCategoryColor(selectedAction.category)} rounded-lg flex items-center justify-center`}>
+                    <span className="text-2xl">{getCategoryIcon(selectedAction.category)}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedAction.action}</h3>
+                    <p className="text-sm text-gray-600 capitalize">{selectedAction.category}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedAction(null)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Impact:</span>
+                  <span className={`text-sm font-medium ${getImpactColor(selectedAction.impact)}`}>
+                    {Math.abs(selectedAction.impact * 100).toFixed(0)}%
+                  </span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Timestamp:</span>
+                  <span className="text-sm font-medium">
+                    {selectedAction.timestamp.toLocaleString()}
+                  </span>
+                </div>
+                
+                <div className="pt-3 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Description:</h4>
+                  <p className="text-sm text-gray-600">{selectedAction.description}</p>
+                </div>
+
+                <div className="pt-3 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Agent Involvement:</h4>
+                  <p className="text-sm text-gray-600">
+                    This would show which agents were involved, what was executed, and the specific results that led to this momentum change.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

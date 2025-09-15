@@ -5,7 +5,7 @@ import {
   Plus, Search, Filter, Eye, Settings, Brain, Globe, Database,
   Workflow, GitBranch, Target, Users, DollarSign, TrendingUp,
   Calendar, Bell, Shield, Activity, RefreshCw, Download, Upload,
-  Link, Zap as ZapIcon, ArrowRight, ArrowDown, Wrench, FileText, Network, Mail, MessageSquare, Share
+  Link, Zap as ZapIcon, ArrowRight, ArrowDown, Wrench, FileText, Network, Mail, MessageSquare, Share, Headphones
 } from 'lucide-react';
 import { useWorkflows } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
