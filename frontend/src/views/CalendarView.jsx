@@ -374,6 +374,151 @@ const CalendarView = () => {
     });
   };
 
+  // Week view component
+  const WeekView = () => {
+    // Get the start of the week (Sunday)
+    const getWeekStart = (date) => {
+      const start = new Date(date);
+      start.setDate(date.getDate() - date.getDay());
+      return start;
+    };
+
+    // Generate week days
+    const weekStart = getWeekStart(selectedDate);
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(weekStart);
+      day.setDate(weekStart.getDate() + i);
+      weekDays.push(day);
+    }
+
+    // Generate time slots (8 AM to 8 PM)
+    const timeSlots = [];
+    for (let hour = 8; hour <= 20; hour++) {
+      timeSlots.push({
+        hour: hour,
+        time: `${hour.toString().padStart(2, '0')}:00`,
+        display: hour <= 12 ? `${hour === 12 ? 12 : hour}:00 AM` : `${hour === 12 ? 12 : hour - 12}:00 PM`
+      });
+    }
+
+    // Get events for a specific day and time range
+    const getEventsForDayAndTime = (date, startHour, endHour) => {
+      return events.filter(event => {
+        const eventDate = new Date(event.date);
+        const eventHour = parseInt(event.time.split(':')[0]);
+        return eventDate.toDateString() === date.toDateString() && 
+               eventHour >= startHour && eventHour < endHour;
+      });
+    };
+
+    return (
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        {/* Week Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">
+              {weekStart.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {weekDays[6].toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </h2>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setSelectedDate(new Date(selectedDate.getTime() - 7 * 24 * 60 * 60 * 1000))}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setSelectedDate(new Date())}
+                className="px-3 py-1 bg-white/20 rounded-lg text-sm hover:bg-white/30 transition-colors"
+              >
+                This Week
+              </button>
+              <button
+                onClick={() => setSelectedDate(new Date(selectedDate.getTime() + 7 * 24 * 60 * 60 * 1000))}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Week Grid */}
+        <div className="grid grid-cols-8 border-b">
+          {/* Time column header */}
+          <div className="p-3 text-center font-semibold text-gray-600 bg-gray-50 border-r">
+            Time
+          </div>
+          {/* Day headers */}
+          {weekDays.map((day, index) => {
+            const isToday = day.toDateString() === new Date().toDateString();
+            const isSelected = day.toDateString() === selectedDate.toDateString();
+            
+            return (
+              <div
+                key={index}
+                className={`p-3 text-center font-semibold border-r cursor-pointer transition-colors ${
+                  isToday ? 'bg-blue-100 text-blue-800' : 
+                  isSelected ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-600'
+                }`}
+                onClick={() => setSelectedDate(day)}
+              >
+                <div className="text-sm font-medium">
+                  {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                </div>
+                <div className={`text-lg font-bold ${
+                  isToday ? 'text-blue-900' : 'text-gray-900'
+                }`}>
+                  {day.getDate()}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Time slots and events */}
+        <div className="max-h-[600px] overflow-y-auto">
+          {timeSlots.map((timeSlot, timeIndex) => (
+            <div key={timeIndex} className="grid grid-cols-8 border-b min-h-[60px]">
+              {/* Time label */}
+              <div className="p-2 text-sm text-gray-500 bg-gray-50 border-r flex items-center justify-center">
+                {timeSlot.display}
+              </div>
+              
+              {/* Day columns */}
+              {weekDays.map((day, dayIndex) => {
+                const dayEvents = getEventsForDayAndTime(day, timeSlot.hour, timeSlot.hour + 1);
+                const isToday = day.toDateString() === new Date().toDateString();
+                const isSelected = day.toDateString() === selectedDate.toDateString();
+                
+                return (
+                  <div
+                    key={dayIndex}
+                    className={`border-r p-1 min-h-[60px] cursor-pointer transition-colors ${
+                      isToday ? 'bg-blue-25' : 
+                      isSelected ? 'bg-blue-25' : 'bg-white'
+                    } hover:bg-gray-50`}
+                    onClick={() => setSelectedDate(day)}
+                  >
+                    {dayEvents.map(event => (
+                      <div
+                        key={event.id}
+                        className={`text-xs p-1 rounded border mb-1 ${getEventTypeStyle(event.type)} ${getPriorityStyle(event.priority)}`}
+                      >
+                        <div className="truncate font-medium">{event.title}</div>
+                        <div className="text-xs opacity-75">{event.time}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // Filter events based on type and search
   const filteredEvents = events.filter(event => {
     const matchesType = filterType === 'all' || event.type === filterType;
@@ -721,6 +866,7 @@ const CalendarView = () => {
         {/* Main Calendar */}
         <div className="lg:col-span-2">
           {viewMode === 'month' && <MonthView />}
+          {viewMode === 'week' && <WeekView />}
           {viewMode === 'day' && <DayView />}
         </div>
 
