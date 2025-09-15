@@ -263,60 +263,30 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            {/* Performance Summary */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Business Performance Summary</h2>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600">$125K</div>
-                  <div className="text-sm text-gray-600">Monthly Revenue</div>
-                  <div className="text-xs text-green-500">+12% vs last month</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600">1,247</div>
-                  <div className="text-sm text-gray-600">Active Customers</div>
-                  <div className="text-xs text-blue-500">+8% vs last month</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600">89%</div>
-                  <div className="text-sm text-gray-600">Customer Satisfaction</div>
-                  <div className="text-xs text-purple-500">+3% vs last month</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-600">156</div>
-                  <div className="text-sm text-gray-600">Content Pieces</div>
-                  <div className="text-xs text-orange-500">+24% vs last month</div>
-                </div>
-              </div>
-            </div>
-
-            {/* At-a-Glance Sections */}
+            <EnhancedCommandCenter />
+            
+            {/* Main Business Drivers */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Finance at a Glance */}
+              {/* Financial Overview */}
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <DollarSign className="w-5 h-5 mr-2 text-green-500" />
-                    Finance at a Glance
+                    Financial Health
                   </h3>
-                  <button 
-                    onClick={() => setActiveTab('visualizations')}
-                    className="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    View Details →
-                  </button>
+                  <span className="text-sm text-green-600 font-medium">Healthy</span>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Revenue</span>
+                    <span className="text-sm text-gray-600">Monthly Revenue</span>
                     <span className="font-semibold text-green-600">$125,000</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Expenses</span>
+                    <span className="text-sm text-gray-600">Monthly Expenses</span>
                     <span className="font-semibold text-red-600">$85,000</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Profit</span>
+                    <span className="text-sm text-gray-600">Net Profit</span>
                     <span className="font-semibold text-blue-600">$40,000</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -326,19 +296,14 @@ const DashboardView = () => {
                 </div>
               </div>
 
-              {/* Content Performance at a Glance */}
+              {/* Content Performance */}
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                     <FileText className="w-5 h-5 mr-2 text-blue-500" />
                     Content Performance
                   </h3>
-                  <button 
-                    onClick={() => setActiveTab('content')}
-                    className="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    View Details →
-                  </button>
+                  <span className="text-sm text-blue-600 font-medium">Growing</span>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
@@ -350,8 +315,8 @@ const DashboardView = () => {
                     <span className="font-semibold text-green-600">12.4%</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Top Content</span>
-                    <span className="font-semibold text-purple-600">Blog Post</span>
+                    <span className="text-sm text-gray-600">Content Pieces</span>
+                    <span className="font-semibold text-purple-600">156</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div className="bg-blue-500 h-2 rounded-full" style={{ width: '75%' }}></div>
@@ -360,49 +325,37 @@ const DashboardView = () => {
                 </div>
               </div>
 
-              {/* Business Momentum at a Glance */}
+              {/* Agent Activities */}
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <TrendingUp className="w-5 h-5 mr-2 text-purple-500" />
-                    Business Momentum
+                    <Brain className="w-5 h-5 mr-2 text-purple-500" />
+                    Agent Activities
                   </h3>
-                  <button 
-                    onClick={() => setActiveTab('visualizations')}
-                    className="text-sm text-blue-600 hover:text-blue-700"
-                  >
-                    View Details →
-                  </button>
+                  <span className="text-sm text-purple-600 font-medium">Active</span>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Growth Rate</span>
-                    <span className="font-semibold text-green-600">+15%</span>
+                    <span className="text-sm text-gray-600">Active Agents</span>
+                    <span className="font-semibold text-purple-600">12/52</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">New Leads</span>
-                    <span className="font-semibold text-blue-600">234</span>
+                    <span className="text-sm text-gray-600">Tasks Completed</span>
+                    <span className="font-semibold text-green-600">47</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Conversion</span>
-                    <span className="font-semibold text-purple-600">8.2%</span>
+                    <span className="text-sm text-gray-600">In Progress</span>
+                    <span className="font-semibold text-blue-600">8</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '82%' }}></div>
+                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '85%' }}></div>
                   </div>
-                  <p className="text-xs text-gray-500">82% of growth target</p>
+                  <p className="text-xs text-gray-500">85% efficiency rate</p>
                 </div>
               </div>
             </div>
 
-            {/* Opportunity Radar */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Radar className="w-5 h-5 mr-2 text-green-500" />
-                Opportunity Radar
-              </h3>
-              <OpportunityRadar />
-            </div>
+            <EnhancedActionTheater />
           </motion.div>
         )}
 

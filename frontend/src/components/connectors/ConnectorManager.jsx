@@ -220,6 +220,94 @@ const ConnectorManager = () => {
         'Data Sync Between Apps',
         'Invoice Processing Automation'
       ]
+    },
+    {
+      id: 'google_drive',
+      name: 'Google Drive',
+      category: 'productivity',
+      status: 'active',
+      capabilities: ['files', 'folders', 'documents', 'sheets'],
+      description: 'Access and manage your Google Drive files and documents',
+      icon: Database,
+      color: 'bg-blue-500',
+      documentation_url: 'https://developers.google.com/drive/api'
+    },
+    {
+      id: 'onedrive',
+      name: 'OneDrive',
+      category: 'productivity',
+      status: 'active',
+      capabilities: ['files', 'folders', 'documents', 'sheets'],
+      description: 'Access and manage your Microsoft OneDrive files',
+      icon: Database,
+      color: 'bg-blue-600',
+      documentation_url: 'https://docs.microsoft.com/en-us/onedrive/developer/'
+    },
+    {
+      id: 'dropbox',
+      name: 'Dropbox',
+      category: 'productivity',
+      status: 'active',
+      capabilities: ['files', 'folders', 'documents', 'sharing'],
+      description: 'Access and manage your Dropbox files and folders',
+      icon: Database,
+      color: 'bg-blue-700',
+      documentation_url: 'https://www.dropbox.com/developers'
+    },
+    {
+      id: 'slack',
+      name: 'Slack',
+      category: 'communication',
+      status: 'active',
+      capabilities: ['messages', 'channels', 'users', 'files'],
+      description: 'Access Slack messages, channels, and team communication',
+      icon: MessageSquare,
+      color: 'bg-purple-500',
+      documentation_url: 'https://api.slack.com/'
+    },
+    {
+      id: 'xero',
+      name: 'Xero',
+      category: 'accounting',
+      status: 'active',
+      capabilities: ['invoices', 'contacts', 'accounts', 'reports'],
+      description: 'Access Xero accounting data and financial information',
+      icon: DollarSign,
+      color: 'bg-blue-500',
+      documentation_url: 'https://developer.xero.com/'
+    },
+    {
+      id: 'quickbooks',
+      name: 'QuickBooks',
+      category: 'accounting',
+      status: 'active',
+      capabilities: ['invoices', 'customers', 'accounts', 'reports'],
+      description: 'Access QuickBooks accounting and financial data',
+      icon: DollarSign,
+      color: 'bg-blue-600',
+      documentation_url: 'https://developer.intuit.com/'
+    },
+    {
+      id: 'hubspot',
+      name: 'HubSpot',
+      category: 'crm',
+      status: 'active',
+      capabilities: ['contacts', 'companies', 'deals', 'tickets'],
+      description: 'Access HubSpot CRM data and marketing automation',
+      icon: Database,
+      color: 'bg-orange-500',
+      documentation_url: 'https://developers.hubspot.com/'
+    },
+    {
+      id: 'salesforce',
+      name: 'Salesforce',
+      category: 'crm',
+      status: 'active',
+      capabilities: ['leads', 'opportunities', 'accounts', 'contacts'],
+      description: 'Access Salesforce CRM and sales data',
+      icon: Database,
+      color: 'bg-blue-500',
+      documentation_url: 'https://developer.salesforce.com/'
     }
   ];
 

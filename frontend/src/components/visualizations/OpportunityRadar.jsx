@@ -140,7 +140,7 @@ const OpportunityRadar = () => {
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          transformOrigin: 'center bottom',
+          transformOrigin: 'center center',
         }}
         animate={{
           rotate: scanAngle,

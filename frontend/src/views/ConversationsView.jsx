@@ -512,9 +512,23 @@ const ConversationsView = () => {
                   <div className="bg-blue-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">Next Action</h3>
                     <p className="text-gray-700 mb-2">{selectedConversation.nextAction}</p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 mb-4">
                       Due: {selectedConversation.nextActionDate.toLocaleDateString()}
                     </p>
+                    <button
+                      onClick={() => {
+                        // In real implementation, this would trigger the agent to complete the action
+                        console.log('Initiating action for conversation:', selectedConversation.id);
+                        triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                          message: "Action initiated! 🚀",
+                          intensity: 'normal'
+                        });
+                      }}
+                      className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span>Initiate Action</span>
+                    </button>
                   </div>
                 )}
 

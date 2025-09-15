@@ -482,6 +482,59 @@ const CustomersView = () => {
           <CustomerJourneyConstellation customers={filteredCustomers} />
         </div>
       )}
+      {viewMode === 'grid' && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">Customer Grid View</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCustomers.map(customer => (
+              <div key={customer.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                   onClick={() => setSelectedCustomer(customer)}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                      {customer.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                      <p className="text-sm text-gray-600">{customer.company}</p>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 text-xs rounded-full ${
+                    customer.status === 'active' ? 'bg-green-100 text-green-800' :
+                    customer.status === 'prospect' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {customer.status}
+                  </span>
+                </div>
+                
+                <div className="space-y-2 mb-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Value:</span>
+                    <span className="font-semibold text-green-600">${customer.value.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Stage:</span>
+                    <span className="font-medium capitalize">{customer.stage}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Industry:</span>
+                    <span className="font-medium">{customer.industry}</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-1">
+                  {customer.tags.map(tag => (
+                    <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Customer Detail Modal */}
       <CustomerDetailModal />

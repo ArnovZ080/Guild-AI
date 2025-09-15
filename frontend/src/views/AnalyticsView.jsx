@@ -387,125 +387,135 @@ const AnalyticsView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Traffic Chart */}
-              <div className="bg-white rounded-lg p-6 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Traffic Overview</h3>
-                <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-                  <div className="text-center">
-                    <BarChart className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-gray-500">Traffic chart would be here</p>
-                    <p className="text-sm text-gray-400">Integration with charting library needed</p>
-                  </div>
+            {/* Performance Summary */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Business Performance Summary</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">$125K</div>
+                  <div className="text-sm text-gray-600">Monthly Revenue</div>
+                  <div className="text-xs text-green-500">+12% vs last month</div>
                 </div>
-              </div>
-
-              {/* Conversion Funnel */}
-              <div className="bg-white rounded-lg p-6 shadow-lg">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Conversion Funnel</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Visitors</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: '100%' }}></div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">12,543</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Leads</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-500 h-2 rounded-full" style={{ width: '15%' }}></div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">1,881</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Customers</span>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: '3%' }}></div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-900">376</span>
-                    </div>
-                  </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">1,247</div>
+                  <div className="text-sm text-gray-600">Active Customers</div>
+                  <div className="text-xs text-blue-500">+8% vs last month</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600">89%</div>
+                  <div className="text-sm text-gray-600">Customer Satisfaction</div>
+                  <div className="text-xs text-purple-500">+3% vs last month</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-600">156</div>
+                  <div className="text-sm text-gray-600">Content Pieces</div>
+                  <div className="text-xs text-orange-500">+24% vs last month</div>
                 </div>
               </div>
             </div>
 
-            {/* AI Recommendations */}
-            <div className="bg-white rounded-lg p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Brain className="w-5 h-5 mr-2 text-blue-500" />
-                AI Recommendations
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  {
-                    title: "Optimize landing page conversion rate by 15%",
-                    description: "AI will analyze current landing page performance and implement A/B testing strategies",
-                    agent: "Marketing Agent",
-                    estimatedImpact: "15% increase in conversions",
-                    timeToImplement: "2-3 days"
-                  },
-                  {
-                    title: "Increase social media engagement by targeting peak hours",
-                    description: "AI will analyze engagement patterns and schedule optimal posting times",
-                    agent: "Social Media Agent",
-                    estimatedImpact: "25% increase in engagement",
-                    timeToImplement: "1 day"
-                  },
-                  {
-                    title: "Implement email automation for abandoned cart recovery",
-                    description: "AI will create automated email sequences to recover lost sales",
-                    agent: "Email Marketing Agent",
-                    estimatedImpact: "20% recovery rate",
-                    timeToImplement: "3-5 days"
-                  },
-                  {
-                    title: "Focus on high-value customer segments for Q2",
-                    description: "AI will identify and create targeted campaigns for high-value customers",
-                    agent: "Strategy Agent",
-                    estimatedImpact: "30% increase in customer value",
-                    timeToImplement: "1 week"
-                  }
-                ].map((rec, index) => (
-                  <motion.div
-                    key={index}
-                    className="p-4 bg-blue-50 rounded-lg border border-blue-200"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
+            {/* At-a-Glance Sections */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Finance at a Glance */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+                    Finance at a Glance
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('financial')}
+                    className="text-sm text-blue-600 hover:text-blue-700"
                   >
-                    <div className="flex items-start space-x-3">
-                      <div className="p-1 bg-blue-100 rounded-full">
-                        <Target className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-blue-800 mb-1">{rec.title}</p>
-                        <p className="text-xs text-blue-600 mb-2">{rec.description}</p>
-                        <div className="flex items-center justify-between text-xs text-blue-500 mb-3">
-                          <span>Agent: {rec.agent}</span>
-                          <span>Impact: {rec.estimatedImpact}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-blue-500">Time: {rec.timeToImplement}</span>
-                          <div className="flex space-x-2">
-                            <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors">
-                              Implement
-                            </button>
-                            <button className="px-3 py-1 bg-gray-200 text-gray-600 text-xs rounded-md hover:bg-gray-300 transition-colors">
-                              Dismiss
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    View Details →
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Revenue</span>
+                    <span className="font-semibold text-green-600">$125,000</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Expenses</span>
+                    <span className="font-semibold text-red-600">$85,000</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Profit</span>
+                    <span className="font-semibold text-blue-600">$40,000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '68%' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">68% profit margin</p>
+                </div>
+              </div>
+
+              {/* Content Performance at a Glance */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-blue-500" />
+                    Content Performance
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('content')}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    View Details →
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Views</span>
+                    <span className="font-semibold text-blue-600">45.2K</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Engagement Rate</span>
+                    <span className="font-semibold text-green-600">12.4%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Top Content</span>
+                    <span className="font-semibold text-purple-600">Blog Post</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">75% of monthly goal</p>
+                </div>
+              </div>
+
+              {/* Business Momentum at a Glance */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <TrendingUp className="w-5 h-5 mr-2 text-purple-500" />
+                    Business Momentum
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('progress')}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    View Details →
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Growth Rate</span>
+                    <span className="font-semibold text-green-600">+15%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">New Leads</span>
+                    <span className="font-semibold text-blue-600">234</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Conversion</span>
+                    <span className="font-semibold text-purple-600">8.2%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '82%' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">82% of growth target</p>
+                </div>
               </div>
             </div>
           </motion.div>
