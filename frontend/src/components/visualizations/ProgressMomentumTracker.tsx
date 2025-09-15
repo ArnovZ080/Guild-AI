@@ -9,6 +9,15 @@ interface MomentumData {
   weeklyProgress: number;
 }
 
+interface MomentumAction {
+  id: string;
+  action: string;
+  impact: number; // -1 to 1, negative decreases momentum, positive increases
+  timestamp: Date;
+  category: 'content' | 'sales' | 'marketing' | 'operations' | 'customer';
+  description: string;
+}
+
 export const ProgressMomentumTracker: React.FC = () => {
   const [momentum, setMomentum] = useState<MomentumData>({
     current: 0.75,
@@ -26,6 +35,57 @@ export const ProgressMomentumTracker: React.FC = () => {
     { day: 'Fri', value: 88 },
     { day: 'Sat', value: 75 },
     { day: 'Sun', value: 82 }
+  ]);
+
+  const [momentumActions] = useState<MomentumAction[]>([
+    {
+      id: '1',
+      action: 'Published viral blog post',
+      impact: 0.15,
+      timestamp: new Date(2024, 0, 15, 14, 30),
+      category: 'content',
+      description: 'AI Trends 2024 blog post generated 2.3K shares and 15K views'
+    },
+    {
+      id: '2',
+      action: 'Closed major client deal',
+      impact: 0.25,
+      timestamp: new Date(2024, 0, 15, 11, 15),
+      category: 'sales',
+      description: 'Secured $50K annual contract with enterprise client'
+    },
+    {
+      id: '3',
+      action: 'Launched social media campaign',
+      impact: 0.12,
+      timestamp: new Date(2024, 0, 14, 16, 45),
+      category: 'marketing',
+      description: 'Instagram campaign increased followers by 1.2K in 24 hours'
+    },
+    {
+      id: '4',
+      action: 'Customer complaint resolved',
+      impact: -0.08,
+      timestamp: new Date(2024, 0, 14, 9, 20),
+      category: 'customer',
+      description: 'Technical issue with premium feature caused temporary momentum dip'
+    },
+    {
+      id: '5',
+      action: 'Team productivity boost',
+      impact: 0.18,
+      timestamp: new Date(2024, 0, 13, 15, 30),
+      category: 'operations',
+      description: 'New automation workflow increased team efficiency by 40%'
+    },
+    {
+      id: '6',
+      action: 'Product feature launch',
+      impact: 0.22,
+      timestamp: new Date(2024, 0, 12, 10, 0),
+      category: 'operations',
+      description: 'AI-powered analytics dashboard received 95% user satisfaction'
+    }
   ]);
 
   const getMomentumColor = (value: number) => {
@@ -46,6 +106,40 @@ export const ProgressMomentumTracker: React.FC = () => {
       return "Let's pick up the pace! ⚡";
     }
     return "Time to recharge 🔋";
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const icons = {
+      content: '📝',
+      sales: '💰',
+      marketing: '📢',
+      operations: '⚙️',
+      customer: '👥'
+    };
+    return icons[category as keyof typeof icons] || '📊';
+  };
+
+  const getCategoryColor = (category: string) => {
+    const colors = {
+      content: 'bg-blue-100 text-blue-800',
+      sales: 'bg-green-100 text-green-800',
+      marketing: 'bg-purple-100 text-purple-800',
+      operations: 'bg-orange-100 text-orange-800',
+      customer: 'bg-pink-100 text-pink-800'
+    };
+    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
+  const getImpactColor = (impact: number) => {
+    if (impact > 0) return 'text-green-600';
+    if (impact < 0) return 'text-red-600';
+    return 'text-gray-600';
+  };
+
+  const getImpactIcon = (impact: number) => {
+    if (impact > 0) return '📈';
+    if (impact < 0) return '📉';
+    return '➡️';
   };
 
   // Simulate momentum changes
@@ -200,6 +294,56 @@ export const ProgressMomentumTracker: React.FC = () => {
               <div className="text-xs font-medium text-gray-800">{day.value}%</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Momentum Actions Timeline */}
+      <div className="mt-8">
+        <h4 className="text-sm font-medium text-gray-700 mb-4">Recent Actions & Impact</h4>
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {momentumActions
+            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+            .slice(0, 5)
+            .map((action, index) => (
+              <motion.div
+                key={action.id}
+                className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="flex-shrink-0">
+                  <span className="text-lg">{getCategoryIcon(action.category)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h5 className="text-sm font-medium text-gray-900 truncate">{action.action}</h5>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-sm font-medium ${getImpactColor(action.impact)}`}>
+                        {getImpactIcon(action.impact)} {Math.abs(action.impact * 100).toFixed(0)}%
+                      </span>
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(action.category)}`}>
+                        {action.category}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 mb-1">{action.description}</p>
+                  <p className="text-xs text-gray-500">
+                    {action.timestamp.toLocaleDateString()} at {action.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="mt-4 flex space-x-2">
+          <button className="px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
+            📊 View Extended Timeline
+          </button>
+          <button className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors">
+            🔄 Repeat High-Impact Actions
+          </button>
         </div>
       </div>
     </div>

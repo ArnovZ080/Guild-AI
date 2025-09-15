@@ -12,6 +12,128 @@ import { AgentActivityTheater } from '../components/theater/AgentActivityTheater
 import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
 
+// Mock customer data for constellation
+const mockCustomers = [
+  {
+    id: '1',
+    name: 'Sarah Johnson',
+    company: 'TechCorp Solutions',
+    email: 'sarah.johnson@techcorp.com',
+    phone: '+1 (555) 123-4567',
+    status: 'active',
+    stage: 'negotiation',
+    value: 25000,
+    lastContact: new Date(2024, 0, 10),
+    nextFollowUp: new Date(2024, 0, 15),
+    source: 'LinkedIn',
+    industry: 'Technology',
+    location: 'San Francisco, CA',
+    notes: 'Interested in enterprise package. Budget approved. Decision maker.',
+    tags: ['enterprise', 'hot-lead', 'decision-maker'],
+    journey: {
+      awareness: new Date(2023, 11, 15),
+      consideration: new Date(2023, 11, 22),
+      evaluation: new Date(2024, 0, 5),
+      negotiation: new Date(2024, 0, 10)
+    }
+  },
+  {
+    id: '2',
+    name: 'Michael Chen',
+    company: 'InnovateLab',
+    email: 'michael.chen@innovatelab.com',
+    phone: '+1 (555) 987-6543',
+    status: 'active',
+    stage: 'evaluation',
+    value: 15000,
+    lastContact: new Date(2024, 0, 12),
+    nextFollowUp: new Date(2024, 0, 18),
+    source: 'Website',
+    industry: 'Software',
+    location: 'Austin, TX',
+    notes: 'Evaluating multiple solutions. Technical team involved.',
+    tags: ['technical', 'evaluation', 'multi-vendor'],
+    journey: {
+      awareness: new Date(2023, 11, 20),
+      interest: new Date(2023, 11, 28),
+      research: new Date(2024, 0, 3),
+      evaluation: new Date(2024, 0, 12)
+    }
+  },
+  {
+    id: '3',
+    name: 'Emily Rodriguez',
+    company: 'GrowthCo',
+    email: 'emily@growthco.com',
+    phone: '+1 (555) 456-7890',
+    status: 'active',
+    stage: 'purchase',
+    value: 35000,
+    lastContact: new Date(2024, 0, 14),
+    nextFollowUp: new Date(2024, 0, 20),
+    source: 'Referral',
+    industry: 'Marketing',
+    location: 'New York, NY',
+    notes: 'Ready to purchase. Waiting for final approval from CEO.',
+    tags: ['referral', 'ready-to-buy', 'ceo-approval'],
+    journey: {
+      awareness: new Date(2023, 10, 15),
+      interest: new Date(2023, 10, 22),
+      research: new Date(2023, 11, 5),
+      consideration: new Date(2023, 11, 15),
+      evaluation: new Date(2023, 11, 28),
+      purchase: new Date(2024, 0, 14)
+    }
+  },
+  {
+    id: '4',
+    name: 'David Kim',
+    company: 'StartupXYZ',
+    email: 'david@startupxyz.com',
+    phone: '+1 (555) 321-0987',
+    status: 'prospect',
+    stage: 'interest',
+    value: 8000,
+    lastContact: new Date(2024, 0, 8),
+    nextFollowUp: new Date(2024, 0, 16),
+    source: 'Social Media',
+    industry: 'SaaS',
+    location: 'Seattle, WA',
+    notes: 'Early stage startup. Limited budget but high growth potential.',
+    tags: ['startup', 'limited-budget', 'high-potential'],
+    journey: {
+      awareness: new Date(2024, 0, 1),
+      interest: new Date(2024, 0, 8)
+    }
+  },
+  {
+    id: '5',
+    name: 'Lisa Thompson',
+    company: 'Enterprise Corp',
+    email: 'lisa.thompson@enterprise.com',
+    phone: '+1 (555) 654-3210',
+    status: 'active',
+    stage: 'retention',
+    value: 50000,
+    lastContact: new Date(2024, 0, 13),
+    nextFollowUp: new Date(2024, 0, 25),
+    source: 'Direct',
+    industry: 'Enterprise',
+    location: 'Chicago, IL',
+    notes: 'Long-term customer. Looking to expand usage.',
+    tags: ['enterprise', 'long-term', 'expansion'],
+    journey: {
+      awareness: new Date(2023, 8, 1),
+      interest: new Date(2023, 8, 15),
+      research: new Date(2023, 9, 1),
+      consideration: new Date(2023, 9, 15),
+      evaluation: new Date(2023, 10, 1),
+      purchase: new Date(2023, 10, 15),
+      retention: new Date(2024, 0, 13)
+    }
+  }
+];
+
 // Enhanced Command Center with real data
 const EnhancedCommandCenter = () => {
   const { metrics, loading } = useBusinessMetrics();
@@ -648,7 +770,7 @@ const DashboardView = () => {
                 <Users className="w-5 h-5 mr-2 text-purple-500" />
                 Customer Journey Constellation
               </h3>
-              <CustomerJourneyConstellation customers={[]} />
+              <CustomerJourneyConstellation customers={mockCustomers} />
             </div>
           </motion.div>
         )}

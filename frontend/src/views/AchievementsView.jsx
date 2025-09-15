@@ -206,6 +206,35 @@ const AchievementsView = () => {
   const [selectedType, setSelectedType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAchievement, setSelectedAchievement] = useState(null);
+  const [showRepeatStrategyModal, setShowRepeatStrategyModal] = useState(false);
+  const [repeatStrategyData, setRepeatStrategyData] = useState({
+    targetMetric: '',
+    targetValue: '',
+    timeframe: '',
+    priority: 'medium',
+    customInstructions: ''
+  });
+
+  // Handler functions
+  const handleRepeatStrategy = (achievement) => {
+    setSelectedAchievement(achievement);
+    setRepeatStrategyData({
+      targetMetric: achievement.metric || '',
+      targetValue: achievement.value || '',
+      timeframe: achievement.timeframe || '',
+      priority: 'medium',
+      customInstructions: ''
+    });
+    setShowRepeatStrategyModal(true);
+  };
+
+  const handleSaveRepeatStrategy = () => {
+    console.log('Repeating strategy for:', selectedAchievement.title, 'with data:', repeatStrategyData);
+    // In real implementation, this would trigger agents to implement the strategy with new metrics
+    alert(`Strategy "${selectedAchievement.title}" is being re-initialized with new metrics! 🚀`);
+    setShowRepeatStrategyModal(false);
+    setSelectedAchievement(null);
+  };
 
   // Filter achievements
   const filteredAchievements = mockAchievements.filter(achievement => {
@@ -520,11 +549,7 @@ const AchievementsView = () => {
                         </p>
                       </div>
                       <button
-                        onClick={() => {
-                          // In real implementation, this would trigger the agent flow with new parameters
-                          console.log('Repeating achievement:', selectedAchievement.id);
-                          setSelectedAchievement(null);
-                        }}
+                        onClick={() => handleRepeatStrategy(selectedAchievement)}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
                       >
                         <Zap className="w-4 h-4" />
@@ -549,6 +574,150 @@ const AchievementsView = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Repeat Strategy Modal */}
+      {showRepeatStrategyModal && selectedAchievement && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Repeat Strategy: {selectedAchievement.title}</h2>
+            <p className="text-gray-600 mb-6">
+              Adjust the metrics and parameters to repeat this successful strategy with new targets.
+            </p>
+            
+            <div className="space-y-6">
+              {/* Original Achievement Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Original Achievement</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Metric:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.metric || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Value:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.value || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Timeframe:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.timeframe || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Date Achieved:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.dateAchieved.toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* New Strategy Parameters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Metric</label>
+                  <input
+                    type="text"
+                    value={repeatStrategyData.targetMetric}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, targetMetric: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Monthly Recurring Revenue, Customer Acquisition, etc."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Value</label>
+                  <input
+                    type="text"
+                    value={repeatStrategyData.targetValue}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, targetValue: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., $200K, 500 customers, 25% growth"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Timeframe</label>
+                  <select
+                    value={repeatStrategyData.timeframe}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, timeframe: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select timeframe</option>
+                    <option value="1 month">1 Month</option>
+                    <option value="3 months">3 Months</option>
+                    <option value="6 months">6 Months</option>
+                    <option value="1 year">1 Year</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <select
+                    value={repeatStrategyData.priority}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, priority: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Custom Instructions</label>
+                <textarea
+                  value={repeatStrategyData.customInstructions}
+                  onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, customInstructions: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                  placeholder="Add any specific instructions or modifications for this strategy repeat..."
+                />
+              </div>
+
+              {/* Agent Flow Preview */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Agent Flow Preview</h3>
+                <p className="text-blue-800 text-sm mb-3">
+                  The following agents will be deployed to achieve your new target:
+                </p>
+                <div className="space-y-2">
+                  {selectedAchievement.agentFlow?.map((step, index) => (
+                    <div key={index} className="flex items-center space-x-3 text-sm">
+                      <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-900">{step.agent}</span>
+                        <span className="text-blue-700 ml-2">- {step.action}</span>
+                      </div>
+                    </div>
+                  )) || (
+                    <div className="text-blue-700 text-sm">
+                      Strategy agents will be automatically selected based on your target metric.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowRepeatStrategyModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRepeatStrategy}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+              >
+                <Zap className="w-4 h-4" />
+                <span>Deploy Strategy</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

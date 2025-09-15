@@ -190,7 +190,63 @@ const DocumentsView = () => {
   const [sortBy, setSortBy] = useState('lastModified');
   const [sortOrder, setSortOrder] = useState('desc');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareEmail, setShareEmail] = useState('');
+  const [shareMessage, setShareMessage] = useState('');
   const { triggerCelebration } = useCelebrations();
+
+  // Handler functions
+  const handleViewDocument = (document) => {
+    console.log('Viewing document:', document.name);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Opening ${document.name}... 📄`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would open the document viewer
+  };
+
+  const handleDownloadDocument = (document, format = 'original') => {
+    console.log(`Downloading ${document.name} in ${format} format`);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Downloading ${document.name}... ⬇️`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would trigger the download
+  };
+
+  const handleShareDocument = (document) => {
+    setSelectedDocument(document);
+    setShowShareModal(true);
+  };
+
+  const handleReanalyzeDocument = (document) => {
+    console.log('Re-analyzing document:', document.name);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Re-analyzing ${document.name} with AI... 🧠`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would trigger the document processing agent
+  };
+
+  const handleAcceptRecommendations = (document) => {
+    console.log('Accepting recommendations for:', document.name);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Initiating recommendations for ${document.name}... 🚀`,
+      intensity: 'high'
+    });
+    // In real implementation, this would trigger agents to implement recommendations
+  };
+
+  const handleSendShare = () => {
+    console.log('Sharing document:', selectedDocument.name, 'to:', shareEmail);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Document shared with ${shareEmail}! 📤`,
+      intensity: 'normal'
+    });
+    setShowShareModal(false);
+    setShareEmail('');
+    setShareMessage('');
+  };
 
   // Filter and sort documents
   const filteredDocuments = documents
@@ -556,22 +612,73 @@ const DocumentsView = () => {
 
                 {/* Actions */}
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                  <button 
+                    onClick={() => handleViewDocument(selectedDocument)}
+                    className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
                     <Eye className="w-4 h-4" />
                     <span>View Document</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                    <Download className="w-4 h-4" />
-                    <span>Download</span>
-                  </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                  
+                  {/* Download with format options */}
+                  <div className="relative group">
+                    <button className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                      <Download className="w-4 h-4" />
+                      <span>Download</span>
+                    </button>
+                    <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                      <button 
+                        onClick={() => handleDownloadDocument(selectedDocument, 'original')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
+                      >
+                        Original Format
+                      </button>
+                      <button 
+                        onClick={() => handleDownloadDocument(selectedDocument, 'pdf')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
+                      >
+                        PDF
+                      </button>
+                      <button 
+                        onClick={() => handleDownloadDocument(selectedDocument, 'google')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
+                      >
+                        Google Suite
+                      </button>
+                      <button 
+                        onClick={() => handleDownloadDocument(selectedDocument, 'office')}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"
+                      >
+                        MS Office
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => handleShareDocument(selectedDocument)}
+                    className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  >
                     <Share className="w-4 h-4" />
                     <span>Share</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                  <button 
+                    onClick={() => handleReanalyzeDocument(selectedDocument)}
+                    className="w-full flex items-center justify-center space-x-2 bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors"
+                  >
                     <Brain className="w-4 h-4" />
                     <span>Re-analyze</span>
                   </button>
+                  
+                  {/* Accept and Initiate Recommendations Button */}
+                  {selectedDocument?.recommendations && selectedDocument.recommendations.length > 0 && (
+                    <button 
+                      onClick={() => handleAcceptRecommendations(selectedDocument)}
+                      className="w-full flex items-center justify-center space-x-2 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      <span>Accept & Initiate Recommendations</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -714,6 +821,74 @@ const DocumentsView = () => {
 
       {/* Document Detail Modal */}
       <DocumentDetailModal />
+
+      {/* Share Modal */}
+      {showShareModal && selectedDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Share Document</h2>
+            <p className="text-gray-600 mb-4">Share "{selectedDocument.name}" with others:</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  value={shareEmail}
+                  onChange={(e) => setShareEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="recipient@example.com"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Message (Optional)</label>
+                <textarea
+                  value={shareMessage}
+                  onChange={(e) => setShareMessage(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Add a personal message..."
+                />
+              </div>
+              
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="font-medium text-gray-900 mb-2">Share Options</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center">
+                    <input type="checkbox" defaultChecked className="mr-2" />
+                    <span className="text-sm">View only</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Allow comments</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span className="text-sm">Allow download</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendShare}
+                disabled={!shareEmail}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                Send Share
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

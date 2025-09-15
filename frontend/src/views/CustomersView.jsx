@@ -122,7 +122,76 @@ const CustomersView = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterStage, setFilterStage] = useState('all');
   const [viewMode, setViewMode] = useState('list'); // list, journey, grid
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({
+    name: '',
+    company: '',
+    email: '',
+    phone: '',
+    status: 'prospect',
+    stage: 'awareness',
+    value: 0,
+    source: '',
+    industry: '',
+    location: '',
+    notes: '',
+    tags: []
+  });
   const { triggerCelebration } = useCelebrations();
+
+  // Handler functions
+  const handleAddCustomer = () => {
+    setShowAddCustomerModal(true);
+  };
+
+  const handleImportCustomers = () => {
+    setShowImportModal(true);
+  };
+
+  const handleSaveCustomer = () => {
+    const customer = {
+      ...newCustomer,
+      id: Date.now().toString(),
+      lastContact: new Date(),
+      nextFollowUp: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+      journey: {
+        awareness: new Date()
+      }
+    };
+    
+    setCustomers(prev => [...prev, customer]);
+    setNewCustomer({
+      name: '',
+      company: '',
+      email: '',
+      phone: '',
+      status: 'prospect',
+      stage: 'awareness',
+      value: 0,
+      source: '',
+      industry: '',
+      location: '',
+      notes: '',
+      tags: []
+    });
+    setShowAddCustomerModal(false);
+    
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Customer ${customer.name} added successfully! 👥`,
+      intensity: 'normal'
+    });
+  };
+
+  const handleImportFromCRM = (source) => {
+    // Mock CRM import functionality
+    console.log(`Importing customers from ${source}`);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Importing customers from ${source}... 📊`,
+      intensity: 'normal'
+    });
+    setShowImportModal(false);
+  };
 
   // Filter customers
   const filteredCustomers = customers.filter(customer => {
@@ -396,18 +465,22 @@ const CustomersView = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Customer Management</h1>
-          <button
-            onClick={() => {
-              triggerCelebration(CelebrationType.TASK_COMPLETE, {
-                message: "Adding new customer! 👥",
-                intensity: 'normal'
-              });
-            }}
-            className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Customer</span>
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleAddCustomer}
+              className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Customer</span>
+            </button>
+            <button
+              onClick={handleImportCustomers}
+              className="flex items-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span>Import from CRM</span>
+            </button>
+          </div>
         </div>
 
         {/* Controls */}
@@ -538,6 +611,180 @@ const CustomersView = () => {
 
       {/* Customer Detail Modal */}
       <CustomerDetailModal />
+
+      {/* Add Customer Modal */}
+      {showAddCustomerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Add New Customer</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={newCustomer.name}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Customer name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                <input
+                  type="text"
+                  value={newCustomer.company}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, company: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Company name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  value={newCustomer.email}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="customer@company.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  value={newCustomer.phone}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, phone: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={newCustomer.status}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, status: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="prospect">Prospect</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stage</label>
+                <select
+                  value={newCustomer.stage}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, stage: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="awareness">Awareness</option>
+                  <option value="interest">Interest</option>
+                  <option value="research">Research</option>
+                  <option value="consideration">Consideration</option>
+                  <option value="evaluation">Evaluation</option>
+                  <option value="negotiation">Negotiation</option>
+                  <option value="purchase">Purchase</option>
+                  <option value="retention">Retention</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Value ($)</label>
+                <input
+                  type="number"
+                  value={newCustomer.value}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, value: parseInt(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                <input
+                  type="text"
+                  value={newCustomer.source}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, source: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="LinkedIn, Website, Referral, etc."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Industry</label>
+                <input
+                  type="text"
+                  value={newCustomer.industry}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, industry: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Technology, Healthcare, etc."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                <input
+                  type="text"
+                  value={newCustomer.location}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, location: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="City, State"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  value={newCustomer.notes}
+                  onChange={(e) => setNewCustomer(prev => ({ ...prev, notes: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                  placeholder="Additional notes about the customer..."
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAddCustomerModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveCustomer}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                Save Customer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Import from CRM Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Import Customers from CRM</h2>
+            <p className="text-gray-600 mb-6">Select your CRM platform to import customer data:</p>
+            <div className="space-y-3">
+              {['HubSpot', 'Salesforce', 'Pipedrive', 'Zoho CRM', 'Google Sheets', 'CSV File'].map((source) => (
+                <button
+                  key={source}
+                  onClick={() => handleImportFromCRM(source)}
+                  className="w-full flex items-center justify-between p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-medium">{source}</span>
+                  <Download className="w-4 h-4 text-gray-400" />
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setShowImportModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
