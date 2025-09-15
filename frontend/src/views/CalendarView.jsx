@@ -15,7 +15,14 @@ import {
   RefreshCw,
   ExternalLink,
   Brain,
-  X
+  X,
+  MessageSquare,
+  Send,
+  Bot,
+  User,
+  CheckCircle,
+  AlertCircle,
+  Info
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 
@@ -104,6 +111,23 @@ const CalendarView = () => {
   const [showSchedulingAgent, setShowSchedulingAgent] = useState(false);
   const [schedulingInput, setSchedulingInput] = useState('');
   const [scheduledTasks, setScheduledTasks] = useState([]);
+  const [showPAChat, setShowPAChat] = useState(false);
+  const [paMessages, setPaMessages] = useState([
+    {
+      id: 1,
+      type: 'assistant',
+      content: "Good morning! I'm your Personal Assistant. I can help you manage your schedule, coordinate meetings, set reminders, and handle day-to-day tasks. What would you like me to help you with today?",
+      timestamp: new Date(),
+      suggestions: [
+        "Schedule a meeting with the marketing team",
+        "Set up a reminder for the quarterly review",
+        "Block time for strategic planning",
+        "Check my availability for next week"
+      ]
+    }
+  ]);
+  const [paInput, setPaInput] = useState('');
+  const [isPaTyping, setIsPaTyping] = useState(false);
   const { triggerCelebration } = useCelebrations();
 
   // Get events for a specific date
@@ -182,6 +206,172 @@ const CalendarView = () => {
       day: dayMatch ? dayMatch[0] : null,
       request: request
     };
+  };
+
+  // PA Chat functionality
+  const handlePAMessage = async (message) => {
+    if (!message.trim()) return;
+
+    // Add user message
+    const userMessage = {
+      id: Date.now(),
+      type: 'user',
+      content: message,
+      timestamp: new Date()
+    };
+    setPaMessages(prev => [...prev, userMessage]);
+    setPaInput('');
+    setIsPaTyping(true);
+
+    // Simulate PA response
+    setTimeout(() => {
+      const response = generatePAResponse(message);
+      const assistantMessage = {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: response.content,
+        timestamp: new Date(),
+        actions: response.actions,
+        suggestions: response.suggestions
+      };
+      setPaMessages(prev => [...prev, assistantMessage]);
+      setIsPaTyping(false);
+
+      // Execute any actions
+      if (response.actions) {
+        response.actions.forEach(action => {
+          if (action.type === 'schedule') {
+            handlePASchedule(action.data);
+          } else if (action.type === 'reminder') {
+            handlePAReminder(action.data);
+          }
+        });
+      }
+    }, 1500);
+  };
+
+  const generatePAResponse = (message) => {
+    const lowerMessage = message.toLowerCase();
+    
+    // Schedule meeting
+    if (lowerMessage.includes('schedule') && (lowerMessage.includes('meeting') || lowerMessage.includes('call'))) {
+      return {
+        content: "I'll help you schedule that meeting. Let me check your availability and coordinate with the attendees. I'll send out calendar invites once I confirm the best time.",
+        actions: [{
+          type: 'schedule',
+          data: { type: 'meeting', request: message }
+        }],
+        suggestions: [
+          "Add a 15-minute buffer before the next meeting",
+          "Include meeting agenda in the invite",
+          "Set up a follow-up reminder"
+        ]
+      };
+    }
+    
+    // Set reminder
+    if (lowerMessage.includes('remind') || lowerMessage.includes('reminder')) {
+      return {
+        content: "I've set up that reminder for you. I'll make sure you're notified at the right time.",
+        actions: [{
+          type: 'reminder',
+          data: { request: message }
+        }],
+        suggestions: [
+          "Set additional reminders for important tasks",
+          "Check your upcoming reminders",
+          "Adjust reminder timing if needed"
+        ]
+      };
+    }
+    
+    // Check availability
+    if (lowerMessage.includes('available') || lowerMessage.includes('free time')) {
+      const todayEvents = getEventsForDate(new Date());
+      const tomorrowEvents = getEventsForDate(new Date(Date.now() + 86400000));
+      
+      return {
+        content: `Here's your availability: Today you have ${todayEvents.length} events scheduled. Tomorrow you have ${tomorrowEvents.length} events. I can help you find the best time slots for new meetings.`,
+        suggestions: [
+          "Block time for deep work",
+          "Schedule a team meeting",
+          "Plan your lunch break"
+        ]
+      };
+    }
+    
+    // Block time
+    if (lowerMessage.includes('block time') || lowerMessage.includes('focus time')) {
+      return {
+        content: "I'll block that time in your calendar to protect your focus time. This will help ensure you have dedicated time for important work without interruptions.",
+        actions: [{
+          type: 'schedule',
+          data: { type: 'block', request: message }
+        }],
+        suggestions: [
+          "Set up recurring focus blocks",
+          "Add a 'Do Not Disturb' status",
+          "Plan your most important tasks for this time"
+        ]
+      };
+    }
+    
+    // Default response
+    return {
+      content: "I understand you'd like help with that. I can assist with scheduling, reminders, coordinating meetings, and managing your calendar. Could you provide more specific details about what you need?",
+      suggestions: [
+        "Schedule a meeting",
+        "Set a reminder",
+        "Check my availability",
+        "Block time for important work"
+      ]
+    };
+  };
+
+  const handlePASchedule = (data) => {
+    const newEvent = {
+      id: Date.now().toString(),
+      title: data.type === 'meeting' ? 'Meeting (PA Scheduled)' : 'Focus Time (PA Blocked)',
+      type: data.type === 'meeting' ? 'meeting' : 'goal',
+      date: new Date(),
+      time: '10:00',
+      duration: 60,
+      attendees: data.type === 'meeting' ? ['TBD'] : [],
+      location: 'TBD',
+      description: `PA scheduled: ${data.request}`,
+      priority: 'medium',
+      agentCreated: true,
+      reminders: [15, 60]
+    };
+    setEvents(prev => [...prev, newEvent]);
+    
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "PA scheduled your request! 📅",
+      intensity: 'normal'
+    });
+  };
+
+  const handlePAReminder = (data) => {
+    const newEvent = {
+      id: Date.now().toString(),
+      title: 'Reminder (PA Set)',
+      type: 'reminder',
+      date: new Date(),
+      time: '09:00',
+      duration: 0,
+      attendees: [],
+      location: '',
+      description: `PA reminder: ${data.request}`,
+      priority: 'medium',
+      agentCreated: true,
+      reminders: [60]
+    };
+    setEvents(prev => [...prev, newEvent]);
+    
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "PA set your reminder! ⏰",
+      intensity: 'normal'
+    });
   };
 
   // Filter events based on type and search
@@ -452,6 +642,13 @@ const CalendarView = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">CEO's Diary</h1>
           <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => setShowPAChat(true)}
+              className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>PA Assistant</span>
+            </button>
             <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
               <RefreshCw className="w-4 h-4" />
               <span>Sync Calendars</span>
@@ -789,6 +986,160 @@ const CalendarView = () => {
                     <span>Schedule Task</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PA Chat Modal */}
+      {showPAChat && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            {/* PA Chat Header */}
+            <div className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Personal Assistant</h2>
+                    <p className="text-purple-100 text-sm">Your AI-powered executive assistant</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowPAChat(false)}
+                  className="text-white/80 hover:text-white transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+              {paMessages.map(message => (
+                <motion.div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className={`flex items-start space-x-3 max-w-[80%] ${
+                    message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''
+                  }`}>
+                    <div className={`p-2 rounded-full ${
+                      message.type === 'user' 
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-purple-500 text-white'
+                    }`}>
+                      {message.type === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                    </div>
+                    <div className={`rounded-lg p-3 ${
+                      message.type === 'user'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white border border-gray-200'
+                    }`}>
+                      <p className="text-sm">{message.content}</p>
+                      <p className={`text-xs mt-1 ${
+                        message.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                      }`}>
+                        {message.timestamp.toLocaleTimeString()}
+                      </p>
+                      
+                      {/* Suggestions */}
+                      {message.suggestions && (
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs font-medium text-gray-600">Quick actions:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {message.suggestions.map((suggestion, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handlePAMessage(suggestion)}
+                                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded-full transition-colors"
+                              >
+                                {suggestion}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              
+              {/* Typing indicator */}
+              {isPaTyping && (
+                <motion.div
+                  className="flex justify-start"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 rounded-full bg-purple-500 text-white">
+                      <Bot className="w-4 h-4" />
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Chat Input */}
+            <div className="border-t bg-white p-4">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="text"
+                  value={paInput}
+                  onChange={(e) => setPaInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handlePAMessage(paInput)}
+                  placeholder="Ask your PA to help with scheduling, reminders, or tasks..."
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <button
+                  onClick={() => handlePAMessage(paInput)}
+                  disabled={!paInput.trim() || isPaTyping}
+                  className="p-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => handlePAMessage("Check my availability for tomorrow")}
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors"
+                >
+                  Check Availability
+                </button>
+                <button
+                  onClick={() => handlePAMessage("Schedule a team meeting for next week")}
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors"
+                >
+                  Schedule Meeting
+                </button>
+                <button
+                  onClick={() => handlePAMessage("Set a reminder for the quarterly review")}
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors"
+                >
+                  Set Reminder
+                </button>
+                <button
+                  onClick={() => handlePAMessage("Block time for strategic planning")}
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full transition-colors"
+                >
+                  Block Time
+                </button>
               </div>
             </div>
           </div>
