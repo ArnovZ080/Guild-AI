@@ -18,7 +18,7 @@ import {
   UserCheck,
   Clock
 } from 'lucide-react';
-import { CustomerJourneyConstellation } from '../components/visualizations/CustomerJourneyConstellation.jsx';
+import CustomerJourneyConstellation from '../components/visualizations/CustomerJourneyConstellation.jsx';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 
 // Mock customer data
