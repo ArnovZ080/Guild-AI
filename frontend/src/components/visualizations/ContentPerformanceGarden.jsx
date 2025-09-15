@@ -72,10 +72,10 @@ const mockContentData = [
     id: '6',
     title: 'Webinar: Future of AI',
     type: 'webinar',
-    performance: 88,
-    engagement: 9.1,
-    reach: 2100,
-    conversions: 156,
+    performance: 0, // No performance data for scheduled content
+    engagement: 0, // No engagement data for scheduled content
+    reach: 0, // No reach data for scheduled content
+    conversions: 0, // No conversion data for scheduled content
     status: 'scheduled',
     publishDate: new Date(2024, 0, 15),
     category: 'education',
@@ -307,7 +307,7 @@ const ContentPerformanceGarden = () => {
             </div>
 
             {/* Re-initiate Button for High Performing Content */}
-            {content.performance >= 80 && (
+            {content.performance >= 75 && (
               <button
                 onClick={() => handleReinitiateContent(content)}
                 className="w-full mt-3 px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"

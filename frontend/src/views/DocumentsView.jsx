@@ -193,6 +193,7 @@ const DocumentsView = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
   const [shareMessage, setShareMessage] = useState('');
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const { triggerCelebration } = useCelebrations();
 
   // Handler functions
@@ -211,6 +212,7 @@ const DocumentsView = () => {
       message: `Downloading ${document.name}... ⬇️`,
       intensity: 'normal'
     });
+    setShowDownloadOptions(false);
     // In real implementation, this would trigger the download
   };
 
@@ -621,12 +623,16 @@ const DocumentsView = () => {
                   </button>
                   
                   {/* Download with format options */}
-                  <div className="relative group">
-                    <button className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowDownloadOptions(!showDownloadOptions)}
+                      className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                    >
                       <Download className="w-4 h-4" />
                       <span>Download</span>
                     </button>
-                    <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                    {showDownloadOptions && (
+                      <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                       <button 
                         onClick={() => handleDownloadDocument(selectedDocument, 'original')}
                         className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm"

@@ -341,7 +341,7 @@ const DashboardView = () => {
     { id: 'overview', label: 'Overview', icon: BarChart },
     { id: 'content', label: 'Content Garden', icon: Sprout },
     { id: 'visualizations', label: 'Visualizations', icon: Radar },
-    { id: 'insights', label: 'Insights', icon: Sparkles }
+    { id: 'insights', label: 'Agent Theater', icon: Sparkles }
   ];
 
   const handleTabChange = (tabId) => {
