@@ -83,7 +83,6 @@ const OpportunityRadar = () => {
 
   return (
     <div className="relative w-full h-96 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-lg overflow-hidden">
-      <h3 className="text-lg font-semibold m-4 text-white absolute z-10">Opportunity Radar</h3>
       
       {/* Radar Grid */}
       <div className="absolute inset-0 flex items-center justify-center">
@@ -141,7 +140,7 @@ const OpportunityRadar = () => {
           left: '50%',
           top: '50%',
           transform: 'translate(-50%, -50%)',
-          transformOrigin: 'center bottom',
+          transformOrigin: 'center center',
         }}
         animate={{
           rotate: scanAngle,
