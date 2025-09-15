@@ -4,7 +4,8 @@ import {
   Settings, Search, Filter, CheckCircle, AlertCircle, 
   ExternalLink, Key, Shield, Zap, Database, Globe,
   DollarSign, Users, Calendar, FileText, Camera,
-  BarChart, Wrench, Plus, X, Eye, EyeOff
+  BarChart, Wrench, Plus, X, Eye, EyeOff, Video,
+  Play, Pause, Square, Monitor, MousePointer, Save
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
 
@@ -15,6 +16,12 @@ const ConnectorManager = () => {
   const [selectedConnector, setSelectedConnector] = useState(null);
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showCredentials, setShowCredentials] = useState({});
+  const [showScreenRecording, setShowScreenRecording] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingSteps, setRecordingSteps] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [connectionName, setConnectionName] = useState('');
+  const [connectionDescription, setConnectionDescription] = useState('');
   const { triggerCelebration } = useCelebrations();
 
   // Mock data for available connectors
@@ -255,6 +262,81 @@ const ConnectorManager = () => {
     });
   };
 
+  // Screen recording functionality
+  const startScreenRecording = async () => {
+    try {
+      // Request screen capture permission
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { mediaSource: 'screen' },
+        audio: false
+      });
+      
+      setIsRecording(true);
+      setRecordingSteps([]);
+      setCurrentStep(0);
+      
+      // Simulate recording steps (in real implementation, this would capture actual screen interactions)
+      const mockSteps = [
+        { type: 'click', element: 'Login Button', coordinates: { x: 100, y: 200 }, timestamp: Date.now() },
+        { type: 'type', element: 'Username Field', text: 'user@example.com', timestamp: Date.now() + 1000 },
+        { type: 'type', element: 'Password Field', text: '••••••••', timestamp: Date.now() + 2000 },
+        { type: 'click', element: 'Submit Button', coordinates: { x: 150, y: 250 }, timestamp: Date.now() + 3000 },
+        { type: 'navigate', element: 'Dashboard', url: '/dashboard', timestamp: Date.now() + 4000 }
+      ];
+      
+      // Simulate step-by-step recording
+      mockSteps.forEach((step, index) => {
+        setTimeout(() => {
+          setRecordingSteps(prev => [...prev, step]);
+          setCurrentStep(index + 1);
+        }, index * 1000);
+      });
+      
+      // Stop recording after all steps
+      setTimeout(() => {
+        setIsRecording(false);
+        stream.getTracks().forEach(track => track.stop());
+      }, mockSteps.length * 1000 + 1000);
+      
+    } catch (error) {
+      console.error('Error starting screen recording:', error);
+      setIsRecording(false);
+    }
+  };
+
+  const stopScreenRecording = () => {
+    setIsRecording(false);
+    setCurrentStep(0);
+  };
+
+  const saveCustomConnection = () => {
+    if (!connectionName.trim() || recordingSteps.length === 0) return;
+    
+    const customConnection = {
+      id: `custom_${Date.now()}`,
+      name: connectionName,
+      description: connectionDescription,
+      type: 'custom',
+      steps: recordingSteps,
+      created_at: new Date(),
+      status: 'active'
+    };
+    
+    // In real implementation, this would save to backend
+    console.log('Saving custom connection:', customConnection);
+    
+    setShowScreenRecording(false);
+    setConnectionName('');
+    setConnectionDescription('');
+    setRecordingSteps([]);
+    setCurrentStep(0);
+    
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "Custom connection created! 🎬",
+      intensity: 'normal'
+    });
+  };
+
   const getStatusIcon = (status) => {
     switch (status) {
       case 'active':
@@ -287,7 +369,8 @@ const ConnectorManager = () => {
       <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
         {[
           { id: 'available', name: 'Available Connectors', count: availableConnectors.length },
-          { id: 'connected', name: 'Connected Services', count: connectedServices.length }
+          { id: 'connected', name: 'Connected Services', count: connectedServices.length },
+          { id: 'create', name: 'Create Your Own', count: 0 }
         ].map(tab => (
           <button
             key={tab.id}
@@ -457,6 +540,149 @@ const ConnectorManager = () => {
             })}
           </motion.div>
         )}
+
+        {activeTab === 'create' && (
+          <motion.div
+            key="create"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
+          >
+            {/* Create Your Own Connection */}
+            <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+              <div className="text-center mb-8">
+                <div className="p-4 bg-purple-100 rounded-full w-16 h-16 mx-auto mb-4">
+                  <Video className="w-8 h-8 text-purple-600" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Create Your Own Connection</h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Record your screen interactions to create custom connections for apps without APIs. 
+                  Our visual agent will learn your workflow and reproduce it automatically.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* How it works */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">How it works</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Monitor className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">1. Record Your Actions</h4>
+                        <p className="text-sm text-gray-600">Click "Start Recording" and perform your usual workflow</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <MousePointer className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">2. AI Learns Patterns</h4>
+                        <p className="text-sm text-gray-600">Our visual agent analyzes clicks, forms, and navigation</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Zap className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">3. Automate Repetition</h4>
+                        <p className="text-sm text-gray-600">The connection reproduces your workflow automatically</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recording controls */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Start Recording</h3>
+                  
+                  {!isRecording ? (
+                    <div className="space-y-4">
+                      <button
+                        onClick={startScreenRecording}
+                        className="w-full flex items-center justify-center space-x-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition-colors"
+                      >
+                        <Video className="w-5 h-5" />
+                        <span>Start Screen Recording</span>
+                      </button>
+                      
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <AlertCircle className="w-4 h-4 text-yellow-600" />
+                          <h4 className="font-semibold text-yellow-800">Before Recording</h4>
+                        </div>
+                        <ul className="text-sm text-yellow-700 space-y-1">
+                          <li>• Open the application you want to connect</li>
+                          <li>• Have your login credentials ready</li>
+                          <li>• Perform the exact workflow you want to automate</li>
+                          <li>• Click "Stop Recording" when finished</li>
+                        </ul>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          <h4 className="font-semibold text-red-800">Recording in Progress</h4>
+                        </div>
+                        <p className="text-sm text-red-700">
+                          Step {currentStep} of {recordingSteps.length + 5} - Recording your interactions...
+                        </p>
+                      </div>
+                      
+                      <button
+                        onClick={stopScreenRecording}
+                        className="w-full flex items-center justify-center space-x-2 bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+                      >
+                        <Square className="w-5 h-5" />
+                        <span>Stop Recording</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Recording steps preview */}
+                  {recordingSteps.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-gray-900">Recorded Steps:</h4>
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {recordingSteps.map((step, index) => (
+                          <div key={index} className="flex items-center space-x-2 text-sm bg-gray-50 p-2 rounded">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <span className="text-gray-700">
+                              {step.type === 'click' ? `Clicked ${step.element}` :
+                               step.type === 'type' ? `Typed in ${step.element}` :
+                               step.type === 'navigate' ? `Navigated to ${step.element}` :
+                               step.type}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Create connection button */}
+              {recordingSteps.length > 0 && !isRecording && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setShowScreenRecording(true)}
+                    className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+                  >
+                    <Save className="w-5 h-5" />
+                    <span>Create Custom Connection</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Connect Modal */}
@@ -534,6 +760,135 @@ const ConnectorManager = () => {
                   >
                     <Key className="w-4 h-4" />
                     <span>Connect</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Screen Recording Modal */}
+      {showScreenRecording && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-500 rounded-lg">
+                    <Video className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900">Create Custom Connection</h2>
+                    <p className="text-gray-600">Save your recorded workflow as a reusable connection</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowScreenRecording(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Connection details */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Connection Name
+                  </label>
+                  <input
+                    type="text"
+                    value={connectionName}
+                    onChange={(e) => setConnectionName(e.target.value)}
+                    placeholder="e.g., Custom CRM Login Workflow"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={connectionDescription}
+                    onChange={(e) => setConnectionDescription(e.target.value)}
+                    placeholder="Describe what this connection does..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-20 resize-none"
+                  />
+                </div>
+
+                {/* Recorded steps */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Recorded Steps ({recordingSteps.length})</h3>
+                  <div className="bg-gray-50 rounded-lg p-4 max-h-48 overflow-y-auto">
+                    <div className="space-y-2">
+                      {recordingSteps.map((step, index) => (
+                        <div key={index} className="flex items-center space-x-3 p-2 bg-white rounded border">
+                          <div className="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2">
+                              {step.type === 'click' && <MousePointer className="w-4 h-4 text-blue-500" />}
+                              {step.type === 'type' && <FileText className="w-4 h-4 text-green-500" />}
+                              {step.type === 'navigate' && <Globe className="w-4 h-4 text-purple-500" />}
+                              <span className="font-medium text-gray-900">
+                                {step.type === 'click' ? `Click ${step.element}` :
+                                 step.type === 'type' ? `Type in ${step.element}` :
+                                 step.type === 'navigate' ? `Navigate to ${step.element}` :
+                                 step.type}
+                              </span>
+                            </div>
+                            {step.coordinates && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Coordinates: ({step.coordinates.x}, {step.coordinates.y})
+                              </p>
+                            )}
+                            {step.text && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                Text: {step.text}
+                              </p>
+                            )}
+                            {step.url && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                URL: {step.url}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Connection preview */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    <h4 className="font-semibold text-blue-900">Connection Preview</h4>
+                  </div>
+                  <p className="text-sm text-blue-800">
+                    This connection will automatically perform {recordingSteps.length} steps to complete your workflow. 
+                    It can be triggered by agents or scheduled to run at specific times.
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowScreenRecording(false)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveCustomConnection}
+                    disabled={!connectionName.trim()}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save Connection</span>
                   </button>
                 </div>
               </div>
