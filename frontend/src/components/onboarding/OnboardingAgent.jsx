@@ -13,6 +13,7 @@ const OnboardingAgent = ({ onComplete }) => {
   const [userData, setUserData] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [currentAnswer, setCurrentAnswer] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [showCapabilities, setShowCapabilities] = useState(false);
   const [selectedSoftware, setSelectedSoftware] = useState([]);
@@ -244,10 +245,19 @@ const OnboardingAgent = ({ onComplete }) => {
       [questionId]: answer
     }));
 
+    // Reset current answer for next question
+    setCurrentAnswer('');
+
     if (currentQuestion < businessQuestions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
     } else {
       setCurrentStep('setup');
+    }
+  };
+
+  const handleContinue = () => {
+    if (currentAnswer.trim()) {
+      handleAnswer(currentAnswer);
     }
   };
 
@@ -353,22 +363,22 @@ const OnboardingAgent = ({ onComplete }) => {
           ) : (
             <div className="space-y-4">
               <textarea
+                value={currentAnswer}
+                onChange={(e) => setCurrentAnswer(e.target.value)}
                 placeholder={question.placeholder}
                 className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 rows={6}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.ctrlKey) {
-                    handleAnswer(e.target.value);
+                    handleContinue();
                   }
                 }}
               />
               <div className="flex justify-end">
                 <button
-                  onClick={(e) => {
-                    const textarea = e.target.previousElementSibling;
-                    handleAnswer(textarea.value);
-                  }}
-                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                  onClick={handleContinue}
+                  disabled={!currentAnswer.trim()}
+                  className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>Continue</span>
                   <ArrowRight className="w-4 h-4" />
