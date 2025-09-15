@@ -661,7 +661,8 @@ const DocumentsView = () => {
                       >
                         MS Office
                       </button>
-                    </div>
+                      </div>
+                    )}
                   </div>
                   
                   <button 
