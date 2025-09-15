@@ -3,7 +3,7 @@
   command = "npm install && npm run build"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
   NPM_CONFIG_PACKAGE_MANAGER = "npm"
   NPM_FLAGS = "--version"
   NPM_CONFIG_FUND = "false"
