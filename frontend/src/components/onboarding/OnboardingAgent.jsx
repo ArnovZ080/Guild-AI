@@ -15,7 +15,6 @@ const OnboardingAgent = ({ onComplete }) => {
   const [answers, setAnswers] = useState({});
   const [currentAnswer, setCurrentAnswer] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [showCapabilities, setShowCapabilities] = useState(false);
   const [selectedSoftware, setSelectedSoftware] = useState([]);
   const [sensitiveDataStorage, setSensitiveDataStorage] = useState('');
   const [generalDataStorage, setGeneralDataStorage] = useState('');
@@ -277,9 +276,8 @@ const OnboardingAgent = ({ onComplete }) => {
       screenRecordingEnabled: selectedSoftware.length > 0
     };
     
-    setShowCapabilities(true);
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: "Welcome to Guild! 🎉",
+      message: "Setup complete! 🎉",
       intensity: 'high'
     });
   };
@@ -726,7 +724,7 @@ const OnboardingAgent = ({ onComplete }) => {
     </motion.div>
   );
 
-  // Render capabilities overview
+  // Render capabilities overview - REMOVED (now handled by separate component)
   const renderCapabilities = () => (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -874,7 +872,6 @@ const OnboardingAgent = ({ onComplete }) => {
         {currentStep === 'welcome' && renderWelcome()}
         {currentStep === 'questions' && renderQuestions()}
         {currentStep === 'setup' && renderSetup()}
-        {showCapabilities && renderCapabilities()}
       </AnimatePresence>
 
       {/* Screen Recording Modal */}

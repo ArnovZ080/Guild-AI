@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import OnboardingAgent from '../components/onboarding/OnboardingAgent.jsx';
+import GuildCapabilities from '../components/onboarding/GuildCapabilities.jsx';
 
 const OnboardingView = () => {
   const [isCompleted, setIsCompleted] = useState(false);
+  const [showCapabilities, setShowCapabilities] = useState(false);
   const [onboardingData, setOnboardingData] = useState(null);
 
   const handleOnboardingComplete = (data) => {
     setOnboardingData(data);
-    setIsCompleted(true);
+    setShowCapabilities(true);
     
     // Store onboarding data in localStorage for persistence
     localStorage.setItem('guild_onboarding_data', JSON.stringify(data));
@@ -15,6 +17,10 @@ const OnboardingView = () => {
     
     // Here you would typically send this data to your backend
     console.log('Onboarding completed with data:', data);
+  };
+
+  const handleCapabilitiesComplete = () => {
+    setIsCompleted(true);
   };
 
   if (isCompleted) {
@@ -38,6 +44,10 @@ const OnboardingView = () => {
         </div>
       </div>
     );
+  }
+
+  if (showCapabilities) {
+    return <GuildCapabilities onComplete={handleCapabilitiesComplete} />;
   }
 
   return <OnboardingAgent onComplete={handleOnboardingComplete} />;
