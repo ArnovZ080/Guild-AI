@@ -43,7 +43,29 @@ const mockAchievements = [
       achieved: 52000,
       growth: '+4%',
       period: 'Q1 2024'
-    }
+    },
+    agentFlow: [
+      {
+        agent: 'Strategy Agent',
+        action: 'Market Analysis',
+        description: 'Analyzed market trends and identified growth opportunities in Q1'
+      },
+      {
+        agent: 'Marketing Agent',
+        action: 'Campaign Launch',
+        description: 'Launched targeted marketing campaigns to drive revenue growth'
+      },
+      {
+        agent: 'Sales Agent',
+        action: 'Lead Conversion',
+        description: 'Optimized sales funnel and improved conversion rates by 15%'
+      },
+      {
+        agent: 'Analytics Agent',
+        action: 'Performance Tracking',
+        description: 'Monitored KPIs and provided real-time insights for optimization'
+      }
+    ]
   },
   {
     id: '2',
@@ -454,6 +476,62 @@ const AchievementsView = () => {
                       </div>
                     </div>
                   )}
+
+                  {/* Agent Flow Visualization */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Agent Flow & Strategy</h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="space-y-3">
+                        {selectedAchievement.agentFlow ? selectedAchievement.agentFlow.map((step, index) => (
+                          <div key={index} className="flex items-center space-x-3">
+                            <div className="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full text-sm font-medium">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">{step.agent}</span>
+                                <span className="text-sm text-gray-500">•</span>
+                                <span className="text-sm text-gray-600">{step.action}</span>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <span className="text-sm text-green-600">Completed</span>
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="text-center py-4">
+                            <Brain className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-gray-500">Agent flow data not available for this achievement</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Repeat Achievement */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-blue-800">Repeat This Achievement</h4>
+                        <p className="text-blue-700 text-sm mt-1">
+                          Deploy the same agent strategy with new targets
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // In real implementation, this would trigger the agent flow with new parameters
+                          console.log('Repeating achievement:', selectedAchievement.id);
+                          setSelectedAchievement(null);
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>Repeat Strategy</span>
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Celebration */}
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

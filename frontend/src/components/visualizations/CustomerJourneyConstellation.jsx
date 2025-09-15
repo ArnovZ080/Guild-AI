@@ -2,7 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Users, ShoppingCart, Heart, MessageCircle, Award, Zap, Target } from 'lucide-react';
 
-const CustomerJourneyConstellation = () => {
+const CustomerJourneyConstellation = ({ customers = [] }) => {
+  // Process customer data to create constellation points
+  const processCustomerData = (customers) => {
+    const stages = ['awareness', 'interest', 'research', 'consideration', 'evaluation', 'negotiation', 'purchase', 'retention'];
+    const stageData = {};
+    
+    // Initialize stage data
+    stages.forEach(stage => {
+      stageData[stage] = {
+        customers: [],
+        totalValue: 0,
+        count: 0
+      };
+    });
+    
+    // Process each customer
+    customers.forEach(customer => {
+      const stage = customer.stage || 'awareness';
+      if (stageData[stage]) {
+        stageData[stage].customers.push(customer);
+        stageData[stage].totalValue += customer.value || 0;
+        stageData[stage].count += 1;
+      }
+    });
+    
+    return stageData;
+  };
+  
+  const stageData = processCustomerData(customers);
+  
   const [journeyPoints, setJourneyPoints] = useState([
     {
       id: 'awareness',
@@ -11,7 +40,8 @@ const CustomerJourneyConstellation = () => {
       position: { x: 20, y: 30 },
       size: 'large',
       color: 'blue',
-      customers: 1250,
+      customers: stageData.awareness?.count || 0,
+      totalValue: stageData.awareness?.totalValue || 0,
       conversion: 0.85,
       description: 'Customers discover your brand',
       connections: ['interest', 'research']
@@ -23,7 +53,8 @@ const CustomerJourneyConstellation = () => {
       position: { x: 40, y: 20 },
       size: 'medium',
       color: 'purple',
-      customers: 890,
+      customers: stageData.interest?.count || 0,
+      totalValue: stageData.interest?.totalValue || 0,
       conversion: 0.72,
       description: 'Customers show interest in your offerings',
       connections: ['research', 'consideration']
@@ -35,7 +66,8 @@ const CustomerJourneyConstellation = () => {
       position: { x: 15, y: 60 },
       size: 'medium',
       color: 'green',
-      customers: 650,
+      customers: stageData.research?.count || 0,
+      totalValue: stageData.research?.totalValue || 0,
       conversion: 0.68,
       description: 'Customers research your products/services',
       connections: ['consideration', 'evaluation']
@@ -47,7 +79,8 @@ const CustomerJourneyConstellation = () => {
       position: { x: 60, y: 50 },
       size: 'large',
       color: 'orange',
-      customers: 420,
+      customers: stageData.consideration?.count || 0,
+      totalValue: stageData.consideration?.totalValue || 0,
       conversion: 0.75,
       description: 'Customers consider making a purchase',
       connections: ['evaluation', 'purchase']
@@ -59,33 +92,36 @@ const CustomerJourneyConstellation = () => {
       position: { x: 35, y: 75 },
       size: 'small',
       color: 'yellow',
-      customers: 280,
+      customers: stageData.evaluation?.count || 0,
+      totalValue: stageData.evaluation?.totalValue || 0,
       conversion: 0.82,
       description: 'Customers evaluate options',
+      connections: ['purchase', 'onboarding']
+    },
+    {
+      id: 'negotiation',
+      name: 'Negotiation',
+      icon: ShoppingCart,
+      position: { x: 75, y: 70 },
+      size: 'large',
+      color: 'red',
+      customers: stageData.negotiation?.count || 0,
+      totalValue: stageData.negotiation?.totalValue || 0,
+      conversion: 0.90,
+      description: 'Customers negotiate terms',
       connections: ['purchase', 'onboarding']
     },
     {
       id: 'purchase',
       name: 'Purchase',
       icon: ShoppingCart,
-      position: { x: 75, y: 70 },
-      size: 'large',
-      color: 'red',
-      customers: 180,
-      conversion: 0.90,
-      description: 'Customers make a purchase',
-      connections: ['onboarding', 'retention']
-    },
-    {
-      id: 'onboarding',
-      name: 'Onboarding',
-      icon: Zap,
       position: { x: 85, y: 40 },
       size: 'medium',
       color: 'indigo',
-      customers: 160,
+      customers: stageData.purchase?.count || 0,
+      totalValue: stageData.purchase?.totalValue || 0,
       conversion: 0.88,
-      description: 'New customers get started',
+      description: 'Customers make a purchase',
       connections: ['retention', 'advocacy']
     },
     {
@@ -95,7 +131,8 @@ const CustomerJourneyConstellation = () => {
       position: { x: 70, y: 85 },
       size: 'large',
       color: 'teal',
-      customers: 140,
+      customers: stageData.retention?.count || 0,
+      totalValue: stageData.retention?.totalValue || 0,
       conversion: 0.85,
       description: 'Customers continue using your service',
       connections: ['advocacy', 'expansion']
@@ -178,13 +215,15 @@ const CustomerJourneyConstellation = () => {
     return colors[color] || 'from-gray-400 to-gray-600';
   };
 
-  const getPointSize = (size) => {
-    const sizes = {
-      'small': 'w-8 h-8',
-      'medium': 'w-12 h-12',
-      'large': 'w-16 h-16'
-    };
-    return sizes[size] || 'w-10 h-10';
+  const getPointSize = (point) => {
+    // Base size on total value
+    const maxValue = Math.max(...journeyPoints.map(p => p.totalValue));
+    const valueRatio = point.totalValue / maxValue;
+    
+    if (valueRatio > 0.7) return 'w-16 h-16';
+    if (valueRatio > 0.4) return 'w-12 h-12';
+    if (valueRatio > 0.1) return 'w-10 h-10';
+    return 'w-8 h-8';
   };
 
   const getConversionColor = (conversion) => {
@@ -246,7 +285,7 @@ const CustomerJourneyConstellation = () => {
             whileHover={{ scale: 1.2 }}
             onClick={() => handlePointClick(point)}
           >
-            <div className={`${getPointSize(point.size)} relative`}>
+            <div className={`${getPointSize(point)} relative`}>
               {/* Point Glow */}
               <motion.div
                 className={`absolute inset-0 rounded-full bg-gradient-to-br ${getPointColor(point.color)} opacity-80`}
@@ -262,7 +301,7 @@ const CustomerJourneyConstellation = () => {
               />
               
               {/* Point Core */}
-              <div className={`${getPointSize(point.size)} rounded-full bg-gradient-to-br ${getPointColor(point.color)} flex items-center justify-center text-white shadow-lg relative z-10`}>
+              <div className={`${getPointSize(point)} rounded-full bg-gradient-to-br ${getPointColor(point.color)} flex items-center justify-center text-white shadow-lg relative z-10`}>
                 <Icon className="w-6 h-6" />
               </div>
               
@@ -356,6 +395,20 @@ const CustomerJourneyConstellation = () => {
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Customers:</span>
                 <span className="text-sm font-medium">{selectedPoint.customers.toLocaleString()}</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Total Value:</span>
+                <span className="text-sm font-medium text-green-600">
+                  ${selectedPoint.totalValue.toLocaleString()}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Avg. Value:</span>
+                <span className="text-sm font-medium text-blue-600">
+                  ${selectedPoint.customers > 0 ? Math.round(selectedPoint.totalValue / selectedPoint.customers).toLocaleString() : '0'}
+                </span>
               </div>
               
               <div className="flex items-center justify-between">

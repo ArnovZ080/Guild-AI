@@ -444,10 +444,34 @@ const AnalyticsView = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  "Optimize landing page conversion rate by 15%",
-                  "Increase social media engagement by targeting peak hours",
-                  "Implement email automation for abandoned cart recovery",
-                  "Focus on high-value customer segments for Q2"
+                  {
+                    title: "Optimize landing page conversion rate by 15%",
+                    description: "AI will analyze current landing page performance and implement A/B testing strategies",
+                    agent: "Marketing Agent",
+                    estimatedImpact: "15% increase in conversions",
+                    timeToImplement: "2-3 days"
+                  },
+                  {
+                    title: "Increase social media engagement by targeting peak hours",
+                    description: "AI will analyze engagement patterns and schedule optimal posting times",
+                    agent: "Social Media Agent",
+                    estimatedImpact: "25% increase in engagement",
+                    timeToImplement: "1 day"
+                  },
+                  {
+                    title: "Implement email automation for abandoned cart recovery",
+                    description: "AI will create automated email sequences to recover lost sales",
+                    agent: "Email Marketing Agent",
+                    estimatedImpact: "20% recovery rate",
+                    timeToImplement: "3-5 days"
+                  },
+                  {
+                    title: "Focus on high-value customer segments for Q2",
+                    description: "AI will identify and create targeted campaigns for high-value customers",
+                    agent: "Strategy Agent",
+                    estimatedImpact: "30% increase in customer value",
+                    timeToImplement: "1 week"
+                  }
                 ].map((rec, index) => (
                   <motion.div
                     key={index}
@@ -460,9 +484,24 @@ const AnalyticsView = () => {
                       <div className="p-1 bg-blue-100 rounded-full">
                         <Target className="w-4 h-4 text-blue-600" />
                       </div>
-                      <div>
-                        <p className="text-sm text-blue-800">{rec}</p>
-                        <p className="text-xs text-blue-600 mt-1">AI Generated</p>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-blue-800 mb-1">{rec.title}</p>
+                        <p className="text-xs text-blue-600 mb-2">{rec.description}</p>
+                        <div className="flex items-center justify-between text-xs text-blue-500 mb-3">
+                          <span>Agent: {rec.agent}</span>
+                          <span>Impact: {rec.estimatedImpact}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-blue-500">Time: {rec.timeToImplement}</span>
+                          <div className="flex space-x-2">
+                            <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded-md hover:bg-blue-600 transition-colors">
+                              Implement
+                            </button>
+                            <button className="px-3 py-1 bg-gray-200 text-gray-600 text-xs rounded-md hover:bg-gray-300 transition-colors">
+                              Dismiss
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </motion.div>

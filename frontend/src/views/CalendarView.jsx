@@ -652,7 +652,10 @@ const CalendarView = () => {
                 className={`min-h-[120px] border-r border-b p-2 cursor-pointer transition-colors ${
                   isCurrentMonth ? 'bg-white' : 'bg-gray-50'
                 } ${isToday ? 'bg-blue-50' : ''} ${isSelected ? 'bg-blue-100' : ''}`}
-                onClick={() => setSelectedDate(day)}
+                onClick={() => {
+                  setSelectedDate(day);
+                  setViewMode('day');
+                }}
               >
                 <div className={`text-sm font-medium mb-1 ${
                   isCurrentMonth ? 'text-gray-900' : 'text-gray-400'
@@ -785,15 +788,20 @@ const CalendarView = () => {
       {/* Header Controls */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">CEO's Diary</h1>
           <div className="flex items-center space-x-4">
-            <button 
-              onClick={() => setShowPAChat(true)}
-              className="flex items-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>PA Assistant</span>
-            </button>
+            <h1 className="text-3xl font-bold text-gray-900">CEO's Diary</h1>
+            <div className="flex items-center space-x-2 bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+              <MessageSquare className="w-4 h-4 text-purple-600" />
+              <span className="text-sm text-purple-700 font-medium">Get your PA Agent to schedule a task or reminder for you</span>
+              <button 
+                onClick={() => setShowPAChat(true)}
+                className="ml-2 bg-purple-500 text-white px-3 py-1 rounded-md text-sm hover:bg-purple-600 transition-colors"
+              >
+                Open PA
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
             <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700">
               <RefreshCw className="w-4 h-4" />
               <span>Sync Calendars</span>

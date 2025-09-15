@@ -4,6 +4,7 @@ import { useBusinessMetrics, useAgentStatus, useWorkflows } from '../hooks/useAp
 import { FinancialFlowVisualization } from '../components/visualizations/FinancialFlowVisualization.tsx';
 import OpportunityRadar from '../components/visualizations/OpportunityRadar.jsx';
 import ContentPerformanceGarden from '../components/visualizations/ContentPerformanceGarden.jsx';
+import MarketingCampaignCreator from '../components/MarketingCampaignCreator.jsx';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText } from 'lucide-react';
 
@@ -207,6 +208,7 @@ const EnhancedOpportunityRadar = () => {
 
 const DashboardView = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [contentSubTab, setContentSubTab] = useState('performance');
   const { triggerCelebration } = useCelebrations();
 
   const tabs = [
@@ -261,10 +263,145 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <EnhancedCommandCenter />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <EnhancedActionTheater />
-              <EnhancedOpportunityRadar />
+            {/* Performance Summary */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Business Performance Summary</h2>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600">$125K</div>
+                  <div className="text-sm text-gray-600">Monthly Revenue</div>
+                  <div className="text-xs text-green-500">+12% vs last month</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600">1,247</div>
+                  <div className="text-sm text-gray-600">Active Customers</div>
+                  <div className="text-xs text-blue-500">+8% vs last month</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600">89%</div>
+                  <div className="text-sm text-gray-600">Customer Satisfaction</div>
+                  <div className="text-xs text-purple-500">+3% vs last month</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-600">156</div>
+                  <div className="text-sm text-gray-600">Content Pieces</div>
+                  <div className="text-xs text-orange-500">+24% vs last month</div>
+                </div>
+              </div>
+            </div>
+
+            {/* At-a-Glance Sections */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Finance at a Glance */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+                    Finance at a Glance
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('visualizations')}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    View Details →
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Revenue</span>
+                    <span className="font-semibold text-green-600">$125,000</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Expenses</span>
+                    <span className="font-semibold text-red-600">$85,000</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Profit</span>
+                    <span className="font-semibold text-blue-600">$40,000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: '68%' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">68% profit margin</p>
+                </div>
+              </div>
+
+              {/* Content Performance at a Glance */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <FileText className="w-5 h-5 mr-2 text-blue-500" />
+                    Content Performance
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('content')}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    View Details →
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Total Views</span>
+                    <span className="font-semibold text-blue-600">45.2K</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Engagement Rate</span>
+                    <span className="font-semibold text-green-600">12.4%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Top Content</span>
+                    <span className="font-semibold text-purple-600">Blog Post</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">75% of monthly goal</p>
+                </div>
+              </div>
+
+              {/* Business Momentum at a Glance */}
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                    <TrendingUp className="w-5 h-5 mr-2 text-purple-500" />
+                    Business Momentum
+                  </h3>
+                  <button 
+                    onClick={() => setActiveTab('visualizations')}
+                    className="text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    View Details →
+                  </button>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Growth Rate</span>
+                    <span className="font-semibold text-green-600">+15%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">New Leads</span>
+                    <span className="font-semibold text-blue-600">234</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Conversion</span>
+                    <span className="font-semibold text-purple-600">8.2%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-purple-500 h-2 rounded-full" style={{ width: '82%' }}></div>
+                  </div>
+                  <p className="text-xs text-gray-500">82% of growth target</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Opportunity Radar */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Radar className="w-5 h-5 mr-2 text-green-500" />
+                Opportunity Radar
+              </h3>
+              <OpportunityRadar />
             </div>
           </motion.div>
         )}
@@ -278,13 +415,62 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            {/* Content Garden Visualization */}
+            {/* Content Garden */}
             <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Sprout className="w-5 h-5 mr-2 text-green-500" />
-                Content Performance Garden
-              </h3>
-              <ContentPerformanceGarden />
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                  <Sprout className="w-5 h-5 mr-2 text-green-500" />
+                  Content Garden
+                </h3>
+                <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                  <button
+                    onClick={() => setContentSubTab('performance')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      contentSubTab === 'performance'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Performance
+                  </button>
+                  <button
+                    onClick={() => setContentSubTab('campaigns')}
+                    className={`px-3 py-1 text-sm rounded-md transition-colors ${
+                      contentSubTab === 'campaigns'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Campaign Creator
+                  </button>
+                </div>
+              </div>
+              
+              <AnimatePresence mode="wait">
+                {contentSubTab === 'performance' && (
+                  <motion.div
+                    key="performance"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ContentPerformanceGarden />
+                  </motion.div>
+                )}
+                
+                {contentSubTab === 'campaigns' && (
+                  <motion.div
+                    key="campaigns"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <MarketingCampaignCreator />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Marketing Campaign Management */}

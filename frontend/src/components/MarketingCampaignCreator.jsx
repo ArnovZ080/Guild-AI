@@ -72,7 +72,7 @@ const MarketingCampaignCreator = () => {
             setWorkflow(data.workflow_definition);
             setWorkflowId(data.id);
             setView('approval');
-        } catch (err) => {
+        } catch (err) {
             setError(err.message);
         } finally {
             setIsLoading(false);
@@ -117,7 +117,7 @@ const MarketingCampaignCreator = () => {
                 return;
             }
 
-        } catch (err) => {
+        } catch (err) {
             console.error("Polling error:", err);
         }
     }, [view, workflowId, setNodes]);

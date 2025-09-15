@@ -201,6 +201,25 @@ const ConnectorManager = () => {
       icon: Wrench,
       color: 'bg-blue-600',
       documentation_url: 'https://docs.workato.com/developing-connectors'
+    },
+    {
+      id: 'n8n',
+      name: 'N8N',
+      category: 'automation',
+      status: 'active',
+      capabilities: ['workflows', 'nodes', 'webhooks', 'blueprints'],
+      description: 'Powerful workflow automation with visual node-based editor',
+      icon: Zap,
+      color: 'bg-orange-500',
+      documentation_url: 'https://docs.n8n.io/integrations/',
+      blueprints: [
+        'Lead Generation Workflow',
+        'Customer Onboarding Automation',
+        'Social Media Content Scheduler',
+        'Email Marketing Campaign',
+        'Data Sync Between Apps',
+        'Invoice Processing Automation'
+      ]
     }
   ];
 
