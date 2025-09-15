@@ -103,7 +103,44 @@ const AgentsView = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list, detailed
+  const [showConfigureModal, setShowConfigureModal] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
+  const [agentConfiguration, setAgentConfiguration] = useState({
+    customInstructions: '',
+    duration: 'indefinite',
+    priority: 'normal',
+    notifications: true
+  });
   const { triggerCelebration } = useCelebrations();
+
+  // Handler functions
+  const handleActivateAgent = (agent) => {
+    console.log('Activating agent:', agent.name);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `${agent.name} activated! 🚀`,
+      intensity: 'high'
+    });
+    // In real implementation, this would trigger the agent activation
+  };
+
+  const handleConfigureAgent = (agent) => {
+    setSelectedAgent(agent);
+    setShowConfigureModal(true);
+  };
+
+  const handleViewActivity = (agent) => {
+    setSelectedAgent(agent);
+    setShowActivityModal(true);
+  };
+
+  const handleSaveConfiguration = () => {
+    console.log('Saving configuration for:', selectedAgent.name, agentConfiguration);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Configuration saved for ${selectedAgent.name}! ⚙️`,
+      intensity: 'normal'
+    });
+    setShowConfigureModal(false);
+  };
 
   // Filter agents based on search and filters
   const filteredAgents = allAgents.filter(agent => {
@@ -370,15 +407,24 @@ const AgentsView = () => {
                 </div>
 
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                  <button 
+                    onClick={() => handleActivateAgent(selectedAgent)}
+                    className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
                     <Play className="w-4 h-4" />
                     <span>Activate Agent</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                  <button 
+                    onClick={() => handleConfigureAgent(selectedAgent)}
+                    className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
                     <Settings className="w-4 h-4" />
                     <span>Configure</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                  <button 
+                    onClick={() => handleViewActivity(selectedAgent)}
+                    className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  >
                     <Activity className="w-4 h-4" />
                     <span>View Activity</span>
                   </button>
@@ -478,6 +524,168 @@ const AgentsView = () => {
 
       {/* Agent Detail Modal */}
       <AgentDetailModal />
+
+      {/* Configure Agent Modal */}
+      {showConfigureModal && selectedAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Configure {selectedAgent.name}</h2>
+                <button
+                  onClick={() => setShowConfigureModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Custom Instructions
+                  </label>
+                  <textarea
+                    value={agentConfiguration.customInstructions}
+                    onChange={(e) => setAgentConfiguration(prev => ({ ...prev, customInstructions: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    rows={4}
+                    placeholder="Add specific instructions for this agent..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Duration
+                    </label>
+                    <select
+                      value={agentConfiguration.duration}
+                      onChange={(e) => setAgentConfiguration(prev => ({ ...prev, duration: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="indefinite">Run until manually stopped</option>
+                      <option value="1hour">1 Hour</option>
+                      <option value="4hours">4 Hours</option>
+                      <option value="8hours">8 Hours</option>
+                      <option value="24hours">24 Hours</option>
+                      <option value="1week">1 Week</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Priority
+                    </label>
+                    <select
+                      value={agentConfiguration.priority}
+                      onChange={(e) => setAgentConfiguration(prev => ({ ...prev, priority: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                      <option value="low">Low</option>
+                      <option value="normal">Normal</option>
+                      <option value="high">High</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="notifications"
+                    checked={agentConfiguration.notifications}
+                    onChange={(e) => setAgentConfiguration(prev => ({ ...prev, notifications: e.target.checked }))}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="notifications" className="ml-2 block text-sm text-gray-700">
+                    Enable notifications for this agent's activities
+                  </label>
+                </div>
+
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowConfigureModal(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveConfiguration}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    Save Configuration
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Activity Modal */}
+      {showActivityModal && selectedAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">{selectedAgent.name} Activity Log</h2>
+                <button
+                  onClick={() => setShowActivityModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <span className="sr-only">Close</span>
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Mock activity data */}
+                {[
+                  { id: 1, action: 'Generated marketing campaign', timestamp: '2024-01-15 14:30', status: 'completed', details: 'Created 5 ad variations for Q1 campaign' },
+                  { id: 2, action: 'Analyzed competitor data', timestamp: '2024-01-15 13:45', status: 'completed', details: 'Scraped and analyzed 12 competitor websites' },
+                  { id: 3, action: 'Updated customer database', timestamp: '2024-01-15 12:20', status: 'completed', details: 'Enriched 150 customer profiles with additional data' },
+                  { id: 4, action: 'Scheduled social media posts', timestamp: '2024-01-15 11:15', status: 'completed', details: 'Scheduled 8 posts across 3 platforms' },
+                  { id: 5, action: 'Generated financial report', timestamp: '2024-01-15 10:30', status: 'in_progress', details: 'Processing Q4 financial data...' }
+                ].map(activity => (
+                  <div key={activity.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900">{activity.action}</h3>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          activity.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          activity.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {activity.status}
+                        </span>
+                        <span className="text-sm text-gray-500">{activity.timestamp}</span>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 text-sm mb-3">{activity.details}</p>
+                    <div className="flex space-x-2">
+                      <button className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition-colors">
+                        Re-do Action
+                      </button>
+                      <button className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200 transition-colors">
+                        Repeat
+                      </button>
+                      <button className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors">
+                        Don't Do Again
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

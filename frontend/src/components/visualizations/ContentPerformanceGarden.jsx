@@ -161,6 +161,13 @@ const ContentPerformanceGarden = () => {
   const totalReach = contentData.reduce((sum, item) => sum + item.reach, 0);
   const totalConversions = contentData.reduce((sum, item) => sum + item.conversions, 0);
 
+  // Handle re-initiating content
+  const handleReinitiateContent = (content) => {
+    console.log('Re-initiating content:', content.title);
+    // In real implementation, this would trigger the content agent to create similar content
+    alert(`Re-initiating "${content.title}" - The content agent will create similar high-performing content!`);
+  };
+
   return (
     <div className="space-y-6">
       {/* Garden Overview */}
@@ -298,6 +305,17 @@ const ContentPerformanceGarden = () => {
                 </span>
               )}
             </div>
+
+            {/* Re-initiate Button for High Performing Content */}
+            {content.performance >= 80 && (
+              <button
+                onClick={() => handleReinitiateContent(content)}
+                className="w-full mt-3 px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center space-x-2"
+              >
+                <span>🔄</span>
+                <span>Re-initiate Content</span>
+              </button>
+            )}
           </motion.div>
         ))}
       </div>

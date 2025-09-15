@@ -8,7 +8,7 @@ import MarketingCampaignCreator from '../components/MarketingCampaignCreator.jsx
 import CustomerJourneyConstellation from '../components/visualizations/CustomerJourneyConstellation.jsx';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import ActionTheater from '../components/theater/ActionTheater.jsx';
-import AgentActivityTheater from '../components/theater/AgentActivityTheater.tsx';
+import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
 import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
 

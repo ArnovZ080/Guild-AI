@@ -31,6 +31,20 @@ const FinancialFlow = () => {
       { name: 'Operations', amount: 35000, percentage: 28, color: 'orange' },
       { name: 'Personnel', amount: 25000, percentage: 20, color: 'purple' },
       { name: 'Net Profit', amount: 40000, percentage: 32, color: 'emerald' }
+    ],
+    topExpenses: [
+      { name: 'Software Subscriptions', amount: 8500, category: 'Operations', trend: '+12%' },
+      { name: 'Marketing Campaigns', amount: 7200, category: 'Marketing', trend: '+8%' },
+      { name: 'Office Rent', amount: 6500, category: 'Operations', trend: '0%' },
+      { name: 'Employee Benefits', amount: 5800, category: 'Personnel', trend: '+5%' },
+      { name: 'Professional Services', amount: 4200, category: 'Operations', trend: '+15%' }
+    ],
+    topRevenueSources: [
+      { name: 'SaaS Subscriptions', amount: 45000, percentage: 36, trend: '+18%' },
+      { name: 'Consulting Services', amount: 32000, percentage: 26, trend: '+12%' },
+      { name: 'Product Sales', amount: 28000, percentage: 22, trend: '+8%' },
+      { name: 'Training Programs', amount: 15000, percentage: 12, trend: '+25%' },
+      { name: 'Affiliate Commissions', amount: 5000, percentage: 4, trend: '+30%' }
     ]
   });
 
@@ -171,6 +185,59 @@ const FinancialFlow = () => {
               </div>
             </motion.div>
           ))}
+        </div>
+      </div>
+
+      {/* Top 5 Expenses and Revenue Sources */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Top 5 Expenses */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <TrendingDown className="w-5 h-5 mr-2 text-red-500" />
+            Top 5 Expenses
+          </h4>
+          <div className="space-y-3">
+            {financialData.topExpenses.map((expense, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-900">{expense.name}</span>
+                    <span className="text-sm text-gray-500">{expense.category}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-red-600">${expense.amount.toLocaleString()}</span>
+                    <span className={`text-sm font-medium ${expense.trend.startsWith('+') ? 'text-red-500' : 'text-gray-500'}`}>
+                      {expense.trend}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top 5 Revenue Sources */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <TrendingUp className="w-5 h-5 mr-2 text-green-500" />
+            Top 5 Revenue Sources
+          </h4>
+          <div className="space-y-3">
+            {financialData.topRevenueSources.map((source, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-gray-900">{source.name}</span>
+                    <span className="text-sm text-gray-500">{source.percentage}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-bold text-green-600">${source.amount.toLocaleString()}</span>
+                    <span className="text-sm font-medium text-green-500">{source.trend}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
