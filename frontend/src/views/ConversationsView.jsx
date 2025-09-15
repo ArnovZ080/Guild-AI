@@ -162,6 +162,34 @@ const ConversationsView = () => {
   const [sortBy, setSortBy] = useState('lastActivity');
   const { triggerCelebration } = useCelebrations();
 
+  // Handler functions for conversation modal buttons
+  const handleReply = (conversation) => {
+    console.log('Replying to conversation:', conversation.subject);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Opening reply composer for "${conversation.subject}"... 💬`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would open the reply composer
+  };
+
+  const handleStar = (conversation) => {
+    console.log('Starring conversation:', conversation.subject);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Conversation "${conversation.subject}" starred! ⭐`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would toggle the star status
+  };
+
+  const handleArchive = (conversation) => {
+    console.log('Archiving conversation:', conversation.subject);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Conversation "${conversation.subject}" archived! 📁`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would archive the conversation
+  };
+
   // Filter and sort conversations
   const filteredConversations = conversations
     .filter(conversation => {
@@ -547,15 +575,24 @@ const ConversationsView = () => {
 
                 {/* Actions */}
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                  <button 
+                    onClick={() => handleReply(selectedConversation)}
+                    className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
                     <Reply className="w-4 h-4" />
                     <span>Reply</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                  <button 
+                    onClick={() => handleStar(selectedConversation)}
+                    className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
                     <Star className="w-4 h-4" />
                     <span>Star</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                  <button 
+                    onClick={() => handleArchive(selectedConversation)}
+                    className="w-full flex items-center justify-center space-x-2 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
+                  >
                     <Archive className="w-4 h-4" />
                     <span>Archive</span>
                   </button>

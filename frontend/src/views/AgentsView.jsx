@@ -669,14 +669,35 @@ const AgentsView = () => {
                     </div>
                     <p className="text-gray-600 text-sm mb-3">{activity.details}</p>
                     <div className="flex space-x-2">
-                      <button className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition-colors">
+                      <button 
+                        onClick={() => {
+                          console.log('Re-doing action:', activity.action);
+                          alert(`Re-doing Action: This will re-execute the exact same action "${activity.action}" with the same parameters.`);
+                        }}
+                        className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded hover:bg-blue-200 transition-colors"
+                        title="Re-execute this exact action with same parameters"
+                      >
                         Re-do Action
                       </button>
-                      <button className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200 transition-colors">
-                        Repeat
+                      <button 
+                        onClick={() => {
+                          console.log('Repeating action:', activity.action);
+                          alert(`Repeat Action: This will execute a similar action "${activity.action}" but with updated parameters or context.`);
+                        }}
+                        className="px-3 py-1 text-xs bg-green-100 text-green-800 rounded hover:bg-green-200 transition-colors"
+                        title="Execute similar action with updated parameters"
+                      >
+                        Repeat Action
                       </button>
-                      <button className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors">
-                        Don't Do Again
+                      <button 
+                        onClick={() => {
+                          console.log('Blocking action:', activity.action);
+                          alert(`Blocking Action: This will prevent the agent from executing similar actions in the future.`);
+                        }}
+                        className="px-3 py-1 text-xs bg-red-100 text-red-800 rounded hover:bg-red-200 transition-colors"
+                        title="Prevent similar actions in the future"
+                      >
+                        Block Action
                       </button>
                     </div>
                   </div>

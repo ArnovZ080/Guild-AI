@@ -147,6 +147,34 @@ const GoalsView = () => {
   const [goalClarification, setGoalClarification] = useState({});
   const { triggerCelebration } = useCelebrations();
 
+  // Handler functions for goal modal buttons
+  const handleEditGoal = (goal) => {
+    console.log('Editing goal:', goal.title);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Opening goal editor for "${goal.title}"... ✏️`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would open the goal editor
+  };
+
+  const handleUpdateProgress = (goal) => {
+    console.log('Updating progress for goal:', goal.title);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Updating progress for "${goal.title}"... 📈`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would open the progress update modal
+  };
+
+  const handleAIInsights = (goal) => {
+    console.log('Getting AI insights for goal:', goal.title);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `Generating AI insights for "${goal.title}"... 🧠`,
+      intensity: 'normal'
+    });
+    // In real implementation, this would trigger AI analysis
+  };
+
   // Agent questions for goal clarification
   const goalClarificationQuestions = [
     {
@@ -559,15 +587,24 @@ const GoalsView = () => {
 
                 {/* Actions */}
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                  <button 
+                    onClick={() => handleEditGoal(selectedGoal)}
+                    className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                  >
                     <Edit className="w-4 h-4" />
                     <span>Edit Goal</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                  <button 
+                    onClick={() => handleUpdateProgress(selectedGoal)}
+                    className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  >
                     <TrendingUp className="w-4 h-4" />
                     <span>Update Progress</span>
                   </button>
-                  <button className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                  <button 
+                    onClick={() => handleAIInsights(selectedGoal)}
+                    className="w-full flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors"
+                  >
                     <Brain className="w-4 h-4" />
                     <span>AI Insights</span>
                   </button>

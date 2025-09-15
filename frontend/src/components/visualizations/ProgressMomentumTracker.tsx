@@ -307,10 +307,14 @@ export const ProgressMomentumTracker: React.FC = () => {
             .map((action, index) => (
               <motion.div
                 key={action.id}
-                className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
+                onClick={() => {
+                  console.log('Viewing momentum action details:', action.action);
+                  alert(`Action Details:\n\nAction: ${action.action}\nImpact: ${Math.abs(action.impact * 100).toFixed(0)}%\nCategory: ${action.category}\nDescription: ${action.description}\n\nAgent Involvement: This would show which agents were involved, what was executed, and the specific results that led to this momentum change.`);
+                }}
               >
                 <div className="flex-shrink-0">
                   <span className="text-lg">{getCategoryIcon(action.category)}</span>
@@ -338,10 +342,22 @@ export const ProgressMomentumTracker: React.FC = () => {
         
         {/* Action Buttons */}
         <div className="mt-4 flex space-x-2">
-          <button className="px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors">
+          <button 
+            onClick={() => {
+              console.log('Viewing extended momentum timeline');
+              alert('Extended Timeline: This would show a detailed view of all momentum changes over time with agent involvement and results.');
+            }}
+            className="px-3 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+          >
             📊 View Extended Timeline
           </button>
-          <button className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors">
+          <button 
+            onClick={() => {
+              console.log('Repeating high-impact actions');
+              alert('Repeat High-Impact Actions: This would identify and re-deploy the most successful actions that increased momentum.');
+            }}
+            className="px-3 py-2 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors"
+          >
             🔄 Repeat High-Impact Actions
           </button>
         </div>
