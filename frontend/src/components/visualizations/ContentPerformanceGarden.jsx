@@ -328,4 +328,4 @@ const ContentPerformanceGarden = () => {
   );
 };
 
-export { ContentPerformanceGarden };
+export default ContentPerformanceGarden;
