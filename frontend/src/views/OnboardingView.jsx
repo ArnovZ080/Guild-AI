@@ -1,25 +1,22 @@
 import React, { useState } from 'react';
-import OnboardingAgent from '../components/onboarding/OnboardingAgent.jsx';
-import GuildCapabilities from '../components/onboarding/GuildCapabilities.jsx';
+import OnboardingContainer from '../components/onboarding/OnboardingContainer.jsx';
 
 const OnboardingView = () => {
   const [isCompleted, setIsCompleted] = useState(false);
-  const [showCapabilities, setShowCapabilities] = useState(false);
-  const [onboardingData, setOnboardingData] = useState(null);
 
   const handleOnboardingComplete = (data) => {
-    setOnboardingData(data);
-    setShowCapabilities(true);
-    
     // Store onboarding data in localStorage for persistence
     localStorage.setItem('guild_onboarding_data', JSON.stringify(data));
     localStorage.setItem('guild_onboarding_completed', 'true');
     
     // Here you would typically send this data to your backend
     console.log('Onboarding completed with data:', data);
-  };
-
-  const handleCapabilitiesComplete = () => {
+    
+    // Send to orchestrator agent for task creation
+    if (window.guildOrchestrator) {
+      window.guildOrchestrator.initializeUserProfile(data);
+    }
+    
     setIsCompleted(true);
   };
 
@@ -46,11 +43,7 @@ const OnboardingView = () => {
     );
   }
 
-  if (showCapabilities) {
-    return <GuildCapabilities onComplete={handleCapabilitiesComplete} />;
-  }
-
-  return <OnboardingAgent onComplete={handleOnboardingComplete} />;
+  return <OnboardingContainer onComplete={handleOnboardingComplete} />;
 };
 
 export default OnboardingView;

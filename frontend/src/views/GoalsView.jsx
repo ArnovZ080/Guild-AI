@@ -287,6 +287,7 @@ const GoalDetailModal = ({ goal, isOpen, onClose, onEdit, onUpdateProgress, onAI
       </div>
     </div>
   );
+
 const GoalsView = () => {
   const [goals, setGoals] = useState(mockGoals);
   const [showAddGoal, setShowAddGoal] = useState(false);
