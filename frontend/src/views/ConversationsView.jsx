@@ -48,7 +48,9 @@ const mockConversations = [
     summary: 'Customer interested in enterprise package. Demo scheduled for next week.',
     sentiment: 'positive',
     nextAction: 'Send calendar invite and demo materials',
-    nextActionDate: new Date(2024, 0, 15)
+    nextActionDate: new Date(2024, 0, 15),
+    estimatedValue: 50000,
+    actualValue: 0
   },
   {
     id: '2',
@@ -70,7 +72,9 @@ const mockConversations = [
     summary: 'Customer had billing issues. Resolved by updating payment method.',
     sentiment: 'neutral',
     duration: 15, // minutes
-    recordingUrl: '/recordings/call_20240111_1520.mp3'
+    recordingUrl: '/recordings/call_20240111_1520.mp3',
+    estimatedValue: 0,
+    actualValue: 0
   },
   {
     id: '3',
@@ -92,7 +96,9 @@ const mockConversations = [
     summary: 'Startup founder inquiring about pricing. Interested in basic package.',
     sentiment: 'positive',
     nextAction: 'Send pricing information and schedule follow-up call',
-    nextActionDate: new Date(2024, 0, 13)
+    nextActionDate: new Date(2024, 0, 13),
+    estimatedValue: 5000,
+    actualValue: 0
   },
   {
     id: '4',
@@ -114,7 +120,9 @@ const mockConversations = [
     summary: 'Enterprise client interested in partnership opportunities.',
     sentiment: 'positive',
     nextAction: 'Schedule partnership meeting',
-    nextActionDate: new Date(2024, 0, 16)
+    nextActionDate: new Date(2024, 0, 16),
+    estimatedValue: 100000,
+    actualValue: 0
   },
   {
     id: '5',
@@ -146,6 +154,9 @@ const ConversationsView = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterAgent, setFilterAgent] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterValueRange, setFilterValueRange] = useState('all');
+  const [filterDateRange, setFilterDateRange] = useState('all');
   const [sortBy, setSortBy] = useState('lastActivity');
   const { triggerCelebration } = useCelebrations();
 
@@ -157,8 +168,38 @@ const ConversationsView = () => {
       const matchesType = filterType === 'all' || conversation.type === filterType;
       const matchesStatus = filterStatus === 'all' || conversation.status === filterStatus;
       const matchesAgent = filterAgent === 'all' || conversation.agentType === filterAgent;
+      const matchesPriority = filterPriority === 'all' || conversation.priority === filterPriority;
       
-      return matchesSearch && matchesType && matchesStatus && matchesAgent;
+      // Value range filter
+      const matchesValue = (() => {
+        if (filterValueRange === 'all') return true;
+        const value = conversation.estimatedValue || conversation.actualValue || 0;
+        switch (filterValueRange) {
+          case 'high': return value >= 50000;
+          case 'medium': return value >= 10000 && value < 50000;
+          case 'low': return value > 0 && value < 10000;
+          case 'none': return value === 0;
+          default: return true;
+        }
+      })();
+      
+      // Date range filter
+      const matchesDate = (() => {
+        if (filterDateRange === 'all') return true;
+        const now = new Date();
+        const conversationDate = new Date(conversation.lastActivity);
+        const daysDiff = Math.floor((now - conversationDate) / (1000 * 60 * 60 * 24));
+        
+        switch (filterDateRange) {
+          case 'today': return daysDiff === 0;
+          case 'week': return daysDiff <= 7;
+          case 'month': return daysDiff <= 30;
+          case 'older': return daysDiff > 30;
+          default: return true;
+        }
+      })();
+      
+      return matchesSearch && matchesType && matchesStatus && matchesAgent && matchesPriority && matchesValue && matchesDate;
     })
     .sort((a, b) => {
       switch (sortBy) {
@@ -169,6 +210,18 @@ const ConversationsView = () => {
         case 'priority':
           const priorityOrder = { high: 3, medium: 2, low: 1 };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
+        case 'messageCount':
+          return b.messageCount - a.messageCount;
+        case 'value':
+          const aValue = a.estimatedValue || a.actualValue || 0;
+          const bValue = b.estimatedValue || b.actualValue || 0;
+          return bValue - aValue;
+        case 'urgency':
+          // Sort by priority first, then by date
+          const priorityOrder2 = { high: 3, medium: 2, low: 1 };
+          const priorityDiff = priorityOrder2[b.priority] - priorityOrder2[a.priority];
+          if (priorityDiff !== 0) return priorityDiff;
+          return new Date(b.lastActivity) - new Date(a.lastActivity);
         default:
           return 0;
       }
@@ -283,6 +336,14 @@ const ConversationsView = () => {
                 <MessageSquare className="w-4 h-4" />
                 <span>{conversation.messageCount} messages</span>
               </div>
+              {(conversation.estimatedValue || conversation.actualValue) && (
+                <div className="flex items-center space-x-1">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="font-medium text-green-600">
+                    ${(conversation.estimatedValue || conversation.actualValue || 0).toLocaleString()}
+                  </span>
+                </div>
+              )}
               {conversation.duration && (
                 <div className="flex items-center space-x-1">
                   <Phone className="w-4 h-4" />
@@ -556,6 +617,41 @@ const ConversationsView = () => {
               <option value="partnerships">Partnerships</option>
               <option value="email">Email</option>
             </select>
+
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Priorities</option>
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
+            </select>
+
+            <select
+              value={filterValueRange}
+              onChange={(e) => setFilterValueRange(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Values</option>
+              <option value="high">High Value ($50K+)</option>
+              <option value="medium">Medium Value ($10K-$50K)</option>
+              <option value="low">Low Value ($1K-$10K)</option>
+              <option value="none">No Value</option>
+            </select>
+
+            <select
+              value={filterDateRange}
+              onChange={(e) => setFilterDateRange(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Dates</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="older">Older</option>
+            </select>
           </div>
 
           <div className="flex items-center space-x-4">
@@ -567,6 +663,9 @@ const ConversationsView = () => {
               <option value="lastActivity">Last Activity</option>
               <option value="created">Created Date</option>
               <option value="priority">Priority</option>
+              <option value="value">Monetary Value</option>
+              <option value="urgency">Urgency (Priority + Date)</option>
+              <option value="messageCount">Message Count</option>
             </select>
           </div>
         </div>

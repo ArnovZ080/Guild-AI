@@ -17,6 +17,7 @@ import DocumentsView from './views/DocumentsView.jsx';
 import VoiceView from './views/VoiceView.jsx';
 import OnboardingView from './views/OnboardingView.jsx';
 import ConnectorsView from './views/ConnectorsView.jsx';
+import GrowthView from './views/GrowthView.jsx';
 import './App.css';
 import './index.css';
 
@@ -118,7 +119,7 @@ function App() {
             } />
             <Route path="/growth" element={
               <DashboardLayout>
-                <ComingSoonView title="Growth Analytics" description="Growth metrics and insights coming soon" />
+                <GrowthView />
               </DashboardLayout>
             } />
             <Route path="/settings" element={
