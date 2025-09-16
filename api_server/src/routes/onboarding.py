@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+import os
 
 from guild.src.agents.onboarding_agent import OnboardingAgent
 from guild.src.models.user_input import UserInput
@@ -30,6 +31,13 @@ async def converse_with_onboarding_agent(
     Handles a single turn in the conversational onboarding process.
     """
     try:
+        if os.getenv("NO_LLM") == "1":
+            return OnboardingConverseResponse(
+                agent_response="Got it. I've saved your response. Let's continue.",
+                is_complete=False,
+                output_document=None,
+                next_state="NEXT"
+            )
         # In a real application, we would use the session_id to retrieve
         # the agent's state from a cache like Redis. For this example,
         # we re-instantiate the agent and set its state on each call.
@@ -55,6 +63,14 @@ async def start_onboarding_session():
     Initiates a new onboarding conversation.
     """
     try:
+        if os.getenv("NO_LLM") == "1":
+            return OnboardingConverseResponse(
+                agent_response="Welcome to Guild onboarding. I'll ask a few quick questions to learn about your business.",
+                is_complete=False,
+                output_document=None,
+                next_state="START"
+            )
+
         agent = OnboardingAgent(UserInput(objective="Start onboarding process"))
         response_data = await agent.run_conversational_step()
 
