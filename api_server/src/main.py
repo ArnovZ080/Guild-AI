@@ -33,7 +33,7 @@ async def startup_event():
 
 
 # Import routes
-from .routes import agents, oauth, document_processing, execution_layer, connectors, onboarding
+from .routes import agents, oauth, document_processing, execution_layer, connectors, onboarding, workspace
 
 # Include routers
 app.include_router(agents.router)
@@ -42,6 +42,7 @@ app.include_router(document_processing.router)
 app.include_router(execution_layer.router)
 app.include_router(connectors.router)
 app.include_router(onboarding.router)
+app.include_router(workspace.router)
 
 # Comment out other routes that depend on database
 # from api_server.src.routes import workflows, data_rooms, onboarding, schedules, webhooks, vision, voice

@@ -7,6 +7,7 @@ import {
   Mic, Headphones, Settings, Star, Heart, Lightbulb, BarChart
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import apiService from '../../services/api.js';
 
 const OnboardingAgent = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState('welcome');
@@ -22,6 +23,8 @@ const OnboardingAgent = ({ onComplete }) => {
   const [showScreenRecording, setShowScreenRecording] = useState(false);
   const [recordingSoftware, setRecordingSoftware] = useState(null);
   const { triggerCelebration } = useCelebrations();
+  const [onboardingSession, setOnboardingSession] = useState(null);
+  const [assistantMessages, setAssistantMessages] = useState([]);
 
   // Business discovery questions
   const businessQuestions = [
@@ -239,7 +242,7 @@ const OnboardingAgent = ({ onComplete }) => {
   ];
 
   // Handle answer submission
-  const handleAnswer = (answer) => {
+  const handleAnswer = async (answer) => {
     const questionId = businessQuestions[currentQuestion].id;
     setAnswers(prev => ({
       ...prev,
@@ -249,11 +252,27 @@ const OnboardingAgent = ({ onComplete }) => {
     // Reset current answer for next question
     setCurrentAnswer('');
 
-    if (currentQuestion < businessQuestions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setCurrentStep('setup');
-    }
+    try {
+      // Send turn to backend onboarding agent if session exists
+      if (onboardingSession) {
+        await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/onboarding/converse`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_response: answer,
+            current_state: onboardingSession.next_state || 'START'
+          })
+        }).then(r => r.json()).then(data => {
+          setOnboardingSession(data);
+          if (data?.assistant_message) {
+            setAssistantMessages(prev => [...prev, data.assistant_message]);
+          }
+        }).catch(() => {});
+      }
+    } catch {}
+
+    if (currentQuestion < businessQuestions.length - 1) setCurrentQuestion(currentQuestion + 1);
+    else setCurrentStep('setup');
   };
 
   const handleContinue = () => {
@@ -262,8 +281,22 @@ const OnboardingAgent = ({ onComplete }) => {
     }
   };
 
+  useEffect(() => {
+    if (currentStep === 'questions' && !onboardingSession) {
+      // Start onboarding conversation
+      fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/onboarding/start`, {
+        method: 'POST'
+      }).then(r => r.json()).then(data => {
+        setOnboardingSession(data);
+        if (data?.assistant_message) setAssistantMessages([data.assistant_message]);
+      }).catch(() => {
+        // no-op; UI continues locally
+      });
+    }
+  }, [currentStep]);
+
   // Handle setup completion
-  const handleSetupComplete = () => {
+  const handleSetupComplete = async () => {
     // Store integration data
     const integrationData = {
       sensitiveDataStorage,
@@ -275,7 +308,23 @@ const OnboardingAgent = ({ onComplete }) => {
       emailPlatforms: [], // Add selected email platforms
       screenRecordingEnabled: selectedSoftware.length > 0
     };
-    
+    // Persist user profile (best-effort)
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/workspace/profile/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          brand_voice: answers.brand_voice || null,
+          brand_colors: answers.brand_colors || null,
+          preferences: integrationData,
+          business: {
+            description: answers.business_description || '',
+            goals: answers.turnover_goals || ''
+          }
+        })
+      });
+    } catch {}
+
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
       message: "Setup complete! 🎉",
       intensity: 'high'
