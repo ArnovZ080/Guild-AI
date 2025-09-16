@@ -44,3 +44,19 @@ async def save_profile(payload: ProfilePayload):
         raise HTTPException(status_code=500, detail=f"Failed to save profile: {str(e)}")
 
 
+@router.get("/profile/get")
+async def get_profile(user_id: str = "default"):
+    try:
+        base_dir = "/app/data/workspace"
+        user_dir = os.path.join(base_dir, user_id or "default", "profile")
+        profile_path = os.path.join(user_dir, "user_profile.json")
+        if not os.path.exists(profile_path):
+            return {"success": True, "profile": None}
+
+        with open(profile_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {"success": True, "profile": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read profile: {str(e)}")
+
+
