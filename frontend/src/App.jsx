@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
 import { CelebrationProvider } from './components/psychological/MicroCelebrations.jsx';
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
@@ -45,93 +46,95 @@ function App() {
   }
 
   return (
-    <AdaptiveModeProvider>
-      <CelebrationProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={
-              isOnboardingCompleted ? 
-                <Navigate to="/chat" replace /> : 
-                <Navigate to="/onboarding" replace />
-            } />
-            <Route path="/onboarding" element={<OnboardingView />} />
-            <Route path="/chat" element={
-              <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
-            } />
-            <Route path="/dashboard" element={
-              <DashboardLayout>
-                <DashboardView />
-              </DashboardLayout>
-            } />
-            <Route path="/agents" element={
-              <DashboardLayout>
-                <AgentsView />
-              </DashboardLayout>
-            } />
-            <Route path="/workflows" element={
-              <DashboardLayout>
-                <WorkflowsView />
-              </DashboardLayout>
-            } />
-            <Route path="/analytics" element={
-              <DashboardLayout>
-                <AnalyticsView />
-              </DashboardLayout>
-            } />
-            <Route path="/customers" element={
-              <DashboardLayout>
-                <CustomersView />
-              </DashboardLayout>
-            } />
-            <Route path="/goals" element={
-              <DashboardLayout>
-                <GoalsView />
-              </DashboardLayout>
-            } />
-            <Route path="/calendar" element={
-              <DashboardLayout>
-                <CalendarView />
-              </DashboardLayout>
-            } />
-            <Route path="/conversations" element={
-              <DashboardLayout>
-                <ConversationsView />
-              </DashboardLayout>
-            } />
-            <Route path="/documents" element={
-              <DashboardLayout>
-                <DocumentsView />
-              </DashboardLayout>
-            } />
-        <Route path="/voice" element={
-          <DashboardLayout>
-            <VoiceView />
-          </DashboardLayout>
-        } />
-        <Route path="/connectors" element={
-          <DashboardLayout>
-            <ConnectorsView />
-          </DashboardLayout>
-        } />
-            <Route path="/achievements" element={
-              <DashboardLayout>
-                <AchievementsView />
-              </DashboardLayout>
-            } />
-            <Route path="/growth" element={
-              <DashboardLayout>
-                <GrowthView />
-              </DashboardLayout>
-            } />
-            <Route path="/settings" element={
-              <DashboardLayout>
-                <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
-              </DashboardLayout>
-            } />
-          </Routes>
-        </Router>
-      </CelebrationProvider>
-    </AdaptiveModeProvider>
+    <PsychologicalOptimizationProvider>
+      <AdaptiveModeProvider>
+        <CelebrationProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={
+                isOnboardingCompleted ?
+                  <Navigate to="/chat" replace /> :
+                  <Navigate to="/onboarding" replace />
+              } />
+              <Route path="/onboarding" element={<OnboardingView />} />
+              <Route path="/chat" element={
+                <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
+              } />
+              <Route path="/dashboard" element={
+                <DashboardLayout>
+                  <DashboardView />
+                </DashboardLayout>
+              } />
+              <Route path="/agents" element={
+                <DashboardLayout>
+                  <AgentsView />
+                </DashboardLayout>
+              } />
+              <Route path="/workflows" element={
+                <DashboardLayout>
+                  <WorkflowsView />
+                </DashboardLayout>
+              } />
+              <Route path="/analytics" element={
+                <DashboardLayout>
+                  <AnalyticsView />
+                </DashboardLayout>
+              } />
+              <Route path="/customers" element={
+                <DashboardLayout>
+                  <CustomersView />
+                </DashboardLayout>
+              } />
+              <Route path="/goals" element={
+                <DashboardLayout>
+                  <GoalsView />
+                </DashboardLayout>
+              } />
+              <Route path="/calendar" element={
+                <DashboardLayout>
+                  <CalendarView />
+                </DashboardLayout>
+              } />
+              <Route path="/conversations" element={
+                <DashboardLayout>
+                  <ConversationsView />
+                </DashboardLayout>
+              } />
+              <Route path="/documents" element={
+                <DashboardLayout>
+                  <DocumentsView />
+                </DashboardLayout>
+              } />
+          <Route path="/voice" element={
+            <DashboardLayout>
+              <VoiceView />
+            </DashboardLayout>
+          } />
+          <Route path="/connectors" element={
+            <DashboardLayout>
+              <ConnectorsView />
+            </DashboardLayout>
+          } />
+              <Route path="/achievements" element={
+                <DashboardLayout>
+                  <AchievementsView />
+                </DashboardLayout>
+              } />
+              <Route path="/growth" element={
+                <DashboardLayout>
+                  <GrowthView />
+                </DashboardLayout>
+              } />
+              <Route path="/settings" element={
+                <DashboardLayout>
+                  <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
+                </DashboardLayout>
+              } />
+            </Routes>
+          </Router>
+        </CelebrationProvider>
+      </AdaptiveModeProvider>
+    </PsychologicalOptimizationProvider>
   );
 }
 

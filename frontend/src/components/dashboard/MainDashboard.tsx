@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import DashboardLayout from '../layouts/DashboardLayout.jsx';
 import CommandCenter from './CommandCenter.jsx';
@@ -7,6 +7,7 @@ import OpportunityRadar from '../visualizations/OpportunityRadar.jsx';
 import { useCelebrations } from '../psychological/MicroCelebrations.jsx';
 import { AchievementCelebration } from '../psychological/AchievementCelebration.tsx';
 import { StressReductionInterface } from '../psychological/StressReductionInterface.tsx';
+import AchievementNarrative from '../achievements/AchievementNarrative.jsx';
 import { useBusinessMetrics, useAgentStatus, useWorkflows } from '../../hooks/useApiData.js';
 
 // Enhanced Command Center with real data
@@ -215,6 +216,7 @@ const EnhancedOpportunityRadar = () => {
 
 export const MainDashboard: React.FC = () => {
   const { triggerCelebration } = useCelebrations();
+  const [achievement, setAchievement] = useState(null);
 
   useEffect(() => {
     // Trigger a celebration when the dashboard loads
@@ -225,13 +227,26 @@ export const MainDashboard: React.FC = () => {
         });
       }, 1000);
     }
+
+    // For demonstration, trigger an achievement narrative on load
+    setTimeout(() => {
+      setAchievement({ type: 'content_consistency' });
+    }, 2000);
   }, [triggerCelebration]);
 
   return (
-    <DashboardLayout
-      commandCenter={<EnhancedCommandCenter />}
-      actionTheater={<EnhancedActionTheater />}
-      opportunityHorizon={<EnhancedOpportunityRadar />}
-    />
+    <>
+      <DashboardLayout
+        commandCenter={<EnhancedCommandCenter />}
+        actionTheater={<AgentActivityTheater />}
+        opportunityHorizon={<EnhancedOpportunityRadar />}
+      />
+      {achievement && (
+        <AchievementNarrative
+          achievement={achievement}
+          onDismiss={() => setAchievement(null)}
+        />
+      )}
+    </>
   );
 };
