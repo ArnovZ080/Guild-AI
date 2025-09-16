@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-const API_BASE = '/api/execution-layer';
+const EXECUTION_API = '/api/execution-layer';
+const BUILDER_API = '/api/workflow-builder';
 
 export default function WorkflowBuilder() {
   const [workflows, setWorkflows] = useState([]);
@@ -25,25 +26,46 @@ export default function WorkflowBuilder() {
 
   const loadWorkflows = async () => {
     try {
-      const response = await fetch(`${API_BASE}/workflows`);
-      if (response.ok) {
-        const data = await response.json();
-        setWorkflows(data);
-      }
+      // Prefer workflow-builder list endpoint
+      const response = await fetch(`${BUILDER_API}/workflows`);
+      if (!response.ok) throw new Error('failed');
+      const data = await response.json();
+      // Map to UI shape with graceful defaults
+      const mapped = (Array.isArray(data) ? data : []).map((w) => ({
+        workflow_id: w.id || w.workflow_id || w.name || `wf_${Math.random().toString(36).slice(2)}`,
+        name: w.name || 'Untitled Workflow',
+        description: w.description || 'No description provided',
+        node_count: Array.isArray(w.nodes) ? w.nodes.length : (w.node_count ?? 0),
+        connection_count: Array.isArray(w.connections) ? w.connections.length : (w.connection_count ?? 0),
+        status: w.status || 'draft',
+      }));
+      setWorkflows(mapped);
     } catch (err) {
-      setError('Failed to load workflows');
+      // Graceful fallback: show empty with hint
+      setWorkflows([]);
+      setError('No workflows yet or backend unavailable.');
     }
   };
 
   const loadTemplates = async () => {
     try {
-      const response = await fetch(`${API_BASE}/workflow-templates`);
-      if (response.ok) {
-        const data = await response.json();
-        setTemplates(data);
-      }
+      const response = await fetch(`${EXECUTION_API}/workflow-templates`);
+      if (!response.ok) throw new Error('failed');
+      const data = await response.json();
+      // Backend returns { success, templates: ["name", ...] }
+      const list = Array.isArray(data?.templates) ? data.templates : [];
+      const normalized = {
+        "Recommended": list.map((t) => ({
+          template_id: t,
+          name: t.replaceAll('_', ' '),
+          description: 'Starter blueprint',
+          type: 'template',
+        })),
+      };
+      setTemplates(normalized);
     } catch (err) {
-      setError('Failed to load templates');
+      setTemplates({});
+      setError('No templates yet or backend unavailable.');
     }
   };
 
@@ -52,7 +74,7 @@ export default function WorkflowBuilder() {
     
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/create-workflow`, {
+      const response = await fetch(`${EXECUTION_API}/create-workflow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +98,7 @@ export default function WorkflowBuilder() {
 
   const addNode = async (workflowId, templateId, position = [100, 100]) => {
     try {
-      const response = await fetch(`${API_BASE}/workflows/${workflowId}/nodes`, {
+      const response = await fetch(`${BUILDER_API}/workflows/${workflowId}/nodes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -98,7 +120,7 @@ export default function WorkflowBuilder() {
 
   const executeWorkflow = async (workflowId) => {
     try {
-      const response = await fetch(`${API_BASE}/deploy-workflow`, {
+      const response = await fetch(`${EXECUTION_API}/deploy-workflow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -122,6 +144,9 @@ export default function WorkflowBuilder() {
         <CardTitle>Node Templates</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {Object.entries(templates).length === 0 && (
+          <div className="text-sm text-gray-500">No templates yet…</div>
+        )}
         {Object.entries(templates).map(([category, templateList]) => (
           <div key={category}>
             <h4 className="font-semibold text-sm text-gray-700 mb-2">{category}</h4>

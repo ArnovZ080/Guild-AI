@@ -47,6 +47,14 @@ class ApiService {
     return result || this.getMockAgentStatus();
   }
 
+  async optimize(objective, analytics = {}) {
+    const result = await this.request('/agents/optimize', {
+      method: 'POST',
+      body: JSON.stringify({ objective, analytics })
+    });
+    return result || { success: false, recommendations: [] };
+  }
+
   // Connector-related endpoints
   async getConnectorStatus() {
     const result = await this.request('/connectors/status');

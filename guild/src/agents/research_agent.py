@@ -4,7 +4,10 @@ Comprehensive research and information gathering using advanced prompting strate
 """
 
 from guild.src.core.llm_client import LlmClient
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright  # type: ignore[reportMissingImports]
+except Exception:  # noqa: BLE001
+    sync_playwright = None  # type: ignore[assignment]
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
@@ -315,6 +318,9 @@ def search_web(query: str) -> Dict[str, Any]:
         A dictionary containing the URL and the extracted text content.
     """
     print(f"Research Agent: Searching for '{query}' with Playwright...")
+
+    if sync_playwright is None:
+        return {"url": None, "content": "Playwright is not installed in this environment."}
 
     with sync_playwright() as p:
         try:

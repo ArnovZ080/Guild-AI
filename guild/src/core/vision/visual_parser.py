@@ -6,12 +6,18 @@ a structured format using OpenCV and Tesseract OCR for lightweight computer visi
 """
 
 import base64
-import cv2
+try:
+    import cv2  # type: ignore[reportMissingImports]
+except Exception:  # noqa: BLE001
+    cv2 = None  # type: ignore[assignment]
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
 from PIL import Image
 import io
-import pytesseract
+try:
+    import pytesseract  # type: ignore[reportMissingImports]
+except Exception:  # noqa: BLE001
+    pytesseract = None  # type: ignore[assignment]
 import logging
 
 logger = logging.getLogger(__name__)
@@ -27,13 +33,14 @@ class VisualParser:
     def __init__(self):
         """Initialize the VisualParser with computer vision models."""
         try:
-            # Test Tesseract availability
-            pytesseract.get_tesseract_version()
+            if pytesseract is not None:
+                pytesseract.get_tesseract_version()
+            if cv2 is None:
+                raise RuntimeError("OpenCV not available")
             self.initialized = True
-            logger.info("VisualParser initialized successfully with Tesseract OCR")
+            logger.info("VisualParser initialized (OpenCV%s)" % (" + Tesseract" if pytesseract else ""))
         except Exception as e:
-            logger.error(f"Failed to initialize Tesseract: {e}")
-            logger.info("Falling back to OpenCV-only mode for UI element detection")
+            logger.error(f"VisualParser init fallback: {e}")
             self.initialized = False
     
     def parse_screenshot(self, image: bytes) -> Dict[str, Any]:
@@ -54,6 +61,8 @@ class VisualParser:
                 return self._parse_with_placeholder(pil_image)
             
             # Convert PIL to OpenCV format
+            if cv2 is None:
+                return self._parse_with_placeholder(pil_image)
             cv_image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
             
             # Perform comprehensive UI analysis
@@ -247,6 +256,8 @@ class VisualParser:
         
         try:
             # Use Tesseract to detect text
+            if pytesseract is None:
+                return []
             results = pytesseract.image_to_data(cv_image, output_type=pytesseract.Output.DICT)
             
             for i in range(len(results["text"])):

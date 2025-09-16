@@ -4,7 +4,10 @@ Comprehensive lead prospecting and data collection using advanced prompting stra
 """
 
 from guild.src.core.llm_client import LlmClient
-from playwright.sync_api import sync_playwright
+try:
+    from playwright.sync_api import sync_playwright  # type: ignore[reportMissingImports]
+except Exception:  # noqa: BLE001
+    sync_playwright = None  # type: ignore[assignment]
 from typing import Dict, Any, List, Optional
 import logging
 import json
@@ -691,6 +694,9 @@ class ScraperAgent:
         Basic Playwright-based scraping (original implementation).
         """
         leads = []
+
+        if sync_playwright is None:
+            return []
 
         with sync_playwright() as p:
             try:

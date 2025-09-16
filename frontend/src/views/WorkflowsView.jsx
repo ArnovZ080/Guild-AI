@@ -173,6 +173,9 @@ const WorkflowsView = () => {
   const [connectorStatus, setConnectorStatus] = useState({});
   const [workflowsLoading, setWorkflowsLoading] = useState(true);
   const { triggerCelebration } = useCelebrations();
+  const [optimizing, setOptimizing] = useState(false);
+  const [optResult, setOptResult] = useState(null);
+  const [deployingId, setDeployingId] = useState(null);
 
   // Load real workflow data
   useEffect(() => {
@@ -211,6 +214,42 @@ const WorkflowsView = () => {
     
     return matchesSearch && matchesStatus && matchesType;
   });
+
+  const handleOptimize = async () => {
+    setOptimizing(true);
+    setOptResult(null);
+    try {
+      const objective = 'Improve workflow performance and engagement';
+      const analytics = { filterStatus, filterType, searchTerm };
+      const res = await apiService.optimize(objective, analytics);
+      setOptResult(res);
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: 'Optimization recommendations generated! ✨',
+        intensity: 'normal'
+      });
+    } catch (e) {
+      setOptResult({ success: false, recommendations: [] });
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
+  const handleDeploy = async (workflow) => {
+    const wfId = workflow.workflow_id || workflow.id;
+    if (!wfId) return;
+    setDeployingId(wfId);
+    try {
+      const res = await apiService.deployWorkflow(wfId, 'n8n');
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: 'Workflow deployed! 🚀',
+        intensity: 'normal'
+      });
+    } catch (e) {
+      // no-op; UI remains unchanged
+    } finally {
+      setDeployingId(null);
+    }
+  };
 
   // Get status styling
   const getStatusStyle = (status) => {
@@ -271,11 +310,30 @@ const WorkflowsView = () => {
             <p className="text-sm text-gray-500">{workflow.description}</p>
           </div>
         </div>
-        <div className="flex flex-col space-y-2">
+        <div className="flex flex-col space-y-2 items-end">
           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(workflow.status)}`}>
             {workflow.status}
           </span>
           <span className="text-xs text-gray-500 capitalize">{workflow.type}</span>
+          {(workflow.workflow_id || workflow.id) && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleDeploy(workflow); }}
+              disabled={deployingId === (workflow.workflow_id || workflow.id)}
+              className="mt-2 inline-flex items-center space-x-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {deployingId === (workflow.workflow_id || workflow.id) ? (
+                <>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>Deploying…</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-3 h-3" />
+                  <span>Deploy</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -306,16 +364,11 @@ const WorkflowsView = () => {
       <div className="mb-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Agents Involved:</h4>
         <div className="flex flex-wrap gap-1">
-          {workflow.agents.slice(0, 3).map(agent => (
-            <span key={agent} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+          {(workflow.agents || workflow.agents_involved || []).slice(0, 3).map((agent, idx) => (
+            <span key={`${agent}-${idx}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
               {agent}
             </span>
           ))}
-          {workflow.agents.length > 3 && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-              +{workflow.agents.length - 3} more
-            </span>
-          )}
         </div>
       </div>
 
@@ -323,7 +376,7 @@ const WorkflowsView = () => {
       <div className="mb-4">
         <h4 className="text-sm font-medium text-gray-700 mb-2">Integrations:</h4>
         <div className="flex flex-wrap gap-2">
-          {workflow.integrations.slice(0, 4).map(integration => {
+          {(workflow.integrations || []).slice(0, 4).map(integration => {
             const IntegrationIcon = getIntegrationIcon(integration);
             return (
               <div key={integration} className="flex items-center space-x-1 px-2 py-1 bg-gray-100 rounded-full">
@@ -332,38 +385,37 @@ const WorkflowsView = () => {
               </div>
             );
           })}
-          {workflow.integrations.length > 4 && (
-            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-              +{workflow.integrations.length - 4} more
-            </span>
-          )}
         </div>
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="text-center p-2 bg-gray-50 rounded-lg">
-          <div className="text-lg font-bold text-gray-900">
-            {workflow.metrics.customersProcessed || workflow.metrics.leadsProcessed || workflow.metrics.postsScheduled || workflow.metrics.reportsGenerated || workflow.metrics.ticketsHandled}
+      {workflow.metrics && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="text-center p-2 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-900">
+              {workflow.metrics.customersProcessed || workflow.metrics.leadsProcessed || workflow.metrics.postsScheduled || workflow.metrics.reportsGenerated || workflow.metrics.ticketsHandled}
+            </div>
+            <div className="text-xs text-gray-500">Processed</div>
           </div>
-          <div className="text-xs text-gray-500">Processed</div>
-        </div>
-        <div className="text-center p-2 bg-gray-50 rounded-lg">
-          <div className="text-lg font-bold text-gray-900">
-            {workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate}%
+          <div className="text-center p-2 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-900">
+              {(workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate) && `${workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate}%`}
+            </div>
+            <div className="text-xs text-gray-500">Success Rate</div>
           </div>
-          <div className="text-xs text-gray-500">Success Rate</div>
         </div>
-      </div>
+      )}
 
       {/* Business Goal */}
-      <div className="bg-blue-50 rounded-lg p-3">
-        <div className="flex items-center space-x-2 mb-1">
-          <Target className="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-medium text-blue-900">Business Goal</span>
+      {workflow.businessGoal && (
+        <div className="bg-blue-50 rounded-lg p-3">
+          <div className="flex items-center space-x-2 mb-1">
+            <Target className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-medium text-blue-900">Business Goal</span>
+          </div>
+          <p className="text-sm text-blue-800">{workflow.businessGoal}</p>
         </div>
-        <p className="text-sm text-blue-800">{workflow.businessGoal}</p>
-      </div>
+      )}
     </motion.div>
   );
 
@@ -393,19 +445,38 @@ const WorkflowsView = () => {
             <h1 className="text-3xl font-bold text-gray-900">Autonomous Workflows</h1>
             <p className="text-gray-600 mt-2">AI-powered business automation with N8N, Zapier, and Make.com integrations</p>
           </div>
-          <button
-            onClick={() => {
-              setShowCreateModal(true);
-              triggerCelebration(CelebrationType.TASK_COMPLETE, {
-                message: "Creating new workflow! ⚡",
-                intensity: 'normal'
-              });
-            }}
-            className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Create Workflow</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowCreateModal(true);
+                triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                  message: "Creating new workflow! ⚡",
+                  intensity: 'normal'
+                });
+              }}
+              className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Workflow</span>
+            </button>
+            <button
+              onClick={handleOptimize}
+              disabled={optimizing}
+              className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              {optimizing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Optimizing…</span>
+                </>
+              ) : (
+                <>
+                  <Brain className="w-4 h-4" />
+                  <span>Optimize</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -469,6 +540,21 @@ const WorkflowsView = () => {
             {filteredWorkflows.length} of {autonomousWorkflows.length} workflows
           </div>
         </div>
+
+        {optResult && (
+          <div className="mt-4 p-4 border rounded-lg bg-green-50 border-green-200">
+            <div className="font-semibold text-green-800 mb-1">Optimization Recommendations</div>
+            {Array.isArray(optResult.recommendations) && optResult.recommendations.length > 0 ? (
+              <ul className="list-disc list-inside text-sm text-green-700">
+                {optResult.recommendations.map((rec, idx) => (
+                  <li key={idx}>{typeof rec === 'string' ? rec : `${rec.action}: ${JSON.stringify(rec.details)}`}</li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-sm text-green-700">No recommendations available.</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Autonomous Workflows Grid */}

@@ -52,24 +52,30 @@ export function WorkflowInterface() {
     setIsLoading(true);
     setError(null);
     try {
-      const createContractRes = await fetch('/api/workflows/contracts', {
+      // Map form to backend UserInput schema
+      const payload = {
+        objective: contractRequest.objective,
+        audience: contractRequest.target_audience ? { demographics: contractRequest.target_audience } : undefined,
+        additional_notes: contractRequest.special_notes || contractRequest.context || undefined,
+      };
+
+      const res = await fetch('/api/workflows/contracts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contractRequest),
+        body: JSON.stringify(payload),
       });
-      if (!createContractRes.ok) throw new Error('Failed to create contract');
-      const createdContract = await createContractRes.json();
+      if (!res.ok) throw new Error('Failed to create contract');
+      const data = await res.json();
 
-      const planWorkflowRes = await fetch(`/api/workflows/contracts/${createdContract.id}/plan`, {
-        method: 'POST',
-      });
-      if (!planWorkflowRes.ok) throw new Error('Failed to create workflow plan');
-      const plannedData = await planWorkflowRes.json();
+      // Backend returns { contract_id, workflow_id, workflow_definition }
+      const workflowId = data?.workflow_id;
+      const workflowDef = data?.workflow_definition;
+      if (!workflowId || !workflowDef) throw new Error('Invalid response from server');
 
-      setPlannedWorkflow(plannedData);
+      setPlannedWorkflow({ id: workflowId, dag_definition: workflowDef });
       setView('approval');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to generate workflow plan');
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +94,7 @@ export function WorkflowInterface() {
       setRunningWorkflowId(plannedWorkflow.id);
       setView('status');
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to approve workflow');
     } finally {
       setIsLoading(false);
     }
@@ -179,16 +185,16 @@ export function WorkflowInterface() {
         </div>
          <div className="space-y-2">
           <Label htmlFor="automation_platform">Automation Platform</Label>
-          <Select value={contractRequest.automation_platform || 'n8n'} onValueChange={(value) => handleInputChange('automation_platform', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select automation platform" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="n8n">n8n</SelectItem>
-              <SelectItem value="make">Make (Integromat)</SelectItem>
-              <SelectItem value="zapier">Zapier</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Keep selection for future use; not sent to backend in stub mode */}
+          <select
+            value={contractRequest.automation_platform || 'n8n'}
+            onChange={(e) => handleInputChange('automation_platform', e.target.value)}
+            className="w-full border border-gray-300 rounded-md px-3 py-2"
+          >
+            <option value="n8n">n8n</option>
+            <option value="make">Make (Integromat)</option>
+            <option value="zapier">Zapier</option>
+          </select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="platform_connections">Connected Platforms</Label>
@@ -212,7 +218,7 @@ export function WorkflowInterface() {
           </div>
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <Button onClick={createAndPlanWorkflow} disabled={isLoading || !contractRequest.title || !contractRequest.objective} className="w-full">
+        <Button onClick={createAndPlanWorkflow} disabled={isLoading || !contractRequest.objective} className="w-full">
           {isLoading ? 'Generating Plan...' : 'Generate Workflow Plan'}
         </Button>
       </CardContent>
