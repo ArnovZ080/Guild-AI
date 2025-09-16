@@ -1,21 +1,23 @@
 [
   {
     "name": "Lead Enrichment Pipeline",
-    "description": "Takes raw leads (emails, LinkedIn URLs, or company names), enriches them with data from LinkedIn, Apollo, or Clearbit, and stores the result in the CRM.",
+    "description": "Takes raw leads (emails, LinkedIn URLs, or company names), enriches them with data from LinkedIn, Facebook, Instagram, and stores the result in HubSpot CRM.",
     "trigger": "new_lead",
     "n8n_workflow_id": "lead_enrichment_01",
-    "inputs": ["email", "company_name", "linkedin_url"],
-    "outputs": ["enriched_contact", "crm_record"],
-    "category": "sales"
+    "inputs": ["email", "company_name", "linkedin_url", "facebook_url", "instagram_url"],
+    "outputs": ["enriched_contact", "crm_record", "social_media_data"],
+    "category": "sales",
+    "platforms": ["linkedin", "facebook", "instagram", "hubspot", "gmail"]
   },
   {
     "name": "Abandoned Cart Recovery",
-    "description": "Detects abandoned carts, triggers automated reminders via email/SMS/WhatsApp, and logs interactions.",
+    "description": "Detects abandoned carts, triggers automated reminders via Gmail, WhatsApp, and Facebook Messenger, and logs interactions in HubSpot.",
     "trigger": "cart_abandoned",
     "n8n_workflow_id": "abandoned_cart_01",
-    "inputs": ["customer_email", "cart_items"],
-    "outputs": ["reminder_sent", "crm_update"],
-    "category": "ecommerce"
+    "inputs": ["customer_email", "cart_items", "phone_number"],
+    "outputs": ["reminder_sent", "crm_update", "whatsapp_message", "messenger_message"],
+    "category": "ecommerce",
+    "platforms": ["gmail", "whatsapp", "messenger", "hubspot"]
   },
   {
     "name": "Competitor Monitoring",
@@ -73,30 +75,33 @@
   },
   {
     "name": "Proactive Outreach Sequencer",
-    "description": "Runs cold email or LinkedIn outreach sequences with A/B tested messaging, logging responses in CRM.",
+    "description": "Runs multi-channel outreach sequences via Gmail, LinkedIn, WhatsApp, and Facebook Messenger with A/B tested messaging, logging responses in HubSpot.",
     "trigger": "schedule_daily",
     "n8n_workflow_id": "outreach_sequencer_01",
-    "inputs": ["lead_list", "templates"],
-    "outputs": ["emails_sent", "crm_update"],
-    "category": "sales"
+    "inputs": ["lead_list", "templates", "phone_numbers", "linkedin_profiles"],
+    "outputs": ["emails_sent", "linkedin_messages", "whatsapp_messages", "messenger_messages", "crm_update"],
+    "category": "sales",
+    "platforms": ["gmail", "linkedin", "whatsapp", "messenger", "hubspot"]
   },
   {
     "name": "Content Repurposing Engine",
-    "description": "Takes a single piece of content (blog, video, podcast) and auto-generates multiple formats (tweets, LinkedIn posts, emails).",
+    "description": "Takes a single piece of content (blog, video, podcast) and auto-generates multiple formats for Facebook, Instagram, LinkedIn, and email campaigns.",
     "trigger": "new_content",
     "n8n_workflow_id": "content_repurpose_01",
-    "inputs": ["content_url", "content_text"],
-    "outputs": ["social_snippets", "email_drafts"],
-    "category": "marketing"
+    "inputs": ["content_url", "content_text", "images", "videos"],
+    "outputs": ["facebook_posts", "instagram_posts", "linkedin_posts", "email_drafts", "whatsapp_messages"],
+    "category": "marketing",
+    "platforms": ["facebook", "instagram", "linkedin", "gmail", "whatsapp"]
   },
   {
     "name": "AI-Powered Support Escalation",
-    "description": "Routes support tickets to the right agent. Escalates urgent issues to Slack/WhatsApp and updates CRM.",
+    "description": "Routes support tickets to the right agent. Escalates urgent issues via WhatsApp, Messenger, and Gmail, updates HubSpot CRM.",
     "trigger": "new_ticket",
     "n8n_workflow_id": "support_escalation_01",
-    "inputs": ["ticket_id", "customer_priority"],
-    "outputs": ["ticket_routed", "alert_sent"],
-    "category": "customer"
+    "inputs": ["ticket_id", "customer_priority", "customer_phone", "customer_email"],
+    "outputs": ["ticket_routed", "whatsapp_alert", "messenger_alert", "email_alert", "crm_update"],
+    "category": "customer",
+    "platforms": ["whatsapp", "messenger", "gmail", "hubspot"]
   },
   {
     "name": "Finance & Cash Flow Alerts",

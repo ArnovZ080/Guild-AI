@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { useWorkflows } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import apiService from '../services/api.js';
+import NoDataPlaceholder from '../components/placeholders/NoDataPlaceholder.jsx';
 
 // Enhanced autonomous workflow data
 const autonomousWorkflows = [
@@ -21,7 +23,7 @@ const autonomousWorkflows = [
     currentStep: 'Sending welcome email sequence',
     description: 'Automatically onboard new customers with personalized welcome sequence',
     agents: ['Customer Success Agent', 'Email Marketing Agent', 'Personalization Agent'],
-    integrations: ['Zapier', 'Mailchimp', 'CRM'],
+    integrations: ['Zapier', 'Gmail', 'HubSpot'],
     triggers: ['New customer signup', 'Payment confirmation'],
     actions: [
       { step: 'Send welcome email', status: 'completed', agent: 'Email Marketing Agent' },
@@ -50,7 +52,7 @@ const autonomousWorkflows = [
     currentStep: 'Analyzing lead behavior patterns',
     description: 'Automatically qualify and nurture leads based on behavior and engagement',
     agents: ['Lead Personalization Agent', 'Sales Agent', 'Analytics Agent'],
-    integrations: ['HubSpot', 'Google Analytics', 'LinkedIn'],
+    integrations: ['HubSpot', 'LinkedIn', 'Gmail', 'WhatsApp'],
     triggers: ['Website visit', 'Form submission', 'Email engagement'],
     actions: [
       { step: 'Score lead quality', status: 'completed', agent: 'Analytics Agent' },
@@ -79,7 +81,7 @@ const autonomousWorkflows = [
     currentStep: 'Optimizing social media posts',
     description: 'Automatically distribute content across platforms and optimize for engagement',
     agents: ['Content Strategist Agent', 'Social Media Agent', 'SEO Agent'],
-    integrations: ['Buffer', 'Hootsuite', 'Google Analytics', 'Facebook', 'Twitter'],
+    integrations: ['Facebook', 'Instagram', 'LinkedIn', 'Gmail', 'WhatsApp'],
     triggers: ['New content published', 'Performance threshold met'],
     actions: [
       { step: 'Schedule social posts', status: 'completed', agent: 'Social Media Agent' },
@@ -108,7 +110,7 @@ const autonomousWorkflows = [
     currentStep: 'Report generated and distributed',
     description: 'Automatically generate and distribute financial reports to stakeholders',
     agents: ['Accounting Agent', 'Analytics Agent', 'Email Agent'],
-    integrations: ['QuickBooks', 'Excel', 'Slack', 'Email'],
+    integrations: ['QuickBooks', 'Gmail', 'HubSpot', 'WhatsApp'],
     triggers: ['End of month', 'Quarterly review'],
     actions: [
       { step: 'Extract financial data', status: 'completed', agent: 'Accounting Agent' },
@@ -137,7 +139,7 @@ const autonomousWorkflows = [
     currentStep: 'Escalating complex queries',
     description: 'Automatically handle customer support queries and escalate when needed',
     agents: ['Support Agent', 'Chat Agent', 'Escalation Agent'],
-    integrations: ['Zendesk', 'Intercom', 'Slack', 'CRM'],
+    integrations: ['WhatsApp', 'Messenger', 'Gmail', 'HubSpot'],
     triggers: ['New support ticket', 'Chat message', 'Email inquiry'],
     actions: [
       { step: 'Classify query type', status: 'completed', agent: 'Support Agent' },
@@ -167,10 +169,41 @@ const WorkflowsView = () => {
   const [filterType, setFilterType] = useState('all');
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [realWorkflows, setRealWorkflows] = useState([]);
+  const [connectorStatus, setConnectorStatus] = useState({});
+  const [workflowsLoading, setWorkflowsLoading] = useState(true);
   const { triggerCelebration } = useCelebrations();
 
-  // Filter workflows
-  const filteredWorkflows = autonomousWorkflows.filter(workflow => {
+  // Load real workflow data
+  useEffect(() => {
+    const loadRealData = async () => {
+      try {
+        setWorkflowsLoading(true);
+        
+        // Load agent workflows
+        const agentWorkflows = await apiService.getAllWorkflows();
+        if (agentWorkflows && agentWorkflows.workflows) {
+          setRealWorkflows(agentWorkflows.workflows);
+        }
+        
+        // Load connector status
+        const connectorData = await apiService.getConnectorStatus();
+        if (connectorData && connectorData.connectors) {
+          setConnectorStatus(connectorData.connectors);
+        }
+      } catch (error) {
+        console.error('Failed to load real workflow data:', error);
+      } finally {
+        setWorkflowsLoading(false);
+      }
+    };
+    
+    loadRealData();
+  }, []);
+
+  // Filter workflows - use real data if available, fallback to mock
+  const workflowsToShow = realWorkflows.length > 0 ? realWorkflows : autonomousWorkflows;
+  const filteredWorkflows = workflowsToShow.filter(workflow => {
     const matchesSearch = workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          workflow.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'all' || workflow.status === filterStatus;
@@ -198,19 +231,22 @@ const WorkflowsView = () => {
       'Make.com': Workflow,
       'N8N': Network,
       'HubSpot': Database,
-      'Mailchimp': Mail,
-      'Slack': MessageSquare,
-      'Google Analytics': BarChart,
-      'LinkedIn': Users,
+      'Gmail': Mail,
+      'WhatsApp': MessageSquare,
+      'Messenger': MessageSquare,
       'Facebook': Globe,
-      'Twitter': Globe,
-      'Buffer': Share,
-      'Hootsuite': Share,
-      'Zendesk': Headphones,
-      'Intercom': MessageSquare,
+      'Instagram': Camera,
+      'LinkedIn': Users,
       'QuickBooks': DollarSign,
       'Excel': FileText,
-      'CRM': Database
+      'CRM': Database,
+      'Google Analytics': BarChart,
+      'Slack': MessageSquare,
+      'Zendesk': Headphones,
+      'Intercom': MessageSquare,
+      'Buffer': Share,
+      'Hootsuite': Share,
+      'Twitter': Globe
     };
     return icons[integration] || Link;
   };
@@ -439,9 +475,38 @@ const WorkflowsView = () => {
       {activeTab === 'autonomous' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
-            {filteredWorkflows.map(workflow => (
-              <WorkflowCard key={workflow.id} workflow={workflow} />
-            ))}
+            {workflowsLoading ? (
+              // Loading state
+              [1, 2, 3].map(i => (
+                <div key={i} className="bg-white rounded-lg shadow-lg p-6 border animate-pulse">
+                  <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                  <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-2/3 mb-4"></div>
+                  <div className="h-2 bg-gray-200 rounded w-full mb-4"></div>
+                  <div className="flex space-x-2">
+                    <div className="h-6 bg-gray-200 rounded w-16"></div>
+                    <div className="h-6 bg-gray-200 rounded w-20"></div>
+                  </div>
+                </div>
+              ))
+            ) : filteredWorkflows.length > 0 ? (
+              // Real workflow data
+              filteredWorkflows.map(workflow => (
+                <WorkflowCard key={workflow.workflow_id || workflow.id} workflow={workflow} />
+              ))
+            ) : (
+              // No data placeholder
+              <div className="col-span-full">
+                <NoDataPlaceholder
+                  title="No Workflows Found"
+                  description="You don't have any active workflows yet. Create your first workflow to start automating your business processes."
+                  actionType="activate"
+                  actionText="Create Workflow"
+                  onAction={() => setShowCreateModal(true)}
+                  icon={Workflow}
+                />
+              </div>
+            )}
           </AnimatePresence>
         </div>
       )}
@@ -450,33 +515,44 @@ const WorkflowsView = () => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Integration Status</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <ZapIcon className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <div className="font-semibold text-gray-900">Zapier</div>
-              <div className="text-sm text-green-600">Connected • 15 workflows</div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Workflow className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <div className="font-semibold text-gray-900">Make.com</div>
-              <div className="text-sm text-blue-600">Connected • 8 workflows</div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <Network className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <div className="font-semibold text-gray-900">N8N</div>
-              <div className="text-sm text-purple-600">Connected • 12 workflows</div>
-            </div>
-          </div>
+          {Object.keys(connectorStatus).length > 0 ? (
+            // Show real connector status
+            Object.entries(connectorStatus).slice(0, 6).map(([platform, status]) => {
+              const isConnected = status.status === 'connected';
+              const bgColor = isConnected ? 'bg-green-50' : 'bg-gray-50';
+              const iconColor = isConnected ? 'text-green-600' : 'text-gray-500';
+              const textColor = isConnected ? 'text-green-600' : 'text-gray-500';
+              const Icon = getIntegrationIcon(platform);
+              
+              return (
+                <div key={platform} className={`flex items-center space-x-3 p-4 ${bgColor} rounded-lg`}>
+                  <div className={`p-2 ${isConnected ? 'bg-green-100' : 'bg-gray-100'} rounded-lg`}>
+                    <Icon className={`w-6 h-6 ${iconColor}`} />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900 capitalize">{platform}</div>
+                    <div className={`text-sm ${textColor}`}>
+                      {isConnected ? 'Connected' : 'Not Connected'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            // Show placeholder for no connector data
+            <>
+              <div className="col-span-full">
+                <NoDataPlaceholder
+                  title="No Platform Connections"
+                  description="Connect your social media, email, and automation platforms to enable powerful workflows and data synchronization."
+                  actionType="connect"
+                  actionText="Connect Platforms"
+                  onAction={() => {/* Navigate to connectors page */}}
+                  icon={Link}
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
 

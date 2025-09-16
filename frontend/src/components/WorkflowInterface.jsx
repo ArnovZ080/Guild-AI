@@ -26,7 +26,8 @@ export function WorkflowInterface() {
   const [view, setView] = useState('form'); // 'form', 'approval', 'status'
   const [contractRequest, setContractRequest] = useState({
     title: '', objective: '', context: '', special_notes: '',
-    target_audience: '', deliverables: [], dataRooms: [], zapier_webhook_url: ''
+    target_audience: '', deliverables: [], dataRooms: [], 
+    automation_platform: 'n8n', platform_connections: []
   });
   const [plannedWorkflow, setPlannedWorkflow] = useState(null);
   const [runningWorkflowId, setRunningWorkflowId] = useState(null);
@@ -99,7 +100,8 @@ export function WorkflowInterface() {
     setRunningWorkflowId(null);
     setContractRequest({
       title: '', objective: '', context: '', special_notes: '',
-      target_audience: '', deliverables: [], dataRooms: [], zapier_webhook_url: ''
+      target_audience: '', deliverables: [], dataRooms: [], 
+      automation_platform: 'n8n', platform_connections: []
     });
   };
 
@@ -176,8 +178,38 @@ export function WorkflowInterface() {
           </div>
         </div>
          <div className="space-y-2">
-          <Label htmlFor="zapier_webhook_url">Zapier Webhook URL (Optional)</Label>
-          <Input id="zapier_webhook_url" value={contractRequest.zapier_webhook_url} onChange={(e) => handleInputChange('zapier_webhook_url', e.target.value)} placeholder="https://hooks.zapier.com/hooks/catch/..." />
+          <Label htmlFor="automation_platform">Automation Platform</Label>
+          <Select value={contractRequest.automation_platform || 'n8n'} onValueChange={(value) => handleInputChange('automation_platform', value)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select automation platform" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="n8n">n8n</SelectItem>
+              <SelectItem value="make">Make (Integromat)</SelectItem>
+              <SelectItem value="zapier">Zapier</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="platform_connections">Connected Platforms</Label>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            {['facebook', 'instagram', 'linkedin', 'gmail', 'whatsapp', 'messenger', 'hubspot'].map((platform) => (
+              <div key={platform} className="flex items-center space-x-2">
+                <Checkbox 
+                  id={platform} 
+                  checked={contractRequest.platform_connections?.includes(platform) || false} 
+                  onCheckedChange={(checked) => {
+                    const current = contractRequest.platform_connections || [];
+                    const updated = checked 
+                      ? [...current, platform]
+                      : current.filter(p => p !== platform);
+                    handleInputChange('platform_connections', updated);
+                  }} 
+                />
+                <label htmlFor={platform} className="text-sm font-medium capitalize">{platform}</label>
+              </div>
+            ))}
+          </div>
         </div>
         {error && <p className="text-red-500 text-sm">{error}</p>}
         <Button onClick={createAndPlanWorkflow} disabled={isLoading || !contractRequest.title || !contractRequest.objective} className="w-full">

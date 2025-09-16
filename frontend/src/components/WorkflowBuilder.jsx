@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
-const API_BASE = '/api/workflow-builder';
+const API_BASE = '/api/execution-layer';
 
 export default function WorkflowBuilder() {
   const [workflows, setWorkflows] = useState([]);
@@ -37,7 +37,7 @@ export default function WorkflowBuilder() {
 
   const loadTemplates = async () => {
     try {
-      const response = await fetch(`${API_BASE}/templates`);
+      const response = await fetch(`${API_BASE}/workflow-templates`);
       if (response.ok) {
         const data = await response.json();
         setTemplates(data);
@@ -52,10 +52,13 @@ export default function WorkflowBuilder() {
     
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE}/workflows`, {
+      const response = await fetch(`${API_BASE}/create-workflow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newWorkflow)
+        body: JSON.stringify({
+          template_name: 'social_media_posting', // Default template
+          custom_config: newWorkflow
+        })
       });
       
       if (response.ok) {
@@ -95,18 +98,21 @@ export default function WorkflowBuilder() {
 
   const executeWorkflow = async (workflowId) => {
     try {
-      const response = await fetch(`${API_BASE}/workflows/${workflowId}/execute`, {
+      const response = await fetch(`${API_BASE}/deploy-workflow`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputs: {} })
+        body: JSON.stringify({ 
+          workflow_id: workflowId,
+          automation_platform: 'n8n' // Default to n8n
+        })
       });
       
       if (response.ok) {
         const data = await response.json();
-        alert(`Workflow execution started! Execution ID: ${data.execution_id}`);
+        alert(`Workflow deployed successfully! Platform: ${data.platform}`);
       }
     } catch (err) {
-      setError('Failed to execute workflow');
+      setError('Failed to deploy workflow');
     }
   };
 
@@ -296,21 +302,21 @@ export default function WorkflowBuilder() {
         <h3 className="text-lg font-semibold mb-3">What You Can Build</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="p-4 bg-white rounded-lg border">
-            <div className="font-medium mb-2">📧 Email Automation</div>
+            <div className="font-medium mb-2">📧 Multi-Channel Messaging</div>
             <div className="text-sm text-gray-600">
-              Automate client emails using Apple Mail with AI-generated content
+              Automate Gmail, WhatsApp, and Messenger campaigns with AI-generated content
             </div>
           </div>
           <div className="p-4 bg-white rounded-lg border">
-            <div className="font-medium mb-2">📊 Data Processing</div>
+            <div className="font-medium mb-2">📱 Social Media Automation</div>
             <div className="text-sm text-gray-600">
-              Extract data from websites and process with AI analysis
+              Post to Facebook, Instagram, LinkedIn with intelligent scheduling
             </div>
           </div>
           <div className="p-4 bg-white rounded-lg border">
-            <div className="font-medium mb-2">🎯 Marketing Campaigns</div>
+            <div className="font-medium mb-2">🎯 Lead Generation</div>
             <div className="text-sm text-gray-600">
-              Create and execute multi-channel marketing campaigns
+              Multi-platform lead enrichment and CRM synchronization
             </div>
           </div>
         </div>

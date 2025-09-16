@@ -47,6 +47,75 @@ class ApiService {
     return result || this.getMockAgentStatus();
   }
 
+  // Connector-related endpoints
+  async getConnectorStatus() {
+    const result = await this.request('/connectors/status');
+    return result || { success: false, connectors: {} };
+  }
+
+  async getAvailableConnectors() {
+    const result = await this.request('/connectors/available');
+    return result || { success: false, connectors: [], categories: {} };
+  }
+
+  async configureConnector(platform, accessToken, config = {}) {
+    return this.request('/connectors/configure', {
+      method: 'POST',
+      body: JSON.stringify({
+        platform,
+        access_token: accessToken,
+        config
+      })
+    });
+  }
+
+  async testConnector(platform) {
+    return this.request('/connectors/test', {
+      method: 'POST',
+      body: JSON.stringify({
+        platform,
+        test_action: 'validate_connection'
+      })
+    });
+  }
+
+  // Execution Layer endpoints
+  async getWorkflowTemplates() {
+    const result = await this.request('/execution-layer/workflow-templates');
+    return result || { success: false, templates: [] };
+  }
+
+  async createWorkflow(templateName, customConfig = {}) {
+    return this.request('/execution-layer/create-workflow', {
+      method: 'POST',
+      body: JSON.stringify({
+        template_name: templateName,
+        custom_config: customConfig
+      })
+    });
+  }
+
+  async deployWorkflow(workflowId, automationPlatform = 'n8n') {
+    return this.request('/execution-layer/deploy-workflow', {
+      method: 'POST',
+      body: JSON.stringify({
+        workflow_id: workflowId,
+        automation_platform: automationPlatform
+      })
+    });
+  }
+
+  async scheduleCampaign(content, platforms, scheduleTime = null) {
+    return this.request('/execution-layer/campaigns/schedule', {
+      method: 'POST',
+      body: JSON.stringify({
+        content,
+        platforms,
+        schedule_time: scheduleTime
+      })
+    });
+  }
+
   async interactWithAgent(action, data = {}, userId = null) {
     return this.request('/agents/interact', {
       method: 'POST',

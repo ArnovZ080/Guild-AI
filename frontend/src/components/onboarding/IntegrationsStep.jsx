@@ -22,6 +22,11 @@ const categories = {
     { key: "canva", label: "Canva", icon: "🎨" },
     { key: "cloudinary", label: "Cloudinary", icon: "☁️" },
     { key: "hubspot", label: "HubSpot", icon: "🎯" },
+    { key: "facebook", label: "Facebook", icon: "📘" },
+    { key: "instagram", label: "Instagram", icon: "📷" },
+    { key: "linkedin", label: "LinkedIn", icon: "💼" },
+    { key: "whatsapp", label: "WhatsApp Business", icon: "💬" },
+    { key: "messenger", label: "Facebook Messenger", icon: "💭" },
   ],
   "Dev & Deployment": [
     { key: "vercel", label: "Vercel", icon: "⚡" },
@@ -33,7 +38,7 @@ const categories = {
     { key: "zapier", label: "Zapier", icon: "⚡" },
     { key: "workato", label: "Workato", icon: "🔗" },
     { key: "n8n", label: "n8n", icon: "🔄" },
-    { key: "make", label: "Make", icon: "🛠️" },
+    { key: "make", label: "Make (Integromat)", icon: "🛠️" },
   ],
   "Storage & Files": [
     { key: "googledrive", label: "Google Drive", icon: "📁" },

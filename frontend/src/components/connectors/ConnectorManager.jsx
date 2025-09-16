@@ -308,6 +308,72 @@ const ConnectorManager = () => {
       icon: Database,
       color: 'bg-blue-500',
       documentation_url: 'https://developer.salesforce.com/'
+    },
+    {
+      id: 'facebook',
+      name: 'Facebook',
+      category: 'social_media',
+      status: 'active',
+      capabilities: ['pages', 'posts', 'ads', 'insights', 'lead_forms'],
+      description: 'Manage Facebook pages, posts, and advertising campaigns',
+      icon: Globe,
+      color: 'bg-blue-600',
+      documentation_url: 'https://developers.facebook.com/docs/marketing-api/'
+    },
+    {
+      id: 'instagram',
+      name: 'Instagram Business',
+      category: 'social_media',
+      status: 'active',
+      capabilities: ['posts', 'stories', 'insights', 'media'],
+      description: 'Manage Instagram business accounts and content',
+      icon: Camera,
+      color: 'bg-pink-500',
+      documentation_url: 'https://developers.facebook.com/docs/instagram-api/'
+    },
+    {
+      id: 'linkedin',
+      name: 'LinkedIn',
+      category: 'social_media',
+      status: 'active',
+      capabilities: ['company_pages', 'posts', 'analytics', 'messaging'],
+      description: 'Manage LinkedIn company pages and professional networking',
+      icon: Users,
+      color: 'bg-blue-700',
+      documentation_url: 'https://docs.microsoft.com/en-us/linkedin/'
+    },
+    {
+      id: 'gmail',
+      name: 'Gmail',
+      category: 'communication',
+      status: 'active',
+      capabilities: ['send_email', 'drafts', 'labels', 'search'],
+      description: 'Send emails and manage Gmail accounts',
+      icon: MessageSquare,
+      color: 'bg-red-500',
+      documentation_url: 'https://developers.google.com/gmail/api'
+    },
+    {
+      id: 'whatsapp',
+      name: 'WhatsApp Business',
+      category: 'communication',
+      status: 'active',
+      capabilities: ['send_messages', 'media', 'templates', 'webhooks'],
+      description: 'Send WhatsApp Business messages and manage conversations',
+      icon: MessageSquare,
+      color: 'bg-green-500',
+      documentation_url: 'https://developers.facebook.com/docs/whatsapp/'
+    },
+    {
+      id: 'messenger',
+      name: 'Facebook Messenger',
+      category: 'communication',
+      status: 'active',
+      capabilities: ['send_messages', 'templates', 'webhooks', 'instagram_dm'],
+      description: 'Send Facebook Messenger and Instagram Direct messages',
+      icon: MessageSquare,
+      color: 'bg-blue-500',
+      documentation_url: 'https://developers.facebook.com/docs/messenger-platform/'
     }
   ];
 
@@ -344,6 +410,8 @@ const ConnectorManager = () => {
     { id: 'productivity', name: 'Productivity', icon: FileText },
     { id: 'support', name: 'Support', icon: Users },
     { id: 'communication', name: 'Communication', icon: Users },
+    { id: 'social_media', name: 'Social Media', icon: Globe },
+    { id: 'crm', name: 'CRM', icon: Database },
     { id: 'design', name: 'Design', icon: Camera },
     { id: 'media', name: 'Media', icon: Camera },
     { id: 'development', name: 'Development', icon: Globe },

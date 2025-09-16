@@ -1,15 +1,15 @@
 {
   "automation.social_posting": {
     "name": "Social Media Auto Poster",
-    "description": "Posts Guild-generated content across Twitter, LinkedIn, Instagram, and Facebook.",
+    "description": "Posts Guild-generated content across Facebook, Instagram, LinkedIn, and WhatsApp Business.",
     "blueprint": {
       "nodes": [
         { "id": "1", "name": "Guild Content", "type": "webhook" },
         { "id": "2", "name": "Format Posts", "type": "function" },
-        { "id": "3", "name": "Twitter", "type": "twitter" },
-        { "id": "4", "name": "LinkedIn", "type": "linkedin" },
-        { "id": "5", "name": "Instagram", "type": "instagram" },
-        { "id": "6", "name": "Facebook", "type": "facebook" }
+        { "id": "3", "name": "Facebook", "type": "facebook" },
+        { "id": "4", "name": "Instagram", "type": "instagram" },
+        { "id": "5", "name": "LinkedIn", "type": "linkedin" },
+        { "id": "6", "name": "WhatsApp", "type": "whatsapp" }
       ],
       "connections": {
         "1": ["2"],
@@ -18,83 +18,95 @@
     }
   },
   "automation.email_campaign": {
-    "name": "Email Campaign Launcher",
-    "description": "Takes Guild-generated email sequences and launches them in Mailchimp, SendGrid, or Gmail.",
+    "name": "Multi-Channel Campaign Launcher",
+    "description": "Takes Guild-generated content and launches campaigns across Gmail, WhatsApp, Messenger, and HubSpot.",
     "blueprint": {
       "nodes": [
-        { "id": "1", "name": "Guild Emails", "type": "webhook" },
-        { "id": "2", "name": "Format Emails", "type": "function" },
-        { "id": "3", "name": "Mailchimp", "type": "mailchimp" },
-        { "id": "4", "name": "SendGrid", "type": "sendgrid" },
-        { "id": "5", "name": "Gmail", "type": "gmail" }
+        { "id": "1", "name": "Guild Content", "type": "webhook" },
+        { "id": "2", "name": "Format Content", "type": "function" },
+        { "id": "3", "name": "Gmail", "type": "gmail" },
+        { "id": "4", "name": "WhatsApp", "type": "whatsapp" },
+        { "id": "5", "name": "Messenger", "type": "messenger" },
+        { "id": "6", "name": "HubSpot", "type": "hubspot" }
       ],
       "connections": {
         "1": ["2"],
-        "2": ["3", "4", "5"]
+        "2": ["3", "4", "5", "6"]
       }
     }
   },
   "automation.crm_sync": {
-    "name": "CRM Lead Sync",
-    "description": "Captures Guild-generated leads and syncs them into HubSpot or Pipedrive with tags.",
+    "name": "Multi-Platform Lead Sync",
+    "description": "Captures Guild-generated leads from social media and syncs them into HubSpot with enriched data from LinkedIn, Facebook, and Instagram.",
     "blueprint": {
       "nodes": [
         { "id": "1", "name": "Guild Leads", "type": "webhook" },
-        { "id": "2", "name": "Format Leads", "type": "function" },
-        { "id": "3", "name": "HubSpot", "type": "hubspot" },
-        { "id": "4", "name": "Pipedrive", "type": "pipedrive" }
+        { "id": "2", "name": "Enrich with LinkedIn", "type": "linkedin" },
+        { "id": "3", "name": "Enrich with Facebook", "type": "facebook" },
+        { "id": "4", "name": "Enrich with Instagram", "type": "instagram" },
+        { "id": "5", "name": "Format Leads", "type": "function" },
+        { "id": "6", "name": "HubSpot", "type": "hubspot" }
       ],
       "connections": {
-        "1": ["2"],
-        "2": ["3", "4"]
+        "1": ["2", "3", "4"],
+        "2": ["5"],
+        "3": ["5"],
+        "4": ["5"],
+        "5": ["6"]
       }
     }
   },
   "automation.real_estate": {
     "name": "Real Estate Lead Funnel",
-    "description": "Scrapes listings, syncs leads into CRM, and sends follow-up emails automatically.",
+    "description": "Scrapes listings, syncs leads into HubSpot, and sends follow-up messages via Gmail, WhatsApp, and Messenger automatically.",
     "blueprint": {
       "nodes": [
         { "id": "1", "name": "Scraper Agent", "type": "webhook" },
         { "id": "2", "name": "Leads Formatter", "type": "function" },
         { "id": "3", "name": "HubSpot", "type": "hubspot" },
-        { "id": "4", "name": "Gmail", "type": "gmail" }
+        { "id": "4", "name": "Gmail", "type": "gmail" },
+        { "id": "5", "name": "WhatsApp", "type": "whatsapp" },
+        { "id": "6", "name": "Messenger", "type": "messenger" }
       ],
       "connections": {
         "1": ["2"],
-        "2": ["3", "4"]
+        "2": ["3", "4", "5", "6"]
       }
     }
   },
   "automation.blog_to_social": {
     "name": "Blog to Social Amplifier",
-    "description": "Takes Guild-generated or RSS blog posts and publishes highlights to social channels.",
+    "description": "Takes Guild-generated or RSS blog posts and publishes highlights to Facebook, Instagram, LinkedIn, and WhatsApp.",
     "blueprint": {
       "nodes": [
         { "id": "1", "name": "Guild Blog Feed", "type": "webhook" },
         { "id": "2", "name": "Extract Highlights", "type": "function" },
-        { "id": "3", "name": "Twitter", "type": "twitter" },
-        { "id": "4", "name": "LinkedIn", "type": "linkedin" }
+        { "id": "3", "name": "Facebook", "type": "facebook" },
+        { "id": "4", "name": "Instagram", "type": "instagram" },
+        { "id": "5", "name": "LinkedIn", "type": "linkedin" },
+        { "id": "6", "name": "WhatsApp", "type": "whatsapp" }
       ],
       "connections": {
         "1": ["2"],
-        "2": ["3", "4"]
+        "2": ["3", "4", "5", "6"]
       }
     }
   },
   "automation.support_escalation": {
-    "name": "Support Escalation Workflow",
-    "description": "Routes flagged support tickets into Zendesk or Intercom for escalation.",
+    "name": "Multi-Channel Support Escalation",
+    "description": "Routes flagged support tickets and sends alerts via WhatsApp, Messenger, Gmail, and updates HubSpot CRM.",
     "blueprint": {
       "nodes": [
         { "id": "1", "name": "Guild Support Agent", "type": "webhook" },
         { "id": "2", "name": "Check Priority", "type": "if" },
-        { "id": "3", "name": "Zendesk", "type": "zendesk" },
-        { "id": "4", "name": "Intercom", "type": "intercom" }
+        { "id": "3", "name": "WhatsApp Alert", "type": "whatsapp" },
+        { "id": "4", "name": "Messenger Alert", "type": "messenger" },
+        { "id": "5", "name": "Gmail Alert", "type": "gmail" },
+        { "id": "6", "name": "HubSpot Update", "type": "hubspot" }
       ],
       "connections": {
         "1": ["2"],
-        "2": ["3", "4"]
+        "2": ["3", "4", "5", "6"]
       }
     }
   }

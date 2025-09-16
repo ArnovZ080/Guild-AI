@@ -296,6 +296,9 @@ const AutomationAgent = () => {
                     <option value="finance">Finance</option>
                     <option value="ecommerce">E-commerce</option>
                     <option value="operations">Operations</option>
+                    <option value="social_media">Social Media</option>
+                    <option value="communication">Communication</option>
+                    <option value="automation">Automation</option>
                   </select>
                 </div>
               </div>

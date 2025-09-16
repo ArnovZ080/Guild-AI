@@ -17,6 +17,7 @@ services:
       - POSTGRES_DB=workflow_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - OLLAMA_HOST=http://host.docker.internal:11434
       - OLLAMA_BASE_URL=http://host.docker.internal:11434
       - LLM_PROVIDER=ollama
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
@@ -183,6 +184,7 @@ services:
       - POSTGRES_DB=workflow_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - OLLAMA_HOST=http://host.docker.internal:11434
     depends_on:
       - redis
       - db
@@ -210,6 +212,7 @@ services:
       - POSTGRES_DB=workflow_db
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - OLLAMA_HOST=http://host.docker.internal:11434
     depends_on:
       - redis
       - db

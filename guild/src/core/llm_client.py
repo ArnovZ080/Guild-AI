@@ -3,6 +3,7 @@ import ollama
 import requests
 import json
 from guild.src.core.config import settings
+import os
 from guild.src.models.llm import Llm
 
 class LLMProvider(Protocol):
@@ -13,7 +14,8 @@ class LLMProvider(Protocol):
 class OllamaProvider:
     """LLM provider for a local Ollama instance."""
     def __init__(self):
-        self.client = ollama.Client(host=settings.OLLAMA_HOST)
+        host = os.getenv("OLLAMA_HOST") or settings.OLLAMA_HOST
+        self.client = ollama.Client(host=host)
 
     def generate_json(self, prompt: str, model: str = settings.OLLAMA_MODEL) -> Dict[str, Any]:
         print(f"Using OllamaProvider with model '{model}'...")
@@ -77,7 +79,8 @@ class LlmClient:
             # For conversational prompts, use a simple text generation approach
             if self.llm_config.provider == "ollama":
                 # Use Ollama's chat method directly for conversational responses
-                client = ollama.Client(host=settings.OLLAMA_HOST)
+                host = os.getenv("OLLAMA_HOST") or settings.OLLAMA_HOST
+                client = ollama.Client(host=host)
                 response = client.chat(
                     model=self.llm_config.model,
                     messages=[{'role': 'user', 'content': prompt}]

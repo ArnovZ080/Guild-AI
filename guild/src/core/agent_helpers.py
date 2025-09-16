@@ -1,5 +1,6 @@
 from functools import wraps
-from guild.src.agents import research_agent
+# from guild.src.agents import research_agent
+
 
 def inject_knowledge(agent_function):
     """
@@ -28,6 +29,8 @@ def inject_knowledge(agent_function):
             search_query = next((line for line in prompt.split('\n') if line.strip()), "general context")
 
         print(f"  [Knowledge Injector]: Performing web search for query: '{search_query}'...")
+        # Lazy import to avoid circular dependency
+        from guild.src.agents import research_agent  # type: ignore
         research_results = research_agent.search_web(query=search_query)
 
         knowledge_context = "No relevant context found."
