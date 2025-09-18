@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { usePsychologicalOptimization } from '../../contexts/PsychologicalOptimizationContext';
 
 interface StressLevel {
   current: number;
@@ -8,6 +9,7 @@ interface StressLevel {
 }
 
 export const StressReductionInterface: React.FC = () => {
+  const { getCurrentMode, updateUserProfile } = usePsychologicalOptimization();
   const [stressLevel, setStressLevel] = useState<StressLevel>({
     current: 0.6,
     trend: 'stable',
@@ -16,6 +18,8 @@ export const StressReductionInterface: React.FC = () => {
 
   const [ambientMode, setAmbientMode] = useState<'ocean' | 'forest' | 'rain' | 'space'>('ocean');
   const [isActive, setIsActive] = useState(false);
+
+  const currentMode = getCurrentMode();
 
   const ambientThemes = {
     ocean: {
@@ -43,6 +47,37 @@ export const StressReductionInterface: React.FC = () => {
       description: 'Tranquil space'
     }
   };
+
+  const getModeStyles = () => {
+    switch (currentMode) {
+      case 'morning':
+        return {
+          background: 'from-sky-dawn to-forest-mist',
+          text: 'text-sky-dusk',
+          accent: 'sky-dawn'
+        };
+      case 'active':
+        return {
+          background: 'from-sky-day to-forest-growth',
+          text: 'text-forest-deep',
+          accent: 'forest-growth'
+        };
+      case 'evening':
+        return {
+          background: 'from-sky-dusk to-earth-bark',
+          text: 'text-earth-sand',
+          accent: 'earth-warm'
+        };
+      default:
+        return {
+          background: 'from-sky-day to-forest-growth',
+          text: 'text-forest-deep',
+          accent: 'forest-growth'
+        };
+    }
+  };
+
+  const modeStyles = getModeStyles();
 
   const getStressColor = (level: number) => {
     if (level < 0.3) return '#10B981'; // Green - low stress
@@ -72,8 +107,12 @@ export const StressReductionInterface: React.FC = () => {
   useEffect(() => {
     if (stressLevel.current > 0.7 && !isActive) {
       setIsActive(true);
+      updateUserProfile({ stressLevel: 'high', needsBreak: true });
+    } else if (stressLevel.current < 0.3 && isActive) {
+      setIsActive(false);
+      updateUserProfile({ stressLevel: 'low', needsBreak: false });
     }
-  }, [stressLevel.current, isActive]);
+  }, [stressLevel.current, isActive, updateUserProfile]);
 
   const currentTheme = ambientThemes[ambientMode];
 
@@ -93,21 +132,21 @@ export const StressReductionInterface: React.FC = () => {
             </span>
           </div>
         </div>
-
+        
         <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
           <motion.div
             className="h-2 rounded-full transition-all duration-1000"
-            style={{
+            style={{ 
               backgroundColor: getStressColor(stressLevel.current),
               width: `${stressLevel.current * 100}%`
             }}
           />
         </div>
-
+        
         <p className="text-sm text-gray-600 mb-2">
           {getStressMessage(stressLevel.current)}
         </p>
-
+        
         {stressLevel.factors.length > 0 && (
           <div className="text-xs text-gray-500">
             Stress factors: {stressLevel.factors.join(', ')}
@@ -116,10 +155,10 @@ export const StressReductionInterface: React.FC = () => {
       </div>
 
       {/* Ambient Interface */}
-      <div
+      <div 
         className={`relative h-64 transition-all duration-1000 ${isActive ? 'opacity-100' : 'opacity-50'}`}
         style={{
-          background: isActive
+          background: isActive 
             ? `linear-gradient(135deg, ${currentTheme.colors.join(', ')})`
             : '#F3F4F6'
         }}
@@ -196,7 +235,7 @@ export const StressReductionInterface: React.FC = () => {
                 </button>
               ))}
             </div>
-
+            
             <button
               onClick={() => setIsActive(!isActive)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -228,6 +267,16 @@ export const StressReductionInterface: React.FC = () => {
           </div>
         </motion.div>
       )}
+
+      {/* Mode Integration */}
+      <div className="p-3 bg-gray-50 border-t border-gray-200">
+        <div className="text-xs text-gray-600">
+          Current mode: {currentMode} | 
+          Stress-aware: {stressLevel.current > 0.7 ? 'High stress detected' : 'Normal levels'}
+        </div>
+      </div>
     </div>
   );
 };
+
+export default StressReductionInterface;

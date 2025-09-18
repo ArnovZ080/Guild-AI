@@ -1,12 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   prefix: "",
   theme: {
@@ -19,22 +18,6 @@ module.exports = {
     },
     extend: {
       colors: {
-        'sky-dawn': '#E0F2FE',
-        'sky-morning': '#7DD3FC',
-        'sky-day': '#0EA5E9',
-        'sky-dusk': '#0284C7',
-        'sky-night': '#0C4A6E',
-
-        'forest-mist': '#ECFDF5',
-        'forest-spring': '#86EFAC',
-        'forest-growth': '#22C55E',
-        'forest-deep': '#16A34A',
-        'forest-shadow': '#14532D',
-
-        'earth-sand': '#FEF3C7',
-        'warning-warm': '#F59E0B',
-        'warning-glow': '#F97316',
-
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -68,6 +51,42 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Nature-inspired psychological optimization colors
+        sky: {
+          dawn: '#87CEEB',
+          morning: '#B0E0E6',
+          day: '#4682B4',
+          dusk: '#483D8B',
+          night: '#191970'
+        },
+        forest: {
+          mist: '#98FB98',
+          spring: '#90EE90',
+          growth: '#228B22',
+          deep: '#006400',
+          calm: '#228B22'
+        },
+        earth: {
+          sand: '#F4A460',
+          clay: '#CD853F',
+          bark: '#8B4513',
+          warm: '#D2691E'
+        },
+        success: {
+          gentle: '#90EE90',
+          clear: '#32CD32',
+          vibrant: '#00FF00'
+        },
+        warning: {
+          warm: '#FF8C00',
+          urgent: '#FF4500',
+          glow: '#FFD700'
+        },
+        calm: {
+          breeze: '#E0F6FF',
+          mist: '#F0F8FF',
+          peace: '#F5F5DC'
+        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -83,26 +102,10 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        'shimmer': {
-          '100%': {
-            transform: 'translateX(100%)',
-          },
-        },
-        'glow': {
-          '0%, 100%': { opacity: 0.7 },
-          '50%': { opacity: 1 },
-        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        'pulse-gentle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-soft': 'bounce 2s infinite',
-        'spin-slow': 'spin 3s linear infinite',
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-        'shimmer': 'shimmer 2s infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate',
       },
     },
   },

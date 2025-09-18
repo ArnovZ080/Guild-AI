@@ -1,252 +1,203 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import DashboardLayout from '../layouts/DashboardLayout.jsx';
-import CommandCenter from './CommandCenter.jsx';
-import { AgentActivityTheater } from '../theater/AgentActivityTheater.tsx';
-import OpportunityRadar from '../visualizations/OpportunityRadar.jsx';
-import { useCelebrations } from '../psychological/MicroCelebrations.jsx';
-import { AchievementCelebration } from '../psychological/AchievementCelebration.tsx';
-import { StressReductionInterface } from '../psychological/StressReductionInterface.tsx';
-import AchievementNarrative from '../achievements/AchievementNarrative.jsx';
-import { useBusinessMetrics, useAgentStatus, useWorkflows } from '../../hooks/useApiData.js';
+import DashboardLayout from '../../layouts/DashboardLayout';
+import { AgentActivityTheater } from '../theater/AgentActivityTheater';
+import OpportunityRadar from '../visualizations/OpportunityRadar';
+import BusinessPulse from '../visualizations/BusinessPulse';
+import { PsychologicalOptimizationProvider } from '../../contexts/PsychologicalOptimizationContext';
+import { CelebrationProvider, useCelebrations } from '../../contexts/CelebrationContext';
+import EnhancedOnboardingContainer from '../onboarding/EnhancedOnboardingContainer';
 
-// Enhanced Command Center with real data
-const EnhancedCommandCenter = () => {
-  const { metrics, loading, error } = useBusinessMetrics();
+// Enhanced Achievement Narrative Component
+const AchievementNarrative = ({ achievement, onDismiss }: any) => {
+  if (!achievement) return null;
 
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-lg">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const narratives = {
+    'content_consistency': {
+      title: 'Content Momentum Building',
+      message: "You've maintained consistent content creation for a full week! This consistency is building your brand authority and audience trust.",
+      celebration: '🚀',
+      color: 'from-forest-growth to-success-gentle'
+    },
+    'lead_conversion': {
+      title: 'Sales Excellence Achievement',
+      message: "Congratulations! You've achieved a 25% increase in lead conversion. This improvement demonstrates the effectiveness of your refined sales process.",
+      celebration: '💰',
+      color: 'from-earth-sand to-warning-warm'
+    }
+  };
 
-  // Error handling is now done in the API service, so we don't need to show error states
-
-  const data = metrics?.data || {};
-  const trends = data.trends || {};
-  const recommendations = data.recommendations || [];
+  const narrative = narratives[achievement.type as keyof typeof narratives] || narratives['content_consistency'];
 
   return (
-    <div className="bg-white rounded-lg p-6 shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Business Pulse Monitor</h2>
-      
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-blue-600">Traffic Growth</h3>
-          <p className="text-2xl font-bold text-blue-800">{trends.traffic || '+15%'}</p>
-        </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-green-600">Conversions</h3>
-          <p className="text-2xl font-bold text-green-800">{trends.conversions || '+8%'}</p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-purple-600">Revenue</h3>
-          <p className="text-2xl font-bold text-purple-800">{trends.revenue || '+22%'}</p>
-        </div>
-      </div>
-
-      {/* Recommendations */}
-      {recommendations.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">AI Recommendations</h3>
-          <ul className="space-y-2">
-            {recommendations.slice(0, 3).map((rec, index) => (
-              <li key={index} className="flex items-start space-x-2">
-                <span className="text-green-500 mt-1">✓</span>
-                <span className="text-gray-600">{rec}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// Enhanced Action Theater with real agent data
-const EnhancedActionTheater = () => {
-  const { agents, loading, error } = useAgentStatus();
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-lg">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="h-20 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Error handling is now done in the API service, so we don't need to show error states
-
-  const agentList = agents?.agents || {};
-  const activeAgents = Object.entries(agentList).filter(([_, agent]) => agent.status === 'active');
-
-  return (
-    <div className="bg-white rounded-lg p-6 shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Agent Activity Theater</h2>
-      
-      <div className="mb-4">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">System Status:</span>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            agents?.system_status === 'healthy' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            {agents?.system_status || 'healthy'}
-          </span>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-sm text-gray-600">Active Agents:</span>
-          <span className="text-sm font-medium text-gray-800">
-            {agents?.active_agents || 0} / {agents?.total_agents || 0}
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {activeAgents.slice(0, 4).map(([name, agent]) => (
-          <div key={name} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-800">{name.replace('Agent', '')}</h3>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-xs text-gray-500">Active</span>
-              </div>
+    <div className="fixed bottom-6 right-6 max-w-sm z-50">
+      <div className={`bg-gradient-to-r ${narrative.color} p-6 rounded-xl shadow-2xl border border-white/20`}>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center">
+            <span className="text-3xl mr-3">{narrative.celebration}</span>
+            <div>
+              <h3 className="font-bold text-lg text-white">{narrative.title}</h3>
+              <p className="text-sm text-white/90">Achievement Unlocked!</p>
             </div>
-            <p className="text-sm text-gray-600">
-              Last activity: {new Date(agent.last_activity).toLocaleTimeString()}
-            </p>
           </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-// Enhanced Opportunity Radar with real workflow data
-const EnhancedOpportunityRadar = () => {
-  const { workflows, loading, error } = useWorkflows();
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg p-6 shadow-lg">
-        <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-4/5"></div>
-          </div>
+          <button
+            onClick={onDismiss}
+            className="text-white/80 hover:text-white transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <div className="text-sm text-white leading-relaxed">
+          {narrative.message}
         </div>
       </div>
-    );
-  }
-
-  // Error handling is now done in the API service, so we don't need to show error states
-
-  const recentWorkflows = workflows.slice(0, 3);
-
-  return (
-    <div className="bg-white rounded-lg p-6 shadow-lg">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Opportunity Radar</h2>
-      
-      <div className="space-y-4">
-        {recentWorkflows.map((workflow) => (
-          <div key={workflow.workflow_id} className="border rounded-lg p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-gray-800">
-                {workflow.results?.campaign?.name || 'Workflow'}
-              </h3>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                workflow.status === 'completed' 
-                  ? 'bg-green-100 text-green-800'
-                  : workflow.status === 'running'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {workflow.status}
-              </span>
-            </div>
-            
-            {workflow.status === 'running' && (
-              <div className="mb-2">
-                <div className="flex justify-between text-sm text-gray-600 mb-1">
-                  <span>Progress</span>
-                  <span>{workflow.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${workflow.progress}%` }}
-                  ></div>
-                </div>
-              </div>
-            )}
-            
-            <p className="text-sm text-gray-600">
-              {workflow.current_step}
-            </p>
-            
-            {workflow.results?.estimated_reach && (
-              <p className="text-sm text-green-600 mt-2">
-                Expected reach: {workflow.results.estimated_reach.toLocaleString()}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
 
-export const MainDashboard: React.FC = () => {
-  const { triggerCelebration } = useCelebrations();
-  const [achievement, setAchievement] = useState(null);
+// Debug panel for testing celebrations
+const DebugPanel = () => {
+  const { simulateCelebration } = useCelebrations();
+  
+  if (process.env.NODE_ENV !== 'development') return null;
+
+  return (
+    <div className="fixed top-4 left-4 bg-black/80 text-white p-4 rounded-lg z-50 space-y-2">
+      <h4 className="font-bold text-sm">Debug Panel</h4>
+      <button 
+        onClick={() => simulateCelebration('subtle')}
+        className="block w-full text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
+      >
+        Test Subtle
+      </button>
+      <button 
+        onClick={() => simulateCelebration('moderate')}
+        className="block w-full text-xs bg-green-600 hover:bg-green-700 px-2 py-1 rounded"
+      >
+        Test Moderate
+      </button>
+      <button 
+        onClick={() => simulateCelebration('elaborate')}
+        className="block w-full text-xs bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded"
+      >
+        Test Elaborate
+      </button>
+    </div>
+  );
+};
+
+// Inner dashboard component that uses the contexts
+const DashboardContent: React.FC = () => {
+  const [achievement, setAchievement] = useState<{type: string} | null>(null);
+  const [activeAgentForFullChat, setActiveAgentForFullChat] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   useEffect(() => {
-    // Trigger a celebration when the dashboard loads
-    if (triggerCelebration) {
-      setTimeout(() => {
-        triggerCelebration('MILESTONE', {
-          message: "Dashboard loaded! Ready to grow your business! 🚀"
-        });
-      }, 1000);
+    // Check if onboarding has been completed
+    const hasCompletedOnboarding = localStorage.getItem('guild_onboarding_completed') === 'true';
+    setOnboardingCompleted(hasCompletedOnboarding);
+    
+    if (!hasCompletedOnboarding) {
+      setShowOnboarding(true);
     }
 
-    // For demonstration, trigger an achievement narrative on load
+    // For demonstration, trigger an achievement narrative on load (only if onboarding is complete)
+    if (hasCompletedOnboarding) {
+      setTimeout(() => {
+        setAchievement({ type: 'content_consistency' });
+      }, 3000);
+      
+      // Trigger another achievement later
+      setTimeout(() => {
+        setAchievement({ type: 'lead_conversion' });
+      }, 8000);
+    }
+  }, []);
+
+  const handleOpenFullConversation = (agentId: string) => {
+    setActiveAgentForFullChat(agentId);
+  };
+
+  const handleCloseFullConversation = () => {
+    setActiveAgentForFullChat(null);
+  };
+
+  const handleOnboardingComplete = (onboardingData: any) => {
+    setShowOnboarding(false);
+    setOnboardingCompleted(true);
+    
+    // Store onboarding data for future use
+    localStorage.setItem('guild_onboarding_data', JSON.stringify(onboardingData));
+    localStorage.setItem('guild_onboarding_completed', 'true');
+    
+    // Trigger welcome celebration
     setTimeout(() => {
-      setAchievement({ type: 'content_consistency' });
-    }, 2000);
-  }, [triggerCelebration]);
+      setAchievement({ type: 'onboarding_complete' });
+    }, 1000);
+  };
+
+  // Show onboarding if not completed
+  if (showOnboarding) {
+    return <EnhancedOnboardingContainer onComplete={handleOnboardingComplete} />;
+  }
 
   return (
     <>
       <DashboardLayout
-        commandCenter={<EnhancedCommandCenter />}
-        actionTheater={<AgentActivityTheater />}
-        opportunityHorizon={<EnhancedOpportunityRadar />}
+        commandCenter={<BusinessPulse />}
+        actionTheater={
+          <AgentActivityTheater 
+            onOpenFullConversation={handleOpenFullConversation}
+          />
+        }
+        opportunityHorizon={<OpportunityRadar />}
       />
+      
+      {/* Achievement Narratives */}
       {achievement && (
         <AchievementNarrative
           achievement={achievement}
           onDismiss={() => setAchievement(null)}
         />
       )}
+
+      {/* Full Conversation Modal */}
+      {activeAgentForFullConversation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-lg">
+                Full Conversation with Agent
+              </h3>
+              <button
+                onClick={handleCloseFullConversation}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="text-gray-600 text-sm">
+              Full conversational interface for {activeAgentForFullConversation} would be implemented here.
+              This would include full chat history, voice input, and advanced agent reasoning display.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Debug Panel */}
+      <DebugPanel />
     </>
+  );
+};
+
+// The main dashboard container with providers
+export const MainDashboard: React.FC = () => {
+  return (
+    <PsychologicalOptimizationProvider>
+      <CelebrationProvider>
+        <DashboardContent />
+      </CelebrationProvider>
+    </PsychologicalOptimizationProvider>
   );
 };

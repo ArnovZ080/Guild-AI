@@ -1,403 +1,447 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Progress } from './ui/progress';
-import { Badge } from './ui/badge';
-import { Alert, AlertDescription } from './ui/alert';
-import { CheckCircle, XCircle, Loader2, ExternalLink, HelpCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { connectorSetupAPI, wsManager } from '../services/api';
+import { usePsychologicalOptimization } from '../contexts/PsychologicalOptimizationContext';
+import { useCelebrations } from '../contexts/CelebrationContext';
+import { 
+  CheckCircle, 
+  AlertCircle, 
+  Loader2, 
+  ArrowRight, 
+  ArrowLeft,
+  Settings,
+  Zap,
+  Database,
+  Cloud,
+  Mail,
+  Calendar
+} from 'lucide-react';
 
-const ConnectorSetup = ({ userId, onSetupComplete }) => {
+const ConnectorSetup = () => {
+  const { getCurrentMode } = usePsychologicalOptimization();
+  const { triggerCelebration } = useCelebrations();
+  const [currentStep, setCurrentStep] = useState('selection');
   const [availableConnectors, setAvailableConnectors] = useState([]);
   const [selectedConnector, setSelectedConnector] = useState(null);
   const [setupSession, setSetupSession] = useState(null);
-  const [currentStep, setCurrentStep] = useState(null);
+  const [currentStepData, setCurrentStepData] = useState(null);
   const [stepData, setStepData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
 
-  // Load available connectors and categories
+  const currentMode = getCurrentMode();
+
+  const getModeStyles = () => {
+    switch (currentMode) {
+      case 'morning':
+        return {
+          background: 'from-sky-dawn to-forest-mist',
+          text: 'text-sky-dusk',
+          accent: 'sky-dawn',
+          card: 'bg-white/90'
+        };
+      case 'active':
+        return {
+          background: 'from-sky-day to-forest-growth',
+          text: 'text-forest-deep',
+          accent: 'forest-growth',
+          card: 'bg-white/95'
+        };
+      case 'evening':
+        return {
+          background: 'from-sky-dusk to-earth-bark',
+          text: 'text-earth-sand',
+          accent: 'earth-warm',
+          card: 'bg-white/85'
+        };
+      default:
+        return {
+          background: 'from-sky-day to-forest-growth',
+          text: 'text-forest-deep',
+          accent: 'forest-growth',
+          card: 'bg-white/95'
+        };
+    }
+  };
+
+  const modeStyles = getModeStyles();
+
+  const getConnectorIcon = (type) => {
+    const icons = {
+      email: <Mail className="w-6 h-6" />,
+      calendar: <Calendar className="w-6 h-6" />,
+      database: <Database className="w-6 h-6" />,
+      cloud: <Cloud className="w-6 h-6" />,
+      default: <Settings className="w-6 h-6" />
+    };
+    return icons[type] || icons.default;
+  };
+
+  const getConnectorColor = (type) => {
+    const colors = {
+      email: 'bg-blue-500',
+      calendar: 'bg-green-500',
+      database: 'bg-purple-500',
+      cloud: 'bg-orange-500',
+      default: 'bg-gray-500'
+    };
+    return colors[type] || colors.default;
+  };
+
+  // Load available connectors
   useEffect(() => {
-    loadCategories();
+    const loadConnectors = async () => {
+      try {
+        setLoading(true);
+        const connectors = await connectorSetupAPI.getAvailableConnectors();
+        setAvailableConnectors(connectors.connectors || []);
+      } catch (error) {
+        setError('Failed to load connectors. Please try again.');
+        console.error('Error loading connectors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadConnectors();
   }, []);
 
-  const loadCategories = async () => {
+  // Handle connector selection
+  const handleConnectorSelect = async (connector) => {
     try {
-      const response = await fetch('/api/connectors/categories');
-      const data = await response.json();
-      if (data.success) {
-        setCategories(data.categories);
-      }
+      setLoading(true);
+      setSelectedConnector(connector);
+      
+      // Start setup session
+      const session = await connectorSetupAPI.startSetup(connector.id, 'current_user');
+      setSetupSession(session);
+      
+      // Get first step
+      const stepData = await connectorSetupAPI.getNextStep(session.session_id);
+      setCurrentStepData(stepData);
+      setCurrentStep('configuration');
+      setProgress(20);
+      
     } catch (error) {
-      console.error('Error loading categories:', error);
-    }
-  };
-
-  const loadConnectors = async (category = null) => {
-    try {
-      const url = category 
-        ? `/api/connectors/available?category=${category}`
-        : '/api/connectors/available';
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data.success) {
-        setAvailableConnectors(data.connectors);
-      }
-    } catch (error) {
-      console.error('Error loading connectors:', error);
-    }
-  };
-
-  const startSetup = async (connectorId) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/connectors/setup/start', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          connector_id: connectorId
-        })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setSetupSession(data.session);
-        setSelectedConnector(data.session.connector);
-        await getNextStep(data.session.session_id);
-      } else {
-        setError(data.detail || 'Failed to start setup');
-      }
-    } catch (error) {
-      setError('Network error: ' + error.message);
+      setError('Failed to start connector setup. Please try again.');
+      console.error('Error starting setup:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getNextStep = async (sessionId) => {
+  // Handle step data submission
+  const handleStepSubmit = async () => {
     try {
-      const response = await fetch(`/api/connectors/setup/${sessionId}/next-step`);
-      const data = await response.json();
-      if (data.success) {
-        setCurrentStep(data.step);
-        updateProgress(data.step);
-      }
-    } catch (error) {
-      console.error('Error getting next step:', error);
-    }
-  };
-
-  const submitStepData = async () => {
-    if (!setupSession || !currentStep) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/connectors/setup/submit-step', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          session_id: setupSession.session_id,
-          step_data: {
-            ...stepData,
-            step_type: currentStep.action_type
-          }
-        })
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        if (data.result.status === 'completed') {
-          // Setup completed
-          setSetupSession(null);
-          setCurrentStep(null);
-          setProgress(100);
-          if (onSetupComplete) {
-            onSetupComplete(data.result);
-          }
-        } else {
-          // Move to next step
-          await getNextStep(setupSession.session_id);
-        }
-        setStepData({});
+      setLoading(true);
+      
+      // Submit current step data
+      const result = await connectorSetupAPI.submitStepData(
+        setupSession.session_id, 
+        stepData
+      );
+      
+      if (result.status === 'completed') {
+        // Setup completed
+        setCurrentStep('completed');
+        setProgress(100);
+        setIsConnected(true);
+        triggerCelebration('moderate', null, 'Connector setup completed successfully!');
       } else {
-        setError(data.detail || 'Failed to submit step data');
+        // Get next step
+        const nextStep = await connectorSetupAPI.getNextStep(setupSession.session_id);
+        setCurrentStepData(nextStep);
+        setProgress(prev => Math.min(prev + 20, 80));
       }
+      
     } catch (error) {
-      setError('Network error: ' + error.message);
+      setError('Failed to submit step data. Please try again.');
+      console.error('Error submitting step:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateProgress = (step) => {
-    if (step && setupSession) {
-      const percentage = (step.step_number / step.total_steps) * 100;
-      setProgress(percentage);
+  // Handle setup completion
+  const handleComplete = async () => {
+    try {
+      setLoading(true);
+      await connectorSetupAPI.completeSetup(setupSession.session_id);
+      setCurrentStep('success');
+      triggerCelebration('elaborate', null, 'Connector successfully integrated!');
+    } catch (error) {
+      setError('Failed to complete setup. Please try again.');
+      console.error('Error completing setup:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setStepData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Handle setup cancellation
+  const handleCancel = async () => {
+    try {
+      if (setupSession) {
+        await connectorSetupAPI.cancelSetup(setupSession.session_id);
+      }
+      setCurrentStep('selection');
+      setSelectedConnector(null);
+      setSetupSession(null);
+      setCurrentStepData(null);
+      setStepData({});
+      setProgress(0);
+      setError(null);
+    } catch (error) {
+      console.error('Error canceling setup:', error);
+    }
   };
 
-  const renderStepInputs = () => {
-    if (!currentStep || !currentStep.step_details) return null;
-
-    const { inputs } = currentStep.step_details;
-    if (!inputs || inputs.length === 0) return null;
-
-    return (
-      <div className="space-y-4">
-        {inputs.map((input, index) => (
-          <div key={index} className="space-y-2">
-            <Label htmlFor={input.name}>
-              {input.label}
-              {input.required && <span className="text-red-500 ml-1">*</span>}
-            </Label>
-            <Input
-              id={input.name}
-              type={input.type}
-              value={stepData[input.name] || ''}
-              onChange={(e) => handleInputChange(input.name, e.target.value)}
-              placeholder={input.label}
-              required={input.required}
-            />
-          </div>
-        ))}
+  // Render connector selection
+  const renderConnectorSelection = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className={`text-2xl font-bold ${modeStyles.text} mb-2`}>
+          Choose Your Integration
+        </h2>
+        <p className="text-gray-600">
+          Select a service to connect with your Guild-AI workspace
+        </p>
       </div>
-    );
-  };
 
-  const renderStepContent = () => {
-    if (!currentStep) return null;
-
-    const { step_title, step_details } = currentStep;
-    
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Step {currentStep.step_number} of {currentStep.total_steps}
-            <Badge variant="outline">{selectedConnector?.name}</Badge>
-          </CardTitle>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">{step_title}</h3>
-            <p className="text-gray-600">{step_details.description}</p>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {renderStepInputs()}
-          
-          {step_details.help_text && (
-            <Alert>
-              <HelpCircle className="h-4 w-4" />
-              <AlertDescription>
-                <a 
-                  href={step_details.help_text} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-blue-600 hover:text-blue-800"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  View Documentation
-                </a>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {step_details.tips && step_details.tips.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="font-medium">Tips:</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
-                {step_details.tips.map((tip, index) => (
-                  <li key={index}>{tip}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-2">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSetupSession(null);
-                setCurrentStep(null);
-                setStepData({});
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={submitStepData}
-              disabled={loading}
-              className="min-w-[100px]"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  Processing...
-                </>
-              ) : (
-                'Continue'
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
-  const renderConnectorGrid = () => {
-    return (
-      <div className="space-y-6">
-        {/* Category Filter */}
-        {categories.length > 0 && (
-          <div className="space-y-2">
-            <Label>Filter by Category</Label>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  setSelectedCategory(null);
-                  loadConnectors();
-                }}
-              >
-                All
-              </Button>
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setSelectedCategory(category.id);
-                    loadConnectors(category.id);
-                  }}
-                >
-                  {category.icon} {category.name}
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Connectors Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <span className="ml-2 text-gray-600">Loading connectors...</span>
+        </div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {availableConnectors.map((connector) => (
-            <Card 
-              key={connector.id} 
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => startSetup(connector.id)}
+            <motion.div
+              key={connector.id}
+              className={`${modeStyles.card} rounded-lg p-6 shadow-lg border-2 border-transparent hover:border-blue-200 cursor-pointer transition-all`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => handleConnectorSelect(connector)}
             >
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  {connector.icon} {connector.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-gray-600">{connector.description}</p>
-                
-                <div className="flex items-center justify-between">
-                  <Badge 
-                    variant={
-                      connector.setup_complexity === 'easy' ? 'default' :
-                      connector.setup_complexity === 'medium' ? 'secondary' : 'destructive'
-                    }
-                  >
-                    {connector.setup_complexity}
-                  </Badge>
-                  <span className="text-xs text-gray-500">
-                    {connector.setup_steps_count} steps
-                  </span>
+              <div className="flex items-center space-x-4 mb-4">
+                <div className={`w-12 h-12 rounded-lg ${getConnectorColor(connector.type)} flex items-center justify-center text-white`}>
+                  {getConnectorIcon(connector.type)}
                 </div>
-
-                <div className="text-xs text-gray-500">
-                  Permissions: {connector.required_permissions.join(', ')}
+                <div>
+                  <h3 className="font-semibold text-gray-800">{connector.name}</h3>
+                  <p className="text-sm text-gray-600">{connector.category}</p>
                 </div>
-
-                <Button 
-                  className="w-full" 
-                  disabled={loading}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    startSetup(connector.id);
-                  }}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Starting...
-                    </>
-                  ) : (
-                    'Set Up'
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">{connector.description}</p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  {connector.steps?.length || 0} steps
+                </span>
+                <ArrowRight className="w-4 h-4 text-gray-400" />
+              </div>
+            </motion.div>
           ))}
         </div>
-      </div>
-    );
-  };
+      )}
+    </div>
+  );
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <XCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  return (
+  // Render configuration steps
+  const renderConfiguration = () => (
     <div className="space-y-6">
-      {setupSession && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Setting up {selectedConnector?.name}</h2>
-            <Badge variant="outline">
-              Session: {setupSession.session_id.slice(-8)}
-            </Badge>
-          </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progress</span>
-              <span>{Math.round(progress)}%</span>
-            </div>
-            <Progress value={progress} className="w-full" />
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className={`text-2xl font-bold ${modeStyles.text} mb-2`}>
+            Configure {selectedConnector?.name}
+          </h2>
+          <p className="text-gray-600">
+            Step {currentStepData?.step_number || 1} of {currentStepData?.total_steps || 1}
+          </p>
+        </div>
+        <button
+          onClick={handleCancel}
+          className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <motion.div
+          className="bg-blue-500 h-2 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5 }}
+        />
+      </div>
+
+      {/* Step Content */}
+      {currentStepData && (
+        <div className={`${modeStyles.card} rounded-lg p-6 shadow-lg`}>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            {currentStepData.title}
+          </h3>
+          <p className="text-gray-600 mb-6">{currentStepData.description}</p>
+
+          {/* Dynamic form fields based on step data */}
+          <div className="space-y-4">
+            {currentStepData.fields?.map((field) => (
+              <div key={field.name}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {field.label}
+                  {field.required && <span className="text-red-500 ml-1">*</span>}
+                </label>
+                {field.type === 'text' || field.type === 'email' || field.type === 'password' ? (
+                  <input
+                    type={field.type}
+                    value={stepData[field.name] || ''}
+                    onChange={(e) => setStepData(prev => ({ ...prev, [field.name]: e.target.value }))}
+                    placeholder={field.placeholder}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required={field.required}
+                  />
+                ) : field.type === 'textarea' ? (
+                  <textarea
+                    value={stepData[field.name] || ''}
+                    onChange={(e) => setStepData(prev => ({ ...prev, [field.name]: e.target.value }))}
+                    placeholder={field.placeholder}
+                    rows={4}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required={field.required}
+                  />
+                ) : field.type === 'select' ? (
+                  <select
+                    value={stepData[field.name] || ''}
+                    onChange={(e) => setStepData(prev => ({ ...prev, [field.name]: e.target.value }))}
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required={field.required}
+                  >
+                    <option value="">Select {field.label}</option>
+                    {field.options?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : null}
+                {field.help && (
+                  <p className="text-xs text-gray-500 mt-1">{field.help}</p>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {currentStep ? renderStepContent() : renderConnectorGrid()}
+      {/* Action Buttons */}
+      <div className="flex justify-between">
+        <button
+          onClick={handleCancel}
+          className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 inline mr-2" />
+          Back
+        </button>
+        <button
+          onClick={handleStepSubmit}
+          disabled={loading}
+          className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+        >
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          ) : (
+            <ArrowRight className="w-4 h-4 mr-2" />
+          )}
+          Continue
+        </button>
+      </div>
+    </div>
+  );
 
-      {setupSession && currentStep?.status === 'completed' && (
-        <Alert>
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>
-            🎉 Setup completed successfully! Your agents can now use {selectedConnector?.name} integration.
-          </AlertDescription>
-        </Alert>
-      )}
+  // Render completion screen
+  const renderCompleted = () => (
+    <div className="text-center space-y-6">
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', damping: 15 }}
+      >
+        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+      </motion.div>
+      
+      <div>
+        <h2 className={`text-2xl font-bold ${modeStyles.text} mb-2`}>
+          Setup Complete!
+        </h2>
+        <p className="text-gray-600">
+          {selectedConnector?.name} has been successfully connected to your workspace.
+        </p>
+      </div>
+
+      <div className={`${modeStyles.card} rounded-lg p-6 shadow-lg max-w-md mx-auto`}>
+        <h3 className="font-semibold text-gray-800 mb-2">What's Next?</h3>
+        <ul className="text-sm text-gray-600 space-y-2 text-left">
+          <li>• Your data will sync automatically</li>
+          <li>• AI agents can now access this integration</li>
+          <li>• You can manage settings in your workspace</li>
+        </ul>
+      </div>
+
+      <button
+        onClick={() => {
+          setCurrentStep('selection');
+          setSelectedConnector(null);
+          setSetupSession(null);
+          setCurrentStepData(null);
+          setStepData({});
+          setProgress(0);
+          setError(null);
+          setIsConnected(false);
+        }}
+        className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+      >
+        Connect Another Service
+      </button>
+    </div>
+  );
+
+  return (
+    <div className={`min-h-screen bg-gradient-to-br ${modeStyles.background} p-6`}>
+      <div className="max-w-4xl mx-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className={`${modeStyles.card} rounded-xl p-8 shadow-xl`}
+          >
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-3"
+              >
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                <span className="text-red-700">{error}</span>
+                <button
+                  onClick={() => setError(null)}
+                  className="ml-auto text-red-500 hover:text-red-700"
+                >
+                  ×
+                </button>
+              </motion.div>
+            )}
+
+            {currentStep === 'selection' && renderConnectorSelection()}
+            {currentStep === 'configuration' && renderConfiguration()}
+            {currentStep === 'completed' && renderCompleted()}
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

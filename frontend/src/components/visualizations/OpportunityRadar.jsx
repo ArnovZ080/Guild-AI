@@ -17,13 +17,13 @@ const OpportunityRadar = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setScanAngle(prev => (prev + 2) % 360);
-      
+
       // Check for opportunities in scan path
       const currentAngle = scanAngle;
-      const detected = opportunities.find(opp => 
+      const detected = opportunities.find(opp =>
         Math.abs(opp.angle - currentAngle) < 10 && opp.distance < 0.7
       );
-      
+
       if (detected && detected !== detectedOpportunity) {
         setDetectedOpportunity(detected);
         setTimeout(() => setDetectedOpportunity(null), 2000);
@@ -46,9 +46,9 @@ const OpportunityRadar = () => {
           angle: Math.random() * 360,
           urgency: ['high', 'medium', 'low'][Math.floor(Math.random() * 3)]
         };
-        
+
         setOpportunities(prev => [...prev, newOpportunity]);
-        
+
         // Remove old opportunities
         setTimeout(() => {
           setOpportunities(prev => prev.filter(opp => opp.id !== newOpportunity.id));
@@ -83,7 +83,7 @@ const OpportunityRadar = () => {
 
   return (
     <div className="relative w-full h-96 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-lg overflow-hidden">
-      
+
       {/* Radar Grid */}
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Center Point */}
@@ -115,7 +115,7 @@ const OpportunityRadar = () => {
             }}
           />
         ))}
-        
+
         {/* Grid Lines - Cardinal Points */}
         {[0, 90, 180, 270].map((angle, index) => (
           <div
@@ -130,7 +130,7 @@ const OpportunityRadar = () => {
             }}
           />
         ))}
-        
+
         {/* Grid Lines - Diagonal Points */}
         {[45, 135, 225, 315].map((angle, index) => (
           <div
@@ -145,7 +145,7 @@ const OpportunityRadar = () => {
             }}
           />
         ))}
-        
+
         {/* Scanning Line */}
         <motion.div
           className="absolute w-0.5 bg-green-400"
@@ -176,7 +176,7 @@ const OpportunityRadar = () => {
       {opportunities.map((opportunity) => {
         const x = 50 + opportunity.distance * 40 * Math.cos((opportunity.angle - 90) * Math.PI / 180);
         const y = 50 + opportunity.distance * 40 * Math.sin((opportunity.angle - 90) * Math.PI / 180);
-        
+
         return (
           <motion.div
             key={opportunity.id}
@@ -213,7 +213,7 @@ const OpportunityRadar = () => {
                   repeat: Infinity,
                 }}
               />
-              
+
               {/* Urgency Pulse */}
               <motion.div
                 className="absolute inset-0 rounded-full border-2"
@@ -266,7 +266,7 @@ const OpportunityRadar = () => {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Urgency:</span>
-              <span 
+              <span
                 className="font-medium capitalize"
                 style={{ color: getUrgencyColor(detectedOpportunity.urgency) }}
               >
