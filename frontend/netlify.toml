@@ -8,10 +8,11 @@
   publish = "dist"
 
   # The full build command using pnpm
-  command = "pnpm install && pnpm run build"
+  command = "corepack enable && pnpm install --frozen-lockfile=false && pnpm run build"
 
 [build.environment]
   NODE_VERSION = "20"
+  PNPM_VERSION = "8.15.0"
 
 [[redirects]]
   from = "/*"
