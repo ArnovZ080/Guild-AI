@@ -230,44 +230,49 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
 
   const steps = {
     welcome: (
-      <WelcomeStep 
+      <EnhancedWelcomeStep 
         onNext={() => handleStepTransition('business')} 
         modeStyles={modeStyles}
       />
     ),
     business: (
-      <BusinessQuestions
+      <EnhancedQuestion
         onNext={(data) => handleStepTransition('audience', data)}
         modeStyles={modeStyles}
+        questionType="business"
       />
     ),
     audience: (
-      <AudienceQuestions
+      <EnhancedQuestion
         onNext={(data) => handleStepTransition('financial', data)}
         businessType={answers.business_type}
         modeStyles={modeStyles}
+        questionType="audience"
       />
     ),
     financial: (
-      <FinancialQuestions
+      <EnhancedQuestion
         onNext={(data) => handleStepTransition('goals', data)}
         modeStyles={modeStyles}
+        questionType="financial"
       />
     ),
     goals: (
-      <GoalsQuestions
+      <EnhancedQuestion
         onNext={(data) => handleStepTransition('preferences', data)}
         modeStyles={modeStyles}
+        questionType="goals"
       />
     ),
     preferences: (
-      <PreferencesStep
+      <EnhancedQuestion
         onNext={(data) => handleStepTransition('integrations', data)}
         modeStyles={modeStyles}
+        questionType="preferences"
       />
     ),
     integrations: (
-      <IntegrationsStep
+      <EnhancedConnectorSetup
         onNext={(data) => {
           if (data.selectedSoftware && data.selectedSoftware.length > 0) {
             setShowConnectorSetup(true);
@@ -279,27 +284,30 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
       />
     ),
     summary: (
-      <SummaryStep
+      <EnhancedQuestion
         answers={answers}
         onNext={(data) => {
           updateAnswers(data);
           handleStepTransition('capabilities');
         }}
         modeStyles={modeStyles}
+        questionType="summary"
       />
     ),
     capabilities: (
-      <CapabilitiesStep
+      <EnhancedQuestion
         answers={answers}
         onNext={() => handleStepTransition('completion')}
         modeStyles={modeStyles}
+        questionType="capabilities"
       />
     ),
     completion: (
-      <CompletionScreen
+      <EnhancedQuestion
         answers={answers}
         onFinish={handleOnboardingComplete}
         modeStyles={modeStyles}
+        questionType="completion"
       />
     ),
   };
