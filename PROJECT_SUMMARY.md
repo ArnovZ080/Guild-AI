@@ -14,11 +14,11 @@ Guild is built on a **multi-agent orchestration architecture** with the followin
 - **Orchestrator Layer (Workflow Manager + Contract Compiler)**  
   Expands a single user instruction into a project plan. Determines which agents are required, delegates tasks, and manages workflow execution.
 
-- **Specialized Agents (29+ Agents across 8 Categories)**  
+- **Specialized Agents (50+ Agents across 8 Categories)**  
   - **🎯 Executive Layer**: Chief of Staff, Strategy, Business Strategist
   - **🎨 Content Creation**: Brief Generator, Ad Copy, Content Strategist, Social Media, Writer
   - **🔍 Research & Data**: Research, Advanced Scraper, Lead Personalization, Data Enrichment
-  - **💰 Financial & Business**: Accounting, Analytics
+  - **💰 Financial & Business**: Accounting, Analytics, Bookkeeping, Investor Relations, Pricing
   - **🎨 Creative & Media**: Image Generation, Voice, Video Editor, Document Processing
   - **🤖 Automation**: Unified Automation, Visual Automation, Selenium Automation
   - **🔍 Evaluator League**: Judge, Fact Checker, Brand Checker, SEO Evaluator
@@ -29,7 +29,7 @@ Guild is built on a **multi-agent orchestration architecture** with the followin
   - **Lead Personalization**: Sales psychology-based outreach automation
   - **Financial Automation**: Accounting reports and financial health analysis
   - **Creative Media Generation**: AI-powered image, video, and audio creation
-  - **Visual Automation**: PyAutoGUI + Selenium for any application automation
+  - **Visual Automation**: PyAutoGUI + OpenCV for desktop automation
   - **Document Processing**: MarkItDown for handling non-LLM-ready formats
 
 - **DataRooms**  
@@ -51,29 +51,38 @@ Guild is built on a **multi-agent orchestration architecture** with the followin
 guild/
 ├── src/
 │   ├── agents/
-│   │   ├── research_agent.py
+│   │   ├── chief_of_staff_agent.py
+│   │   ├── strategy_agent.py
+│   │   ├── business_strategist_agent.py
+│   │   ├── content_strategist.py
 │   │   ├── copywriter_agent.py
 │   │   ├── marketing_agent.py
 │   │   ├── scraper_agent.py
-│   │   ├── judge_agent.py
-│   │   ├── campaign_planner_agent.py
 │   │   ├── lead_personalization_agent.py
 │   │   ├── accounting_agent.py
+│   │   ├── bookkeeping_agent.py
 │   │   ├── image_generation_agent.py
 │   │   ├── voice_agent.py
 │   │   ├── video_editor_agent.py
-│   │   └── unified_automation_agent.py
+│   │   ├── unified_automation_agent.py
+│   │   ├── judge_agent.py
+│   │   └── [30+ additional specialized agents]
 │   ├── core/
 │   │   ├── markitdown_processor.py
 │   │   ├── scraping/
 │   │   │   └── advanced_scraper.py
 │   │   ├── data_enrichment.py
-│   │   └── automation/
-│   │       └── selenium_automation.py
+│   │   ├── automation/
+│   │   │   └── selenium_automation.py
+│   │   ├── vision/
+│   │   │   ├── visual_automation_tool.py
+│   │   │   └── visual_parser.py
 │   │   ├── orchestrator.py
-│   │   ├── rubric.py
-│   │   ├── dataroom.py
-│   │   └── transparency.py
+│   │   ├── workflow_builder/
+│   │   │   ├── workflow_builder.py
+│   │   │   └── node_types.py
+│   │   ├── enhanced_rag_pipeline.py
+│   │   └── vector_store.py
 │   ├── data/
 │   │   ├── research/
 │   │   ├── content/
@@ -120,6 +129,12 @@ guild/
 - **DataRooms**  
   Centralized, structured outputs — makes assets reusable across workflows.
 
+- **Visual Workflow Builder**
+  Drag-and-drop interface for creating custom agent workflows.
+
+- **Visual Automation**
+  Computer vision-based automation for interacting with any application.
+
 ---
 
 ## 4. Technical Implementation Details
@@ -131,11 +146,11 @@ guild/
 
 - **Storage & RAG**:  
   - Supabase (Postgres) for metadata and embeddings.  
-  - Pinecone/Weaviate option for larger scale semantic search.  
+  - Qdrant for vector search and semantic retrieval.  
   - File storage in structured DataRooms.  
 
 - **Webscraping**:  
-  - Playwright/Puppeteer for dynamic sites.  
+  - Scrapy for robust, scalable web scraping.  
   - BeautifulSoup/Requests for static pages.  
   - Lead filtering rules embedded in scraper pipeline.  
 
@@ -172,7 +187,8 @@ guild/
 - **README.md** → Human overview, quick start, contribution guidelines.  
 - **AGENTS.md** → Machine-readable agent definitions (clear instructions for coding agents).  
 - **PROJECT_SUMMARY.md** → Full architecture and technical reference (this file).  
-- **Examples/** → Sample workflows, prompts, outputs.  
+- **AGENT_CAPABILITIES.md** → Comprehensive agent inventory and capabilities.
+- **PROJECT_STATUS_SUMMARY.md** → Current project status and implementation details.
 
 ---
 
@@ -199,7 +215,7 @@ guild/
 ## 9. Next Steps and Roadmap
 
 ### ✅ **Completed (v2.0.0 - Backend Complete)**
-- ✅ All 29+ AI agents with enhanced prompts
+- ✅ All 50+ AI agents with enhanced prompts
 - ✅ Advanced web scraping with Scrapy
 - ✅ Lead personalization with sales psychology
 - ✅ Creative media generation (images, video, audio)
@@ -207,6 +223,7 @@ guild/
 - ✅ Visual and web automation capabilities
 - ✅ Document processing with MarkItDown
 - ✅ Enhanced RAG pipeline
+- ✅ Visual workflow builder implementation
 - ✅ Comprehensive documentation
 
 ### 🚧 **Current Phase (v2.1.0 - Frontend Integration)**
@@ -214,18 +231,20 @@ guild/
 - **API Testing**: Verify all new endpoints work correctly
 - **User Interface Updates**: Update UI to reflect new agent capabilities
 - **Workflow Builder Integration**: Connect visual workflow builder to new agents
+- **Real-time Monitoring**: Implement workflow execution monitoring
 
 ### 🔮 **Next Phase (v2.2.0 - Production Ready)**
-- **Real-time Monitoring**: Enhanced workflow execution monitoring
 - **Performance Analytics**: Dashboard for agent performance metrics
 - **User Testing**: Validate complete user experience
 - **Performance Optimization**: Fine-tune for production
+- **Multi-tenant Support**: RBAC and team management
+- **Advanced Scheduling**: Automated workflow scheduling and triggers
 
 ### 🌟 **Future (v3.0.0+)**
 - **Agent Marketplace**: Prebuilt workflows and templates
-- **Multi-tenant Organizations**: RBAC and team management
 - **Mobile + Desktop Apps**: Native applications
 - **Advanced Analytics**: Performance dashboards and insights
 - **Enterprise Integrations**: CRM, ERP, and business tool connections
+- **Custom Agent Development**: Tools for users to create their own agents
 
-**The backend is now a comprehensive, production-ready AI workforce platform. Ready for frontend integration!** 🚀  
+**The backend is now a comprehensive, production-ready AI workforce platform. Ready for frontend integration!** 🚀

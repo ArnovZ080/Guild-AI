@@ -34,17 +34,13 @@ Guild is an AI Workforce platform designed specifically for solopreneurs and lea
 - **🎯 Executive Layer**: Chief of Staff, Strategy, and Business Strategist agents
 - **🎨 Content Creation**: Brief Generator, Ad Copy, Content Strategist, Social Media, and Writer agents
 - **🔍 Research & Data**: Research, Advanced Scraper, Lead Personalization, and Data Enrichment agents
-- **💰 Financial & Business**: Accounting and Analytics agents
+- **💰 Financial & Business**: Accounting, Analytics, Bookkeeping, and Investor Relations agents
 - **🎨 Creative & Media**: Image Generation, Voice, Video Editor, and Document Processing agents
 - **🤖 Automation**: Unified Automation, Visual Automation, and Selenium Automation agents
 - **🔍 Evaluator League**: Judge, Fact Checker, Brand Checker, and SEO Evaluator agents
 - **🎛️ Orchestration**: Workflow Manager, Pre-flight Planner, Contract Compiler, and Quality Controller agents
 
 ## 🏗️ Architecture
-
-## 🚀 Getting Started
-
-Follow these steps to get the Guild AI platform running on your local machine.
 
 The system follows a microservices architecture with clear separation between frontend, backend, and data layers:
 
@@ -94,6 +90,10 @@ The system follows a microservices architecture with clear separation between fr
     Qdrant + LlamaIndex (embeddings & retrieval)
     + MarkItDown (document conversion & transcription)
 ```
+
+## 🚀 Getting Started
+
+Follow these steps to get the Guild AI platform running on your local machine.
 
 ### Prerequisites
 
@@ -193,6 +193,8 @@ Contributions are welcome! Please feel free to submit a pull request.
 
 ## 📄 License
 
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 ## 🆘 Support
 
 For support and questions:
@@ -223,8 +225,8 @@ For support and questions:
 - ✅ Multi-format document processing
 - ✅ Local AI model integration (no API costs)
 - ✅ Comprehensive automation framework
-- [ ] Real-time workflow monitoring dashboard
-- [ ] Performance analytics and reporting
+- ✅ Visual workflow builder implementation
+- ✅ Performance analytics and reporting
 - [ ] Frontend integration and user interface
 
 ### Phase 3 (Next - Frontend Integration)

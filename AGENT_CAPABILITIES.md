@@ -19,7 +19,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 ### 🎯 Executive Layer Agents
 
 #### 1. Chief of Staff Agent
-**Location**: `guild/src/agents/executive/chief_of_staff_agent.py`
+**Location**: `guild/src/agents/chief_of_staff_agent.py`
 
 **Core Capabilities**:
 - Strategic task prioritization and delegation
@@ -44,7 +44,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 ---
 
 #### 2. Strategy Agent
-**Location**: `guild/src/agents/executive/strategy_agent.py`
+**Location**: `guild/src/agents/strategy_agent.py`
 
 **Core Capabilities**:
 - Long-term strategic planning and vision alignment
@@ -68,10 +68,35 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
+#### 3. Business Strategist Agent
+**Location**: `guild/src/agents/business_strategist_agent.py`
+
+**Core Capabilities**:
+- High-level strategic thinking and planning
+- Market and competitive analysis
+- SWOT analysis and strategic recommendations
+- Scenario planning and risk assessment
+- Business model innovation
+- Strategic implementation guidance
+
+**Tools & Integrations**:
+- Strategic planning frameworks
+- Market research and analysis
+- Competitive intelligence
+- Risk assessment tools
+
+**Output Formats**:
+- Strategic analysis reports
+- Business model recommendations
+- Implementation roadmaps
+- Risk assessment documents
+
+---
+
 ### 🎨 Content Creation Agents
 
-#### 3. Brief Generator Agent
-**Location**: `guild/src/agents/content/brief_generator_agent.py`
+#### 4. Brief Generator Agent
+**Location**: `guild/src/agents/brief_generator_agent.py`
 
 **Core Capabilities**:
 - Comprehensive project brief creation
@@ -95,8 +120,8 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 4. Ad Copy Agent
-**Location**: `guild/src/agents/content/ad_copy_agent.py`
+#### 5. Ad Copy Agent
+**Location**: `guild/src/agents/copywriter_agent.py`
 
 **Core Capabilities**:
 - High-converting ad copy creation
@@ -120,8 +145,8 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 5. Content Strategist Agent
-**Location**: `guild/src/agents/content/content_strategist_agent.py`
+#### 6. Content Strategist Agent
+**Location**: `guild/src/agents/content_strategist.py`
 
 **Core Capabilities**:
 - Holistic content strategy development
@@ -145,8 +170,8 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 6. Social Media Agent
-**Location**: `guild/src/agents/content/social_media_agent.py`
+#### 7. Social Media Agent
+**Location**: `guild/src/agents/social_media_agent.py`
 
 **Core Capabilities**:
 - Platform-specific content creation (LinkedIn, Twitter, Instagram, Facebook)
@@ -172,8 +197,8 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ### 🔍 Research & Data Agents
 
-#### 7. Research Agent
-**Location**: `guild/src/agents/research/research_agent.py`
+#### 8. Research Agent
+**Location**: `guild/src/agents/research_agent.py`
 
 **Core Capabilities**:
 - Web research and information gathering
@@ -197,7 +222,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 8. Advanced Scraper Agent
+#### 9. Advanced Scraper Agent
 **Location**: `guild/src/agents/scraper_agent.py`
 
 **Core Capabilities**:
@@ -222,7 +247,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 9. Lead Personalization Agent
+#### 10. Lead Personalization Agent
 **Location**: `guild/src/agents/lead_personalization_agent.py`
 
 **Core Capabilities**:
@@ -247,9 +272,34 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
+#### 11. Data Enrichment Agent
+**Location**: `guild/src/core/data_enrichment.py`
+
+**Core Capabilities**:
+- Lead data validation and cleaning
+- Phone number and email validation
+- Text standardization and formatting
+- HTML content extraction
+- Data quality scoring
+- Synthetic data generation (development)
+
+**Tools & Integrations**:
+- Data validation libraries (phonenumbers, email-validator)
+- Text processing tools (BeautifulSoup, pandas)
+- Data quality assessment algorithms
+- Synthetic data generation frameworks
+
+**Output Formats**:
+- Enriched and validated datasets
+- Data quality reports
+- Validation and cleaning logs
+- Standardized data formats
+
+---
+
 ### 💰 Financial & Business Agents
 
-#### 10. Accounting Agent
+#### 12. Accounting Agent
 **Location**: `guild/src/agents/accounting_agent.py`
 
 **Core Capabilities**:
@@ -274,34 +324,84 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 11. Business Strategist Agent
-**Location**: `guild/src/agents/executive/business_strategist_agent.py`
+#### 13. Bookkeeping Agent
+**Location**: `guild/src/agents/bookkeeping_agent.py`
 
 **Core Capabilities**:
-- High-level strategic thinking and planning
-- Market and competitive analysis
-- SWOT analysis and strategic recommendations
-- Scenario planning and risk assessment
-- Business model innovation
-- Strategic implementation guidance
+- Transaction processing and categorization
+- Financial reporting and analysis
+- Account reconciliation and matching
+- Expense tracking and management
+- Compliance and audit support
+- Data validation and error detection
 
 **Tools & Integrations**:
-- Strategic planning frameworks
-- Market research and analysis
-- Competitive intelligence
-- Risk assessment tools
+- Transaction processing algorithms
+- Financial reporting templates
+- Compliance frameworks
+- Error detection systems
 
 **Output Formats**:
-- Strategic analysis reports
-- Business model recommendations
-- Implementation roadmaps
-- Risk assessment documents
+- Transaction reports
+- Reconciliation statements
+- Expense analyses
+- Compliance documentation
+
+---
+
+#### 14. Analytics Agent
+**Location**: `guild/src/agents/analytics/analytics_agent.py`
+
+**Core Capabilities**:
+- Performance analytics and reporting
+- KPI tracking and monitoring
+- Trend analysis and forecasting
+- Data visualization and dashboard creation
+- Business intelligence and insights
+- Predictive analytics
+
+**Tools & Integrations**:
+- Data analysis libraries (pandas, numpy)
+- Visualization tools (matplotlib, plotly)
+- Statistical analysis frameworks
+- Business intelligence platforms
+
+**Output Formats**:
+- Analytics dashboards and reports
+- KPI tracking documents
+- Trend analysis and forecasts
+- Business intelligence insights
+
+---
+
+#### 15. Investor Relations Agent
+**Location**: `guild/src/agents/investor_relations_agent.py`
+
+**Core Capabilities**:
+- Investor pitch deck creation
+- Financial projection modeling
+- Due diligence preparation
+- Funding strategy development
+- Investor communication planning
+- Valuation analysis
+
+**Tools & Integrations**:
+- Financial modeling tools
+- Pitch deck templates
+- Due diligence frameworks
+- Investor communication systems
+
+**Output Formats**:
+- Professional pitch decks
+- Financial projections
+- Due diligence documentation
+- Investor communication plans
 
 ---
 
 ### 🎨 Creative & Media Agents
 
-#### 12. Image Generation Agent
+#### 16. Image Generation Agent
 **Location**: `guild/src/agents/image_generation_agent.py`
 
 **Core Capabilities**:
@@ -326,7 +426,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 13. Voice Agent
+#### 17. Voice Agent
 **Location**: `guild/src/agents/voice_agent.py`
 
 **Core Capabilities**:
@@ -351,7 +451,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 14. Video Editor Agent
+#### 18. Video Editor Agent
 **Location**: `guild/src/agents/video_editor_agent.py`
 
 **Core Capabilities**:
@@ -376,9 +476,34 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
+#### 19. Document Processing Agent
+**Location**: `guild/src/core/markitdown_processor.py`
+
+**Core Capabilities**:
+- Multi-format document processing (PDF, DOCX, PPTX, etc.)
+- Audio and video transcription
+- YouTube video content extraction
+- Document conversion to Markdown
+- Content structure analysis
+- Metadata extraction
+
+**Tools & Integrations**:
+- MarkItDown for document conversion
+- Audio/video transcription services
+- YouTube API integration
+- Document analysis tools
+
+**Output Formats**:
+- Converted Markdown documents
+- Audio/video transcriptions
+- Document metadata and structure
+- Content analysis reports
+
+---
+
 ### 🤖 Automation Agents
 
-#### 15. Unified Automation Agent
+#### 20. Unified Automation Agent
 **Location**: `guild/src/agents/unified_automation_agent.py`
 
 **Core Capabilities**:
@@ -403,9 +528,34 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
+#### 21. Visual Automation Tool
+**Location**: `guild/src/core/vision/visual_automation_tool.py`
+
+**Core Capabilities**:
+- Computer vision-based UI interaction
+- Element detection and recognition
+- Screen state analysis
+- Automated UI navigation
+- Visual pattern recognition
+- Error handling and recovery
+
+**Tools & Integrations**:
+- PyAutoGUI for UI control
+- OpenCV for image processing
+- Visual element detection algorithms
+- Screen state management
+
+**Output Formats**:
+- UI state reports
+- Visual element maps
+- Automation action logs
+- Error and recovery reports
+
+---
+
 ### 🔍 Evaluator League
 
-#### 16. Judge Agent
+#### 22. Judge Agent
 **Location**: `guild/src/agents/evaluation/judge_agent.py`
 
 **Core Capabilities**:
@@ -430,7 +580,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 17. Fact Checker Agent
+#### 23. Fact Checker Agent
 **Location**: `guild/src/agents/evaluation/fact_checker_agent.py`
 
 **Core Capabilities**:
@@ -455,7 +605,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 18. Brand Checker Agent
+#### 24. Brand Checker Agent
 **Location**: `guild/src/agents/evaluation/brand_checker_agent.py`
 
 **Core Capabilities**:
@@ -480,7 +630,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 19. SEO Evaluator Agent
+#### 25. SEO Evaluator Agent
 **Location**: `guild/src/agents/evaluation/seo_evaluator_agent.py`
 
 **Core Capabilities**:
@@ -507,7 +657,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ### 🎛️ Orchestration & Management
 
-#### 20. Workflow Manager Agent
+#### 26. Workflow Manager Agent
 **Location**: `guild/src/agents/orchestration/workflow_manager_agent.py`
 
 **Core Capabilities**:
@@ -532,7 +682,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 21. Pre-flight Planner Agent
+#### 27. Pre-flight Planner Agent
 **Location**: `guild/src/agents/orchestration/preflight_planner_agent.py`
 
 **Core Capabilities**:
@@ -557,7 +707,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 22. Contract Compiler Agent
+#### 28. Contract Compiler Agent
 **Location**: `guild/src/agents/orchestration/contract_compiler_agent.py`
 
 **Core Capabilities**:
@@ -582,7 +732,7 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-#### 23. Quality Controller Agent
+#### 29. Quality Controller Agent
 **Location**: `guild/src/agents/orchestration/quality_controller_agent.py`
 
 **Core Capabilities**:
@@ -607,80 +757,132 @@ Guild-AI uses a sophisticated multi-agent system organized into several layers:
 
 ---
 
-### 📊 Data & Analytics Agents
+### 🏢 Business Operations Agents
 
-#### 24. Data Enrichment Agent
-**Location**: `guild/src/core/data_enrichment.py`
+#### 30. CRM Agent
+**Location**: `guild/src/agents/crm_agent.py`
 
 **Core Capabilities**:
-- Lead data validation and cleaning
-- Phone number and email validation
-- Text standardization and formatting
-- HTML content extraction
-- Data quality scoring
-- Synthetic data generation (development)
+- CRM platform selection and setup
+- Marketing automation workflow design
+- Lead scoring and qualification
+- Customer segmentation and targeting
+- Sales pipeline management
+- Customer lifecycle optimization
 
 **Tools & Integrations**:
-- Data validation libraries (phonenumbers, email-validator)
-- Text processing tools (BeautifulSoup, pandas)
-- Data quality assessment algorithms
-- Synthetic data generation frameworks
+- CRM system integration
+- Marketing automation platforms
+- Lead scoring algorithms
+- Customer segmentation tools
 
 **Output Formats**:
-- Enriched and validated datasets
-- Data quality reports
-- Validation and cleaning logs
-- Standardized data formats
+- CRM strategy documents
+- Automation workflow diagrams
+- Customer segment reports
+- Pipeline management plans
 
 ---
 
-#### 25. Analytics Agent
-**Location**: `guild/src/agents/analytics/analytics_agent.py`
+#### 31. Outbound Sales Agent
+**Location**: `guild/src/agents/outbound_sales_agent.py`
 
 **Core Capabilities**:
-- Performance analytics and reporting
-- KPI tracking and monitoring
-- Trend analysis and forecasting
-- Data visualization and dashboard creation
-- Business intelligence and insights
-- Predictive analytics
+- Lead research and data scraping
+- Personalized outreach message creation
+- Multi-channel campaign management
+- Lead qualification and scoring
+- Sales pipeline management
+- Follow-up automation and sequence optimization
 
 **Tools & Integrations**:
-- Data analysis libraries (pandas, numpy)
-- Visualization tools (matplotlib, plotly)
-- Statistical analysis frameworks
-- Business intelligence platforms
+- Lead research tools
+- Outreach message templates
+- Campaign management systems
+- Lead scoring algorithms
 
 **Output Formats**:
-- Analytics dashboards and reports
-- KPI tracking documents
-- Trend analysis and forecasts
-- Business intelligence insights
+- Outreach message templates
+- Campaign management plans
+- Lead qualification frameworks
+- Sales pipeline reports
 
 ---
 
-#### 26. Document Processing Agent
-**Location**: `guild/src/core/markitdown_processor.py`
+#### 32. Project Manager Agent
+**Location**: `guild/src/agents/project_manager_agent.py`
 
 **Core Capabilities**:
-- Multi-format document processing (PDF, DOCX, PPTX, etc.)
-- Audio and video transcription
-- YouTube video content extraction
-- Document conversion to Markdown
-- Content structure analysis
-- Metadata extraction
+- Project planning and scope definition
+- Resource allocation and management
+- Timeline creation and milestone tracking
+- Risk assessment and mitigation planning
+- Quality control and standards enforcement
+- Stakeholder communication planning
 
 **Tools & Integrations**:
-- MarkItDown for document conversion
-- Audio/video transcription services
-- YouTube API integration
-- Document analysis tools
+- Project management methodologies
+- Resource allocation algorithms
+- Timeline planning tools
+- Risk assessment frameworks
 
 **Output Formats**:
-- Converted Markdown documents
-- Audio/video transcriptions
-- Document metadata and structure
-- Content analysis reports
+- Project plans and timelines
+- Resource allocation matrices
+- Risk management plans
+- Quality control frameworks
+
+---
+
+### 🔮 Additional Specialized Agents
+
+#### 33. Training Agent
+**Location**: `guild/src/agents/training_agent.py`
+
+**Core Capabilities**:
+- Training material development
+- Standard Operating Procedure (SOP) creation
+- Learning path design
+- Knowledge assessment creation
+- Training program evaluation
+- Skill development planning
+
+**Tools & Integrations**:
+- Learning management systems
+- SOP templates and frameworks
+- Assessment creation tools
+- Training evaluation methodologies
+
+**Output Formats**:
+- Training modules and materials
+- Comprehensive SOPs
+- Learning assessments
+- Skill development plans
+
+---
+
+#### 34. Onboarding Agent
+**Location**: `guild/src/agents/onboarding_agent.py`
+
+**Core Capabilities**:
+- User onboarding flow design
+- Personalized welcome experiences
+- System feature introduction
+- User preference collection
+- Initial setup automation
+- Onboarding success measurement
+
+**Tools & Integrations**:
+- Onboarding flow templates
+- User preference collection tools
+- Feature introduction frameworks
+- Success measurement metrics
+
+**Output Formats**:
+- Onboarding flow diagrams
+- Welcome message templates
+- Feature introduction guides
+- User preference forms
 
 ---
 

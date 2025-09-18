@@ -1,4 +1,5 @@
 """
+git branch
 Bookkeeping Agent for Guild-AI
 Comprehensive financial management and bookkeeping using advanced prompting strategies.
 """
