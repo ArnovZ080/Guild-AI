@@ -98,7 +98,7 @@ const ProgressiveDisclosure = ({
                   key={index}
                   onClick={() => handleLevelChange(index + 1)}
                   className={`w-2 h-2 rounded-full transition-colors ${
-                    currentLevel >= index + 1
+                    currentLevel === index + 1
                       ? agentType ? agentStyles.color : 'bg-primary'
                       : 'bg-muted-foreground/30'
                   }`}
@@ -111,36 +111,62 @@ const ProgressiveDisclosure = ({
           </div>
         </div>
 
-        {/* Metrics Display */}
-        {metrics && currentLevel >= 2 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-            {Object.entries(metrics).map(([key, value]) => (
-              <div key={key} className="bg-muted rounded p-2 text-center">
-                <div className="text-xs text-muted-foreground capitalize">
-                  {key.replace(/([A-Z])/g, ' $1').trim()}
-                </div>
-                <div className="text-sm font-semibold text-foreground">
-                  {typeof value === 'number' ? value.toLocaleString() : value}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
+        {/* Single Layer Content Display */}
         <AnimatePresence mode="wait">
           <motion.div
             key={currentLevel}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="text-sm text-muted-foreground"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="min-h-[60px]"
           >
-            {currentContent.content}
+            {/* Metrics Display - Only for level 2+ */}
+            {metrics && currentLevel >= 2 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                {Object.entries(metrics).map(([key, value]) => (
+                  <div key={key} className="bg-muted rounded p-2 text-center">
+                    <div className="text-xs text-muted-foreground capitalize">
+                      {key.replace(/([A-Z])/g, ' $1').trim()}
+                    </div>
+                    <div className="text-sm font-semibold text-foreground">
+                      {typeof value === 'number' ? value.toLocaleString() : value}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Main Content */}
+            <div className="text-sm text-muted-foreground">
+              {currentContent.content}
+            </div>
+
+            {/* Advanced Details - Only for level 3 */}
+            {currentLevel === maxLevel && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-3 pt-3 border-t border-border"
+              >
+                <div className="space-y-2">
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Data Sources:</strong> Agent logs, performance metrics, user interactions
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Last Updated:</strong> {new Date().toLocaleTimeString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <strong>Confidence Score:</strong> {Math.floor(Math.random() * 20 + 80)}%
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </AnimatePresence>
 
-        {/* Quick Navigation */}
+        {/* Navigation */}
         <div className="flex justify-between items-center mt-4">
           <button
             onClick={() => handleLevelChange(Math.max(1, currentLevel - 1))}
@@ -157,41 +183,6 @@ const ProgressiveDisclosure = ({
             More Detail →
           </button>
         </div>
-
-        {/* Expandable Section for Additional Details */}
-        {currentLevel === maxLevel && (
-          <motion.button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="w-full mt-3 text-xs text-primary hover:text-primary/80 transition-colors"
-            whileHover={{ scale: 1.02 }}
-          >
-            {isExpanded ? 'Show Less' : 'Show Advanced Details'} ▼
-          </motion.button>
-        )}
-
-        <AnimatePresence>
-          {isExpanded && currentLevel === maxLevel && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-3 pt-3 border-t border-border"
-            >
-              <div className="space-y-2">
-                <div className="text-xs text-muted-foreground">
-                  <strong>Data Sources:</strong> Agent logs, performance metrics, user interactions
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  <strong>Last Updated:</strong> {new Date().toLocaleTimeString()}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  <strong>Confidence Score:</strong> {Math.floor(Math.random() * 20 + 80)}%
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.div>
   );
