@@ -271,4 +271,5 @@ const BusinessPulse: React.FC = () => {
   );
 };
 
+export { BusinessPulse };
 export default BusinessPulse;

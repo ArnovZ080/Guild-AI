@@ -256,4 +256,5 @@ const FinancialFlowVisualization: React.FC = () => {
   );
 };
 
+export { FinancialFlowVisualization };
 export default FinancialFlowVisualization;
