@@ -250,4 +250,5 @@ const ProgressMomentumTracker: React.FC = () => {
   );
 };
 
+export { ProgressMomentumTracker };
 export default ProgressMomentumTracker;

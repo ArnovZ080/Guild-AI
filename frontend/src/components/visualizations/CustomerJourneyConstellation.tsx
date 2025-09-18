@@ -246,4 +246,5 @@ const CustomerJourneyConstellation: React.FC = () => {
   );
 };
 
+export { CustomerJourneyConstellation };
 export default CustomerJourneyConstellation;
