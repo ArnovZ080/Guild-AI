@@ -5,10 +5,12 @@ import { CelebrationProvider } from './components/psychological/EnhancedMicroCel
 import EnhancedChatInterface from './components/chat/EnhancedChatInterface';
 import DashboardLayout from './components/layout/DashboardLayout';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import AgentMarketplace from './components/marketplace/AgentMarketplace';
+import EnhancedCalendar from './components/calendar/EnhancedCalendar';
 
 function App() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding', 'marketplace', 'calendar'
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -34,6 +36,14 @@ function App() {
 
   const handleNavigateToChat = () => {
     setCurrentView('chat');
+  };
+
+  const handleNavigateToMarketplace = () => {
+    setCurrentView('marketplace');
+  };
+
+  const handleNavigateToCalendar = () => {
+    setCurrentView('calendar');
   };
 
   // Mock dashboard components for now
@@ -67,12 +77,26 @@ function App() {
         <p className="text-gray-600 dark:text-gray-400">
           Your AI agents are working on various tasks. Use the chat interface to interact with them directly.
         </p>
-        <button
-          onClick={handleNavigateToChat}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Open Chat Interface
-        </button>
+        <div className="flex space-x-3 mt-4">
+          <button
+            onClick={handleNavigateToChat}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Open Chat Interface
+          </button>
+          <button
+            onClick={handleNavigateToMarketplace}
+            className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
+          >
+            View Agent Marketplace
+          </button>
+          <button
+            onClick={handleNavigateToCalendar}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+          >
+            Open Calendar
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -111,6 +135,20 @@ function App() {
               actionTheater={<ActionTheater />}
               opportunityHorizon={<OpportunityHorizon />}
               onNavigateToChat={handleNavigateToChat}
+            />
+          )}
+          
+          {currentView === 'marketplace' && (
+            <AgentMarketplace
+              onNavigateToChat={handleNavigateToChat}
+              onNavigateToDashboard={handleNavigateToDashboard}
+            />
+          )}
+          
+          {currentView === 'calendar' && (
+            <EnhancedCalendar
+              onNavigateToChat={handleNavigateToChat}
+              onNavigateToDashboard={handleNavigateToDashboard}
             />
           )}
         </div>

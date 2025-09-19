@@ -146,6 +146,12 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
   const handleItemClick = (item) => {
     if (item.id === 'chat' && onNavigateToChat) {
       onNavigateToChat();
+    } else if (item.id === 'dashboard' && onItemSelect) {
+      onItemSelect(item);
+    } else if (item.id === 'marketplace' && onItemSelect) {
+      onItemSelect(item);
+    } else if (item.id === 'calendar' && onItemSelect) {
+      onItemSelect(item);
     } else {
       onItemSelect?.(item);
     }
