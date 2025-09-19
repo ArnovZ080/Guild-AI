@@ -10,10 +10,11 @@ import AgentMarketplace from './components/marketplace/AgentMarketplace';
 import EnhancedCalendar from './components/calendar/EnhancedCalendar';
 import WorkflowBuilder from './components/workflow/WorkflowBuilder';
 import GoalsView from './components/goals/GoalsView';
+import AchievementsView from './components/achievements/AchievementsView';
 
 function App() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding', 'marketplace', 'calendar', 'workflow', 'goals'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding', 'marketplace', 'calendar', 'workflow', 'goals', 'achievements'
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -221,6 +222,15 @@ function App() {
           {currentView === 'goals' && (
             <PageLayout currentView={currentView} onNavigate={handleNavigate}>
               <GoalsView
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
+          )}
+          
+          {currentView === 'achievements' && (
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <AchievementsView
                 onNavigateToChat={handleNavigateToChat}
                 onNavigateToDashboard={handleNavigateToDashboard}
               />
