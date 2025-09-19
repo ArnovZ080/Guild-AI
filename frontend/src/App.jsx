@@ -51,6 +51,30 @@ function App() {
     setCurrentView('workflow');
   };
 
+  const handleNavigateToGoals = () => {
+    setCurrentView('goals');
+  };
+
+  const handleNavigateToAchievements = () => {
+    setCurrentView('achievements');
+  };
+
+  const handleNavigateToGrowth = () => {
+    setCurrentView('growth');
+  };
+
+  const handleNavigateToCustomers = () => {
+    setCurrentView('customers');
+  };
+
+  const handleNavigateToConversations = () => {
+    setCurrentView('conversations');
+  };
+
+  const handleNavigateToConnectors = () => {
+    setCurrentView('connectors');
+  };
+
   // Mock dashboard components for now
   const CommandCenter = () => (
     <div className="p-6">
@@ -137,7 +161,17 @@ function App() {
           )}
           
           {currentView === 'chat' && (
-            <ClaudeStyleChat onNavigateToDashboard={handleNavigateToDashboard} />
+            <ClaudeStyleChat 
+              onNavigateToDashboard={handleNavigateToDashboard}
+              onNavigateToMarketplace={handleNavigateToMarketplace}
+              onNavigateToCalendar={handleNavigateToCalendar}
+              onNavigateToGoals={handleNavigateToGoals}
+              onNavigateToAchievements={handleNavigateToAchievements}
+              onNavigateToGrowth={handleNavigateToGrowth}
+              onNavigateToCustomers={handleNavigateToCustomers}
+              onNavigateToConversations={handleNavigateToConversations}
+              onNavigateToConnectors={handleNavigateToConnectors}
+            />
           )}
           
           {currentView === 'dashboard' && (

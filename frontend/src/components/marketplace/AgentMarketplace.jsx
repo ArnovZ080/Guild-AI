@@ -20,7 +20,9 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  MessageSquare,
+  ArrowLeft
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
