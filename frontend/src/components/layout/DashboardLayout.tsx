@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SidebarNav } from '../navigation/SidebarNav';
-import { AdaptiveModeProvider, useAdaptiveMode } from '../adaptive/AdaptiveModeContext';
+import { AdaptiveModeProvider, useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
 const cn = (...classes: string[]) => classes.filter(Boolean).join(' ');
 
-const DashboardLayout = ({ children, commandCenter, actionTheater, opportunityHorizon }) => {
+const DashboardLayout = ({ children, commandCenter, actionTheater, opportunityHorizon, onNavigateToChat }) => {
   const { currentMode, timeOfDay } = useAdaptiveMode();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
@@ -45,6 +45,7 @@ const DashboardLayout = ({ children, commandCenter, actionTheater, opportunityHo
         <SidebarNav 
           expanded={sidebarExpanded} 
           onExpandedChange={setSidebarExpanded}
+          onNavigateToChat={onNavigateToChat}
         />
 
         {/* Main Content Grid */}

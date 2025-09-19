@@ -1,45 +1,121 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { MainDashboard } from './components/dashboard/MainDashboard';
-import { EnhancedMainDashboard } from './components/dashboard/EnhancedMainDashboard';
-import ConnectorSetup from './components/ConnectorSetup';
-import { MomentumBankingDashboard } from './components/banking/MomentumBankingDashboard';
-import { ContextualIntelligenceDashboard } from './components/intelligence/ContextualIntelligenceDashboard';
-
-// Import all context providers
-import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext';
-import { CelebrationProvider } from './contexts/CelebrationContext';
-import { MomentumBankingProvider } from './contexts/MomentumBankingContext';
-import { ContextualIntelligenceProvider } from './contexts/ContextualIntelligenceContext';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
+import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations';
+import EnhancedChatInterface from './components/chat/EnhancedChatInterface';
+import DashboardLayout from './components/layout/DashboardLayout';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 
 function App() {
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding'
+
+  useEffect(() => {
+    // Check if user has completed onboarding
+    const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
+    setHasCompletedOnboarding(onboardingCompleted);
+    
+    if (onboardingCompleted) {
+      setCurrentView('chat');
+    } else {
+      setCurrentView('onboarding');
+    }
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('guild_onboarding_completed', 'true');
+    setHasCompletedOnboarding(true);
+    setCurrentView('chat');
+  };
+
+  const handleNavigateToDashboard = () => {
+    setCurrentView('dashboard');
+  };
+
+  const handleNavigateToChat = () => {
+    setCurrentView('chat');
+  };
+
+  // Mock dashboard components for now
+  const CommandCenter = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Business Overview</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+          <h3 className="text-lg font-semibold">Revenue</h3>
+          <p className="text-3xl font-bold text-green-600">$12,543</p>
+          <p className="text-sm text-gray-500">+8.5% this month</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+          <h3 className="text-lg font-semibold">Active Customers</h3>
+          <p className="text-3xl font-bold text-blue-600">332</p>
+          <p className="text-sm text-gray-500">+12 new this week</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+          <h3 className="text-lg font-semibold">Conversion Rate</h3>
+          <p className="text-3xl font-bold text-purple-600">69%</p>
+          <p className="text-sm text-gray-500">+2.1% improvement</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  const ActionTheater = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Agent Activity</h2>
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border">
+        <p className="text-gray-600 dark:text-gray-400">
+          Your AI agents are working on various tasks. Use the chat interface to interact with them directly.
+        </p>
+        <button
+          onClick={handleNavigateToChat}
+          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Open Chat Interface
+        </button>
+      </div>
+    </div>
+  );
+
+  const OpportunityHorizon = () => (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Opportunities</h2>
+      <div className="space-y-4">
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+          <h3 className="font-semibold">Social Media Campaign</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Launch a new campaign to increase engagement</p>
+        </div>
+        <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
+          <h3 className="font-semibold">Customer Feedback Analysis</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Analyze recent customer feedback for insights</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <Router>
-      <PsychologicalOptimizationProvider>
-        <CelebrationProvider>
-          <MomentumBankingProvider>
-            <ContextualIntelligenceProvider>
-              <Routes>
-                {/* Main Dashboard Routes */}
-                <Route path="/" element={<EnhancedMainDashboard />} />
-                <Route path="/dashboard" element={<MainDashboard />} />
-                
-                {/* Integration Routes */}
-                <Route path="/connectors" element={<ConnectorSetup />} />
-                <Route path="/connectors/setup" element={<ConnectorSetup />} />
-                
-                {/* Advanced System Routes */}
-                <Route path="/momentum-banking" element={<MomentumBankingDashboard />} />
-                <Route path="/intelligence" element={<ContextualIntelligenceDashboard />} />
-                
-                {/* Legacy Routes */}
-                <Route path="/legacy" element={<MainDashboard />} />
-              </Routes>
-            </ContextualIntelligenceProvider>
-          </MomentumBankingProvider>
-        </CelebrationProvider>
-      </PsychologicalOptimizationProvider>
-    </Router>
+    <AdaptiveModeProvider>
+      <CelebrationProvider>
+        <div className="min-h-screen">
+          {currentView === 'onboarding' && (
+            <OnboardingFlow onComplete={handleOnboardingComplete} />
+          )}
+          
+          {currentView === 'chat' && (
+            <EnhancedChatInterface onNavigateToDashboard={handleNavigateToDashboard} />
+          )}
+          
+          {currentView === 'dashboard' && (
+            <DashboardLayout
+              commandCenter={<CommandCenter />}
+              actionTheater={<ActionTheater />}
+              opportunityHorizon={<OpportunityHorizon />}
+              onNavigateToChat={handleNavigateToChat}
+            />
+          )}
+        </div>
+      </CelebrationProvider>
+    </AdaptiveModeProvider>
   );
 }
 
