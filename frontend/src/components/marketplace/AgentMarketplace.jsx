@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { allAgents, agentCategories } from '../../data/agents';
 
 const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const { currentMode, getModeColors } = useAdaptiveMode();
@@ -31,100 +32,12 @@ const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
-  const [activeAgents, setActiveAgents] = useState(new Set(['orchestrator', 'campaignmanager', 'contentcreator']));
+  const [activeAgents, setActiveAgents] = useState(new Set(['orchestrator_agent', 'enhanced_campaign_agent', 'content_strategist']));
 
   const adaptiveClasses = getModeColors(currentMode);
 
-  // Complete agent catalog from AGENTS.md
-  const allAgents = [
-    // Executive Layer
-    { id: 'chiefofstaff', name: 'Chief of Staff', category: 'executive', status: 'available', description: 'Strategic coordination and task prioritization', icon: '👑', price: 'premium', popularity: 95, capabilities: ['Strategic Planning', 'Task Prioritization', 'Executive Support'] },
-    { id: 'strategy', name: 'Strategy Agent', category: 'executive', status: 'available', description: 'Long-term planning and market analysis', icon: '🎯', price: 'premium', popularity: 88, capabilities: ['Market Analysis', 'Strategic Planning', 'Competitive Intelligence'] },
-    { id: 'businessstrategist', name: 'Business Strategist', category: 'executive', status: 'available', description: 'High-level strategic thinking and recommendations', icon: '🧠', price: 'premium', popularity: 92, capabilities: ['Business Strategy', 'Growth Planning', 'Strategic Recommendations'] },
-
-    // Content Creation
-    { id: 'briefgenerator', name: 'Brief Generator', category: 'content', status: 'available', description: 'Comprehensive project brief creation', icon: '📋', price: 'standard', popularity: 76, capabilities: ['Project Briefs', 'Requirements Gathering', 'Scope Definition'] },
-    { id: 'adcopy', name: 'Ad Copy Agent', category: 'content', status: 'available', description: 'High-converting advertising copy', icon: '📢', price: 'standard', popularity: 89, capabilities: ['Ad Copy', 'Conversion Optimization', 'A/B Testing'] },
-    { id: 'contentstrategist', name: 'Content Strategist', category: 'content', status: 'available', description: 'Holistic content strategy and calendar development', icon: '📅', price: 'premium', popularity: 84, capabilities: ['Content Strategy', 'Calendar Planning', 'Content Optimization'] },
-    { id: 'socialmedia', name: 'Social Media Agent', category: 'content', status: 'available', description: 'Platform-specific social media content', icon: '📱', price: 'standard', popularity: 91, capabilities: ['Social Media', 'Platform Optimization', 'Engagement'] },
-    { id: 'writer', name: 'Writer Agent', category: 'content', status: 'available', description: 'Long-form content and documentation', icon: '✍️', price: 'standard', popularity: 87, capabilities: ['Long-form Writing', 'Documentation', 'Content Creation'] },
-
-    // Research & Data
-    { id: 'research', name: 'Research Agent', category: 'research', status: 'available', description: 'Web research and information gathering', icon: '🔍', price: 'standard', popularity: 82, capabilities: ['Web Research', 'Data Gathering', 'Information Analysis'] },
-    { id: 'advancedscraper', name: 'Advanced Scraper', category: 'research', status: 'available', description: 'Sophisticated web scraping with Scrapy', icon: '🕷️', price: 'premium', popularity: 78, capabilities: ['Web Scraping', 'Data Extraction', 'Automation'] },
-    { id: 'leadpersonalization', name: 'Lead Personalization', category: 'research', status: 'available', description: 'Sales psychology-based outreach', icon: '🎯', price: 'premium', popularity: 85, capabilities: ['Lead Research', 'Personalization', 'Sales Psychology'] },
-    { id: 'dataenrichment', name: 'Data Enrichment', category: 'research', status: 'available', description: 'Lead validation and enhancement', icon: '🔬', price: 'standard', popularity: 73, capabilities: ['Data Validation', 'Lead Enhancement', 'Data Quality'] },
-
-    // Financial & Business
-    { id: 'accounting', name: 'Accounting Agent', category: 'financial', status: 'available', description: 'Financial reporting and analysis', icon: '💰', price: 'premium', popularity: 88, capabilities: ['Financial Reports', 'Accounting', 'Financial Analysis'] },
-    { id: 'analytics', name: 'Analytics Agent', category: 'financial', status: 'active', description: 'Performance tracking and business intelligence', icon: '📊', price: 'standard', popularity: 94, capabilities: ['Performance Tracking', 'Business Intelligence', 'Data Analysis'] },
-    { id: 'bookkeeping', name: 'Bookkeeping Agent', category: 'financial', status: 'available', description: 'Transaction processing and reconciliation', icon: '📚', price: 'standard', popularity: 81, capabilities: ['Transaction Processing', 'Reconciliation', 'Financial Records'] },
-    { id: 'investorrelations', name: 'Investor Relations', category: 'financial', status: 'available', description: 'Funding strategies and investor communications', icon: '🤝', price: 'premium', popularity: 69, capabilities: ['Investor Relations', 'Funding Strategies', 'Financial Communications'] },
-    { id: 'pricing', name: 'Pricing Agent', category: 'financial', status: 'available', description: 'Pricing strategy and optimization', icon: '💵', price: 'premium', popularity: 77, capabilities: ['Pricing Strategy', 'Price Optimization', 'Market Pricing'] },
-
-    // Creative & Media
-    { id: 'imagegeneration', name: 'Image Generation', category: 'creative', status: 'available', description: 'AI-powered image creation', icon: '🎨', price: 'standard', popularity: 86, capabilities: ['Image Generation', 'Visual Content', 'AI Art'] },
-    { id: 'voice', name: 'Voice Agent', category: 'creative', status: 'available', description: 'Text-to-speech and speech-to-text processing', icon: '🎤', price: 'standard', popularity: 74, capabilities: ['Voice Processing', 'TTS/STT', 'Audio Content'] },
-    { id: 'videoeditor', name: 'Video Editor', category: 'creative', status: 'available', description: 'Video creation and editing', icon: '🎬', price: 'premium', popularity: 79, capabilities: ['Video Editing', 'Video Creation', 'Media Production'] },
-    { id: 'documentprocessing', name: 'Document Processing', category: 'creative', status: 'available', description: 'Multi-format document handling', icon: '📄', price: 'standard', popularity: 71, capabilities: ['Document Processing', 'File Conversion', 'Document Analysis'] },
-
-    // Automation
-    { id: 'unifiedautomation', name: 'Unified Automation', category: 'automation', status: 'available', description: 'Visual and web automation', icon: '🤖', price: 'premium', popularity: 83, capabilities: ['UI Automation', 'Web Automation', 'Process Automation'] },
-    { id: 'visualautomation', name: 'Visual Automation', category: 'automation', status: 'available', description: 'PyAutoGUI and computer vision integration', icon: '👁️', price: 'premium', popularity: 75, capabilities: ['Computer Vision', 'UI Interaction', 'Visual Recognition'] },
-    { id: 'crmautomation', name: 'CRM Automation', category: 'automation', status: 'available', description: 'Customer relationship management automation', icon: '📞', price: 'standard', popularity: 87, capabilities: ['CRM Integration', 'Customer Automation', 'Sales Automation'] },
-
-    // Evaluator League
-    { id: 'judge', name: 'Judge Agent', category: 'evaluation', status: 'available', description: 'Quality rubrics and evaluation', icon: '⚖️', price: 'standard', popularity: 72, capabilities: ['Quality Assessment', 'Evaluation', 'Rubric Generation'] },
-    { id: 'factchecker', name: 'Fact Checker', category: 'evaluation', status: 'available', description: 'Information accuracy validation', icon: '✅', price: 'standard', popularity: 68, capabilities: ['Fact Checking', 'Accuracy Validation', 'Information Verification'] },
-    { id: 'brandchecker', name: 'Brand Checker', category: 'evaluation', status: 'available', description: 'Brand compliance and consistency', icon: '🎭', price: 'standard', popularity: 70, capabilities: ['Brand Compliance', 'Consistency Check', 'Brand Guidelines'] },
-    { id: 'seoevaluator', name: 'SEO Evaluator', category: 'evaluation', status: 'available', description: 'Search engine optimization', icon: '🔍', price: 'standard', popularity: 80, capabilities: ['SEO Analysis', 'Search Optimization', 'Content Optimization'] },
-
-    // Orchestration & Management
-    { id: 'workflowmanager', name: 'Workflow Manager', category: 'orchestration', status: 'active', description: 'Multi-agent coordination', icon: '🔄', price: 'premium', popularity: 96, capabilities: ['Workflow Coordination', 'Multi-agent Management', 'Process Orchestration'] },
-    { id: 'preflightplanner', name: 'Pre-flight Planner', category: 'orchestration', status: 'available', description: 'Workflow planning and approval', icon: '✈️', price: 'premium', popularity: 67, capabilities: ['Workflow Planning', 'Pre-flight Checks', 'Approval Workflows'] },
-    { id: 'contractcompiler', name: 'Contract Compiler', category: 'orchestration', status: 'available', description: 'Outcome contract processing', icon: '📜', price: 'premium', popularity: 64, capabilities: ['Contract Processing', 'Outcome Compilation', 'Legal Documentation'] },
-    { id: 'qualitycontroller', name: 'Quality Controller', category: 'orchestration', status: 'available', description: 'Iterative improvement management', icon: '🎯', price: 'standard', popularity: 71, capabilities: ['Quality Control', 'Improvement Management', 'Iterative Refinement'] },
-
-    // Business Operations
-    { id: 'projectmanager', name: 'Project Manager', category: 'operations', status: 'available', description: 'Project planning and execution', icon: '📋', price: 'premium', popularity: 89, capabilities: ['Project Planning', 'Task Management', 'Project Execution'] },
-    { id: 'hr', name: 'HR Agent', category: 'operations', status: 'available', description: 'Human resources management', icon: '👥', price: 'premium', popularity: 65, capabilities: ['HR Management', 'Employee Relations', 'Workforce Planning'] },
-    { id: 'training', name: 'Training Agent', category: 'operations', status: 'available', description: 'Training material and SOP creation', icon: '🎓', price: 'standard', popularity: 58, capabilities: ['Training Materials', 'SOP Creation', 'Knowledge Transfer'] },
-    { id: 'crm', name: 'CRM Agent', category: 'operations', status: 'active', description: 'Customer relationship management', icon: '🤝', price: 'standard', popularity: 92, capabilities: ['Customer Management', 'Relationship Building', 'Customer Analytics'] },
-    { id: 'outboundsales', name: 'Outbound Sales', category: 'operations', status: 'available', description: 'Sales outreach and lead generation', icon: '📞', price: 'standard', popularity: 85, capabilities: ['Sales Outreach', 'Lead Generation', 'Sales Automation'] },
-
-    // Human & Psychological
-    { id: 'wellness', name: 'Wellness Agent', category: 'psychological', status: 'available', description: 'Employee wellness and mental health support', icon: '💚', price: 'premium', popularity: 63, capabilities: ['Wellness Support', 'Mental Health', 'Work-life Balance'] },
-    { id: 'learning', name: 'Learning Agent', category: 'psychological', status: 'available', description: 'Continuous learning and skill development', icon: '🧠', price: 'standard', popularity: 59, capabilities: ['Skill Development', 'Learning Paths', 'Continuous Improvement'] },
-    { id: 'communityconnector', name: 'Community Connector', category: 'psychological', status: 'available', description: 'Building and nurturing communities', icon: '🌐', price: 'standard', popularity: 61, capabilities: ['Community Building', 'Network Development', 'Relationship Nurturing'] },
-    { id: 'celebrationnarrator', name: 'Celebration Narrator', category: 'psychological', status: 'active', description: 'Recognizing achievements and milestones', icon: '🎉', price: 'standard', popularity: 66, capabilities: ['Achievement Recognition', 'Milestone Tracking', 'Motivation'] },
-
-    // Meta-Agents
-    { id: 'agentevaluator', name: 'Agent Evaluator', category: 'meta', status: 'available', description: 'Performance monitoring and optimization', icon: '📊', price: 'premium', popularity: 55, capabilities: ['Performance Monitoring', 'Agent Optimization', 'System Health'] },
-    { id: 'knowledgeupdater', name: 'Knowledge Updater', category: 'meta', status: 'available', description: 'Continuous learning and knowledge management', icon: '📚', price: 'premium', popularity: 52, capabilities: ['Knowledge Management', 'Learning Integration', 'Information Updates'] },
-    { id: 'security', name: 'Security Agent', category: 'meta', status: 'available', description: 'System security and threat monitoring', icon: '🔒', price: 'premium', popularity: 57, capabilities: ['Security Monitoring', 'Threat Detection', 'System Protection'] },
-    { id: 'scalability', name: 'Scalability Agent', category: 'meta', status: 'available', description: 'System performance and scaling optimization', icon: '📈', price: 'premium', popularity: 49, capabilities: ['Performance Optimization', 'Scaling Management', 'Resource Optimization'] },
-    { id: 'orchestrationtuner', name: 'Orchestration Tuner', category: 'meta', status: 'available', description: 'Workflow optimization and efficiency', icon: '⚙️', price: 'premium', popularity: 48, capabilities: ['Workflow Optimization', 'Efficiency Tuning', 'Process Improvement'] },
-
-    // Enhanced Campaign & Marketing
-    { id: 'enhancedcampaign', name: 'Enhanced Campaign', category: 'marketing', status: 'available', description: 'Advanced campaign management with direct API access', icon: '🚀', price: 'premium', popularity: 90, capabilities: ['Campaign Management', 'API Integration', 'Advanced Marketing'] },
-    { id: 'pricingintelligence', name: 'Pricing Intelligence', category: 'marketing', status: 'available', description: 'Dynamic pricing strategy and optimization', icon: '💡', price: 'premium', popularity: 76, capabilities: ['Pricing Strategy', 'Dynamic Pricing', 'Market Intelligence'] }
-  ];
-
-  const categories = [
-    { id: 'all', name: 'All Agents', count: allAgents.length },
-    { id: 'executive', name: 'Executive Layer', count: allAgents.filter(a => a.category === 'executive').length },
-    { id: 'content', name: 'Content Creation', count: allAgents.filter(a => a.category === 'content').length },
-    { id: 'research', name: 'Research & Data', count: allAgents.filter(a => a.category === 'research').length },
-    { id: 'financial', name: 'Financial & Business', count: allAgents.filter(a => a.category === 'financial').length },
-    { id: 'creative', name: 'Creative & Media', count: allAgents.filter(a => a.category === 'creative').length },
-    { id: 'automation', name: 'Automation', count: allAgents.filter(a => a.category === 'automation').length },
-    { id: 'evaluation', name: 'Evaluator League', count: allAgents.filter(a => a.category === 'evaluation').length },
-    { id: 'orchestration', name: 'Orchestration', count: allAgents.filter(a => a.category === 'orchestration').length },
-    { id: 'operations', name: 'Business Operations', count: allAgents.filter(a => a.category === 'operations').length },
-    { id: 'psychological', name: 'Human & Psychological', count: allAgents.filter(a => a.category === 'psychological').length },
-    { id: 'meta', name: 'Meta-Agents', count: allAgents.filter(a => a.category === 'meta').length },
-    { id: 'marketing', name: 'Enhanced Marketing', count: allAgents.filter(a => a.category === 'marketing').length }
-  ];
+  // Agent data is now imported from the data file
+  const categories = agentCategories;
 
   const filteredAgents = useMemo(() => {
     let filtered = allAgents;
