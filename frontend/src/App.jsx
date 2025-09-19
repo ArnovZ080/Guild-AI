@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
 import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations';
-import EnhancedChatInterface from './components/chat/EnhancedChatInterface';
+import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import DashboardLayout from './components/layout/DashboardLayout';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import AgentMarketplace from './components/marketplace/AgentMarketplace';
 import EnhancedCalendar from './components/calendar/EnhancedCalendar';
+import WorkflowBuilder from './components/workflow/WorkflowBuilder';
 
 function App() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding', 'marketplace', 'calendar'
+  const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding', 'marketplace', 'calendar', 'workflow'
 
   useEffect(() => {
     // Check if user has completed onboarding
@@ -44,6 +45,10 @@ function App() {
 
   const handleNavigateToCalendar = () => {
     setCurrentView('calendar');
+  };
+
+  const handleNavigateToWorkflow = () => {
+    setCurrentView('workflow');
   };
 
   // Mock dashboard components for now
@@ -96,6 +101,12 @@ function App() {
           >
             Open Calendar
           </button>
+          <button
+            onClick={handleNavigateToWorkflow}
+            className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
+          >
+            Workflow Builder
+          </button>
         </div>
       </div>
     </div>
@@ -126,7 +137,7 @@ function App() {
           )}
           
           {currentView === 'chat' && (
-            <EnhancedChatInterface onNavigateToDashboard={handleNavigateToDashboard} />
+            <ClaudeStyleChat onNavigateToDashboard={handleNavigateToDashboard} />
           )}
           
           {currentView === 'dashboard' && (
@@ -147,6 +158,13 @@ function App() {
           
           {currentView === 'calendar' && (
             <EnhancedCalendar
+              onNavigateToChat={handleNavigateToChat}
+              onNavigateToDashboard={handleNavigateToDashboard}
+            />
+          )}
+          
+          {currentView === 'workflow' && (
+            <WorkflowBuilder
               onNavigateToChat={handleNavigateToChat}
               onNavigateToDashboard={handleNavigateToDashboard}
             />
