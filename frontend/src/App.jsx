@@ -4,6 +4,7 @@ import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
 import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations';
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import DashboardLayout from './components/layout/DashboardLayout';
+import PageLayout from './components/layout/PageLayout';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import AgentMarketplace from './components/marketplace/AgentMarketplace';
 import EnhancedCalendar from './components/calendar/EnhancedCalendar';
@@ -29,6 +30,10 @@ function App() {
     localStorage.setItem('guild_onboarding_completed', 'true');
     setHasCompletedOnboarding(true);
     setCurrentView('chat');
+  };
+
+  const handleNavigate = (view) => {
+    setCurrentView(view);
   };
 
   const handleNavigateToDashboard = () => {
@@ -175,33 +180,41 @@ function App() {
           )}
           
           {currentView === 'dashboard' && (
-            <DashboardLayout
-              commandCenter={<CommandCenter />}
-              actionTheater={<ActionTheater />}
-              opportunityHorizon={<OpportunityHorizon />}
-              onNavigateToChat={handleNavigateToChat}
-            />
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <DashboardLayout
+                commandCenter={<CommandCenter />}
+                actionTheater={<ActionTheater />}
+                opportunityHorizon={<OpportunityHorizon />}
+                onNavigateToChat={handleNavigateToChat}
+              />
+            </PageLayout>
           )}
           
           {currentView === 'marketplace' && (
-            <AgentMarketplace
-              onNavigateToChat={handleNavigateToChat}
-              onNavigateToDashboard={handleNavigateToDashboard}
-            />
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <AgentMarketplace
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
           )}
           
           {currentView === 'calendar' && (
-            <EnhancedCalendar
-              onNavigateToChat={handleNavigateToChat}
-              onNavigateToDashboard={handleNavigateToDashboard}
-            />
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <EnhancedCalendar
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
           )}
           
           {currentView === 'workflow' && (
-            <WorkflowBuilder
-              onNavigateToChat={handleNavigateToChat}
-              onNavigateToDashboard={handleNavigateToDashboard}
-            />
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <WorkflowBuilder
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
           )}
         </div>
       </CelebrationProvider>
