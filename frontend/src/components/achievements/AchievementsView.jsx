@@ -1,677 +1,846 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Trophy,
-  Star,
-  Target,
-  TrendingUp,
-  Calendar,
-  Users,
-  MessageSquare,
+  Trophy, 
+  Target, 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
+  Calendar, 
+  Star, 
+  Award, 
+  CheckCircle, 
+  Clock, 
+  Zap, 
+  Heart,
+  Lightbulb,
+  BarChart,
+  Globe,
+  Mail,
+  Camera,
   Brain,
-  Zap,
-  CheckCircle,
-  ArrowRight,
-  RotateCcw,
-  Award,
-  Medal,
-  Crown,
-  Gem,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
   Filter,
   Search,
-  Clock,
-  DollarSign,
-  Heart,
-  Lightbulb
+  X,
+  MessageSquare,
+  RefreshCw
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import AgentWorkflowVisualizer from '../agents/AgentWorkflowVisualizer';
 
-const AchievementsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
+// Mock achievements data
+const mockAchievements = [
+  {
+    id: '1',
+    type: 'goal',
+    title: 'Q1 Revenue Target Achieved',
+    description: 'Successfully reached $50K revenue target for Q1 2024',
+    date: new Date(2024, 2, 31), // March 31, 2024
+    category: 'financial',
+    value: 50000,
+    icon: DollarSign,
+    status: 'completed',
+    impact: 'high',
+    celebration: '🎉 Revenue milestone reached!',
+    details: {
+      target: 50000,
+      achieved: 52000,
+      growth: '+4%',
+      period: 'Q1 2024'
+    },
+    agentFlow: [
+      {
+        agent: 'Strategy Agent',
+        action: 'Market Analysis',
+        description: 'Analyzed market trends and identified growth opportunities in Q1'
+      },
+      {
+        agent: 'Marketing Agent',
+        action: 'Campaign Launch',
+        description: 'Launched targeted marketing campaigns to drive revenue growth'
+      },
+      {
+        agent: 'Sales Agent',
+        action: 'Lead Conversion',
+        description: 'Optimized sales funnel and improved conversion rates by 15%'
+      },
+      {
+        agent: 'Analytics Agent',
+        action: 'Performance Tracking',
+        description: 'Monitored KPIs and provided real-time insights for optimization'
+      }
+    ]
+  },
+  {
+    id: '2',
+    type: 'milestone',
+    title: '100th Customer Onboarded',
+    description: 'Reached the milestone of 100 active customers',
+    date: new Date(2024, 1, 15), // February 15, 2024
+    category: 'growth',
+    value: 100,
+    icon: Users,
+    status: 'completed',
+    impact: 'high',
+    celebration: '🚀 Customer milestone achieved!',
+    details: {
+      milestone: 100,
+      current: 100,
+      growth: '+25%',
+      period: 'February 2024'
+    }
+  },
+  {
+    id: '3',
+    type: 'campaign',
+    title: 'Viral Social Media Campaign',
+    description: 'Facebook campaign reached 1M impressions with 15% engagement rate',
+    date: new Date(2024, 0, 20), // January 20, 2024
+    category: 'marketing',
+    value: 1000000,
+    icon: Globe,
+    status: 'completed',
+    impact: 'high',
+    celebration: '📱 Campaign went viral!',
+    details: {
+      impressions: 1000000,
+      engagement: '15%',
+      reach: '500K',
+      period: 'January 2024'
+    }
+  },
+  {
+    id: '4',
+    type: 'goal',
+    title: 'Team Expansion Complete',
+    description: 'Successfully hired 3 new team members for Q1 growth',
+    date: new Date(2024, 0, 10), // January 10, 2024
+    category: 'team',
+    value: 3,
+    icon: Users,
+    status: 'completed',
+    impact: 'medium',
+    celebration: '👥 Team expanded successfully!',
+    details: {
+      hired: 3,
+      positions: ['Developer', 'Marketer', 'Sales Rep'],
+      period: 'January 2024'
+    }
+  },
+  {
+    id: '5',
+    type: 'milestone',
+    title: 'Product Launch Success',
+    description: 'New product feature launched with 95% user satisfaction',
+    date: new Date(2023, 11, 15), // December 15, 2023
+    category: 'product',
+    value: 95,
+    icon: Zap,
+    status: 'completed',
+    impact: 'high',
+    celebration: '✨ Product launch successful!',
+    details: {
+      satisfaction: '95%',
+      adoption: '80%',
+      feedback: 'Excellent',
+      period: 'December 2023'
+    }
+  },
+  {
+    id: '6',
+    type: 'campaign',
+    title: 'Email Campaign Record',
+    description: 'Achieved 25% open rate and 8% click-through rate',
+    date: new Date(2023, 10, 30), // November 30, 2023
+    category: 'marketing',
+    value: 25,
+    icon: Mail,
+    status: 'completed',
+    impact: 'medium',
+    celebration: '📧 Email campaign record!',
+    details: {
+      openRate: '25%',
+      clickRate: '8%',
+      subscribers: '10K',
+      period: 'November 2023'
+    }
+  },
+  {
+    id: '7',
+    type: 'goal',
+    title: 'Cost Reduction Achievement',
+    description: 'Reduced operational costs by 20% through automation',
+    date: new Date(2023, 9, 25), // October 25, 2023
+    category: 'efficiency',
+    value: 20,
+    icon: TrendingUp,
+    status: 'completed',
+    impact: 'high',
+    celebration: '💰 Cost reduction achieved!',
+    details: {
+      reduction: '20%',
+      savings: '$5K/month',
+      automation: '15 processes',
+      period: 'October 2023'
+    }
+  },
+  {
+    id: '8',
+    type: 'milestone',
+    title: 'First Year Anniversary',
+    description: 'Celebrated one year in business with 200% growth',
+    date: new Date(2023, 8, 15), // September 15, 2023
+    category: 'anniversary',
+    value: 200,
+    icon: Star,
+    status: 'completed',
+    impact: 'high',
+    celebration: '🎂 Happy 1st Anniversary!',
+    details: {
+      growth: '200%',
+      revenue: '$25K',
+      customers: '50',
+      period: 'Year 1'
+    }
+  }
+];
+
+const AchievementsView = () => {
   const { currentMode, getModeColors } = useAdaptiveMode();
-  const { triggerCelebration } = useCelebrations();
-  const [achievements, setAchievements] = useState([]);
+  const { sendTaskToAgent, agentMessages, pendingResponses } = useAgentCommunication();
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedType, setSelectedType] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedAchievement, setSelectedAchievement] = useState(null);
-  const [achievementChat, setAchievementChat] = useState([]);
-  const [achievementInput, setAchievementInput] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [filter, setFilter] = useState('all'); // 'all', 'recent', 'milestone', 'agent'
+  const [showRepeatStrategyModal, setShowRepeatStrategyModal] = useState(false);
+  const [repeatStrategyData, setRepeatStrategyData] = useState({
+    targetMetric: '',
+    targetValue: '',
+    timeframe: '',
+    priority: 'medium',
+    customInstructions: ''
+  });
+  const [agentWorkflow, setAgentWorkflow] = useState([]);
+  const [showWorkflow, setShowWorkflow] = useState(false);
 
   const adaptiveClasses = getModeColors(currentMode);
 
-  // Mock achievements data
-  useEffect(() => {
-    const mockAchievements = [
-      {
-        id: '1',
-        title: 'Revenue Milestone: $50K Monthly',
-        description: 'Achieved significant revenue growth through strategic marketing and sales optimization.',
-        type: 'milestone',
-        category: 'revenue',
-        priority: 'high',
-        date: new Date(2024, 11, 15),
-        impact: {
-          metric: 'Monthly Revenue',
-          before: 25000,
-          after: 50000,
-          change: '+100%'
-        },
-        agents: [
-          {
-            id: 'enhanced_campaign_agent',
-            name: 'Enhanced Campaign Agent',
-            contribution: 'Launched targeted marketing campaigns that increased conversion rates by 40%',
-            actions: ['Campaign Optimization', 'Audience Targeting', 'A/B Testing']
-          },
-          {
-            id: 'sales_agent',
-            name: 'Sales Agent',
-            contribution: 'Optimized sales funnel and implemented new lead qualification process',
-            actions: ['Lead Qualification', 'Sales Process Optimization', 'Customer Onboarding']
-          }
-        ],
-        businessImpact: 'This achievement represents a major milestone in business growth, enabling expansion into new markets and increased operational capacity.',
-        reinitiable: true,
-        reinitiateActions: ['Scale to $75K', 'Expand to New Markets', 'Optimize Further']
-      },
-      {
-        id: '2',
-        title: 'Brand Authority: 10K LinkedIn Followers',
-        description: 'Built significant thought leadership presence through consistent content marketing and engagement.',
-        type: 'milestone',
-        category: 'brand',
-        priority: 'medium',
-        date: new Date(2024, 11, 10),
-        impact: {
-          metric: 'LinkedIn Followers',
-          before: 5000,
-          after: 10000,
-          change: '+100%'
-        },
-        agents: [
-          {
-            id: 'content_strategist',
-            name: 'Content Strategist',
-            contribution: 'Created high-quality, engaging content that resonated with target audience',
-            actions: ['Content Planning', 'Topic Research', 'SEO Optimization']
-          },
-          {
-            id: 'social_media_agent',
-            name: 'Social Media Agent',
-            contribution: 'Optimized posting schedule and engagement strategies for maximum reach',
-            actions: ['Post Scheduling', 'Engagement Optimization', 'Community Building']
-          }
-        ],
-        businessImpact: 'Increased brand visibility and thought leadership, leading to more speaking opportunities and partnership requests.',
-        reinitiable: true,
-        reinitiateActions: ['Reach 20K Followers', 'Expand to Other Platforms', 'Monetize Following']
-      },
-      {
-        id: '3',
-        title: 'Automation Success: 60% Task Reduction',
-        description: 'Successfully automated routine business processes, freeing up time for strategic work.',
-        type: 'milestone',
-        category: 'automation',
-        priority: 'high',
-        date: new Date(2024, 11, 8),
-        impact: {
-          metric: 'Task Automation',
-          before: 20,
-          after: 60,
-          change: '+200%'
-        },
-        agents: [
-          {
-            id: 'workflow_manager',
-            name: 'Workflow Manager',
-            contribution: 'Identified and designed automation workflows for maximum efficiency',
-            actions: ['Process Analysis', 'Workflow Design', 'Implementation Planning']
-          },
-          {
-            id: 'automation_agent',
-            name: 'Automation Agent',
-            contribution: 'Implemented automated solutions for routine tasks and processes',
-            actions: ['Script Development', 'Integration Setup', 'Testing & Optimization']
-          }
-        ],
-        businessImpact: 'Significantly reduced manual workload, allowing focus on high-value strategic activities and improving work-life balance.',
-        reinitiable: true,
-        reinitiateActions: ['Automate 80% of Tasks', 'Advanced AI Integration', 'Predictive Automation']
-      },
-      {
-        id: '4',
-        title: 'Customer Satisfaction: 95% Rating',
-        description: 'Achieved exceptional customer satisfaction through improved service delivery and support.',
-        type: 'milestone',
-        category: 'customer',
-        priority: 'high',
-        date: new Date(2024, 11, 5),
-        impact: {
-          metric: 'Customer Satisfaction',
-          before: 85,
-          after: 95,
-          change: '+12%'
-        },
-        agents: [
-          {
-            id: 'customer_support_agent',
-            name: 'Customer Support Agent',
-            contribution: 'Improved response times and solution quality for customer inquiries',
-            actions: ['Response Optimization', 'Knowledge Base Updates', 'Support Training']
-          },
-          {
-            id: 'customer_relations_agent',
-            name: 'Customer Relations Agent',
-            contribution: 'Enhanced customer onboarding and relationship management processes',
-            actions: ['Onboarding Optimization', 'Relationship Building', 'Feedback Collection']
-          }
-        ],
-        businessImpact: 'Higher customer satisfaction leads to increased retention, referrals, and positive brand reputation.',
-        reinitiable: true,
-        reinitiateActions: ['Reach 98% Rating', 'Expand Support Channels', 'Predictive Support']
-      },
-      {
-        id: '5',
-        title: 'Content Performance: 1M Total Views',
-        description: 'Reached significant content milestone with engaging, valuable content across platforms.',
-        type: 'milestone',
-        category: 'content',
-        priority: 'medium',
-        date: new Date(2024, 10, 28),
-        impact: {
-          metric: 'Content Views',
-          before: 500000,
-          after: 1000000,
-          change: '+100%'
-        },
-        agents: [
-          {
-            id: 'content_creator',
-            name: 'Content Creator',
-            contribution: 'Produced high-quality, engaging content that resonated with audiences',
-            actions: ['Content Creation', 'Visual Design', 'Storytelling']
-          },
-          {
-            id: 'seo_agent',
-            name: 'SEO Agent',
-            contribution: 'Optimized content for search engines and improved discoverability',
-            actions: ['SEO Optimization', 'Keyword Research', 'Content Strategy']
-          }
-        ],
-        businessImpact: 'Increased brand awareness and thought leadership, driving more qualified leads and business opportunities.',
-        reinitiable: true,
-        reinitiateActions: ['Reach 2M Views', 'Monetize Content', 'Expand Content Types']
-      }
-    ];
-    setAchievements(mockAchievements);
-  }, []);
-
-  // Mock suggestions
-  const [suggestions, setSuggestions] = useState([
-    {
-      id: '1',
-      type: 'celebration',
-      title: 'Celebrate Recent Win',
-      description: 'Acknowledge and celebrate your latest achievement.',
-      action: 'celebrate_achievement',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      type: 'reinitiate',
-      title: 'Reinitiate Success',
-      description: 'Apply successful strategies to new goals.',
-      action: 'reinitiate_success',
-      priority: 'medium'
-    },
-    {
-      id: '3',
-      type: 'analysis',
-      title: 'Analyze Success Patterns',
-      description: 'Identify what made your achievements successful.',
-      action: 'analyze_patterns',
-      priority: 'medium'
-    }
-  ]);
-
-  const handleSendMessage = async (message) => {
-    if (!message.trim()) return;
-
-    const userMessage = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: message,
-      timestamp: new Date()
-    };
-
-    setAchievementChat(prev => [...prev, userMessage]);
-    setAchievementInput('');
-    setIsTyping(true);
-
-    // Simulate AI response
-    setTimeout(() => {
-      let response = '';
+  // Real agent integration for achievement tracking
+  const handleAchievementAnalysis = async (achievement) => {
+    try {
+      setShowWorkflow(true);
       
-      if (message.toLowerCase().includes('achievement') || message.toLowerCase().includes('success')) {
-        response = "Looking at your achievement history, you've made incredible progress! Your revenue milestone and automation success show excellent strategic thinking. What would you like to focus on next?";
-      } else if (message.toLowerCase().includes('reinitiate') || message.toLowerCase().includes('repeat')) {
-        response = "I can help you reinitiate successful strategies! Your revenue growth approach could be applied to new markets, and your automation success could be scaled further. Which achievement would you like to build upon?";
-      } else if (message.toLowerCase().includes('pattern') || message.toLowerCase().includes('analyze')) {
-        response = "Your success patterns show strong collaboration between agents, consistent execution, and strategic thinking. The combination of marketing automation and customer focus has been particularly effective. Would you like me to suggest similar approaches for new goals?";
-      } else {
-        response = "I'm here to help you celebrate your achievements and build upon your success! I can assist with analyzing patterns, reinitiating successful strategies, and planning new milestones. What would you like to explore?";
-      }
-
-      const aiResponse = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: response,
-        timestamp: new Date(),
-        agent: 'achievements_agent',
-        actions: ['Analyze Patterns', 'Reinitiate Strategy', 'Plan New Goals', 'Celebrate Success']
-      };
-
-      setAchievementChat(prev => [...prev, aiResponse]);
-      setIsTyping(false);
-      
-      triggerCelebration(CelebrationType.MILESTONE, {
-        message: "Achievements Agent responded! 🏆",
-        intensity: 'subtle'
+      // Step 1: Celebration Narrator Agent analyzes the achievement
+      await sendTaskToAgent('celebration_narrator', {
+        type: 'achievement_analysis',
+        achievement: achievement,
+        user_id: 'current_user'
       });
-    }, 1500);
-  };
 
-  const handleSuggestion = (suggestion) => {
-    switch (suggestion.action) {
-      case 'celebrate_achievement':
-        triggerCelebration(CelebrationType.MILESTONE, {
-          message: "Achievement celebrated! 🎉",
-          intensity: 'elaborate'
-        });
-        break;
-      case 'reinitiate_success':
-        triggerCelebration(CelebrationType.EFFICIENCY, {
-          message: "Success strategy reinitiated! ⚡",
-          intensity: 'normal'
-        });
-        break;
-      case 'analyze_patterns':
-        triggerCelebration(CelebrationType.COLLABORATION, {
-          message: "Pattern analysis completed! 📊",
-          intensity: 'normal'
-        });
-        break;
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now(),
+        step: 'achievement_analysis',
+        agent: 'Celebration Narrator Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        data: achievement
+      }]);
+
+      // Step 2: Analytics Agent processes the impact
+      await sendTaskToAgent('analytics_agent', {
+        type: 'impact_analysis',
+        achievement: achievement,
+        previous_agent: 'celebration_narrator',
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 1,
+        step: 'impact_analysis',
+        agent: 'Analytics Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'achievement_analysis'
+      }]);
+
+      // Step 3: Strategy Agent identifies next steps
+      await sendTaskToAgent('strategy_agent', {
+        type: 'next_steps_planning',
+        achievement: achievement,
+        previous_agents: ['celebration_narrator', 'analytics_agent'],
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 2,
+        step: 'next_steps_planning',
+        agent: 'Strategy Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'impact_analysis'
+      }]);
+
+    } catch (error) {
+      console.error('Error in achievement workflow:', error);
     }
-    
-    setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
   };
 
-  const handleReinitiateAchievement = (achievement) => {
-    triggerCelebration(CelebrationType.MILESTONE, {
-      message: `Reinitiating ${achievement.title}! 🚀`,
-      intensity: 'normal'
+  // Handler functions
+  const handleRepeatStrategy = (achievement) => {
+    setSelectedAchievement(achievement);
+    setRepeatStrategyData({
+      targetMetric: achievement.metric || '',
+      targetValue: achievement.value || '',
+      timeframe: achievement.timeframe || '',
+      priority: 'medium',
+      customInstructions: ''
     });
+    setShowRepeatStrategyModal(true);
   };
 
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'revenue': return <DollarSign className="w-5 h-5" />;
-      case 'brand': return <Star className="w-5 h-5" />;
-      case 'automation': return <Zap className="w-5 h-5" />;
-      case 'customer': return <Heart className="w-5 h-5" />;
-      case 'content': return <Lightbulb className="w-5 h-5" />;
-      default: return <Trophy className="w-5 h-5" />;
+  const handleSaveRepeatStrategy = async () => {
+    try {
+      setShowWorkflow(true);
+      
+      // Reinitiate the achievement workflow with new metrics
+      await sendTaskToAgent('orchestrator', {
+        type: 'reinitiate_achievement',
+        achievement: selectedAchievement,
+        newMetrics: repeatStrategyData,
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now(),
+        step: 'reinitiate_achievement',
+        agent: 'Orchestrator Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        data: { achievement: selectedAchievement, newMetrics: repeatStrategyData }
+      }]);
+
+      setShowRepeatStrategyModal(false);
+      setSelectedAchievement(null);
+    } catch (error) {
+      console.error('Error reinitiating achievement:', error);
     }
   };
 
-  const getCategoryColor = (category) => {
-    switch (category) {
-      case 'revenue': return 'bg-green-100 text-green-800 border-green-200';
-      case 'brand': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'automation': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'customer': return 'bg-pink-100 text-pink-800 border-pink-200';
-      case 'content': return 'bg-orange-100 text-orange-800 border-orange-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case 'high': return 'border-l-red-500';
-      case 'medium': return 'border-l-yellow-500';
-      case 'low': return 'border-l-green-500';
-      default: return 'border-l-gray-500';
-    }
-  };
-
-  const getAchievementIcon = (type) => {
-    switch (type) {
-      case 'milestone': return <Trophy className="w-6 h-6" />;
-      case 'agent': return <Brain className="w-6 h-6" />;
-      case 'recent': return <Sparkles className="w-6 h-6" />;
-      default: return <Award className="w-6 h-6" />;
-    }
-  };
-
-  const filteredAchievements = achievements.filter(achievement => {
-    if (filter === 'all') return true;
-    if (filter === 'recent') {
-      const recent = new Date();
-      recent.setDate(recent.getDate() - 30);
-      return achievement.date >= recent;
-    }
-    if (filter === 'milestone') return achievement.type === 'milestone';
-    if (filter === 'agent') return achievement.agents.length > 0;
-    return true;
+  // Filter achievements
+  const filteredAchievements = mockAchievements.filter(achievement => {
+    const matchesCategory = selectedCategory === 'all' || achievement.category === selectedCategory;
+    const matchesType = selectedType === 'all' || achievement.type === selectedType;
+    const matchesSearch = achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         achievement.description.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesCategory && matchesType && matchesSearch;
   });
 
+  // Sort by date (newest first)
+  const sortedAchievements = filteredAchievements.sort((a, b) => b.date - a.date);
+
+  // Get category styling
+  const getCategoryStyle = (category) => {
+    const styles = {
+      financial: 'bg-green-100 text-green-800 border-green-200',
+      growth: 'bg-blue-100 text-blue-800 border-blue-200',
+      marketing: 'bg-purple-100 text-purple-800 border-purple-200',
+      team: 'bg-orange-100 text-orange-800 border-orange-200',
+      product: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+      efficiency: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      anniversary: 'bg-pink-100 text-pink-800 border-pink-200'
+    };
+    return styles[category] || 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
+  // Get impact styling
+  const getImpactStyle = (impact) => {
+    const styles = {
+      high: 'bg-red-100 text-red-800',
+      medium: 'bg-yellow-100 text-yellow-800',
+      low: 'bg-green-100 text-green-800'
+    };
+    return styles[impact] || 'bg-gray-100 text-gray-800';
+  };
+
+  // Get type icon
+  const getTypeIcon = (type) => {
+    const icons = {
+      goal: Target,
+      milestone: Trophy,
+      campaign: Zap
+    };
+    return icons[type] || Award;
+  };
+
   return (
-    <div className="h-full flex flex-col">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700">
+      <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Achievements & Milestones
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Celebrate your wins and learn from your success patterns.
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Achievements Timeline</h1>
+            <p className="text-gray-600 mt-2">Track your business milestones, goals, and notable achievements</p>
           </div>
           <div className="flex items-center space-x-2">
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            >
-              <option value="all">All Achievements</option>
-              <option value="recent">Recent (30 days)</option>
-              <option value="milestone">Milestones</option>
-              <option value="agent">Agent-Driven</option>
-            </select>
+            <Trophy className="w-8 h-8 text-yellow-500" />
+            <span className="text-2xl font-bold text-gray-900">{mockAchievements.length}</span>
+            <span className="text-gray-600">Achievements</span>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="flex items-center space-x-4">
+          {/* Search */}
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search achievements..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+            />
+          </div>
+
+          {/* Category Filter */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Categories</option>
+            <option value="financial">Financial</option>
+            <option value="growth">Growth</option>
+            <option value="marketing">Marketing</option>
+            <option value="team">Team</option>
+            <option value="product">Product</option>
+            <option value="efficiency">Efficiency</option>
+            <option value="anniversary">Anniversary</option>
+          </select>
+
+          {/* Type Filter */}
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Types</option>
+            <option value="goal">Goals</option>
+            <option value="milestone">Milestones</option>
+            <option value="campaign">Campaigns</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Agent Workflow Visualization */}
+      {showWorkflow && (
+        <AgentWorkflowVisualizer 
+          workflowType="achievement_analysis"
+          showRealTimeUpdates={true}
+        />
+      )}
+
+      {/* Timeline */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Achievement Timeline</h2>
+        
+        <div className="relative">
+          {/* Timeline line */}
+          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+          
+          <div className="space-y-8">
+            {sortedAchievements.map((achievement, index) => {
+              const Icon = achievement.icon;
+              const TypeIcon = getTypeIcon(achievement.type);
+              
+              return (
+                <motion.div
+                  key={achievement.id}
+                  className="relative flex items-start space-x-6"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  {/* Timeline dot */}
+                  <div className="relative z-10 flex items-center justify-center w-16 h-16 bg-white border-4 border-blue-500 rounded-full shadow-lg">
+                    <Icon className="w-6 h-6 text-blue-500" />
+                  </div>
+
+                  {/* Achievement card */}
+                  <div 
+                    className="flex-1 bg-gray-50 rounded-lg p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => setSelectedAchievement(achievement)}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <TypeIcon className="w-5 h-5 text-gray-600" />
+                          <h3 className="text-lg font-semibold text-gray-900">{achievement.title}</h3>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getCategoryStyle(achievement.category)}`}>
+                            {achievement.category}
+                          </span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${getImpactStyle(achievement.impact)}`}>
+                            {achievement.impact} impact
+                          </span>
+                        </div>
+                        <p className="text-gray-700 mb-3">{achievement.description}</p>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="w-4 h-4" />
+                            <span>{achievement.date.toLocaleDateString('en-US', { 
+                              year: 'numeric', 
+                              month: 'long', 
+                              day: 'numeric' 
+                            })}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                            <span className="text-green-600 font-medium">Completed</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {achievement.category === 'financial' ? `$${achievement.value.toLocaleString()}` :
+                           achievement.category === 'marketing' && achievement.type === 'campaign' ? `${achievement.value.toLocaleString()}` :
+                           achievement.value}%
+                        </div>
+                        <div className="text-sm text-gray-500">Value</div>
+                      </div>
+                    </div>
+                    
+                    {/* Celebration message */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-lg">🎉</span>
+                        <span className="text-sm font-medium text-yellow-800">{achievement.celebration}</span>
+                      </div>
+                    </div>
+
+                    {/* Agent Action Buttons */}
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAchievementAnalysis(achievement);
+                        }}
+                        className="flex items-center space-x-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                      >
+                        <Brain className="w-4 h-4" />
+                        <span>Analyze with Agents</span>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRepeatStrategy(achievement);
+                        }}
+                        className="flex items-center space-x-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Reinitiate</span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Achievements Timeline */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-8">
-            {filteredAchievements.map((achievement, index) => (
-              <motion.div
-                key={achievement.id}
-                className={`bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 hover:shadow-lg transition-all duration-200 ${getPriorityColor(achievement.priority)}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedAchievement(achievement)}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start space-x-4 flex-1">
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getCategoryColor(achievement.category)}`}>
-                      {getCategoryIcon(achievement.category)}
+      {/* Achievement Detail Modal */}
+      <AnimatePresence>
+        {selectedAchievement && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              initial={{ scale: 0.9, y: 50 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 bg-blue-500 rounded-lg">
+                      {React.createElement(selectedAchievement.icon, { className: "w-6 h-6 text-white" })}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                          {achievement.title}
-                        </h3>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(achievement.category)}`}>
-                          {achievement.category}
-                        </span>
-                        <div className="flex items-center space-x-1 text-yellow-500">
-                          {getAchievementIcon(achievement.type)}
-                        </div>
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">
-                        {achievement.description}
-                      </p>
-                      
-                      {/* Impact Metrics */}
-                      <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              {achievement.impact.metric}
-                            </div>
-                            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                              {achievement.impact.after.toLocaleString()}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
-                              Previous: {achievement.impact.before.toLocaleString()}
-                            </div>
-                            <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                              {achievement.impact.change}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">{selectedAchievement.title}</h2>
+                      <p className="text-gray-600">{selectedAchievement.description}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedAchievement(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
 
-                      {/* Agent Contributions */}
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Agent Contributions
-                        </h4>
-                        <div className="space-y-2">
-                          {achievement.agents.slice(0, 2).map((agent) => (
-                            <div key={agent.id} className="flex items-start space-x-2">
-                              <Brain className="w-4 h-4 text-blue-500 mt-1" />
-                              <div>
-                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                  {agent.name}
-                                </div>
-                                <div className="text-xs text-gray-600 dark:text-gray-400">
-                                  {agent.contribution}
-                                </div>
-                              </div>
+                <div className="space-y-6">
+                  {/* Achievement details */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="font-medium text-gray-700">Date Achieved:</span>
+                      <p className="text-gray-900">{selectedAchievement.date.toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Category:</span>
+                      <p className="text-gray-900 capitalize">{selectedAchievement.category}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Type:</span>
+                      <p className="text-gray-900 capitalize">{selectedAchievement.type}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Impact:</span>
+                      <p className="text-gray-900 capitalize">{selectedAchievement.impact}</p>
+                    </div>
+                  </div>
+
+                  {/* Detailed metrics */}
+                  {selectedAchievement.details && (
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-3">Detailed Metrics</h3>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          {Object.entries(selectedAchievement.details).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-medium text-gray-700 capitalize">
+                                {key.replace(/([A-Z])/g, ' $1').trim()}:
+                              </span>
+                              <p className="text-gray-900">{value}</p>
                             </div>
                           ))}
-                          {achievement.agents.length > 2 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">
-                              +{achievement.agents.length - 2} more agents contributed
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Agent Flow Visualization */}
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Agent Flow & Strategy</h3>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="space-y-3">
+                        {selectedAchievement.agentFlow ? selectedAchievement.agentFlow.map((step, index) => (
+                          <div key={index} className="flex items-center space-x-3">
+                            <div className="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-full text-sm font-medium">
+                              {index + 1}
                             </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Business Impact */}
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Business Impact
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {achievement.businessImpact}
-                        </p>
-                      </div>
-
-                      {/* Date and Actions */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-                          <Calendar className="w-4 h-4" />
-                          <span>{achievement.date.toLocaleDateString('en-US', { 
-                            month: 'long', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          })}</span>
-                        </div>
-                        
-                        {achievement.reinitiable && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleReinitiateAchievement(achievement);
-                            }}
-                            className={`px-4 py-2 bg-gradient-to-r ${adaptiveClasses.primary} text-white rounded-lg hover:opacity-90 transition-all duration-200 flex items-center space-x-2 text-sm`}
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                            <span>Reinitiate</span>
-                          </button>
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-medium text-gray-900">{step.agent}</span>
+                                <span className="text-sm text-gray-500">•</span>
+                                <span className="text-sm text-gray-600">{step.action}</span>
+                              </div>
+                              <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <CheckCircle className="w-4 h-4 text-green-500" />
+                              <span className="text-sm text-green-600">Completed</span>
+                            </div>
+                          </div>
+                        )) : (
+                          <div className="text-center py-4">
+                            <Brain className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                            <p className="text-gray-500">Agent flow data not available for this achievement</p>
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
 
-        {/* Achievements Agent Sidebar */}
-        <div className="w-96 border-l border-gray-200 dark:border-gray-700 flex flex-col">
-          {/* Agent Header */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center">
-                <Trophy className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Achievements Agent</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">AI Success Analysis Assistant</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Chat */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-4">
-              {achievementChat.length === 0 && (
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  <Trophy className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">What achievement would you like to explore?</p>
-                </div>
-              )}
-              
-              {achievementChat.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                      message.type === 'user'
-                        ? `bg-gradient-to-r ${adaptiveClasses.primary} text-white`
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
-                    }`}
-                  >
-                    <p>{message.content}</p>
-                    {message.actions && (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {message.actions.map((action, idx) => (
-                          <button
-                            key={idx}
-                            className="px-2 py-1 bg-white/20 text-xs rounded hover:bg-white/30 transition-colors"
-                          >
-                            {action}
-                          </button>
-                        ))}
+                  {/* Repeat Achievement */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-semibold text-blue-800">Repeat This Achievement</h4>
+                        <p className="text-blue-700 text-sm mt-1">
+                          Deploy the same agent strategy with new targets
+                        </p>
                       </div>
-                    )}
+                      <button
+                        onClick={() => handleRepeatStrategy(selectedAchievement)}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+                      >
+                        <Zap className="w-4 h-4" />
+                        <span>Repeat Strategy</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-              
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-lg">
-                    <div className="flex space-x-1">
-                      {[0, 1, 2].map((i) => (
-                        <motion.div
-                          key={i}
-                          className="w-2 h-2 bg-gray-400 rounded-full"
-                          animate={{ opacity: [0.4, 1, 0.4] }}
-                          transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-                        />
-                      ))}
+
+                  {/* Celebration */}
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">🎉</span>
+                      <div>
+                        <h4 className="font-semibold text-yellow-800">Celebration</h4>
+                        <p className="text-yellow-700">{selectedAchievement.celebration}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Input */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={achievementInput}
-                onChange={(e) => setAchievementInput(e.target.value)}
-                placeholder="Ask about your achievements..."
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(achievementInput)}
-              />
+      {/* Repeat Strategy Modal */}
+      {showRepeatStrategyModal && selectedAchievement && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-4">Repeat Strategy: {selectedAchievement.title}</h2>
+            <p className="text-gray-600 mb-6">
+              Adjust the metrics and parameters to repeat this successful strategy with new targets.
+            </p>
+            
+            <div className="space-y-6">
+              {/* Original Achievement Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold text-gray-900 mb-2">Original Achievement</h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Metric:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.metric || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Value:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.value || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Timeframe:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.timeframe || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Date Achieved:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.dateAchieved.toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* New Strategy Parameters */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Metric</label>
+                  <input
+                    type="text"
+                    value={repeatStrategyData.targetMetric}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, targetMetric: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Monthly Recurring Revenue, Customer Acquisition, etc."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Target Value</label>
+                  <input
+                    type="text"
+                    value={repeatStrategyData.targetValue}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, targetValue: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., $200K, 500 customers, 25% growth"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Timeframe</label>
+                  <select
+                    value={repeatStrategyData.timeframe}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, timeframe: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select timeframe</option>
+                    <option value="1 month">1 Month</option>
+                    <option value="3 months">3 Months</option>
+                    <option value="6 months">6 Months</option>
+                    <option value="1 year">1 Year</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                  <select
+                    value={repeatStrategyData.priority}
+                    onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, priority: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Custom Instructions</label>
+                <textarea
+                  value={repeatStrategyData.customInstructions}
+                  onChange={(e) => setRepeatStrategyData(prev => ({ ...prev, customInstructions: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={4}
+                  placeholder="Add any specific instructions or modifications for this strategy repeat..."
+                />
+              </div>
+
+              {/* Agent Flow Preview */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h3 className="font-semibold text-blue-900 mb-2">Agent Flow Preview</h3>
+                <p className="text-blue-800 text-sm mb-3">
+                  The following agents will be deployed to achieve your new target:
+                </p>
+                <div className="space-y-2">
+                  {selectedAchievement.agentFlow?.map((step, index) => (
+                    <div key={index} className="flex items-center space-x-3 text-sm">
+                      <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <span className="font-medium text-blue-900">{step.agent}</span>
+                        <span className="text-blue-700 ml-2">- {step.action}</span>
+                      </div>
+                    </div>
+                  )) || (
+                    <div className="text-blue-700 text-sm">
+                      Strategy agents will be automatically selected based on your target metric.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
               <button
-                onClick={() => handleSendMessage(achievementInput)}
-                disabled={!achievementInput.trim()}
-                className={`px-4 py-2 bg-gradient-to-r ${adaptiveClasses.primary} text-white rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed`}
+                onClick={() => setShowRepeatStrategyModal(false)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Send
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveRepeatStrategy}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center space-x-2"
+              >
+                <Zap className="w-4 h-4" />
+                <span>Deploy Strategy</span>
               </button>
             </div>
           </div>
-
-          {/* Suggestions */}
-          {suggestions.length > 0 && (
-            <div className="border-t border-gray-200 dark:border-gray-700">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Suggestions</h4>
-                  <button
-                    onClick={() => setShowSuggestions(!showSuggestions)}
-                    className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                  >
-                    {showSuggestions ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                  </button>
-                </div>
-                
-                <AnimatePresence>
-                  {showSuggestions && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-2"
-                    >
-                      {suggestions.map((suggestion) => (
-                        <motion.div
-                          key={suggestion.id}
-                          className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                          whileHover={{ scale: 1.02 }}
-                          onClick={() => handleSuggestion(suggestion)}
-                        >
-                          <div className="flex items-start justify-between mb-1">
-                            <h5 className="text-xs font-medium text-gray-900 dark:text-gray-100">
-                              {suggestion.title}
-                            </h5>
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              suggestion.priority === 'high' ? 'bg-red-100 text-red-800' :
-                              suggestion.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-green-100 text-green-800'
-                            }`}>
-                              {suggestion.priority}
-                            </span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {suggestion.description}
-                          </p>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </div>
-          )}
         </div>
-      </div>
+      )}
     </div>
   );
 };

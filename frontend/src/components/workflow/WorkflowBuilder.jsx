@@ -83,6 +83,13 @@ const WorkflowBuilder = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const [workflowStatus, setWorkflowStatus] = useState('draft'); // draft, running, completed, paused
   const [showSettings, setShowSettings] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showTriggerConfig, setShowTriggerConfig] = useState(false);
+  const [triggerType, setTriggerType] = useState('manual');
+  const [triggerConfig, setTriggerConfig] = useState({});
+  const [contextMenu, setContextMenu] = useState(null);
+  const [showConditionalModal, setShowConditionalModal] = useState(false);
+  const [conditionalNode, setConditionalNode] = useState(null);
+  const [executionLog, setExecutionLog] = useState([]);
   
   const reactFlowWrapper = useRef(null);
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
@@ -250,6 +257,83 @@ const WorkflowBuilder = ({ onNavigateToChat, onNavigateToDashboard }) => {
     },
     [setEdges]
   );
+
+  // Enhanced functionality handlers
+  const handleTriggerConfig = () => {
+    setShowTriggerConfig(true);
+  };
+
+  const handleDeleteNode = (nodeId) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    setContextMenu(null);
+  };
+
+  const handleNodeContextMenu = (event, node) => {
+    event.preventDefault();
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      nodeId: node.id
+    });
+  };
+
+  const handleConditionalNode = (node) => {
+    setConditionalNode(node);
+    setShowConditionalModal(true);
+  };
+
+  const handleSaveTriggerConfig = () => {
+    // Save trigger configuration
+    const triggerNode = {
+      id: 'trigger-1',
+      type: 'trigger',
+      position: { x: 100, y: 100 },
+      data: { 
+        label: `Trigger: ${triggerType}`,
+        triggerType,
+        config: triggerConfig
+      },
+    };
+    setNodes((nds) => [...nds, triggerNode]);
+    setShowTriggerConfig(false);
+    triggerCelebration(CelebrationType.EFFICIENCY, {
+      message: "Trigger configured! ⚡",
+      intensity: 'normal'
+    });
+  };
+
+  const handleExecuteWorkflow = async () => {
+    setIsRunning(true);
+    setWorkflowStatus('running');
+    setExecutionLog([]);
+    
+    // Simulate workflow execution
+    const logEntry = {
+      id: Date.now(),
+      timestamp: new Date(),
+      message: 'Workflow execution started',
+      type: 'info'
+    };
+    setExecutionLog([logEntry]);
+    
+    // Simulate node execution
+    setTimeout(() => {
+      const successLog = {
+        id: Date.now() + 1,
+        timestamp: new Date(),
+        message: 'All nodes executed successfully',
+        type: 'success'
+      };
+      setExecutionLog(prev => [...prev, successLog]);
+      setIsRunning(false);
+      setWorkflowStatus('completed');
+      triggerCelebration(CelebrationType.MILESTONE, {
+        message: "Workflow completed! 🎉",
+        intensity: 'normal'
+      });
+    }, 3000);
+  };
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -421,7 +505,15 @@ const WorkflowBuilder = ({ onNavigateToChat, onNavigateToDashboard }) => {
             </button>
             
             <button
-              onClick={handleRunWorkflow}
+              onClick={handleTriggerConfig}
+              className={`px-4 py-2 ${adaptiveClasses.secondary} ${adaptiveClasses.text} rounded-lg hover:opacity-80 transition-all duration-200 flex items-center space-x-2 border ${adaptiveClasses.border}`}
+            >
+              <Zap className="w-4 h-4" />
+              <span>Configure Trigger</span>
+            </button>
+            
+            <button
+              onClick={handleExecuteWorkflow}
               disabled={isRunning || nodes.length === 0}
               className={`px-4 py-2 bg-gradient-to-r ${adaptiveClasses.primary} text-white rounded-lg hover:opacity-90 transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed`}
             >
@@ -526,6 +618,7 @@ const WorkflowBuilder = ({ onNavigateToChat, onNavigateToDashboard }) => {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onNodeContextMenu={handleNodeContextMenu}
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
@@ -639,6 +732,254 @@ const WorkflowBuilder = ({ onNavigateToChat, onNavigateToDashboard }) => {
                   <option value="error">Error</option>
                 </select>
               </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Trigger Configuration Modal */}
+        <AnimatePresence>
+          {showTriggerConfig && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-md"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  Configure Trigger
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Trigger Type
+                    </label>
+                    <select
+                      value={triggerType}
+                      onChange={(e) => setTriggerType(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="manual">Manual</option>
+                      <option value="schedule">Scheduled</option>
+                      <option value="webhook">Webhook</option>
+                      <option value="email">Email</option>
+                      <option value="file">File Upload</option>
+                      <option value="api">API Call</option>
+                    </select>
+                  </div>
+                  
+                  {triggerType === 'schedule' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Schedule (Cron Expression)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="0 9 * * 1-5 (Weekdays at 9 AM)"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                  
+                  {triggerType === 'webhook' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Webhook URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://your-domain.com/webhook"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setShowTriggerConfig(false)}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveTriggerConfig}
+                    className={`px-4 py-2 bg-gradient-to-r ${adaptiveClasses.primary} text-white rounded-lg hover:opacity-90 transition-all duration-200`}
+                  >
+                    Save Trigger
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Context Menu */}
+        <AnimatePresence>
+          {contextMenu && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="fixed z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1"
+              style={{
+                left: contextMenu.x,
+                top: contextMenu.y,
+              }}
+              onMouseLeave={() => setContextMenu(null)}
+            >
+              <button
+                onClick={() => handleDeleteNode(contextMenu.nodeId)}
+                className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors flex items-center space-x-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Node</span>
+              </button>
+              <button
+                onClick={() => {
+                  setContextMenu(null);
+                  // Add duplicate node functionality
+                }}
+                className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Duplicate Node</span>
+              </button>
+              <button
+                onClick={() => {
+                  setContextMenu(null);
+                  // Add conditional logic functionality
+                }}
+                className="w-full px-4 py-2 text-left text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2"
+              >
+                <Target className="w-4 h-4" />
+                <span>Add Condition</span>
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Conditional Logic Modal */}
+        <AnimatePresence>
+          {showConditionalModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-lg"
+              >
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  Configure Conditional Logic
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Condition Type
+                    </label>
+                    <select className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">
+                      <option value="if">If</option>
+                      <option value="switch">Switch</option>
+                      <option value="loop">Loop</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Condition Expression
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., status === 'active'"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      True Path Action
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Action when condition is true"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      False Path Action
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Action when condition is false"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 mt-6">
+                  <button
+                    onClick={() => setShowConditionalModal(false)}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowConditionalModal(false);
+                      triggerCelebration(CelebrationType.EFFICIENCY, {
+                        message: "Conditional logic configured! ⚡",
+                        intensity: 'normal'
+                      });
+                    }}
+                    className={`px-4 py-2 bg-gradient-to-r ${adaptiveClasses.primary} text-white rounded-lg hover:opacity-90 transition-all duration-200`}
+                  >
+                    Save Condition
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Execution Log */}
+        {executionLog.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="fixed bottom-4 right-4 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 z-40"
+          >
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Execution Log
+            </h4>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {executionLog.map((log) => (
+                <div key={log.id} className="text-sm">
+                  <span className="text-gray-500 dark:text-gray-400">
+                    {log.timestamp.toLocaleTimeString()}
+                  </span>
+                  <span className={`ml-2 ${
+                    log.type === 'success' ? 'text-green-600' :
+                    log.type === 'error' ? 'text-red-600' :
+                    'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    {log.message}
+                  </span>
+                </div>
+              ))}
             </div>
           </motion.div>
         )}

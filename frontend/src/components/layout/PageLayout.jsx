@@ -31,3 +31,4 @@ const PageLayout = ({ children, currentView, onNavigate }) => {
 };
 
 export default PageLayout;
+

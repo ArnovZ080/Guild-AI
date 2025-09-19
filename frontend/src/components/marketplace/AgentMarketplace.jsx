@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
-import { allAgents, agentCategories } from '../../data/agents';
+import { allAgents, agentCategories, categoryMetadata, agentLookup, agentStats } from '../../data/all_agents';
 
 const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const { currentMode, getModeColors } = useAdaptiveMode();
@@ -34,7 +34,7 @@ const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('popularity');
-  const [activeAgents, setActiveAgents] = useState(new Set(['orchestrator_agent', 'enhanced_campaign_agent', 'content_strategist']));
+  const [activeAgents, setActiveAgents] = useState(new Set(['orchestrator', 'marketing', 'content']));
 
   const adaptiveClasses = getModeColors(currentMode);
 

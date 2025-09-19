@@ -30,10 +30,13 @@ import {
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import AgentWorkflowVisualizer from '../agents/AgentWorkflowVisualizer';
 
 const GrowthOpportunitiesView = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const { currentMode, getModeColors } = useAdaptiveMode();
   const { triggerCelebration } = useCelebrations();
+  const { sendTaskToAgent, agentMessages, pendingResponses } = useAgentCommunication();
   const [opportunities, setOpportunities] = useState([]);
   const [selectedOpportunity, setSelectedOpportunity] = useState(null);
   const [growthChat, setGrowthChat] = useState([]);
@@ -41,8 +44,128 @@ const GrowthOpportunitiesView = ({ onNavigateToChat, onNavigateToDashboard }) =>
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all', 'high_impact', 'quick_wins', 'strategic'
+  const [agentWorkflow, setAgentWorkflow] = useState([]);
+  const [showWorkflow, setShowWorkflow] = useState(false);
 
   const adaptiveClasses = getModeColors(currentMode);
+
+  // Real agent integration for growth opportunities
+  const handleOpportunityAnalysis = async (opportunity) => {
+    try {
+      setShowWorkflow(true);
+      
+      // Step 1: Research Agent analyzes the opportunity
+      await sendTaskToAgent('research_agent', {
+        type: 'opportunity_research',
+        opportunity: opportunity,
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now(),
+        step: 'opportunity_research',
+        agent: 'Research Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        data: opportunity
+      }]);
+
+      // Step 2: Strategy Agent develops implementation plan
+      await sendTaskToAgent('strategy_agent', {
+        type: 'opportunity_strategy',
+        opportunity: opportunity,
+        previous_agent: 'research_agent',
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 1,
+        step: 'opportunity_strategy',
+        agent: 'Strategy Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'opportunity_research'
+      }]);
+
+      // Step 3: Market Trends Agent validates market conditions
+      await sendTaskToAgent('market_trends_agent', {
+        type: 'market_validation',
+        opportunity: opportunity,
+        previous_agents: ['research_agent', 'strategy_agent'],
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 2,
+        step: 'market_validation',
+        agent: 'Market Trends Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'opportunity_strategy'
+      }]);
+
+      // Step 4: Orchestrator creates implementation plan
+      await sendTaskToAgent('orchestrator', {
+        type: 'opportunity_implementation',
+        opportunity: opportunity,
+        previous_agents: ['research_agent', 'strategy_agent', 'market_trends_agent'],
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 3,
+        step: 'opportunity_implementation',
+        agent: 'Orchestrator Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'market_validation'
+      }]);
+
+    } catch (error) {
+      console.error('Error in opportunity workflow:', error);
+    }
+  };
+
+  const handleAcceptOpportunity = async (opportunity) => {
+    try {
+      setShowWorkflow(true);
+      
+      // Accept opportunity and start implementation
+      await sendTaskToAgent('orchestrator', {
+        type: 'accept_opportunity',
+        opportunity: opportunity,
+        action: 'accept',
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now(),
+        step: 'accept_opportunity',
+        agent: 'Orchestrator Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        data: { opportunity, action: 'accept' }
+      }]);
+
+    } catch (error) {
+      console.error('Error accepting opportunity:', error);
+    }
+  };
+
+  const handleDeclineOpportunity = async (opportunity) => {
+    try {
+      // Decline opportunity and provide feedback
+      await sendTaskToAgent('strategy_agent', {
+        type: 'decline_opportunity',
+        opportunity: opportunity,
+        action: 'decline',
+        user_id: 'current_user'
+      });
+
+    } catch (error) {
+      console.error('Error declining opportunity:', error);
+    }
+  };
 
   // Mock opportunities data
   useEffect(() => {
@@ -345,21 +468,24 @@ const GrowthOpportunitiesView = ({ onNavigateToChat, onNavigateToDashboard }) =>
     setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
   };
 
-  const handleOpportunityAction = (opportunity, action) => {
+  const handleOpportunityAction = async (opportunity, action) => {
     switch (action) {
       case 'accept':
+        await handleAcceptOpportunity(opportunity);
         triggerCelebration(CelebrationType.MILESTONE, {
           message: `Opportunity accepted: ${opportunity.title}! 🎯`,
           intensity: 'normal'
         });
         break;
       case 'decline':
+        await handleDeclineOpportunity(opportunity);
         triggerCelebration(CelebrationType.EFFICIENCY, {
           message: `Opportunity declined: ${opportunity.title}`,
           intensity: 'subtle'
         });
         break;
       case 'research':
+        await handleOpportunityAnalysis(opportunity);
         triggerCelebration(CelebrationType.COLLABORATION, {
           message: `Research initiated for: ${opportunity.title}! 🔍`,
           intensity: 'normal'
@@ -460,6 +586,16 @@ const GrowthOpportunitiesView = ({ onNavigateToChat, onNavigateToDashboard }) =>
           </div>
         </div>
       </div>
+
+      {/* Agent Workflow Visualization */}
+      {showWorkflow && (
+        <div className="flex-shrink-0 p-6 border-b border-gray-200 dark:border-gray-700">
+          <AgentWorkflowVisualizer 
+            workflowType="growth_opportunity"
+            showRealTimeUpdates={true}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
@@ -763,3 +899,4 @@ const GrowthOpportunitiesView = ({ onNavigateToChat, onNavigateToDashboard }) =>
 };
 
 export default GrowthOpportunitiesView;
+

@@ -25,10 +25,12 @@ import {
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
 
 const GoalsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const { currentMode, getModeColors } = useAdaptiveMode();
   const { triggerCelebration } = useCelebrations();
+  const { sendTaskToAgent, agentMessages, pendingResponses } = useAgentCommunication();
   const [goals, setGoals] = useState([]);
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [showAddGoal, setShowAddGoal] = useState(false);
@@ -36,8 +38,68 @@ const GoalsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const [goalInput, setGoalInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [agentWorkflow, setAgentWorkflow] = useState([]);
 
   const adaptiveClasses = getModeColors(currentMode);
+
+  // Real agent integration for goal setting
+  const handleGoalSubmission = async (goalData) => {
+    try {
+      // Step 1: Send to Goal Setting Agent
+      await sendTaskToAgent('okr_goal_tracking', {
+        type: 'goal_creation',
+        goal: goalData,
+        user_id: 'current_user'
+      });
+
+      // Add to workflow tracking
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now(),
+        step: 'goal_creation',
+        agent: 'Goal Setting Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        data: goalData
+      }]);
+
+      // Step 2: Strategy Agent will be triggered automatically
+      await sendTaskToAgent('strategy_agent', {
+        type: 'goal_strategy',
+        goal: goalData,
+        previous_agent: 'okr_goal_tracking',
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 1,
+        step: 'strategy_development',
+        agent: 'Strategy Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'goal_creation'
+      }]);
+
+      // Step 3: Orchestrator will coordinate execution
+      await sendTaskToAgent('orchestrator', {
+        type: 'execute_strategy',
+        goal: goalData,
+        previous_agents: ['okr_goal_tracking', 'strategy_agent'],
+        user_id: 'current_user'
+      });
+
+      setAgentWorkflow(prev => [...prev, {
+        id: Date.now() + 2,
+        step: 'strategy_execution',
+        agent: 'Orchestrator Agent',
+        status: 'processing',
+        timestamp: new Date(),
+        depends_on: 'strategy_development'
+      }]);
+
+    } catch (error) {
+      console.error('Error in goal workflow:', error);
+    }
+  };
 
   // Mock goals data
   useEffect(() => {
@@ -548,3 +610,4 @@ const GoalsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
 };
 
 export default GoalsView;
+

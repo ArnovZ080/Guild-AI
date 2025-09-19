@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
 import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations';
+import { AgentCommunicationProvider } from './contexts/AgentCommunicationContext';
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import DashboardLayout from './components/layout/DashboardLayout';
 import PageLayout from './components/layout/PageLayout';
@@ -12,6 +13,9 @@ import WorkflowBuilder from './components/workflow/WorkflowBuilder';
 import GoalsView from './components/goals/GoalsView';
 import AchievementsView from './components/achievements/AchievementsView';
 import GrowthOpportunitiesView from './components/growth/GrowthOpportunitiesView';
+import CustomersView from './components/customers/CustomersView';
+import ConversationsView from './components/conversations/ConversationsView';
+import ConnectorsView from './components/connectors/ConnectorsView';
 
 function App() {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
@@ -163,7 +167,8 @@ function App() {
   return (
     <AdaptiveModeProvider>
       <CelebrationProvider>
-        <div className="min-h-screen">
+        <AgentCommunicationProvider>
+          <div className="min-h-screen">
           {currentView === 'onboarding' && (
             <OnboardingFlow onComplete={handleOnboardingComplete} />
           )}
@@ -246,7 +251,35 @@ function App() {
               />
             </PageLayout>
           )}
+          
+          {currentView === 'customers' && (
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <CustomersView
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
+          )}
+          
+          {currentView === 'conversations' && (
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <ConversationsView
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
+          )}
+          
+          {currentView === 'connectors' && (
+            <PageLayout currentView={currentView} onNavigate={handleNavigate}>
+              <ConnectorsView
+                onNavigateToChat={handleNavigateToChat}
+                onNavigateToDashboard={handleNavigateToDashboard}
+              />
+            </PageLayout>
+          )}
         </div>
+        </AgentCommunicationProvider>
       </CelebrationProvider>
     </AdaptiveModeProvider>
   );

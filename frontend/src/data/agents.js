@@ -139,3 +139,4 @@ export const agentCategories = [
   { id: 'meta', name: 'Meta-Agents', icon: '🔧', count: allAgents.filter(a => a.category === 'meta').length },
   { id: 'marketing', name: 'Campaign & Marketing', icon: '🚀', count: allAgents.filter(a => a.category === 'marketing').length }
 ];
+

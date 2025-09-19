@@ -27,10 +27,20 @@ import {
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import AgentMessageHandler from '../agents/AgentMessageHandler';
+import TaskDelegationPanel from '../agents/TaskDelegationPanel';
 
 const ClaudeStyleChat = ({ onNavigateToDashboard, onNavigateToMarketplace, onNavigateToCalendar, onNavigateToGoals, onNavigateToAchievements, onNavigateToGrowth, onNavigateToCustomers, onNavigateToConversations, onNavigateToConnectors }) => {
   const { triggerCelebration } = useCelebrations();
   const { currentMode, timeOfDay } = useAdaptiveMode();
+  const { 
+    sendTaskToAgent, 
+    activeSessions, 
+    pendingResponses, 
+    hasPendingResponses,
+    agentMessages 
+  } = useAgentCommunication();
   
   // Check if user has completed onboarding
   const onboardingData = localStorage.getItem('guild_onboarding_data');
@@ -248,7 +258,7 @@ const ClaudeStyleChat = ({ onNavigateToDashboard, onNavigateToMarketplace, onNav
   return (
     <div className="flex h-screen bg-white dark:bg-gray-900">
       {/* Left Sidebar - Expandable */}
-      <div className={`${sidebarExpanded ? 'w-80' : 'w-16'} bg-gray-50 dark:bg-gray-800 flex flex-col transition-all duration-300 border-r border-gray-200 dark:border-gray-700`}>
+      <div className={`${sidebarExpanded ? 'w-64' : 'w-16'} bg-gray-50 dark:bg-gray-800 flex flex-col transition-all duration-300 border-r border-gray-200 dark:border-gray-700`}>
         {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
@@ -407,7 +417,7 @@ const ClaudeStyleChat = ({ onNavigateToDashboard, onNavigateToMarketplace, onNav
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto px-6 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <AnimatePresence>
               {messages.map((message, index) => (
                 <motion.div
@@ -434,7 +444,7 @@ const ClaudeStyleChat = ({ onNavigateToDashboard, onNavigateToMarketplace, onNav
                   
                   {/* Message Content */}
                   <div className={`flex-1 ${message.type === 'user' ? 'text-right' : ''}`}>
-                    <div className={`inline-block max-w-3xl ${
+                    <div className={`inline-block max-w-4xl ${
                       message.type === 'user'
                         ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-3 rounded-2xl'
                         : 'text-gray-900 dark:text-gray-100'
@@ -478,6 +488,27 @@ const ClaudeStyleChat = ({ onNavigateToDashboard, onNavigateToMarketplace, onNav
             )}
             
             <div ref={messagesEndRef} />
+            
+            {/* Agent Communication Components */}
+            <div className="mt-8 space-y-6">
+              <AgentMessageHandler 
+                onMessageReceived={(message) => {
+                  // Handle agent message responses
+                  console.log('Agent message received:', message);
+                }}
+              />
+              
+              {hasPendingResponses && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 text-blue-800 dark:text-blue-200">
+                    <MessageSquare className="w-5 h-5" />
+                    <span className="font-medium">
+                      You have {Object.keys(pendingResponses).length} pending clarification request(s) from agents
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
