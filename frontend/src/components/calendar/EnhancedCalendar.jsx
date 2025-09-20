@@ -24,7 +24,7 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
 import AgentWorkflowVisualizer from '../agents/AgentWorkflowVisualizer';

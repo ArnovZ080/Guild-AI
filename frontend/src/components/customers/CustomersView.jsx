@@ -20,7 +20,7 @@ import {
   Download
 } from 'lucide-react';
 import CustomerJourneyConstellation from '../visualizations/CustomerJourneyConstellation';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 
 // Mock customer data
 const mockCustomers = [

@@ -67,7 +67,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 
 const WorkflowBuilder = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const { currentMode, getModeColors } = useAdaptiveMode();

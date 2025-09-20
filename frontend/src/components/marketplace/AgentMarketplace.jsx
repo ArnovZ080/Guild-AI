@@ -25,7 +25,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 import { allAgents, agentCategories, categoryMetadata, agentLookup, agentStats } from '../../data/all_agents';
 
 const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {

@@ -24,7 +24,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
 
 const GoalsView = ({ onNavigateToChat, onNavigateToDashboard }) => {

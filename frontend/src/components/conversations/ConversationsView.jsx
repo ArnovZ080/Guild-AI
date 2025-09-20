@@ -26,7 +26,7 @@ import {
   DollarSign,
   Zap
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 
 // Mock conversation data
 const mockConversations = [

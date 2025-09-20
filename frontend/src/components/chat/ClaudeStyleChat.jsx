@@ -14,7 +14,7 @@ import {
   Users,
   ArrowRight
 } from 'lucide-react';
-import { useCelebrations } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations } from '../psychological/EnhancedMicroCelebrations.tsx';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
 import onboardingFollowUpService from '../../services/onboardingFollowUpService';

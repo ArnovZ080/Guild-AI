@@ -35,7 +35,7 @@ import {
   Star,
   StarOff
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
 
 // Mock connector data
 const mockConnectors = [
