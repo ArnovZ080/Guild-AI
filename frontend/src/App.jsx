@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
-import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations.tsx';
-import { AgentCommunicationProvider } from './contexts/AgentCommunicationContext';
+import { CelebrationProvider } from './components/psychological/SimpleCelebrationProvider';
+import { AgentCommunicationProvider } from './contexts/AgentCommunicationContext.simple';
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import { MainDashboard } from './components/dashboard/MainDashboard';
 import PageLayout from './components/layout/PageLayout';
