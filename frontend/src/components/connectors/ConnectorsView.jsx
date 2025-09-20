@@ -38,7 +38,7 @@ import {
   Save
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/SimpleCelebrationProvider';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.fixed';
 
 const ConnectorsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const { currentMode, getModeColors } = useAdaptiveMode();

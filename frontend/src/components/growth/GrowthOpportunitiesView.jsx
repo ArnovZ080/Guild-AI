@@ -29,7 +29,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/SimpleCelebrationProvider';
+import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.fixed';
 import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import AgentWorkflowVisualizer from '../agents/AgentWorkflowVisualizer';
 
