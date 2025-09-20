@@ -39,10 +39,15 @@ const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
   const adaptiveClasses = getModeColors(currentMode);
 
   // Agent data is now imported from the data file
-  const categories = agentCategories;
+  const categories = agentCategories || [];
+  const agents = allAgents || [];
+
+  // Add loading state and error handling
+  const isLoading = !agents.length && !categories.length;
+  const hasError = !agents || !categories;
 
   const filteredAgents = useMemo(() => {
-    let filtered = allAgents;
+    let filtered = agents;
 
     // Filter by search query
     if (searchQuery) {
@@ -114,6 +119,34 @@ const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
       default: return 'text-gray-600 bg-gray-50';
     }
   };
+
+  // Show loading or error state
+  if (hasError) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Error Loading Agents
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">
+            Unable to load agent data. Please try refreshing the page.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading agents...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`min-h-screen ${adaptiveClasses.background} p-6`}>
@@ -309,7 +342,7 @@ const AgentMarketplace = ({ onNavigateToChat, onNavigateToDashboard }) => {
                 <div className="mb-4">
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Capabilities:</p>
                   <div className="flex flex-wrap gap-1">
-                    {agent.capabilities.slice(0, 3).map((capability, idx) => (
+                    {(agent.capabilities || []).slice(0, 3).map((capability, idx) => (
                       <span
                         key={idx}
                         className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md"

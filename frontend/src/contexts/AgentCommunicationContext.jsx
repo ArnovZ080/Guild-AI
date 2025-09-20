@@ -26,6 +26,15 @@ export const AgentCommunicationProvider = ({ children }) => {
       ws.close();
     }
 
+    // Only connect to WebSocket in development or when backend is available
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const hasBackend = window.location.hostname === 'localhost' || process.env.REACT_APP_BACKEND_URL;
+    
+    if (!isDevelopment && !hasBackend) {
+      console.log('WebSocket disabled in production - backend not available');
+      return;
+    }
+
     const wsUrl = sessionId 
       ? `ws://localhost:8000/api/agents/ws/${userId}/${sessionId}`
       : `ws://localhost:8000/api/agents/ws/${userId}/general`;
@@ -60,6 +69,10 @@ export const AgentCommunicationProvider = ({ children }) => {
     websocket.onerror = (error) => {
       console.error('WebSocket error:', error);
       setIsConnected(false);
+      // Don't show error in production if backend is not available
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('WebSocket connection failed - backend may not be running');
+      }
     };
 
     setWs(websocket);
