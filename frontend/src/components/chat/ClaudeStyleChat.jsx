@@ -14,9 +14,9 @@ import {
   Users,
   ArrowRight
 } from 'lucide-react';
-import { useCelebrations } from '../psychological/EnhancedMicroCelebrations.tsx';
+import { useCelebrations } from '../psychological/SimpleCelebrationProvider';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import onboardingFollowUpService from '../../services/onboardingFollowUpService';
 
 const ClaudeStyleChat = ({ onNavigateToDashboard, onNavigateToMarketplace, onNavigateToCalendar, onNavigateToGoals, onNavigateToAchievements, onNavigateToGrowth, onNavigateToCustomers, onNavigateToConversations, onNavigateToConnectors }) => {

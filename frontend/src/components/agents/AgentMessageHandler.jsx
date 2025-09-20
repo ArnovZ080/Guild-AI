@@ -13,7 +13,7 @@ import {
   User,
   Loader2
 } from 'lucide-react';
-import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
 const AgentMessageHandler = ({ onMessageReceived, className = "" }) => {

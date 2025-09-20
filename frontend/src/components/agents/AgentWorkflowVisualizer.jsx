@@ -14,7 +14,7 @@ import {
   Trophy,
   Search
 } from 'lucide-react';
-import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
 const AgentWorkflowVisualizer = ({ 

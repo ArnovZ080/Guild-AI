@@ -26,7 +26,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import AgentWorkflowVisualizer from '../agents/AgentWorkflowVisualizer';
 
 // Mock achievements data

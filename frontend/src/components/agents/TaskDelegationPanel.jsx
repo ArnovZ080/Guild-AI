@@ -14,9 +14,9 @@ import {
   Users,
   Zap
 } from 'lucide-react';
-import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
+import { useCelebrations, CelebrationType } from '../psychological/SimpleCelebrationProvider';
 
 const TaskDelegationPanel = ({ className = "" }) => {
   const { 

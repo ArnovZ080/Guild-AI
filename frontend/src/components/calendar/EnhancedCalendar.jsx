@@ -24,9 +24,9 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
+import { useCelebrations, CelebrationType } from '../psychological/SimpleCelebrationProvider';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
-import { useAgentCommunication } from '../../contexts/AgentCommunicationContext';
+import { useAgentCommunication } from '../../contexts/AgentCommunicationContext.simple';
 import AgentWorkflowVisualizer from '../agents/AgentWorkflowVisualizer';
 
 // Mock data for calendar events
