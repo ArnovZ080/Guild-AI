@@ -132,7 +132,7 @@ const AgentMessageHandler = ({ onMessageReceived, className = "" }) => {
               Agent Clarifications
             </h3>
             
-            {Object.entries(pendingResponses).map(([messageId, request]) => (
+            {Object.entries(pendingResponses || {}).map(([messageId, request]) => (
               <motion.div
                 key={messageId}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -206,7 +206,7 @@ const AgentMessageHandler = ({ onMessageReceived, className = "" }) => {
           </h3>
           
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {agentMessages.map((message) => (
+            {(agentMessages || []).map((message) => (
               <motion.div
                 key={message.id}
                 initial={{ opacity: 0, x: -20 }}

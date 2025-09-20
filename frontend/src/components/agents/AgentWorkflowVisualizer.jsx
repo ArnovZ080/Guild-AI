@@ -213,10 +213,15 @@ const AgentWorkflowVisualizer = ({
     ]
   };
 
-  const currentTemplate = workflowTemplates[workflowType] || workflowTemplates.goal_setting;
+  const currentTemplate = workflowTemplates[workflowType] || workflowTemplates.goal_setting || [];
 
   // Initialize workflow steps
   useEffect(() => {
+    if (!currentTemplate || !Array.isArray(currentTemplate)) {
+      console.warn('Invalid workflow template:', workflowType);
+      return;
+    }
+    
     setWorkflowSteps(currentTemplate.map((step, index) => ({
       ...step,
       status: index === 0 ? 'processing' : 'pending',
@@ -239,7 +244,7 @@ const AgentWorkflowVisualizer = ({
   }, [agentMessages, showRealTimeUpdates]);
 
   const updateWorkflowStep = (agentId, message) => {
-    setWorkflowSteps(prev => prev.map(step => {
+    setWorkflowSteps(prev => (prev || []).map(step => {
       if (step.agent_id === agentId || (agentId === 'multiple' && step.id === 'execution')) {
         return {
           ...step,
@@ -317,7 +322,7 @@ const AgentWorkflowVisualizer = ({
       {/* Workflow Steps */}
       <div className="space-y-4">
         <AnimatePresence>
-          {workflowSteps.map((step, index) => (
+          {(workflowSteps || []).map((step, index) => (
             <motion.div
               key={step.id}
               initial={{ opacity: 0, x: -20 }}
