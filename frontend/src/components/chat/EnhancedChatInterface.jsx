@@ -25,7 +25,7 @@ import {
   Plus,
   X
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/EnhancedMicroCelebrations.tsx';
+import { useCelebrations, CelebrationType } from '../psychological/SimpleCelebrationProvider';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
 const EnhancedChatInterface = ({ onNavigateToDashboard }) => {
