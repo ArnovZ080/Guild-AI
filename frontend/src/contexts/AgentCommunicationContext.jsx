@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useCelebrations, CelebrationType } from '../components/psychological/EnhancedMicroCelebrations';
+import { useCelebrations, CelebrationType } from '../components/psychological/EnhancedMicroCelebrations.tsx';
 
 const AgentCommunicationContext = createContext();
 
