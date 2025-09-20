@@ -1,6 +1,11 @@
 from fastapi import FastAPI  # type: ignore[reportMissingImports]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[reportMissingImports]
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 import os
+
+# Security imports
+from .security.security_middleware import SecurityMiddleware, SecurityHeadersMiddleware
+from .security.env_validator import EnvironmentValidator
 
 # Skip database initialization for demo
 # from .database import engine, Base
@@ -12,6 +17,16 @@ app = FastAPI(
     title="Guild API Server",
     description="The API for orchestrating the Guild AI workforce.",
     version="1.0.0"
+)
+
+# Security middleware (applied first)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(SecurityMiddleware)
+
+# Trusted host middleware
+app.add_middleware(
+    TrustedHostMiddleware, 
+    allowed_hosts=["localhost", "127.0.0.1", "*.yourdomain.com"]  # Update with your domains
 )
 
 # CORS configuration
@@ -33,16 +48,21 @@ async def startup_event():
 
 
 # Import routes
-from .routes import agents, oauth, document_processing, execution_layer, connectors, onboarding, workspace
+from .routes import agents, oauth, document_processing, auth, subscription, credits
+from .routes import execution_layer, connectors, onboarding, workspace
 
 # Include routers
 app.include_router(agents.router)
 app.include_router(oauth.router)
 app.include_router(document_processing.router)
+app.include_router(auth.router)
+app.include_router(subscription.router)
+app.include_router(credits.router)
 app.include_router(execution_layer.router)
 app.include_router(connectors.router)
 app.include_router(onboarding.router)
 app.include_router(workspace.router)
+# app.include_router(business_metrics.router)  # Module doesn't exist
 
 # Comment out other routes that depend on database
 # from api_server.src.routes import workflows, data_rooms, onboarding, schedules, webhooks, vision, voice

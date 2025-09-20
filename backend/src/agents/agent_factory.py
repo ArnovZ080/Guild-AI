@@ -42,6 +42,215 @@ class AgentFactory:
         # Create agent based on type
         if agent_metadata.get('category') == 'finance':
             agent = BookkeepingAgent(name=agent_metadata['name'])
+        elif agent_metadata.get('agent_id') == 'strategic_sounding_board':
+            agent = StrategicSoundingBoardAgent()
+        elif agent_metadata.get('agent_id') == 'supplier_research':
+            agent = SupplierResearchAgent()
+        elif agent_metadata.get('agent_id') == 'seo':
+            agent = SeoAgent()
+        elif agent_metadata.get('agent_id') == 'paid_ads':
+            agent = PaidAdsAgent()
+        elif agent_metadata.get('agent_id') == 'brand_strategist':
+            agent = BrandStrategistAgent()
+        elif agent_metadata.get('agent_id') == 'contract_analyzer':
+            agent = ContractAnalyzerAgent()
+        elif agent_metadata.get('agent_id') == 'investor_relations':
+            agent = InvestorRelationsAgent()
+        elif agent_metadata.get('agent_id') == 'content_strategist':
+            agent = ContentStrategistAgent()
+        elif agent_metadata.get('agent_id') == 'product_manager':
+            agent = ProductManagerAgent()
+        elif agent_metadata.get('agent_id') == 'tax_advisor':
+            agent = TaxAdvisorAgent()
+        elif agent_metadata.get('agent_id') == 'motivation_coach':
+            agent = MotivationCoachAgent()
+        elif agent_metadata.get('agent_id') == 'partnerships':
+            agent = PartnershipsAgent()
+        elif agent_metadata.get('agent_id') == 'okr_goal_tracking':
+            agent = OkrGoalTrackingAgent()
+        elif agent_metadata.get('agent_id') == 'proposal_writer':
+            agent = ProposalWriterAgent()
+        elif agent_metadata.get('agent_id') == 'affiliate_partnerships':
+            agent = AffiliatePartnershipsAgent()
+        elif agent_metadata.get('agent_id') == 'outsourcing':
+            agent = OutsourcingAgent()
+        elif agent_metadata.get('agent_id') == '_evaluator':
+            agent = EvaluatorAgent()
+        elif agent_metadata.get('agent_id') == 'sales_funnel':
+            agent = SalesFunnelAgent()
+        elif agent_metadata.get('agent_id') == 'pr_outreach':
+            agent = PrOutreachAgent()
+        elif agent_metadata.get('agent_id') == 'knowledge_updater':
+            agent = KnowledgeUpdaterAgent()
+        elif agent_metadata.get('agent_id') == 'content_repurposer':
+            agent = ContentRepurposerAgent()
+        elif agent_metadata.get('agent_id') == 'automation_bridge':
+            agent = AutomationBridgeAgent()
+        elif agent_metadata.get('agent_id') == 'judge':
+            agent = JudgeAgent()
+        elif agent_metadata.get('agent_id') == 'learning':
+            agent = LearningAgent()
+        elif agent_metadata.get('agent_id') == 'outbound_sales':
+            agent = OutboundSalesAgent()
+        elif agent_metadata.get('agent_id') == 'copywriter':
+            agent = CopywriterAgent()
+        elif agent_metadata.get('agent_id') == 'business_strategist':
+            agent = BusinessStrategistAgent()
+        elif agent_metadata.get('agent_id') == 'icp_evolution':
+            agent = IcpEvolutionAgent()
+        elif agent_metadata.get('agent_id') == 'competitive_intelligence':
+            agent = CompetitiveIntelligenceAgent()
+        elif agent_metadata.get('agent_id') == 'unified_automation':
+            agent = UnifiedAutomationAgent()
+        elif agent_metadata.get('agent_id') == 'influencer_outreach':
+            agent = InfluencerOutreachAgent()
+        elif agent_metadata.get('agent_id') == 'business_strategist':
+            agent = BusinessStrategistAgent()
+        elif agent_metadata.get('agent_id') == 'skill_development':
+            agent = SkillDevelopmentAgent()
+        elif agent_metadata.get('agent_id') == 'trend_spotter':
+            agent = TrendSpotterAgent()
+        elif agent_metadata.get('agent_id') == 'sop':
+            agent = SopAgent()
+        elif agent_metadata.get('agent_id') == 'wellness':
+            agent = WellnessAgent()
+        elif agent_metadata.get('agent_id') == 'risk_management':
+            agent = RiskManagementAgent()
+        elif agent_metadata.get('agent_id') == 'enhanced_campaign':
+            agent = EnhancedCampaignAgent()
+        elif agent_metadata.get('agent_id') == 'hr':
+            agent = HrAgent()
+        elif agent_metadata.get('agent_id') == 'investor_update':
+            agent = InvestorUpdateAgent()
+        elif agent_metadata.get('agent_id') == 'community_connector':
+            agent = CommunityConnectorAgent()
+        elif agent_metadata.get('agent_id') == 'scenario_planner':
+            agent = ScenarioPlannerAgent()
+        elif agent_metadata.get('agent_id') == 'expense_optimizer':
+            agent = ExpenseOptimizerAgent()
+        elif agent_metadata.get('agent_id') == 'celebration_narrator':
+            agent = CelebrationNarratorAgent()
+        elif agent_metadata.get('agent_id') == 'ad_performance_optimizer':
+            agent = AdPerformanceOptimizerAgent()
+        elif agent_metadata.get('agent_id') == 'hiring_hr':
+            agent = HiringHrAgent()
+        elif agent_metadata.get('agent_id') == 'customer_success':
+            agent = CustomerSuccessAgent()
+        elif agent_metadata.get('agent_id') == 'video_editor':
+            agent = VideoEditorAgent()
+        elif agent_metadata.get('agent_id') == 'localization':
+            agent = LocalizationAgent()
+        elif agent_metadata.get('agent_id') == 'accountability_coach':
+            agent = AccountabilityCoachAgent()
+        elif agent_metadata.get('agent_id') == 'community_manager':
+            agent = CommunityManagerAgent()
+        elif agent_metadata.get('agent_id') == 'crm_automation':
+            agent = CrmAutomationAgent()
+        elif agent_metadata.get('agent_id') == 'enhanced_prompts':
+            agent = EnhancedPromptsAgent()
+        elif agent_metadata.get('agent_id') == 'feedback_collector':
+            agent = FeedbackCollectorAgent()
+        elif agent_metadata.get('agent_id') == 'enhanced_marketing':
+            agent = EnhancedMarketingAgent()
+        elif agent_metadata.get('agent_id') == 'multi_channel_inbox':
+            agent = MultiChannelInboxAgent()
+        elif agent_metadata.get('agent_id') == 'voice':
+            agent = VoiceAgent()
+        elif agent_metadata.get('agent_id') == 'customer_support':
+            agent = CustomerSupportAgent()
+        elif agent_metadata.get('agent_id') == 'wellbeing':
+            agent = WellbeingAgent()
+        elif agent_metadata.get('agent_id') == 'meeting_notes':
+            agent = MeetingNotesAgent()
+        elif agent_metadata.get('agent_id') == 'research_scraper':
+            agent = ResearchScraperAgent()
+        elif agent_metadata.get('agent_id') == 'onboarding':
+            agent = OnboardingAgent()
+        elif agent_metadata.get('agent_id') == 'accounting':
+            agent = AccountingAgent()
+        elif agent_metadata.get('agent_id') == 'board_advisor':
+            agent = BoardAdvisorAgent()
+        elif agent_metadata.get('agent_id') == 'knowledge_management':
+            agent = KnowledgeManagementAgent()
+        elif agent_metadata.get('agent_id') == 'design_qa':
+            agent = DesignQaAgent()
+        elif agent_metadata.get('agent_id') == 'vision_enhanced_training':
+            agent = VisionEnhancedTrainingAgent()
+        elif agent_metadata.get('agent_id') == 'training':
+            agent = TrainingAgent()
+        elif agent_metadata.get('agent_id') == 'market_trends':
+            agent = MarketTrendsAgent()
+        elif agent_metadata.get('agent_id') == 'desktop_automation':
+            agent = DesktopAutomationAgent()
+        elif agent_metadata.get('agent_id') == 'telephony_voice':
+            agent = TelephonyVoiceAgent()
+        elif agent_metadata.get('agent_id') == 'well_being':
+            agent = WellBeingAgent()
+        elif agent_metadata.get('agent_id') == 'scraper':
+            agent = ScraperAgent()
+        elif agent_metadata.get('agent_id') == 'image_generation':
+            agent = ImageGenerationAgent()
+        elif agent_metadata.get('agent_id') == 'chief_of_staff':
+            agent = ChiefOfStaffAgent()
+        elif agent_metadata.get('agent_id') == 'research':
+            agent = ResearchAgent()
+        elif agent_metadata.get('agent_id') == 'pricing_intelligence':
+            agent = PricingIntelligenceAgent()
+        elif agent_metadata.get('agent_id') == 'pricing':
+            agent = PricingAgent()
+        elif agent_metadata.get('agent_id') == 'storage':
+            agent = StorageAgent()
+        elif agent_metadata.get('agent_id') == 'orchestration_tuner':
+            agent = OrchestrationTunerAgent()
+        elif agent_metadata.get('agent_id') == 'crm':
+            agent = CrmAgent()
+        elif agent_metadata.get('agent_id') == 'security':
+            agent = SecurityAgent()
+        elif agent_metadata.get('agent_id') == 'wellbeing_workload':
+            agent = WellbeingWorkloadAgent()
+        elif agent_metadata.get('agent_id') == 'strategy':
+            agent = StrategyAgent()
+        elif agent_metadata.get('agent_id') == 'marketing':
+            agent = MarketingAgent()
+        elif agent_metadata.get('agent_id') == 'ux_ui_tester':
+            agent = UxUiTesterAgent()
+        elif agent_metadata.get('agent_id') == 'upsell_cross_sell':
+            agent = UpsellCrossSellAgent()
+        elif agent_metadata.get('agent_id') == 'scalability':
+            agent = ScalabilityAgent()
+        elif agent_metadata.get('agent_id') == 'copywriter':
+            agent = CopywriterAgent()
+        elif agent_metadata.get('agent_id') == 'bookkeeping':
+            agent = BookkeepingAgent()
+        elif agent_metadata.get('agent_id') == 'data_hygiene':
+            agent = DataHygieneAgent()
+        elif agent_metadata.get('agent_id') == 'visual':
+            agent = VisualAgent()
+        elif agent_metadata.get('agent_id') == 'calendar_harmony':
+            agent = CalendarHarmonyAgent()
+        elif agent_metadata.get('agent_id') == 'event_marketing':
+            agent = EventMarketingAgent()
+        elif agent_metadata.get('agent_id') == 'vendor_management':
+            agent = VendorManagementAgent()
+        elif agent_metadata.get('agent_id') == 'lead_personalization':
+            agent = LeadPersonalizationAgent()
+        elif agent_metadata.get('agent_id') == 'voice_persona':
+            agent = VoicePersonaAgent()
+        elif agent_metadata.get('agent_id') == 'grant_funding':
+            agent = GrantFundingAgent()
+        elif agent_metadata.get('agent_id') == 'automation':
+            agent = AutomationAgent()
+        elif agent_metadata.get('agent_id') == 'compliance':
+            agent = ComplianceAgent()
+        elif agent_metadata.get('agent_id') == 'project_manager':
+            agent = ProjectManagerAgent()
+        elif agent_metadata.get('agent_id') == 'churn_predictor':
+            agent = ChurnPredictorAgent()
+        elif agent_metadata.get('agent_id') == 'connector':
+            agent = ConnectorAgent()
+        elif agent_metadata.get('agent_id') == 'orchestrator':
+            agent = OrchestratorAgent()
+            agent = BookkeepingAgent(name=agent_metadata['name'])
         else:
             # Create generic agent with metadata
             agent = self._create_generic_agent(agent_metadata)

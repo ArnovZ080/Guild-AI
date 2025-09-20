@@ -1,6 +1,7 @@
-from sqlalchemy import Column, String, Text, JSON, DateTime, Float, Integer, ForeignKey, Boolean
+from sqlalchemy import Column, String, Text, JSON, DateTime, Float, Integer, ForeignKey, Boolean, Numeric
 from sqlalchemy.orm import relationship
 from datetime import datetime
+import uuid
 
 from .database import Base
 
@@ -26,6 +27,7 @@ class Workflow(Base):
     __tablename__ = 'workflows'
 
     id = Column(String(50), primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)  # Add user relationship
     contract_id = Column(String(50), ForeignKey('outcome_contracts.id'), nullable=False)
     dag_definition = Column(JSON, nullable=False)
     status = Column(String(20), default='pending', index=True)
@@ -36,6 +38,8 @@ class Workflow(Base):
     completed_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
+    user = relationship("User", back_populates="workflows")
     contract = relationship('OutcomeContract', back_populates='workflows')
     agent_executions = relationship('AgentExecution', back_populates='workflow')
     deliverables = relationship('Deliverable', back_populates='workflow')
@@ -104,3 +108,121 @@ class OAuthState(Base):
     provider = Column(String(50), nullable=False)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+# User Management
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    supabase_id = Column(String, unique=True, nullable=False)  # Supabase user ID
+    email = Column(String, unique=True, nullable=False)
+    full_name = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
+    
+    # Subscription info
+    subscription_status = Column(String, default="free")  # free, active, cancelled, past_due
+    subscription_tier = Column(String, default="free")    # free, starter, professional, enterprise
+    paystack_customer_id = Column(String, nullable=True)
+    
+    # Usage tracking
+    credits_used_this_month = Column(Integer, default=0)
+    credits_limit = Column(Integer, default=100)  # Free tier limit
+    bonus_credits = Column(Integer, default=0)    # Purchased credits that don't expire
+    api_calls_this_month = Column(Integer, default=0)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+    
+    # Relationships
+    subscriptions = relationship("Subscription", back_populates="user")
+    workflows = relationship("Workflow", back_populates="user")
+    usage_logs = relationship("UsageLog", back_populates="user")
+    credit_transactions = relationship("CreditTransaction", back_populates="user")
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    
+    # Paystack details
+    paystack_subscription_code = Column(String, unique=True, nullable=True)
+    paystack_plan_code = Column(String, nullable=False)
+    
+    # Subscription details
+    status = Column(String, nullable=False)  # active, cancelled, incomplete, past_due
+    tier = Column(String, nullable=False)    # starter, professional, enterprise
+    amount = Column(Numeric(10, 2), nullable=False)  # Amount in ZAR
+    currency = Column(String, default="ZAR")
+    
+    # Billing cycle
+    current_period_start = Column(DateTime, nullable=True)
+    current_period_end = Column(DateTime, nullable=True)
+    trial_end = Column(DateTime, nullable=True)
+    
+    # Credits and limits
+    monthly_credits = Column(Integer, nullable=False)
+    api_calls_limit = Column(Integer, nullable=False)
+    features = Column(JSON, nullable=True)  # JSON of enabled features
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    cancelled_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="subscriptions")
+
+class UsageLog(Base):
+    __tablename__ = "usage_logs"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    
+    # Usage details
+    action_type = Column(String, nullable=False)  # chat_message, workflow_execution, content_generation
+    credits_consumed = Column(Integer, default=1)
+    api_endpoint = Column(String, nullable=True)
+    
+    # Metadata
+    extra_data = Column(JSON, nullable=True)  # Store additional context
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    user = relationship("User", back_populates="usage_logs")
+
+class CreditTransaction(Base):
+    __tablename__ = "credit_transactions"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    
+    # Package details
+    package_id = Column(String, nullable=False)
+    credits_purchased = Column(Integer, nullable=False)
+    bonus_credits = Column(Integer, default=0)
+    total_credits = Column(Integer, nullable=False)
+    
+    # Pricing details
+    usd_amount = Column(Numeric(10, 2), nullable=False)
+    zar_amount = Column(Numeric(10, 2), nullable=False)
+    exchange_rate = Column(Numeric(10, 4), nullable=False)
+    
+    # Payment details
+    paystack_reference = Column(String, unique=True, nullable=False)
+    paystack_transaction_id = Column(String, nullable=True)
+    status = Column(String, default="pending")  # pending, completed, failed
+    
+    # Metadata
+    extra_data = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="credit_transactions")

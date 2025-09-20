@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../../layouts/DashboardLayout';
-import { AgentActivityTheater } from '../theater/AgentActivityTheater';
-import OpportunityRadar from '../visualizations/OpportunityRadar';
-import BusinessPulse from '../visualizations/BusinessPulse';
-import { PsychologicalOptimizationProvider } from '../../contexts/PsychologicalOptimizationContext';
-import { CelebrationProvider, useCelebrations } from '../../contexts/CelebrationContext';
-import EnhancedOnboardingContainer from '../onboarding/EnhancedOnboardingContainer';
+import EpicBusinessDashboard from './EpicBusinessDashboard';
 
 // Enhanced Achievement Narrative Component
 const AchievementNarrative = ({ achievement, onDismiss }: any) => {
@@ -57,31 +51,12 @@ const AchievementNarrative = ({ achievement, onDismiss }: any) => {
 
 // Debug panel for testing celebrations
 const DebugPanel = () => {
-  const { simulateCelebration } = useCelebrations();
-  
   if (process.env.NODE_ENV !== 'development') return null;
 
   return (
     <div className="fixed top-4 left-4 bg-black/80 text-white p-4 rounded-lg z-50 space-y-2">
       <h4 className="font-bold text-sm">Debug Panel</h4>
-      <button 
-        onClick={() => simulateCelebration('subtle')}
-        className="block w-full text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded"
-      >
-        Test Subtle
-      </button>
-      <button 
-        onClick={() => simulateCelebration('moderate')}
-        className="block w-full text-xs bg-green-600 hover:bg-green-700 px-2 py-1 rounded"
-      >
-        Test Moderate
-      </button>
-      <button 
-        onClick={() => simulateCelebration('elaborate')}
-        className="block w-full text-xs bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded"
-      >
-        Test Elaborate
-      </button>
+      <p className="text-xs text-gray-300">Dashboard is running in development mode</p>
     </div>
   );
 };
@@ -139,20 +114,26 @@ const DashboardContent: React.FC = () => {
 
   // Show onboarding if not completed
   if (showOnboarding) {
-    return <EnhancedOnboardingContainer onComplete={handleOnboardingComplete} />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-blue-500 text-6xl mb-4">🚀</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Welcome to Guild AI</h2>
+          <p className="text-gray-600 mb-4">Setting up your business intelligence dashboard...</p>
+          <button
+            onClick={() => handleOnboardingComplete({})}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            Continue to Dashboard
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <>
-      <DashboardLayout
-        commandCenter={<BusinessPulse />}
-        actionTheater={
-          <AgentActivityTheater 
-            onOpenFullConversation={handleOpenFullConversation}
-          />
-        }
-        opportunityHorizon={<OpportunityRadar />}
-      />
+      <EpicBusinessDashboard />
       
       {/* Achievement Narratives */}
       {achievement && (
@@ -163,7 +144,7 @@ const DashboardContent: React.FC = () => {
       )}
 
       {/* Full Conversation Modal */}
-      {activeAgentForFullConversation && (
+      {activeAgentForFullChat && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
             <div className="flex items-center justify-between mb-4">
@@ -178,7 +159,7 @@ const DashboardContent: React.FC = () => {
               </button>
             </div>
             <div className="text-gray-600 text-sm">
-              Full conversational interface for {activeAgentForFullConversation} would be implemented here.
+              Full conversational interface for {activeAgentForFullChat} would be implemented here.
               This would include full chat history, voice input, and advanced agent reasoning display.
             </div>
           </div>
@@ -191,13 +172,7 @@ const DashboardContent: React.FC = () => {
   );
 };
 
-// The main dashboard container with providers
+// The main dashboard container
 export const MainDashboard: React.FC = () => {
-  return (
-    <PsychologicalOptimizationProvider>
-      <CelebrationProvider>
-        <DashboardContent />
-      </CelebrationProvider>
-    </PsychologicalOptimizationProvider>
-  );
+  return <DashboardContent />;
 };

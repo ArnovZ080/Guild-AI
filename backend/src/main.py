@@ -12,11 +12,16 @@ from contextlib import asynccontextmanager
 
 # Import API routes
 from .api.agents.routes import router as agents_router
+from .api.onboarding.routes import router as onboarding_router
+from .api.orchestrator.routes import router as orchestrator_router
 
 # Import agent system
 from .agents.agent_orchestrator import agent_orchestrator
 from .agents.content_creation_agent import ContentCreationAgent
 from .websocket.agent_communication import agent_comm_manager
+
+# Import database service
+from .services.database_service import db_service
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,6 +32,13 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager"""
     # Startup
     logger.info("Starting Guild-AI Backend...")
+    
+    # Initialize database tables
+    try:
+        await db_service.create_tables()
+        logger.info("Database tables initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database tables: {e}")
     
     # Register agents
     content_agent = ContentCreationAgent()
@@ -63,6 +75,8 @@ app.add_middleware(
 
 # Include API routes
 app.include_router(agents_router)
+app.include_router(onboarding_router)
+app.include_router(orchestrator_router)
 
 @app.get("/")
 async def root():

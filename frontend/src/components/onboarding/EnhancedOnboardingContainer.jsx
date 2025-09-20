@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePsychologicalOptimization } from '../../contexts/PsychologicalOptimizationContext';
 import { useCelebrations } from '../../contexts/CelebrationContext';
+import onboardingFollowUpService from '../../services/onboardingFollowUpService';
 import WelcomeStep from './WelcomeStep';
 import BusinessQuestions from './BusinessQuestions';
 import AudienceQuestions from './AudienceQuestions';
+import BrandQuestions from './BrandQuestions';
 import FinancialQuestions from './FinancialQuestions';
 import GoalsQuestions from './GoalsQuestions';
 import PreferencesStep from './PreferencesStep';
@@ -25,7 +27,7 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
   const [showConnectorSetup, setShowConnectorSetup] = useState(false);
   const [onboardingProgress, setOnboardingProgress] = useState({
     completedSteps: 0,
-    totalSteps: 10,
+    totalSteps: 11,
     currentStepIndex: 0
   });
 
@@ -36,13 +38,14 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
     welcome: { index: 0, weight: 1, category: 'introduction' },
     business: { index: 1, weight: 2, category: 'discovery' },
     audience: { index: 2, weight: 2, category: 'discovery' },
-    financial: { index: 3, weight: 1.5, category: 'sensitive' },
-    goals: { index: 4, weight: 2, category: 'planning' },
-    preferences: { index: 5, weight: 1, category: 'configuration' },
-    integrations: { index: 6, weight: 1.5, category: 'technical' },
-    summary: { index: 7, weight: 1, category: 'review' },
-    capabilities: { index: 8, weight: 1, category: 'education' },
-    completion: { index: 9, weight: 1, category: 'completion' }
+    brand: { index: 3, weight: 2, category: 'brand_identity' },
+    financial: { index: 4, weight: 1.5, category: 'sensitive' },
+    goals: { index: 5, weight: 2, category: 'planning' },
+    preferences: { index: 6, weight: 1, category: 'configuration' },
+    integrations: { index: 7, weight: 1.5, category: 'technical' },
+    summary: { index: 8, weight: 1, category: 'review' },
+    capabilities: { index: 9, weight: 1, category: 'education' },
+    completion: { index: 10, weight: 1, category: 'completion' }
   };
 
   const updateAnswers = (newData) => {
@@ -173,12 +176,16 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
   };
 
   const handleOnboardingComplete = (finalAnswers) => {
-    // Store onboarding data with psychological insights
+    // Process onboarding completion and generate follow-up questions
+    const followUpResult = onboardingFollowUpService.processOnboardingCompletion(finalAnswers);
+    
+    // Store onboarding data with psychological insights and follow-up data
     const completeProfile = {
       ...finalAnswers,
       onboardingCompletedAt: new Date().toISOString(),
       psychologicalProfile: analyzeAnswersForPsychology(finalAnswers),
-      onboardingVersion: '2.0_psychologically_optimized'
+      onboardingVersion: '2.0_psychologically_optimized',
+      followUpData: followUpResult
     };
 
     // Store in localStorage for persistence
@@ -244,10 +251,15 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
     ),
     audience: (
       <EnhancedQuestion
-        onNext={(data) => handleStepTransition('financial', data)}
+        onNext={(data) => handleStepTransition('brand', data)}
         businessType={answers.business_type}
         modeStyles={modeStyles}
         questionType="audience"
+      />
+    ),
+    brand: (
+      <BrandQuestions
+        onNext={(data) => handleStepTransition('financial', data)}
       />
     ),
     financial: (
