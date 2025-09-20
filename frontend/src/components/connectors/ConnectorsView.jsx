@@ -530,7 +530,7 @@ const ConnectorsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
     }
   };
 
-  const filteredConnectors = connectors.filter(connector => {
+  const filteredConnectors = (connectors || []).filter(connector => {
     if (filter === 'all') return true;
     if (filter === 'connected') return connector.status === 'connected';
     if (filter === 'available') return connector.status === 'available';
@@ -615,7 +615,7 @@ const ConnectorsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
                 {/* Features */}
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-1">
-                    {connector.features.slice(0, 2).map((feature, idx) => (
+                    {(connector.features || []).slice(0, 2).map((feature, idx) => (
                       <span
                         key={idx}
                         className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
@@ -751,7 +751,7 @@ const ConnectorsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
                 </div>
               )}
               
-              {connectorChat.map((message) => (
+              {(connectorChat || []).map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -766,7 +766,7 @@ const ConnectorsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
                     <p>{message.content}</p>
                     {message.actions && (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {message.actions.map((action, idx) => (
+                        {(message.actions || []).map((action, idx) => (
                           <button
                             key={idx}
                             className="px-2 py-1 bg-white/20 text-xs rounded hover:bg-white/30 transition-colors"
@@ -842,7 +842,7 @@ const ConnectorsView = ({ onNavigateToChat, onNavigateToDashboard }) => {
                       exit={{ opacity: 0, height: 0 }}
                       className="space-y-2"
                     >
-                      {suggestions.map((suggestion) => (
+                      {(suggestions || []).map((suggestion) => (
                         <motion.div
                           key={suggestion.id}
                           className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
