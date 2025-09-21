@@ -108,6 +108,41 @@ function App() {
   console.log('🎭 App: About to render JSX')
   console.log('🎭 App: currentView:', currentView, 'hasCompletedOnboarding:', hasCompletedOnboarding)
 
+  console.log('🎭 App: About to render providers and components')
+  
+  // Temporary simplified render for debugging
+  console.log('🎭 App: Rendering simplified version for debugging')
+  
+  return (
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="text-2xl font-bold mb-4">Guild AI - Debug Mode</h1>
+      <p>Current View: {currentView}</p>
+      <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
+      <div className="mt-4">
+        <button 
+          onClick={() => setCurrentView('chat')}
+          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+        >
+          Test Chat
+        </button>
+        <button 
+          onClick={() => setCurrentView('dashboard')}
+          className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+        >
+          Test Dashboard
+        </button>
+        <button 
+          onClick={() => setHasCompletedOnboarding(true)}
+          className="bg-purple-500 text-white px-4 py-2 rounded"
+        >
+          Complete Onboarding
+        </button>
+      </div>
+    </div>
+  )
+  
+  // Original complex render (commented out for debugging)
+  /*
   return (
     <AdaptiveModeProvider>
       <CelebrationProvider>
@@ -118,17 +153,25 @@ function App() {
           )}
           
           {currentView === 'chat' && (
-            <ClaudeStyleChat 
-              onNavigateToDashboard={handleNavigateToDashboard}
-              onNavigateToMarketplace={handleNavigateToMarketplace}
-              onNavigateToCalendar={handleNavigateToCalendar}
-              onNavigateToGoals={handleNavigateToGoals}
-              onNavigateToAchievements={handleNavigateToAchievements}
-              onNavigateToGrowth={handleNavigateToGrowth}
-              onNavigateToCustomers={handleNavigateToCustomers}
-              onNavigateToConversations={handleNavigateToConversations}
-              onNavigateToConnectors={handleNavigateToConnectors}
-            />
+            (() => {
+              console.log('🎭 App: About to render ClaudeStyleChat')
+              try {
+                return <ClaudeStyleChat 
+                  onNavigateToDashboard={handleNavigateToDashboard}
+                  onNavigateToMarketplace={handleNavigateToMarketplace}
+                  onNavigateToCalendar={handleNavigateToCalendar}
+                  onNavigateToGoals={handleNavigateToGoals}
+                  onNavigateToAchievements={handleNavigateToAchievements}
+                  onNavigateToGrowth={handleNavigateToGrowth}
+                  onNavigateToCustomers={handleNavigateToCustomers}
+                  onNavigateToConversations={handleNavigateToConversations}
+                  onNavigateToConnectors={handleNavigateToConnectors}
+                />
+              } catch (error) {
+                console.error('❌ Error rendering ClaudeStyleChat:', error)
+                return <div>Error loading chat component: {error.message}</div>
+              }
+            })()
           )}
           
           {currentView === 'dashboard' && (
@@ -222,6 +265,7 @@ function App() {
       </CelebrationProvider>
     </AdaptiveModeProvider>
   );
+  */
 }
 
 export default App;
