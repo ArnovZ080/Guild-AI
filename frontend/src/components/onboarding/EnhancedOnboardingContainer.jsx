@@ -4,6 +4,8 @@ import { usePsychologicalOptimization } from '../../contexts/PsychologicalOptimi
 import { useCelebrations } from '../../contexts/CelebrationContext';
 import onboardingFollowUpService from '../../services/onboardingFollowUpService';
 import WelcomeStep from './WelcomeStep';
+import EnhancedWelcomeStep from './EnhancedWelcomeStep';
+import EnhancedQuestion from './EnhancedQuestion';
 import BusinessQuestions from './BusinessQuestions';
 import AudienceQuestions from './AudienceQuestions';
 import BrandQuestions from './BrandQuestions';
