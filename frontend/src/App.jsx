@@ -143,22 +143,27 @@ function App() {
             )}
             
             {currentView !== 'onboarding' && (
-              <div className="bg-gray-100 p-8">
-                <h1 className="text-2xl font-bold mb-4">Guild AI - Working State</h1>
-                <p>Current View: {currentView}</p>
-                <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
-                <div className="mt-4 space-y-2">
-                  <button
-                    onClick={() => setCurrentView('onboarding')}
-                    className="bg-red-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Test Onboarding
-                  </button>
-                  <div className="text-sm text-gray-600">
-                    Other views will be added back gradually to avoid circular reference issues.
+              <PageLayout onNavigate={handleNavigate}>
+                {currentView === 'chat' && <ClaudeStyleChat />}
+                {currentView !== 'chat' && (
+                  <div className="bg-gray-100 p-8">
+                    <h1 className="text-2xl font-bold mb-4">Guild AI - Chat Interface Added</h1>
+                    <p>Current View: {currentView}</p>
+                    <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
+                    <div className="mt-4 space-y-2">
+                      <button
+                        onClick={() => setCurrentView('onboarding')}
+                        className="bg-red-500 text-white px-4 py-2 rounded mr-2"
+                      >
+                        Test Onboarding
+                      </button>
+                      <div className="text-sm text-gray-600">
+                        Chat interface added. Other views will be added gradually.
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                )}
+              </PageLayout>
             )}
           </div>
           </AgentCommunicationProvider>
