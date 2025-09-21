@@ -108,7 +108,7 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
           </div>
         </div>
 
-        <AnimatePresence>
+        <div>
           {showFeatures && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -138,7 +138,7 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
               })}
             </motion.div>
           )}
-        </AnimatePresence>
+        </div>
       </motion.div>
 
       <motion.button
