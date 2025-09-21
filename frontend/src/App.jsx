@@ -147,7 +147,7 @@ function App() {
                 {currentView === 'chat' && <ClaudeStyleChat />}
                 {currentView !== 'chat' && (
                   <div className="bg-gray-100 p-8">
-                    <h1 className="text-2xl font-bold mb-4">Guild AI - Chat Interface Added</h1>
+                    <h1 className="text-2xl font-bold mb-4">Guild AI - Chat Fixed</h1>
                     <p>Current View: {currentView}</p>
                     <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
                     <div className="mt-4 space-y-2">
@@ -157,8 +157,11 @@ function App() {
                       >
                         Test Onboarding
                       </button>
+                      <div className="text-sm text-green-600">
+                        ✅ Chat component motion props removed
+                      </div>
                       <div className="text-sm text-gray-600">
-                        Chat interface added. Other views will be added gradually.
+                        Testing if chat component works without circular reference.
                       </div>
                     </div>
                   </div>
