@@ -8,7 +8,7 @@ import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
 console.log('✅ App.jsx: AdaptiveModeProvider imported')
 
 console.log('📦 App.jsx: Importing CelebrationProvider...')
-import { CelebrationProvider } from './contexts/CelebrationContext';
+import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations.simple';
 console.log('✅ App.jsx: CelebrationProvider imported')
 
 console.log('📦 App.jsx: Importing AgentCommunicationProvider...')
@@ -16,7 +16,7 @@ import { AgentCommunicationProvider } from './contexts/AgentCommunicationContext
 console.log('✅ App.jsx: AgentCommunicationProvider imported')
 
 console.log('📦 App.jsx: Importing PsychologicalOptimizationProvider...')
-import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext';
+import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.simple';
 console.log('✅ App.jsx: PsychologicalOptimizationProvider imported')
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import { MainDashboard } from './components/dashboard/MainDashboard';
