@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+console.log('📦 App.jsx: Starting imports...')
+
+console.log('📦 App.jsx: Importing AdaptiveModeProvider...')
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
+console.log('✅ App.jsx: AdaptiveModeProvider imported')
+
+console.log('📦 App.jsx: Importing CelebrationProvider...')
 import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations.fixed';
+console.log('✅ App.jsx: CelebrationProvider imported')
+
+console.log('📦 App.jsx: Importing AgentCommunicationProvider...')
 import { AgentCommunicationProvider } from './contexts/AgentCommunicationContext.simple';
+console.log('✅ App.jsx: AgentCommunicationProvider imported')
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import { MainDashboard } from './components/dashboard/MainDashboard';
 import PageLayout from './components/layout/PageLayout';
@@ -18,10 +29,15 @@ import ConversationsView from './components/conversations/ConversationsView';
 import ConnectorsView from './components/connectors/ConnectorsView';
 
 function App() {
+  console.log('🎭 App: Component function called')
+  
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [currentView, setCurrentView] = useState('chat'); // 'chat', 'dashboard', 'onboarding', 'marketplace', 'calendar', 'workflow', 'goals', 'achievements', 'growth'
 
+  console.log('🎭 App: State initialized, hasCompletedOnboarding:', hasCompletedOnboarding, 'currentView:', currentView)
+
   useEffect(() => {
+    console.log('🎭 App: useEffect called')
     // Check if user has completed onboarding
     const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
     setHasCompletedOnboarding(onboardingCompleted);
@@ -88,6 +104,9 @@ function App() {
   };
 
   // Dashboard components are now handled by MainDashboard
+
+  console.log('🎭 App: About to render JSX')
+  console.log('🎭 App: currentView:', currentView, 'hasCompletedOnboarding:', hasCompletedOnboarding)
 
   return (
     <AdaptiveModeProvider>
