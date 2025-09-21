@@ -129,6 +129,14 @@ function App() {
                 try {
                   // Test with just EnhancedWelcomeStep
                   const EnhancedWelcomeStep = React.lazy(() => import('./components/onboarding/EnhancedWelcomeStep'));
+                  
+                  // Provide default modeStyles to fix the accent error
+                  const defaultModeStyles = {
+                    background: 'from-sky-day to-forest-growth',
+                    accent: 'from-blue-500 to-purple-600',
+                    text: 'text-gray-800'
+                  };
+                  
                   return (
                     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
                       <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
@@ -137,6 +145,7 @@ function App() {
                             console.log('EnhancedWelcomeStep: onNext called');
                             handleOnboardingComplete();
                           }}
+                          modeStyles={defaultModeStyles}
                         />
                       </React.Suspense>
                     </div>
