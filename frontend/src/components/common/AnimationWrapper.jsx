@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSpring, animated, config } from 'react-spring';
 
 // Animation variants that mimic Framer Motion's behavior
 const variants = {
@@ -10,7 +9,14 @@ const variants = {
   tap: { scale: 0.95 }
 };
 
-// Main motion component replacement
+// CSS transition styles
+const transitionStyles = {
+  default: 'transition-all duration-300 ease-out',
+  hover: 'hover:scale-105 transition-transform duration-200',
+  tap: 'active:scale-95 transition-transform duration-100'
+};
+
+// Main motion component replacement using pure CSS transitions
 export const motion = {
   div: React.forwardRef(({ 
     initial, 
@@ -25,50 +31,29 @@ export const motion = {
     onClick,
     ...props 
   }, ref) => {
-    const [springProps, api] = useSpring(() => ({
-      from: { opacity: 0, transform: 'translateY(20px)' },
-      to: { opacity: 1, transform: 'translateY(0px)' },
-      config: config.default
-    }));
+    const combinedClassName = [
+      className,
+      transitionStyles.default,
+      whileHover ? transitionStyles.hover : '',
+      whileTap ? transitionStyles.tap : ''
+    ].filter(Boolean).join(' ');
 
-    const handleMouseEnter = () => {
-      if (whileHover) {
-        api.start({ transform: 'scale(1.05)' });
-      }
-    };
-
-    const handleMouseLeave = () => {
-      if (whileHover) {
-        api.start({ transform: 'scale(1)' });
-      }
-    };
-
-    const handleMouseDown = () => {
-      if (whileTap) {
-        api.start({ transform: 'scale(0.95)' });
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (whileTap) {
-        api.start({ transform: 'scale(1)' });
-      }
+    const combinedStyle = {
+      opacity: animate?.opacity ?? 1,
+      transform: animate?.transform ?? 'translateY(0px)',
+      ...style
     };
 
     return (
-      <animated.div
+      <div
         ref={ref}
-        style={{ ...springProps, ...style }}
-        className={className}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
+        style={combinedStyle}
+        className={combinedClassName}
         onClick={onClick}
         {...props}
       >
         {children}
-      </animated.div>
+      </div>
     );
   }),
 
@@ -85,22 +70,29 @@ export const motion = {
     onClick,
     ...props 
   }, ref) => {
-    const [springProps, api] = useSpring(() => ({
-      from: { opacity: 0, transform: 'translateY(20px)' },
-      to: { opacity: 1, transform: 'translateY(0px)' },
-      config: config.default
-    }));
+    const combinedClassName = [
+      className,
+      transitionStyles.default,
+      whileHover ? transitionStyles.hover : '',
+      whileTap ? transitionStyles.tap : ''
+    ].filter(Boolean).join(' ');
+
+    const combinedStyle = {
+      opacity: animate?.opacity ?? 1,
+      transform: animate?.transform ?? 'translateY(0px)',
+      ...style
+    };
 
     return (
-      <animated.span
+      <span
         ref={ref}
-        style={{ ...springProps, ...style }}
-        className={className}
+        style={combinedStyle}
+        className={combinedClassName}
         onClick={onClick}
         {...props}
       >
         {children}
-      </animated.span>
+      </span>
     );
   }),
 
@@ -117,50 +109,29 @@ export const motion = {
     onClick,
     ...props 
   }, ref) => {
-    const [springProps, api] = useSpring(() => ({
-      from: { opacity: 0, transform: 'translateY(20px)' },
-      to: { opacity: 1, transform: 'translateY(0px)' },
-      config: config.default
-    }));
+    const combinedClassName = [
+      className,
+      transitionStyles.default,
+      whileHover ? transitionStyles.hover : '',
+      whileTap ? transitionStyles.tap : ''
+    ].filter(Boolean).join(' ');
 
-    const handleMouseEnter = () => {
-      if (whileHover) {
-        api.start({ transform: 'scale(1.05)' });
-      }
-    };
-
-    const handleMouseLeave = () => {
-      if (whileHover) {
-        api.start({ transform: 'scale(1)' });
-      }
-    };
-
-    const handleMouseDown = () => {
-      if (whileTap) {
-        api.start({ transform: 'scale(0.95)' });
-      }
-    };
-
-    const handleMouseUp = () => {
-      if (whileTap) {
-        api.start({ transform: 'scale(1)' });
-      }
+    const combinedStyle = {
+      opacity: animate?.opacity ?? 1,
+      transform: animate?.transform ?? 'translateY(0px)',
+      ...style
     };
 
     return (
-      <animated.button
+      <button
         ref={ref}
-        style={{ ...springProps, ...style }}
-        className={className}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
+        style={combinedStyle}
+        className={combinedClassName}
         onClick={onClick}
         {...props}
       >
         {children}
-      </animated.button>
+      </button>
     );
   }),
 
@@ -177,22 +148,29 @@ export const motion = {
     onClick,
     ...props 
   }, ref) => {
-    const [springProps, api] = useSpring(() => ({
-      from: { opacity: 0, transform: 'translateY(20px)' },
-      to: { opacity: 1, transform: 'translateY(0px)' },
-      config: config.default
-    }));
+    const combinedClassName = [
+      className,
+      transitionStyles.default,
+      whileHover ? transitionStyles.hover : '',
+      whileTap ? transitionStyles.tap : ''
+    ].filter(Boolean).join(' ');
+
+    const combinedStyle = {
+      opacity: animate?.opacity ?? 1,
+      transform: animate?.transform ?? 'translateY(0px)',
+      ...style
+    };
 
     return (
-      <animated.section
+      <section
         ref={ref}
-        style={{ ...springProps, ...style }}
-        className={className}
+        style={combinedStyle}
+        className={combinedClassName}
         onClick={onClick}
         {...props}
       >
         {children}
-      </animated.section>
+      </section>
     );
   }),
 
@@ -209,22 +187,29 @@ export const motion = {
     onClick,
     ...props 
   }, ref) => {
-    const [springProps, api] = useSpring(() => ({
-      from: { opacity: 0, transform: 'translateY(20px)' },
-      to: { opacity: 1, transform: 'translateY(0px)' },
-      config: config.default
-    }));
+    const combinedClassName = [
+      className,
+      transitionStyles.default,
+      whileHover ? transitionStyles.hover : '',
+      whileTap ? transitionStyles.tap : ''
+    ].filter(Boolean).join(' ');
+
+    const combinedStyle = {
+      opacity: animate?.opacity ?? 1,
+      transform: animate?.transform ?? 'translateY(0px)',
+      ...style
+    };
 
     return (
-      <animated.article
+      <article
         ref={ref}
-        style={{ ...springProps, ...style }}
-        className={className}
+        style={combinedStyle}
+        className={combinedClassName}
         onClick={onClick}
         {...props}
       >
         {children}
-      </animated.article>
+      </article>
     );
   })
 };
