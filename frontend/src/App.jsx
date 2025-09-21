@@ -14,6 +14,10 @@ console.log('✅ App.jsx: CelebrationProvider imported')
 console.log('📦 App.jsx: Importing AgentCommunicationProvider...')
 import { AgentCommunicationProvider } from './contexts/AgentCommunicationContext.simple';
 console.log('✅ App.jsx: AgentCommunicationProvider imported')
+
+console.log('📦 App.jsx: Importing PsychologicalOptimizationProvider...')
+import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext';
+console.log('✅ App.jsx: PsychologicalOptimizationProvider imported')
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
 import { MainDashboard } from './components/dashboard/MainDashboard';
 import PageLayout from './components/layout/PageLayout';
@@ -110,13 +114,14 @@ function App() {
 
   console.log('🎭 App: About to render providers and components')
   
-  // Step 4: Test with OnboardingFlow component
-  console.log('🎭 App: Testing with OnboardingFlow component')
+  // Step 5: Test with OnboardingFlow + PsychologicalOptimizationProvider
+  console.log('🎭 App: Testing with OnboardingFlow + PsychologicalOptimizationProvider')
   
   return (
-    <AdaptiveModeProvider>
-      <CelebrationProvider>
-        <AgentCommunicationProvider>
+    <PsychologicalOptimizationProvider>
+      <AdaptiveModeProvider>
+        <CelebrationProvider>
+          <AgentCommunicationProvider>
           <div className="min-h-screen">
             {currentView === 'onboarding' && (
               (() => {
@@ -158,9 +163,10 @@ function App() {
               </div>
             )}
           </div>
-        </AgentCommunicationProvider>
-      </CelebrationProvider>
-    </AdaptiveModeProvider>
+          </AgentCommunicationProvider>
+        </CelebrationProvider>
+      </AdaptiveModeProvider>
+    </PsychologicalOptimizationProvider>
   )
   
   // Original complex render (commented out for debugging)
