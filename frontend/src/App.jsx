@@ -125,31 +125,19 @@ function App() {
           <div className="min-h-screen">
             {currentView === 'onboarding' && (
               (() => {
-                console.log('🎭 App: About to render simplified EnhancedWelcomeStep')
+                console.log('🎭 App: About to render full OnboardingFlow')
                 try {
-                  // Test with simplified EnhancedWelcomeStep (no motion components)
-                  const EnhancedWelcomeStep = React.lazy(() => import('./components/onboarding/EnhancedWelcomeStep.simple'));
+                  // Restore full OnboardingFlow with fixed EnhancedWelcomeStep
+                  const OnboardingFlow = React.lazy(() => import('./components/onboarding/OnboardingFlow'));
                   
                   return (
-                    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-                      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-                        <EnhancedWelcomeStep 
-                          onNext={() => {
-                            console.log('Simplified EnhancedWelcomeStep: onNext called');
-                            handleOnboardingComplete();
-                          }}
-                          modeStyles={{
-                            background: 'from-sky-day to-forest-growth',
-                            accent: 'from-blue-500 to-purple-600',
-                            text: 'text-gray-800'
-                          }}
-                        />
-                      </React.Suspense>
-                    </div>
+                    <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                      <OnboardingFlow onComplete={handleOnboardingComplete} />
+                    </React.Suspense>
                   )
                 } catch (error) {
-                  console.error('❌ Error rendering simplified EnhancedWelcomeStep:', error)
-                  return <div>Error loading simplified EnhancedWelcomeStep: {error.message}</div>
+                  console.error('❌ Error rendering OnboardingFlow:', error)
+                  return <div>Error loading OnboardingFlow: {error.message}</div>
                 }
               })()
             )}

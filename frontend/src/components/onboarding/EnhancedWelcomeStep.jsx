@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from '../common/AnimationWrapper';
 import { Sparkles, ArrowRight, Brain, Zap, Users, Target } from 'lucide-react';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 
@@ -46,20 +45,11 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="text-center max-w-2xl mx-auto space-y-8"
-    >
+    <div className="text-center max-w-2xl mx-auto space-y-8">
       <div className="space-y-6">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className={`w-20 h-20 bg-gradient-to-br ${modeStyles.accent} rounded-full flex items-center justify-center mx-auto shadow-lg`}
-        >
+        <div className={`w-20 h-20 bg-gradient-to-br ${modeStyles.accent} rounded-full flex items-center justify-center mx-auto shadow-lg`}>
           <Sparkles className="w-10 h-10 text-white" />
-        </motion.div>
+        </div>
         
         <div className="space-y-4">
           <h1 className={`text-4xl font-bold ${modeStyles.text}`}>
@@ -73,12 +63,7 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
       </div>
 
       {/* Enhanced features preview */}
-      <motion.div 
-        className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 space-y-4 border border-white/40"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
+      <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-6 space-y-4 border border-white/40">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">What makes Guild different:</h2>
           <button
@@ -110,20 +95,12 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
 
         <div>
           {showFeatures && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-3 pt-4 border-t border-gray-200"
-            >
+            <div className="space-y-3 pt-4 border-t border-gray-200">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <motion.div
+                  <div
                     key={index}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
                     className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
                   >
                     <div className={`p-2 rounded-lg ${feature.color}`}>
@@ -133,36 +110,26 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
                       <h3 className="font-medium text-gray-900 text-sm">{feature.title}</h3>
                       <p className="text-xs text-gray-600">{feature.description}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 );
               })}
-            </motion.div>
+            </div>
           )}
         </div>
-      </motion.div>
+      </div>
 
-      <motion.button
+      <button
         onClick={onNext}
         className={`bg-gradient-to-r ${modeStyles.accent} text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 transition-all duration-200 flex items-center space-x-2 mx-auto shadow-lg hover:shadow-xl`}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
       >
         <span>Let's Get Started</span>
         <ArrowRight className="w-5 h-5" />
-      </motion.button>
+      </button>
 
-      <motion.p 
-        className="text-sm text-gray-500"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
+      <p className="text-sm text-gray-500">
         Takes about 5-7 minutes • You can always update your answers later
-      </motion.p>
-    </motion.div>
+      </p>
+    </div>
   );
 };
 
