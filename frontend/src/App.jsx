@@ -110,37 +110,53 @@ function App() {
 
   console.log('🎭 App: About to render providers and components')
   
-  // Step 3: Test with all three context providers
-  console.log('🎭 App: Testing with all three context providers')
+  // Step 4: Test with OnboardingFlow component
+  console.log('🎭 App: Testing with OnboardingFlow component')
   
   return (
     <AdaptiveModeProvider>
       <CelebrationProvider>
         <AgentCommunicationProvider>
-          <div className="min-h-screen bg-gray-100 p-8">
-            <h1 className="text-2xl font-bold mb-4">Guild AI - Testing AgentCommunicationProvider</h1>
-            <p>Current View: {currentView}</p>
-            <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
-            <div className="mt-4">
-              <button 
-                onClick={() => setCurrentView('chat')}
-                className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-              >
-                Test Chat
-              </button>
-              <button 
-                onClick={() => setCurrentView('dashboard')}
-                className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-              >
-                Test Dashboard
-              </button>
-              <button 
-                onClick={() => setHasCompletedOnboarding(true)}
-                className="bg-purple-500 text-white px-4 py-2 rounded"
-              >
-                Complete Onboarding
-              </button>
-            </div>
+          <div className="min-h-screen">
+            {currentView === 'onboarding' && (
+              (() => {
+                console.log('🎭 App: About to render OnboardingFlow')
+                try {
+                  return <OnboardingFlow onComplete={handleOnboardingComplete} />
+                } catch (error) {
+                  console.error('❌ Error rendering OnboardingFlow:', error)
+                  return <div>Error loading onboarding: {error.message}</div>
+                }
+              })()
+            )}
+            
+            {currentView !== 'onboarding' && (
+              <div className="bg-gray-100 p-8">
+                <h1 className="text-2xl font-bold mb-4">Guild AI - Testing OnboardingFlow</h1>
+                <p>Current View: {currentView}</p>
+                <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
+                <div className="mt-4">
+                  <button 
+                    onClick={() => setCurrentView('onboarding')}
+                    className="bg-red-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Test Onboarding
+                  </button>
+                  <button 
+                    onClick={() => setCurrentView('chat')}
+                    className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Test Chat
+                  </button>
+                  <button 
+                    onClick={() => setCurrentView('dashboard')}
+                    className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Test Dashboard
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </AgentCommunicationProvider>
       </CelebrationProvider>
