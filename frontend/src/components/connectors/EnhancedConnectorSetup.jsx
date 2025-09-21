@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from '../common/AnimationWrapper';
+import { motion } from '../common/AnimationWrapper';
 import { usePsychologicalOptimization } from '../../contexts/PsychologicalOptimizationContext';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -596,7 +596,7 @@ const EnhancedConnectorSetup = ({ userId, onSetupComplete }) => {
 
         {/* Connectors Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <AnimatePresence>
+          <div>
             {availableConnectors.map((connector, index) => (
               <motion.div
                 key={connector.id}
@@ -668,7 +668,7 @@ const EnhancedConnectorSetup = ({ userId, onSetupComplete }) => {
                 </Card>
               </motion.div>
             ))}
-          </AnimatePresence>
+          </div>
         </div>
       </motion.div>
     );
@@ -715,9 +715,9 @@ const EnhancedConnectorSetup = ({ userId, onSetupComplete }) => {
         </motion.div>
       )}
 
-      <AnimatePresence mode="wait">
+      <div>
         {currentStep ? renderStepContent() : renderConnectorGrid()}
-      </AnimatePresence>
+      </div>
 
       {setupSession && currentStep?.status === 'completed' && (
         <motion.div

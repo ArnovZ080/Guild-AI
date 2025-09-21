@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from '../common/AnimationWrapper';
+import { motion } from '../common/AnimationWrapper';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 import { getRandomSnippet, getReassurance } from './conversationSnippets';
 
@@ -144,7 +144,7 @@ export default function EnhancedQuestion({
       <div className="space-y-4">
         {options.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <AnimatePresence>
+            <div>
               {options.map((option, index) => (
                 <motion.button
                   key={option}
@@ -173,7 +173,7 @@ export default function EnhancedQuestion({
                   </div>
                 </motion.button>
               ))}
-            </AnimatePresence>
+            </div>
           </div>
         )}
 
