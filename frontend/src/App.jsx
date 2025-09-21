@@ -125,11 +125,27 @@ function App() {
           <div className="min-h-screen">
             {currentView === 'onboarding' && (
               (() => {
-                console.log('🎭 App: About to render OnboardingFlow')
+                console.log('🎭 App: About to render minimal onboarding test')
                 try {
-                  return <OnboardingFlow onComplete={handleOnboardingComplete} />
+                  // Test with minimal component first
+                  return (
+                    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+                      <h1 className="text-3xl font-bold text-center mb-8">Onboarding Test</h1>
+                      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8">
+                        <p className="text-lg text-gray-700 mb-6">
+                          This is a minimal onboarding test. If you see this, the basic structure works!
+                        </p>
+                        <button 
+                          onClick={handleOnboardingComplete}
+                          className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                          Complete Onboarding
+                        </button>
+                      </div>
+                    </div>
+                  )
                 } catch (error) {
-                  console.error('❌ Error rendering OnboardingFlow:', error)
+                  console.error('❌ Error rendering minimal onboarding:', error)
                   return <div>Error loading onboarding: {error.message}</div>
                 }
               })()
