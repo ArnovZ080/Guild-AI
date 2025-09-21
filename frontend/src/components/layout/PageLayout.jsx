@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from '../common/AnimationWrapper';
+// import { motion } from '../common/AnimationWrapper'; // Removed to fix circular reference
 import PersistentSidebar from '../navigation/PersistentSidebar';
 
 const PageLayout = ({ children, currentView, onNavigate }) => {
@@ -17,14 +17,9 @@ const PageLayout = ({ children, currentView, onNavigate }) => {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
-        <motion.div
-          className="h-full overflow-y-auto"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="h-full overflow-y-auto">
           {children}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

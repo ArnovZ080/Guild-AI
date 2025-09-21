@@ -19,18 +19,9 @@ console.log('📦 App.jsx: Importing PsychologicalOptimizationProvider...')
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.simple';
 console.log('✅ App.jsx: PsychologicalOptimizationProvider imported')
 import ClaudeStyleChat from './components/chat/ClaudeStyleChat';
-import { MainDashboard } from './components/dashboard/MainDashboard';
 import PageLayout from './components/layout/PageLayout';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
-import AgentMarketplace from './components/marketplace/AgentMarketplace';
-import EnhancedCalendar from './components/calendar/EnhancedCalendar';
-import WorkflowBuilder from './components/workflow/WorkflowBuilder';
-import GoalsView from './components/goals/GoalsView';
-import AchievementsView from './components/achievements/AchievementsView';
-import GrowthOpportunitiesView from './components/growth/GrowthOpportunitiesView';
-import CustomersView from './components/customers/CustomersView';
-import ConversationsView from './components/conversations/ConversationsView';
-import ConnectorsView from './components/connectors/ConnectorsView';
+// Removed other component imports to avoid circular dependencies - will add back gradually
 
 function App() {
   console.log('🎭 App: Component function called')
