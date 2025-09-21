@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import { Sparkles, ArrowRight } from 'lucide-react';
 
 const WelcomeStep = ({ onNext }) => (

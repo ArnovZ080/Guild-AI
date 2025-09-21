@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import { Video, Play, Square, CheckCircle, X, AlertCircle } from 'lucide-react';
 
 const ScreenRecordingStep = ({ selectedSoftware, onClose, onComplete }) => {

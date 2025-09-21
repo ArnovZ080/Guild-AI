@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import PersistentSidebar from '../navigation/PersistentSidebar';
 
 const PageLayout = ({ children, currentView, onNavigate }) => {

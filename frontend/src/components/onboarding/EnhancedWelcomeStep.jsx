@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import { Sparkles, ArrowRight, Brain, Zap, Users, Target } from 'lucide-react';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 

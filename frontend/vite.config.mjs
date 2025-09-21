@@ -16,13 +16,13 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          ui: ['framer-motion', 'lucide-react'],
+          ui: ['react-spring', 'lucide-react'],
         },
       },
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react'],
+    include: ['react', 'react-dom', 'react-router-dom', 'react-spring', 'lucide-react'],
   },
   define: {
     global: 'globalThis',

@@ -13,7 +13,7 @@ import ReactFlow, {
   useReactFlow,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '../common/AnimationWrapper';
 import { 
   Plus, 
   Save, 

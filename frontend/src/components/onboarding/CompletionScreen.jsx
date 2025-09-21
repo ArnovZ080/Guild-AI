@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import { CheckCircle, ArrowRight, Sparkles, Users, Target, Zap } from 'lucide-react';
 
 const CompletionScreen = ({ answers, onFinish }) => {

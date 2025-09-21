@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from './common/AnimationWrapper';
 import { connectorSetupAPI, wsManager } from '../services/api';
 import { usePsychologicalOptimization } from '../contexts/PsychologicalOptimizationContext';
 import { useCelebrations } from '../contexts/CelebrationContext';

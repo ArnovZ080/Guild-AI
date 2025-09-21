@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import { Zap, Plus, Video } from 'lucide-react';
 
 const categories = {

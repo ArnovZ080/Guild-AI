@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '../components/common/AnimationWrapper';
 
 const CelebrationContext = createContext();
 

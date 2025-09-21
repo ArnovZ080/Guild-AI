@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import { Check, ChevronRight, Lightbulb, Heart } from 'lucide-react';
 
 const Question = ({ 

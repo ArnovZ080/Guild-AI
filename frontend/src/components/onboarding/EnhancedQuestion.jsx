@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '../common/AnimationWrapper';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 import { getRandomSnippet, getReassurance } from './conversationSnippets';
 

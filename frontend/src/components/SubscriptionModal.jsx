@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from './common/AnimationWrapper';
 import { Check, Loader2, CreditCard, X } from 'lucide-react';
 import paystackService from '../services/PaystackService';
 

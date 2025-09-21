@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from '../common/AnimationWrapper';
 import Question from './Question';
 import { Shield, Cloud, HardDrive, Lock } from 'lucide-react';
 

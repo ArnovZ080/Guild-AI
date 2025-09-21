@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from '../common/AnimationWrapper';
 
 const AgentPersonality = ({ agent, onOpenFullConversation, size = 'normal' }) => {
   const [isConversing, setIsConversing] = useState(false);
