@@ -1,9 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Mock Supabase client for development
+export const supabase = {
+  auth: {
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+    signOut: () => Promise.resolve({ error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+  }
+}
 
 class AuthService {
   constructor() {

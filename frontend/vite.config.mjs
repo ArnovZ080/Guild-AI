@@ -18,17 +18,19 @@ export default defineConfig({
           router: ['react-router-dom'],
           ui: ['lucide-react'],
           reactflow: ['reactflow'],
+          charts: ['recharts'],
+          socket: ['socket.io-client'],
         },
       },
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'reactflow'],
+    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'reactflow', 'recharts', 'socket.io-client'],
   },
   define: {
     global: 'globalThis',
   },
   ssr: {
-    noExternal: ['reactflow'],
+    noExternal: ['reactflow', 'recharts', 'socket.io-client'],
   },
 })
