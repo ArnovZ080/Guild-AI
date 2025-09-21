@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from '../common/AnimationWrapper';
+import { motion } from '../common/AnimationWrapper';
 import { usePsychologicalOptimization } from '../../contexts/PsychologicalOptimizationContext';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 import onboardingFollowUpService from '../../services/onboardingFollowUpService';
@@ -364,7 +364,7 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
       <ProgressIndicator />
       
       <div className="max-w-4xl mx-auto">
-        <AnimatePresence mode="wait">
+        <div>
           <motion.div
             key={currentStep}
             initial={{ opacity: 0, x: 20 }}
@@ -374,7 +374,7 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
           >
             {steps[currentStep]}
           </motion.div>
-        </AnimatePresence>
+        </div>
       </div>
       
       {/* Enhanced Connector Setup Modal */}

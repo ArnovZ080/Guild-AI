@@ -224,6 +224,5 @@ export const AnimatePresence = ({ children, mode, exitBeforeEnter }) => {
 // Export everything as a single object to match Framer Motion's API
 export default {
   motion,
-  AnimatePresence,
-  variants
+  AnimatePresence
 };
