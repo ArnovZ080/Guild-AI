@@ -143,31 +143,25 @@ function App() {
             )}
             
             {currentView !== 'onboarding' && (
-              <div className="bg-gray-100 p-8">
-                <h1 className="text-2xl font-bold mb-4">Guild AI - Testing OnboardingFlow</h1>
-                <p>Current View: {currentView}</p>
-                <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
-                <div className="mt-4">
-                  <button 
-                    onClick={() => setCurrentView('onboarding')}
-                    className="bg-red-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Test Onboarding
-                  </button>
-                  <button 
-                    onClick={() => setCurrentView('chat')}
-                    className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Test Chat
-                  </button>
-                  <button 
-                    onClick={() => setCurrentView('dashboard')}
-                    className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-                  >
-                    Test Dashboard
-                  </button>
-                </div>
-              </div>
+              <Router>
+                <Routes>
+                  <Route path="/" element={
+                    <PageLayout onNavigate={handleNavigate}>
+                      {currentView === 'chat' && <ClaudeStyleChat />}
+                      {currentView === 'dashboard' && <MainDashboard />}
+                      {currentView === 'marketplace' && <AgentMarketplace />}
+                      {currentView === 'calendar' && <EnhancedCalendar />}
+                      {currentView === 'workflow' && <WorkflowBuilder />}
+                      {currentView === 'goals' && <GoalsView />}
+                      {currentView === 'achievements' && <AchievementsView />}
+                      {currentView === 'growth' && <GrowthOpportunitiesView />}
+                      {currentView === 'customers' && <CustomersView />}
+                      {currentView === 'conversations' && <ConversationsView />}
+                      {currentView === 'connectors' && <ConnectorsView />}
+                    </PageLayout>
+                  } />
+                </Routes>
+              </Router>
             )}
           </div>
           </AgentCommunicationProvider>

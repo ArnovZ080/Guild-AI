@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from '../common/AnimationWrapper';
 import { useCelebrations } from '../../contexts/CelebrationContext';
 import { getRandomSnippet, getReassurance } from './conversationSnippets';
 
@@ -118,13 +117,7 @@ export default function EnhancedQuestion({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`${stressStyles.background} rounded-xl shadow-lg p-6 space-y-4 border ${stressStyles.border}`}
-      whileHover={{ scale: 1.01 }}
-      transition={{ duration: 0.2 }}
-    >
+    <div className={`${stressStyles.background} rounded-xl shadow-lg p-6 space-y-4 border ${stressStyles.border}`}>
       {/* Question header with type indicator */}
       <div className="flex items-start space-x-3">
         <div className="text-2xl">{getQuestionIcon()}</div>
@@ -146,7 +139,7 @@ export default function EnhancedQuestion({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               {options.map((option, index) => (
-                <motion.button
+                <button
                   key={option}
                   onClick={() => handleAnswer(option)}
                   disabled={isProcessing}
@@ -155,23 +148,17 @@ export default function EnhancedQuestion({
                       ? 'border-blue-500 bg-blue-50 text-blue-900 shadow-md'
                       : 'border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-25 hover:shadow-sm'
                   } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
                 >
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">{option}</span>
                     {isProcessing && selectedOption === option && (
-                      <motion.div
+                      <div
                         className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"
-                        animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       />
                     )}
                   </div>
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
@@ -195,7 +182,7 @@ export default function EnhancedQuestion({
                 className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
               >
                 {isProcessing ? (
-                  <motion.div
+                  <div
                     className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -209,20 +196,15 @@ export default function EnhancedQuestion({
         )}
 
         {reassurance && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+          <div
             className="bg-green-50 border border-green-200 rounded-lg p-3"
           >
             <p className="text-sm text-green-800 italic">💚 {reassurance}</p>
-          </motion.div>
+          </div>
         )}
 
         {showAck && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
+          <div
             className="text-center py-2"
           >
             <p className="text-sm text-blue-600 font-medium">
@@ -239,9 +221,9 @@ export default function EnhancedQuestion({
                 "🌟 Fantastic! That's really valuable info."
               ])}
             </p>
-          </motion.div>
+          </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
