@@ -110,36 +110,38 @@ function App() {
 
   console.log('🎭 App: About to render providers and components')
   
-  // Step 1: Test with AdaptiveModeProvider only
-  console.log('🎭 App: Testing with AdaptiveModeProvider only')
+  // Step 2: Test with AdaptiveModeProvider + CelebrationProvider
+  console.log('🎭 App: Testing with AdaptiveModeProvider + CelebrationProvider')
   
   return (
     <AdaptiveModeProvider>
-      <div className="min-h-screen bg-gray-100 p-8">
-        <h1 className="text-2xl font-bold mb-4">Guild AI - Testing AdaptiveModeProvider</h1>
-        <p>Current View: {currentView}</p>
-        <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
-        <div className="mt-4">
-          <button 
-            onClick={() => setCurrentView('chat')}
-            className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-          >
-            Test Chat
-          </button>
-          <button 
-            onClick={() => setCurrentView('dashboard')}
-            className="bg-green-500 text-white px-4 py-2 rounded mr-2"
-          >
-            Test Dashboard
-          </button>
-          <button 
-            onClick={() => setHasCompletedOnboarding(true)}
-            className="bg-purple-500 text-white px-4 py-2 rounded"
-          >
-            Complete Onboarding
-          </button>
+      <CelebrationProvider>
+        <div className="min-h-screen bg-gray-100 p-8">
+          <h1 className="text-2xl font-bold mb-4">Guild AI - Testing CelebrationProvider</h1>
+          <p>Current View: {currentView}</p>
+          <p>Onboarding Completed: {hasCompletedOnboarding ? 'Yes' : 'No'}</p>
+          <div className="mt-4">
+            <button 
+              onClick={() => setCurrentView('chat')}
+              className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+            >
+              Test Chat
+            </button>
+            <button 
+              onClick={() => setCurrentView('dashboard')}
+              className="bg-green-500 text-white px-4 py-2 rounded mr-2"
+            >
+              Test Dashboard
+            </button>
+            <button 
+              onClick={() => setHasCompletedOnboarding(true)}
+              className="bg-purple-500 text-white px-4 py-2 rounded"
+            >
+              Complete Onboarding
+            </button>
+          </div>
         </div>
-      </div>
+      </CelebrationProvider>
     </AdaptiveModeProvider>
   )
   
