@@ -23,13 +23,13 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
   const { updateUserProfile, getCurrentMode } = usePsychologicalOptimization();
   const { triggerTaskCompletionCelebration } = useCelebrations();
   
-  const [currentStep, setCurrentStep] = useState('welcome');
+  const [currentStep, setCurrentStep] = useState('business');
   const [answers, setAnswers] = useState({});
   const [showScreenRecording, setShowScreenRecording] = useState(false);
   const [showConnectorSetup, setShowConnectorSetup] = useState(false);
   const [onboardingProgress, setOnboardingProgress] = useState({
     completedSteps: 0,
-    totalSteps: 11,
+    totalSteps: 10,
     currentStepIndex: 0
   });
 
@@ -37,17 +37,16 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
 
   // Enhanced step configuration with psychological optimization
   const stepConfig = {
-    welcome: { index: 0, weight: 1, category: 'introduction' },
-    business: { index: 1, weight: 2, category: 'discovery' },
-    audience: { index: 2, weight: 2, category: 'discovery' },
-    brand: { index: 3, weight: 2, category: 'brand_identity' },
-    financial: { index: 4, weight: 1.5, category: 'sensitive' },
-    goals: { index: 5, weight: 2, category: 'planning' },
-    preferences: { index: 6, weight: 1, category: 'configuration' },
-    integrations: { index: 7, weight: 1.5, category: 'technical' },
-    summary: { index: 8, weight: 1, category: 'review' },
-    capabilities: { index: 9, weight: 1, category: 'education' },
-    completion: { index: 10, weight: 1, category: 'completion' }
+    business: { index: 0, weight: 2, category: 'discovery' },
+    audience: { index: 1, weight: 2, category: 'discovery' },
+    brand: { index: 2, weight: 2, category: 'brand_identity' },
+    financial: { index: 3, weight: 1.5, category: 'sensitive' },
+    goals: { index: 4, weight: 2, category: 'planning' },
+    preferences: { index: 5, weight: 1, category: 'configuration' },
+    integrations: { index: 6, weight: 1.5, category: 'technical' },
+    summary: { index: 7, weight: 1, category: 'review' },
+    capabilities: { index: 8, weight: 1, category: 'education' },
+    completion: { index: 9, weight: 1, category: 'completion' }
   };
 
   const updateAnswers = (newData) => {
@@ -238,12 +237,6 @@ const EnhancedOnboardingContainer = ({ onComplete }) => {
   const modeStyles = getModeStyles();
 
   const steps = {
-    welcome: (
-      <EnhancedWelcomeStep 
-        onNext={() => handleStepTransition('business')} 
-        modeStyles={modeStyles}
-      />
-    ),
     business: (
       <EnhancedQuestion
         onNext={(data) => handleStepTransition('audience', data)}
