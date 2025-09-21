@@ -17,14 +17,18 @@ export default defineConfig({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           ui: ['lucide-react'],
+          reactflow: ['reactflow'],
         },
       },
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react'],
+    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'reactflow'],
   },
   define: {
     global: 'globalThis',
+  },
+  ssr: {
+    noExternal: ['reactflow'],
   },
 })
