@@ -47,12 +47,12 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
   return (
     <div className="text-center max-w-2xl mx-auto space-y-8">
       <div className="space-y-6">
-        <div className={`w-20 h-20 bg-gradient-to-br ${modeStyles.accent} rounded-full flex items-center justify-center mx-auto shadow-lg`}>
+        <div className={`w-20 h-20 bg-gradient-to-br ${modeStyles?.accent || 'from-blue-500 to-purple-600'} rounded-full flex items-center justify-center mx-auto shadow-lg`}>
           <Sparkles className="w-10 h-10 text-white" />
         </div>
         
         <div className="space-y-4">
-          <h1 className={`text-4xl font-bold ${modeStyles.text}`}>
+          <h1 className={`text-4xl font-bold ${modeStyles?.text || 'text-gray-800'}`}>
             👋 Welcome to Guild
           </h1>
           <p className="text-xl text-gray-600 leading-relaxed">
@@ -119,8 +119,17 @@ const EnhancedWelcomeStep = ({ onNext, modeStyles }) => {
       </div>
 
       <button
-        onClick={onNext}
-        className={`bg-gradient-to-r ${modeStyles.accent} text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 transition-all duration-200 flex items-center space-x-2 mx-auto shadow-lg hover:shadow-xl`}
+        onClick={() => {
+          console.log('EnhancedWelcomeStep: Button clicked, calling onNext');
+          console.log('EnhancedWelcomeStep: onNext function:', onNext);
+          console.log('EnhancedWelcomeStep: modeStyles:', modeStyles);
+          if (onNext) {
+            onNext();
+          } else {
+            console.error('EnhancedWelcomeStep: onNext is undefined!');
+          }
+        }}
+        className={`bg-gradient-to-r ${modeStyles?.accent || 'from-blue-500 to-purple-600'} text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 transition-all duration-200 flex items-center space-x-2 mx-auto shadow-lg hover:shadow-xl`}
       >
         <span>Let's Get Started</span>
         <ArrowRight className="w-5 h-5" />
