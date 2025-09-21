@@ -215,7 +215,9 @@ export const motion = {
 };
 
 // AnimatePresence replacement
-export const AnimatePresence = ({ children, mode }) => {
+export const AnimatePresence = ({ children, mode, exitBeforeEnter }) => {
+  // Simple implementation that just renders children
+  // In a real implementation, this would handle exit animations
   return <>{children}</>;
 };
 
