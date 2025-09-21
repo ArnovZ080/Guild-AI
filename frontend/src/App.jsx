@@ -125,34 +125,31 @@ function App() {
           <div className="min-h-screen">
             {currentView === 'onboarding' && (
               (() => {
-                console.log('🎭 App: About to render simple test component')
+                console.log('🎭 App: About to render simplified EnhancedWelcomeStep')
                 try {
-                  // Test with a very simple component first
+                  // Test with simplified EnhancedWelcomeStep (no motion components)
+                  const EnhancedWelcomeStep = React.lazy(() => import('./components/onboarding/EnhancedWelcomeStep.simple'));
+                  
                   return (
                     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-                      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 text-center">
-                        <h1 className="text-4xl font-bold text-gray-800 mb-6">
-                          👋 Welcome to Guild
-                        </h1>
-                        <p className="text-xl text-gray-600 mb-8">
-                          Your AI workforce is ready to get to work. Let's set up your business profile 
-                          so we can create a personalized strategy that actually moves the needle.
-                        </p>
-                        <button 
-                          onClick={() => {
-                            console.log('Simple test: onNext called');
+                      <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                        <EnhancedWelcomeStep 
+                          onNext={() => {
+                            console.log('Simplified EnhancedWelcomeStep: onNext called');
                             handleOnboardingComplete();
                           }}
-                          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-xl text-lg font-semibold hover:opacity-90 transition-all duration-200"
-                        >
-                          Get Started
-                        </button>
-                      </div>
+                          modeStyles={{
+                            background: 'from-sky-day to-forest-growth',
+                            accent: 'from-blue-500 to-purple-600',
+                            text: 'text-gray-800'
+                          }}
+                        />
+                      </React.Suspense>
                     </div>
                   )
                 } catch (error) {
-                  console.error('❌ Error rendering simple test:', error)
-                  return <div>Error loading simple test: {error.message}</div>
+                  console.error('❌ Error rendering simplified EnhancedWelcomeStep:', error)
+                  return <div>Error loading simplified EnhancedWelcomeStep: {error.message}</div>
                 }
               })()
             )}
