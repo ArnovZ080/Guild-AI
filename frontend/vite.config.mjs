@@ -13,24 +13,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          router: ['react-router-dom'],
-          ui: ['lucide-react'],
-          reactflow: ['reactflow'],
-          charts: ['recharts'],
-          socket: ['socket.io-client'],
-        },
+        manualChunks: undefined,
       },
     },
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'reactflow', 'recharts', 'socket.io-client'],
+    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'reactflow'],
   },
   define: {
     global: 'globalThis',
-  },
-  ssr: {
-    noExternal: ['reactflow', 'recharts', 'socket.io-client'],
   },
 })
