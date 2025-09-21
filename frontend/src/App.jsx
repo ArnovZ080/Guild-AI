@@ -8,7 +8,7 @@ import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext';
 console.log('✅ App.jsx: AdaptiveModeProvider imported')
 
 console.log('📦 App.jsx: Importing CelebrationProvider...')
-import { CelebrationProvider } from './components/psychological/EnhancedMicroCelebrations.fixed';
+import { CelebrationProvider } from './contexts/CelebrationContext';
 console.log('✅ App.jsx: CelebrationProvider imported')
 
 console.log('📦 App.jsx: Importing AgentCommunicationProvider...')
