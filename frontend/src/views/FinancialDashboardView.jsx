@@ -37,6 +37,17 @@ const FinancialDashboardView = () => {
   const [expView, setExpView] = useState('MTD');
   const [customerModal, setCustomerModal] = useState(null);
   const [vendorModal, setVendorModal] = useState(null);
+  const exportCsv = (rows, headers, filename) => {
+    try {
+      const headerLine = headers.join(',');
+      const dataLines = rows.map(r => headers.map(h => JSON.stringify(r[h] ?? '')).join(',')).join('\n');
+      const blob = new Blob([headerLine + '\n' + dataLines], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url; link.download = filename; link.click();
+      URL.revokeObjectURL(url);
+    } catch {}
+  };
 
   useEffect(() => {
     (async () => {
@@ -300,6 +311,14 @@ const FinancialDashboardView = () => {
                 <div className="text-[10px] text-gray-500">ARR</div>
                 <div className="text-sm font-semibold text-gray-900">${(kpis?.arr||0).toLocaleString?.()}</div>
               </div>
+              <div className="bg-gray-50 rounded p-2">
+                <div className="text-[10px] text-gray-500">ARPU</div>
+                <div className="text-sm font-semibold text-gray-900">${(kpis?.arpu||0).toLocaleString?.()}</div>
+              </div>
+              <div className="bg-gray-50 rounded p-2">
+                <div className="text-[10px] text-gray-500">Churn</div>
+                <div className="text-sm font-semibold text-gray-900">{(kpis?.churn_rate_pct??0)}%</div>
+              </div>
             </div>
             <ul className="mt-3 text-sm text-gray-600 space-y-1">
               {(revenue?.revenue_breakdown || []).map((r, i) => (
@@ -346,7 +365,11 @@ const FinancialDashboardView = () => {
                     <span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span>
                   </li>
                 ))}
+                {topCustomers.length === 0 && <li className="text-gray-500">No customers in this period.</li>}
               </ul>
+              <div className="mt-2 flex justify-end">
+                <button className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => exportCsv(topCustomers.map(c=>({ customer:c.customer, amount:c.amount })), ['customer','amount'], 'top_customers.csv')}>Export CSV</button>
+              </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-6">
@@ -375,6 +398,9 @@ const FinancialDashboardView = () => {
                   <span>${(e?.amount || 0).toLocaleString?.()}</span>
                 </li>
               ))}
+              {((expenses?.expense_breakdown || []).length === 0) && (
+                <li className="text-gray-500">No expense data in this period.</li>
+              )}
             </ul>
           <div className="mt-2 text-xs text-gray-500">
             Budget vs Actual detail in Analytics tab
@@ -410,7 +436,11 @@ const FinancialDashboardView = () => {
                   {topVendors.map((v, i) => (
                     <li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setVendorModal(v)}><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>
                   ))}
+                  {topVendors.length === 0 && <li className="text-gray-500">No vendors in this period.</li>}
                 </ul>
+                <div className="mt-2 flex justify-end">
+                  <button className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => exportCsv(topVendors.map(v=>({ vendor:v.vendor, amount:v.amount })), ['vendor','amount'], 'top_vendors.csv')}>Export CSV</button>
+                </div>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">Fixed vs Variable Costs</h4>
