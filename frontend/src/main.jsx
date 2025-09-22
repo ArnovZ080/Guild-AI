@@ -6,9 +6,10 @@ import './index.css'
 
 const urlParams = new URLSearchParams(window.location.search)
 const useV2 = urlParams.get('v2') === '1'
+const pathIsV2 = window.location.pathname.startsWith('/v2')
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    {useV2 ? <AppV2 /> : <App />}
+    {useV2 || pathIsV2 ? <AppV2 /> : <App />}
   </StrictMode>,
 )

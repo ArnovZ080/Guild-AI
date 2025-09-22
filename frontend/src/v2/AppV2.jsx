@@ -8,7 +8,7 @@ function AppV2() {
   return (
     <AdaptiveModeProvider>
       <AgentCommunicationProvider>
-        <Router>
+        <Router basename={window.location.pathname.startsWith('/v2') ? '/v2' : '/'}>
           <Routes>
             <Route path="/" element={<ChatPageV2 />} />
             <Route path="*" element={<Navigate to="/" replace />} />
