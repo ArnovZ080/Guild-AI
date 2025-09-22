@@ -24,8 +24,20 @@ const OnboardingContainer = ({ onComplete }) => {
     setAnswers(prev => ({ ...prev, ...newData }));
     // collect unknowns based on simple heuristics
     const lowered = Object.entries(newData).map(([k, v]) => [k, String(v || '').toLowerCase()]);
+    const UNKNOWN_PATTERNS = [
+      'not sure',
+      "don't know",
+      'dont know',
+      'do not know',
+      'not sure yet',
+      'not sure what',
+      "don't track",
+      'dont track',
+      "i don't have",
+      'i dont have',
+    ];
     const newUnknowns = lowered
-      .filter(([, v]) => v.includes("not sure") || v.includes("don't know") || v === '' )
+      .filter(([, v]) => v === '' || UNKNOWN_PATTERNS.some(p => v.includes(p)))
       .map(([k]) => k);
     if (newUnknowns.length) {
       setUnknowns(prev => Array.from(new Set([...
