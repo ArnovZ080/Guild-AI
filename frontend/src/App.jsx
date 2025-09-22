@@ -7,6 +7,7 @@ import DashboardView from './views/DashboardView.jsx';
 import AgentsView from './views/AgentsView.jsx';
 import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
+import FinancialDashboardView from './views/FinancialDashboardView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
 import SettingsView from './views/SettingsView.jsx';
 import ChatInterface from './components/chat/ChatInterface.jsx';
@@ -79,6 +80,11 @@ function App() {
               <Route path="/analytics" element={
                 <DashboardLayout>
                   <AnalyticsView />
+                </DashboardLayout>
+              } />
+              <Route path="/financial" element={
+                <DashboardLayout>
+                  <FinancialDashboardView />
                 </DashboardLayout>
               } />
               <Route path="/customers" element={
