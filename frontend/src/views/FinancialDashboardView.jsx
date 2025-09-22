@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { financialApi } from '../services/financialApi.js';
 import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck, Lightbulb } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RLineChart } from 'recharts';
+import FinancialFlowVisualization from '../components/visualizations/FinancialFlowVisualization.jsx';
 
 const Pill = ({ tone = 'info', children }) => {
   const map = {
@@ -143,6 +144,16 @@ const FinancialDashboardView = () => {
           <div className="text-xs text-gray-500 mt-1">Projected runway</div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'overview' && (
+        <div className="mt-2">
+          <FinancialFlowVisualization
+            revenueBreakdown={(analysis?.financial_metrics?.revenue_metrics?.breakdown || revenue?.revenue_breakdown || []).map(r => ({ source: r.source || r.name, amount: r.amount, color: r.color }))}
+            expenseBreakdown={(expenses?.expense_breakdown || []).map(e => ({ category: e.category || e.name, amount: e.amount, color: e.color }))}
+            netFlow={(revenue?.total_revenue || 0) - (expenses?.expense_breakdown || []).reduce((s, x) => s + (x.amount || 0), 0)}
+          />
+        </div>
       )}
 
       {/* Income & Expenses */}
