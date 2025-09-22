@@ -3,13 +3,15 @@ import { fetchCeoSnapshot } from '../../services/biaApi.js';
 import { AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 
 const StatusPill = ({ status, children }) => {
+  const normalized = (status || '').toLowerCase();
   const map = {
     excellent: 'bg-emerald-100 text-emerald-800',
     good: 'bg-green-100 text-green-800',
     warning: 'bg-amber-100 text-amber-800',
-    critical: 'bg-red-100 text-red-800',
+    critical: 'bg-amber-100 text-amber-800', // show as Needs Attention color
   };
-  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[status] || 'bg-gray-100 text-gray-800'}`}>{children}</span>;
+  const label = children === 'Critical' ? 'Needs Attention' : children;
+  return <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[normalized] || 'bg-gray-100 text-gray-800'}`}>{label}</span>;
 };
 
 const CEOSnapshot = () => {

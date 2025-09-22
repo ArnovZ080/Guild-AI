@@ -1,10 +1,12 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const API_BASE = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 export async function fetchCeoSnapshot() {
   try {
     const token = localStorage.getItem('guild.auth.jwt') || '';
-    const res = await fetch(`${API_BASE}/api/bia/ceo_snapshot`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    const res = await fetch(`${API_BASE}/bi/ceo-snapshot`, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
