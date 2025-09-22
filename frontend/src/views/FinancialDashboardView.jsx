@@ -28,6 +28,11 @@ const FinancialDashboardView = () => {
   const [adRoi, setAdRoi] = useState(null);
   const [campaignTop, setCampaignTop] = useState([]);
   const [healthTimeline, setHealthTimeline] = useState([]);
+  const [revenueTrend, setRevenueTrend] = useState([]);
+  const [topCustomers, setTopCustomers] = useState([]);
+  const [expenseTrend, setExpenseTrend] = useState([]);
+  const [topVendors, setTopVendors] = useState([]);
+  const [fixedVariable, setFixedVariable] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -68,6 +73,19 @@ const FinancialDashboardView = () => {
         ]);
         setBudgetActual(bva?.data || {});
         setAdRoi(roi?.data || {});
+      } else if (activeTab === 'income_expenses') {
+        const [rt, tc, et, tv, fv] = await Promise.all([
+          financialApi.getRevenueTrend('90d'),
+          financialApi.getTopCustomers(period, 10),
+          financialApi.getExpenseTrend('90d'),
+          financialApi.getTopVendors(period, 10),
+          financialApi.getFixedVariableCosts(period),
+        ]);
+        setRevenueTrend(rt?.data?.points || []);
+        setTopCustomers(tc?.data?.customers || []);
+        setExpenseTrend(et?.data?.points || []);
+        setTopVendors(tv?.data?.vendors || []);
+        setFixedVariable(fv?.data || {});
       }
     })();
   }, [activeTab, period, scenario]);
@@ -285,6 +303,28 @@ const FinancialDashboardView = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            <div className="mt-6 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueTrend.map(p => ({ name: p.date, Products: p.streams?.Products, Subscriptions: p.streams?.Subscriptions, Consulting: p.streams?.Consulting }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Products" stackId="rev" fill="#10B981" />
+                  <Bar dataKey="Subscriptions" stackId="rev" fill="#3B82F6" />
+                  <Bar dataKey="Consulting" stackId="rev" fill="#8B5CF6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-6">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Top Customers</h4>
+              <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
+                {topCustomers.map((c, i) => (
+                  <li key={i} className="flex justify-between"><span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span></li>
+                ))}
+              </ul>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="mb-3">
@@ -320,6 +360,32 @@ const FinancialDashboardView = () => {
                   <Bar dataKey="value" fill="#EF4444" name="Expenses" />
                 </BarChart>
               </ResponsiveContainer>
+            </div>
+            <div className="mt-6 h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <RLineChart data={expenseTrend.map(p => ({ name: p.date, total: p.total }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="total" stroke="#EF4444" dot={false} name="Total" />
+                </RLineChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Top Vendors</h4>
+                <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
+                  {topVendors.map((v, i) => (
+                    <li key={i} className="flex justify-between"><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Fixed vs Variable Costs</h4>
+                <div className="text-sm text-gray-700">Fixed {fixedVariable?.fixed_pct || 0}% • Variable {fixedVariable?.variable_pct || 0}%</div>
+              </div>
             </div>
           </div>
         </div>

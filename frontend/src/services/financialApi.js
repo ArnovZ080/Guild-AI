@@ -118,6 +118,41 @@ export const financialApi = {
       } };
     }
   },
+  getRevenueTrend: async (period = '90d') => {
+    try { return await request(`/financial/revenue-trend?period=${encodeURIComponent(period)}`); } catch {
+      const dates = Array.from({ length: 8 }, (_, i) => `W${i+1}`);
+      const streams = ['Products','Subscriptions','Consulting'];
+      const points = dates.map((d) => {
+        const sVals = streams.map(() => Math.round(1000 + Math.random()*2000));
+        const total = sVals.reduce((a,b)=>a+b,0);
+        return { date: d, total, streams: { Products: sVals[0], Subscriptions: sVals[1], Consulting: sVals[2] } };
+      });
+      return { success: true, data: { period, points } };
+    }
+  },
+  getTopCustomers: async (period = '30d', limit = 10) => {
+    try { return await request(`/financial/top-customers?period=${encodeURIComponent(period)}&limit=${limit}`); } catch {
+      return { success: true, data: { customers: Array.from({ length: limit }, (_, i) => ({ customer: `Customer ${i+1}`, amount: Math.round(500 + Math.random()*5000) })) } };
+    }
+  },
+  getExpenseTrend: async (period = '90d') => {
+    try { return await request(`/financial/expense-trend?period=${encodeURIComponent(period)}`); } catch {
+      const dates = Array.from({ length: 8 }, (_, i) => `W${i+1}`);
+      const points = dates.map((d) => ({ date: d, total: Math.round(2000 + Math.random()*2500) }));
+      return { success: true, data: { period, points } };
+    }
+  },
+  getTopVendors: async (period = '30d', limit = 10) => {
+    try { return await request(`/financial/top-vendors?period=${encodeURIComponent(period)}&limit=${limit}`); } catch {
+      return { success: true, data: { vendors: Array.from({ length: limit }, (_, i) => ({ vendor: `Vendor ${i+1}`, amount: Math.round(300 + Math.random()*4000) })) } };
+    }
+  },
+  getFixedVariableCosts: async (period = '30d') => {
+    try { return await request(`/financial/fixed-variable?period=${encodeURIComponent(period)}`); } catch {
+      const fixed = 0.55 + Math.random()*0.1;
+      return { success: true, data: { fixed_pct: Number((fixed*100).toFixed(1)), variable_pct: Number(((1-fixed)*100).toFixed(1)) } };
+    }
+  },
   getInvoices: async (status = 'pending') => {
     try { return await request(`/financial/invoices?status=${encodeURIComponent(status)}`); } catch {
       return { success: true, data: { invoices: [
