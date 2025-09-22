@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, 
@@ -15,6 +16,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { loadConversations } from '../../services/conversationsStore.js';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
 const navigationItems = [
@@ -27,17 +29,45 @@ const navigationItems = [
   },
   {
     id: 'dashboard',
-    label: 'Dashboard',
+    label: 'Main Dashboard',
     icon: Home,
     category: 'primary',
     description: 'Your business overview'
   },
   {
+    id: 'analytics',
+    label: 'Financial Dashboard',
+    icon: BarChart,
+    category: 'primary',
+    description: 'Key financial metrics'
+  },
+  {
     id: 'agents',
-    label: 'AI Workforce',
+    label: 'Agent Dashboard',
     icon: Brain,
     category: 'primary',
     description: 'Manage your AI agents'
+  },
+  {
+    id: 'growth',
+    label: 'Content Dashboard',
+    icon: TrendingUp,
+    category: 'primary',
+    description: 'Content status & performance'
+  },
+  {
+    id: 'customers',
+    label: 'Customer Dashboard',
+    icon: Users,
+    category: 'primary',
+    description: 'Customer analytics'
+  },
+  {
+    id: 'conversations',
+    label: 'Conversations Dashboard',
+    icon: MessageSquare,
+    category: 'primary',
+    description: 'All conversations'
   },
   {
     id: 'workflows',
@@ -45,20 +75,6 @@ const navigationItems = [
     icon: Zap,
     category: 'primary',
     description: 'Active campaigns & projects'
-  },
-  {
-    id: 'analytics',
-    label: 'Analytics',
-    icon: BarChart,
-    category: 'primary',
-    description: 'Performance insights'
-  },
-  {
-    id: 'customers',
-    label: 'Customers',
-    icon: Users,
-    category: 'secondary',
-    description: 'Customer management'
   },
   {
     id: 'goals',
@@ -73,13 +89,6 @@ const navigationItems = [
     icon: TrendingUp,
     category: 'secondary',
     description: 'Expansion opportunities'
-  },
-  {
-    id: 'conversations',
-    label: 'Conversations',
-    icon: MessageSquare,
-    category: 'secondary',
-    description: 'Agent interactions'
   },
   {
     id: 'calendar',
@@ -119,9 +128,12 @@ const navigationItems = [
 ];
 
 export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelect }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { currentMode } = useAdaptiveMode();
   const [hoveredItem, setHoveredItem] = useState(null);
   const [userPatterns, setUserPatterns] = useState({});
+  const [recentConversations, setRecentConversations] = useState([]);
 
   // Simulate learning user patterns
   useEffect(() => {
@@ -132,6 +144,13 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
     };
     setUserPatterns(patterns);
   }, []);
+
+  // Load recent conversations for chat sidebar section
+  useEffect(() => {
+    try {
+      setRecentConversations(loadConversations());
+    } catch {}
+  }, [location.pathname]);
 
   const getSuggestedItems = () => {
     return userPatterns[currentMode] || [];
@@ -236,6 +255,51 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
           </motion.div>
         </motion.div>
 
+        {/* Chat-specific section */}
+        {location.pathname === '/chat' && (
+          <div className="px-2 py-3 border-b border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/40">
+            {/* New Conversation */}
+            <div className="mb-3">
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined' && window.dispatchEvent) {
+                    window.dispatchEvent(new CustomEvent('guild:newConversation'));
+                  }
+                }}
+                className={cn(
+                  'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+                  'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
+                )}
+              >
+                New Conversation
+              </button>
+            </div>
+            {/* Recent Conversations */}
+            {expanded && (
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 px-1">Recent Conversations</div>
+                <div className="max-h-48 overflow-y-auto pr-1">
+                  {recentConversations.map((chat) => (
+                    <button
+                      key={chat.id}
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.dispatchEvent) {
+                          window.dispatchEvent(new CustomEvent('guild:loadConversation', { detail: { id: chat.id } }));
+                        }
+                        if (location.pathname !== '/chat') navigate('/chat');
+                      }}
+                      className="w-full text-left p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700"
+                    >
+                      <div className="text-sm text-slate-800 dark:text-slate-100 truncate">{chat.title}</div>
+                      <div className="text-xs text-slate-500 truncate">{chat.preview}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto py-4">
           <div className="space-y-1 px-2">
@@ -248,7 +312,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 }}
                 >
-                  Primary
+                  Dashboards
                 </motion.p>
               )}
               {navigationItems

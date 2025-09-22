@@ -132,6 +132,21 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       } catch {}
     };
     window.addEventListener('guild:onboardingUpdated', handler);
+    const newConvHandler = () => {
+      if (messages.length > 1) {
+        const archived = archiveThread(messages);
+        if (archived) setChatHistory(prev => [archived, ...prev]);
+      }
+      setMessages([messages[0]]);
+    };
+    const loadConvHandler = (ev) => {
+      const id = ev?.detail?.id;
+      if (!id) return;
+      const thread = loadThread(id);
+      if (thread && thread.length) setMessages(thread);
+    };
+    window.addEventListener('guild:newConversation', newConvHandler);
+    window.addEventListener('guild:loadConversation', loadConvHandler);
     return () => window.removeEventListener('guild:onboardingUpdated', handler);
   }, []);
   
@@ -328,78 +343,8 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-white">
-      {/* Sidebar - Chat History */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-lg font-semibold text-gray-900">Guild AI</h1>
-              <p className="text-sm text-gray-500">Your Business Assistant</p>
-            </div>
-          </div>
-          
-          <button 
-            onClick={() => {
-              if (messages.length > 1) {
-                const archived = archiveThread(messages);
-                if (archived) setChatHistory(prev => [archived, ...prev]);
-              }
-              setMessages([messages[0]]);
-            }}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>New Conversation</span>
-          </button>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Recent Conversations</h3>
-            <div className="space-y-2">
-              {chatHistory.map((chat) => (
-                <motion.div
-                  key={chat.id}
-                  className="p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
-                  whileHover={{ x: 2 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    const thread = loadThread(chat.id);
-                    if (thread && thread.length) setMessages(thread);
-                  }}
-                >
-                  <h4 className="text-sm font-medium text-gray-900 truncate">{chat.title}</h4>
-                  <p className="text-xs text-gray-500 mt-1 truncate">{chat.preview}</p>
-                  <p className="text-xs text-gray-400 mt-1">{new Date(chat.timestamp).toLocaleString()}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Navigation */}
-        <div className="p-4 border-t border-gray-100">
-          <div className="space-y-2">
-            <button
-              onClick={onNavigateToDashboard}
-              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <BarChart className="w-4 h-4" />
-              <span>View Dashboard</span>
-            </button>
-            <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-2">
-              <Settings className="w-4 h-4" />
-              <span>Settings</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      {/* Main Chat Area (sidebar is global now) */}
+      <div className="flex-1 flex flex-col ml-0">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
