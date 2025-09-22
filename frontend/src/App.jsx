@@ -8,6 +8,7 @@ import AgentsView from './views/AgentsView.jsx';
 import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
+import SettingsView from './views/SettingsView.jsx';
 const ChatInterface = lazy(() => import('./components/chat/ChatInterface.jsx'));
 import CalendarView from './views/CalendarView.jsx';
 import CustomersView from './views/CustomersView.jsx';
@@ -127,7 +128,7 @@ function App() {
               } />
               <Route path="/settings" element={
                 <DashboardLayout>
-                  <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
+                  <SettingsView />
                 </DashboardLayout>
               } />
             </Routes>
