@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { financialApi } from '../services/financialApi.js';
 import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck, Lightbulb } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RLineChart } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RLineChart, PieChart, Pie, Cell } from 'recharts';
 import FinancialFlowVisualization from '../components/visualizations/FinancialFlowVisualization.jsx';
 
 const Pill = ({ tone = 'info', children }) => {
@@ -33,6 +33,10 @@ const FinancialDashboardView = () => {
   const [expenseTrend, setExpenseTrend] = useState([]);
   const [topVendors, setTopVendors] = useState([]);
   const [fixedVariable, setFixedVariable] = useState(null);
+  const [revView, setRevView] = useState('MTD');
+  const [expView, setExpView] = useState('MTD');
+  const [customerModal, setCustomerModal] = useState(null);
+  const [vendorModal, setVendorModal] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -271,15 +275,32 @@ const FinancialDashboardView = () => {
             <div className="mb-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-emerald-500" />Revenue ({period})</h3>
-                <Pill tone="info">Trend</Pill>
+                <div className="flex items-center gap-2">
+                  <Pill tone="info">{revView}</Pill>
+                </div>
               </div>
               <div className="mt-2 flex justify-center gap-2">
                 {periodOptions.map(p => (
                   <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
                 ))}
+                <div className="ml-2 inline-flex rounded bg-gray-100">
+                  {['MTD','YTD'].map(v => (
+                    <button key={v} onClick={() => setRevView(v)} className={`px-2 py-1 text-[10px] rounded ${revView===v ? 'bg-gray-900 text-white' : ''}`}>{v}</button>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="text-sm text-gray-700">Total: ${revenue?.total_revenue?.toLocaleString?.() || '—'}</div>
+            <div className="text-sm text-gray-700">Total {revView}: ${revenue?.total_revenue?.toLocaleString?.() || '—'}</div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="bg-gray-50 rounded p-2">
+                <div className="text-[10px] text-gray-500">MRR</div>
+                <div className="text-sm font-semibold text-gray-900">${(kpis?.mrr||0).toLocaleString?.()}</div>
+              </div>
+              <div className="bg-gray-50 rounded p-2">
+                <div className="text-[10px] text-gray-500">ARR</div>
+                <div className="text-sm font-semibold text-gray-900">${(kpis?.arr||0).toLocaleString?.()}</div>
+              </div>
+            </div>
             <ul className="mt-3 text-sm text-gray-600 space-y-1">
               {(revenue?.revenue_breakdown || []).map((r, i) => (
                 <li key={i} className="flex justify-between">
@@ -321,7 +342,9 @@ const FinancialDashboardView = () => {
               <h4 className="text-sm font-semibold text-gray-900 mb-2">Top Customers</h4>
               <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
                 {topCustomers.map((c, i) => (
-                  <li key={i} className="flex justify-between"><span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span></li>
+                  <li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setCustomerModal(c)}>
+                    <span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -330,12 +353,19 @@ const FinancialDashboardView = () => {
             <div className="mb-3">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-red-500" />Expenses ({period})</h3>
-                <Pill tone="info">Breakdown</Pill>
+                <div className="flex items-center gap-2">
+                  <Pill tone="info">{expView}</Pill>
+                </div>
               </div>
               <div className="mt-2 flex justify-center gap-2">
                 {periodOptions.map(p => (
                   <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
                 ))}
+                <div className="ml-2 inline-flex rounded bg-gray-100">
+                  {['MTD','YTD'].map(v => (
+                    <button key={v} onClick={() => setExpView(v)} className={`px-2 py-1 text-[10px] rounded ${expView===v ? 'bg-gray-900 text-white' : ''}`}>{v}</button>
+                  ))}
+                </div>
               </div>
             </div>
             <ul className="mt-1 text-sm text-gray-600 space-y-1">
@@ -378,15 +408,70 @@ const FinancialDashboardView = () => {
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">Top Vendors</h4>
                 <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
                   {topVendors.map((v, i) => (
-                    <li key={i} className="flex justify-between"><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>
+                    <li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setVendorModal(v)}><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>
                   ))}
                 </ul>
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-gray-900 mb-2">Fixed vs Variable Costs</h4>
-                <div className="text-sm text-gray-700">Fixed {fixedVariable?.fixed_pct || 0}% • Variable {fixedVariable?.variable_pct || 0}%</div>
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie dataKey="value" data={[
+                        { name: 'Fixed', value: fixedVariable?.fixed_pct || 0, color: '#64748B' },
+                        { name: 'Variable', value: fixedVariable?.variable_pct || 0, color: '#F59E0B' },
+                      ]} innerRadius={40} outerRadius={70}>
+                        <Cell fill="#64748B" />
+                        <Cell fill="#F59E0B" />
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
+            {/* Cost overrun alerts */}
+            <div className="mt-4">
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Cost Overruns</h4>
+              <ul className="text-xs text-gray-700 space-y-1">
+                {(budgetActual?.categories||[])
+                  .filter(c => (c.actual||0) > (c.budget||0))
+                  .map((c,i) => (
+                    <li key={i} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                      <span>{c.category}</span>
+                      <span>Actual ${c.actual} vs Budget ${c.budget}</span>
+                    </li>
+                  ))}
+                {((budgetActual?.categories||[]).filter(c => (c.actual||0) > (c.budget||0)).length===0) && (
+                  <li className="text-gray-500">No overruns detected.</li>
+                )}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer / Vendor detail modals */}
+      {customerModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Customer Details</h4>
+            <div className="text-sm text-gray-700 mb-2">{customerModal.customer}</div>
+            <div className="text-sm text-gray-700 mb-4">Revenue: ${customerModal.amount?.toLocaleString?.()}</div>
+            <div className="text-xs text-gray-500 mb-4">More breakdowns to come (by product and period).</div>
+            <div className="flex justify-end gap-2"><button className="px-3 py-2 text-sm rounded bg-gray-100" onClick={() => setCustomerModal(null)}>Close</button></div>
+          </div>
+        </div>
+      )}
+      {vendorModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Vendor Details</h4>
+            <div className="text-sm text-gray-700 mb-2">{vendorModal.vendor}</div>
+            <div className="text-sm text-gray-700 mb-4">Spend: ${vendorModal.amount?.toLocaleString?.()}</div>
+            <div className="text-xs text-gray-500 mb-4">Contract and renewal details will appear here.</div>
+            <div className="flex justify-end gap-2"><button className="px-3 py-2 text-sm rounded bg-gray-100" onClick={() => setVendorModal(null)}>Close</button></div>
           </div>
         </div>
       )}
