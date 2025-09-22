@@ -158,28 +158,7 @@ const CompletionScreen = ({ answers, onFinish }) => {
         </div>
       </motion.div>
 
-      {/* Final CTA */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.0 }}
-        className="space-y-6"
-      >
-        <motion.button
-          onClick={onFinish}
-          className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-12 py-4 rounded-xl text-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 flex items-center space-x-3 mx-auto shadow-lg hover:shadow-xl"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <span>Enter Your Dashboard</span>
-          <ArrowRight className="w-6 h-6" />
-        </motion.button>
-
-        <p className="text-sm text-gray-500 max-w-md mx-auto">
-          💡 <strong>Pro tip:</strong> You can always revisit your onboarding answers and update them as your business grows. 
-          Guild learns and adapts with you.
-        </p>
-      </motion.div>
+      {/* Final CTA removed per requirements; auto-finish */}
     </motion.div>
   );
 };

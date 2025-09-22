@@ -32,22 +32,12 @@ const WelcomeStep = ({ onNext }) => (
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900">What we'll cover:</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span>Your business & goals</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span>Target audience & messaging</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span>Tools & integrations</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          <span>Your AI workforce setup</span>
-        </div>
+        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Business basics (type, stage, description)</span></div>
+        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Audience (avatar, problems, size)</span></div>
+        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Brand (voice, colors, logo, story, positioning)</span></div>
+        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Financials (optional: revenue, pricing, budget, goals)</span></div>
+        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Goals & working style</span></div>
+        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Preferences & integrations</span></div>
       </div>
     </div>
 

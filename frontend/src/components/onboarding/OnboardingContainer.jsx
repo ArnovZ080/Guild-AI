@@ -11,9 +11,10 @@ import ScreenRecordingStep from './ScreenRecordingStep';
 import SummaryStep from './SummaryStep';
 import CapabilitiesStep from './CapabilitiesStep';
 import CompletionScreen from './CompletionScreen';
+import WelcomeStep from './WelcomeStep';
 
 const OnboardingContainer = ({ onComplete }) => {
-  const [currentStep, setCurrentStep] = useState('business');
+  const [currentStep, setCurrentStep] = useState('welcome');
   const [answers, setAnswers] = useState({});
   const [unknowns, setUnknowns] = useState([]); // track questions answered as unknown
   const [showScreenRecording, setShowScreenRecording] = useState(false);
@@ -47,6 +48,7 @@ const OnboardingContainer = ({ onComplete }) => {
   };
 
   const steps = {
+    welcome: <WelcomeStep onNext={() => setCurrentStep('business')} />,
     business: (
       <BusinessQuestions
         onNext={(data) => { 
@@ -114,13 +116,7 @@ const OnboardingContainer = ({ onComplete }) => {
     capabilities: (
       <CapabilitiesStep
         answers={answers}
-        onNext={() => setCurrentStep('completion')}
-      />
-    ),
-    completion: (
-      <CompletionScreen
-        answers={{ ...answers, unknowns }}
-        onFinish={() => onComplete({ ...answers, unknowns })}
+        onNext={() => onComplete({ ...answers, unknowns })}
       />
     ),
   };
