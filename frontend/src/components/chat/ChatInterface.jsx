@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations';
+import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
@@ -48,19 +49,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [showAgentMentions, setShowAgentMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   
-  // Available agents for mentions
-  const availableAgents = [
-    { id: 'campaignmanager', name: 'Campaign Manager', description: 'Marketing campaigns and ad management', icon: '📊' },
-    { id: 'contentcreator', name: 'Content Creator', description: 'Social media and blog content', icon: '✍️' },
-    { id: 'financialanalyst', name: 'Financial Analyst', description: 'Financial reports and analysis', icon: '💰' },
-    { id: 'leadgenerator', name: 'Lead Generator', description: 'Prospect identification and outreach', icon: '🎯' },
-    { id: 'customerrelations', name: 'Customer Relations', description: 'Customer support and communication', icon: '🤝' },
-    { id: 'scheduler', name: 'Scheduler', description: 'Calendar and task scheduling', icon: '📅' },
-    { id: 'researcher', name: 'Researcher', description: 'Market research and analysis', icon: '🔍' },
-    { id: 'designer', name: 'Designer', description: 'Visual content and branding', icon: '🎨' },
-    { id: 'writer', name: 'Writer', description: 'Copywriting and content writing', icon: '📝' },
-    { id: 'analytics', name: 'Analytics', description: 'Data analysis and insights', icon: '📈' }
-  ];
+  const [availableAgents, setAvailableAgents] = useState([]);
   
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -79,6 +68,32 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  // Load available agents on mount and when mention query changes (debounced locally)
+  useEffect(() => {
+    let abort = false;
+    const load = async () => {
+      try {
+        const agents = await listAvailableAgents(mentionQuery);
+        if (!abort) {
+          setAvailableAgents(
+            (agents || []).map(a => ({
+              id: a.agent_id,
+              name: a.name,
+              description: a.description,
+              icon: a.icon || '🤖',
+              category: a.category,
+            }))
+          );
+        }
+      } catch (e) {
+        if (!abort) console.warn('Failed to load agents', e);
+      }
+    };
+    // simple debounce
+    const t = setTimeout(load, 200);
+    return () => { abort = true; clearTimeout(t); };
+  }, [mentionQuery]);
 
   // Mock functions - replace with your actual API calls
   const executeAgentAction = async (action, params) => {
@@ -126,7 +141,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
 
   // Filter agents based on mention query
   const filteredAgents = availableAgents.filter(agent =>
-    agent.name.toLowerCase().includes(mentionQuery.toLowerCase()) ||
+    !mentionQuery || agent.name.toLowerCase().includes(mentionQuery.toLowerCase()) ||
     agent.id.toLowerCase().includes(mentionQuery.toLowerCase())
   );
 
@@ -145,70 +160,37 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     setInputValue('');
 
     try {
-      // Use your existing agent interaction system
-      let agentResponse;
-      let result;
-      const lowerMessage = messageText.toLowerCase();
-      
-      if (lowerMessage.includes('content') || lowerMessage.includes('social media')) {
-        setActiveAgent('content-strategist');
-        agentResponse = await executeAgentAction('create_content', {
-          content_request: {
-            topic: 'Social Media Content',
-            format: 'social_posts',
-            audience: 'business_customers',
-            tone: 'professional',
-            user_input: messageText
-          }
-        });
-      } else if (lowerMessage.includes('marketing') || lowerMessage.includes('strategy')) {
-        setActiveAgent('marketing');
-        agentResponse = await executeAgentAction('launch_campaign', {
-          name: 'Marketing Strategy Discussion',
-          user_request: messageText,
-          status: 'planning'
-        });
-      } else if (lowerMessage.includes('plan') || lowerMessage.includes('30 days')) {
-        setActiveAgent('strategy');
-        result = await createWorkflow(messageText);
-      } else if (lowerMessage.includes('analyze') || lowerMessage.includes('performance')) {
-        setActiveAgent('analytics');
-        agentResponse = await executeAgentAction('analyze_performance', {
-          user_query: messageText,
-          context: 'business_analysis'
-        });
-      } else {
-        // General business assistance
-        setActiveAgent('strategy');
-        agentResponse = await executeAgentAction('general_assistance', {
-          user_query: messageText,
-          context: 'business_chat'
-        });
+      // Determine mentioned agent (if any)
+      const atIdx = messageText.lastIndexOf('@');
+      let chosenAgent = null;
+      if (atIdx !== -1) {
+        const after = messageText.slice(atIdx + 1).split(/\s|\n/)[0];
+        // match against available agents by name or id
+        const byName = availableAgents.find(a => a.name.toLowerCase() === after.toLowerCase());
+        const byId = availableAgents.find(a => a.id.toLowerCase() === after.toLowerCase());
+        chosenAgent = byName || byId || null;
       }
+
+      const agentId = chosenAgent?.id || 'orchestrator';
+      setActiveAgent(agentId);
+
+      const dispatch = await sendTaskToAgent(agentId, {
+        description: messageText,
+        context: {},
+        priority: 'normal',
+        attachments: [],
+      });
 
       // Create assistant response
       let responseContent = "I'm working on that for you! ";
       let actions = [];
 
-      if (result?.workflow_id) {
-        responseContent += `I've created a workflow (ID: ${result.workflow_id}) to handle this request. `;
-        actions.push('📋 View Workflow Details', '✅ Approve Plan');
-        
-        // Trigger celebration for workflow creation
+      if (dispatch?.task_id) {
+        responseContent += `Task accepted (ID: ${dispatch.task_id}). I'll update you here as it progresses. `;
+        actions.push('🔔 Notify me on completion');
         triggerCelebration(CelebrationType.TASK_COMPLETE, {
-          message: "Workflow created successfully! 🎯",
-          intensity: 'normal'
-        });
-      }
-
-      if (agentResponse?.data) {
-        responseContent += "\n\nHere's what I found:\n" + JSON.stringify(agentResponse.data, null, 2);
-        actions.push('📊 View Dashboard', '🔍 Get More Details');
-        
-        // Trigger celebration for successful analysis
-        triggerCelebration(CelebrationType.EFFICIENCY_BOOST, {
-          message: "Analysis complete! 📈",
-          intensity: 'subtle'
+          message: 'Task queued with the agent! 🎯',
+          intensity: 'normal',
         });
       }
 
