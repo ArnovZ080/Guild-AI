@@ -282,156 +282,162 @@ const FinancialDashboardView = () => {
       {/* Income & Expenses */}
       {activeTab === 'income_expenses' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Revenue Summary */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="mb-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-emerald-500" />Revenue ({period})</h3>
-                <div className="flex items-center gap-2"><Pill tone="info">{revView}</Pill></div>
+          {/* LEFT COLUMN: INCOME */}
+          <div className="space-y-6">
+            {/* Revenue Summary */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="mb-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-emerald-500" />Revenue ({period})</h3>
+                  <div className="flex items-center gap-2"><Pill tone="info">{revView}</Pill></div>
+                </div>
+                <div className="mt-2 flex justify-center gap-2">
+                  {periodOptions.map(p => (<button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>))}
+                  <div className="ml-2 inline-flex rounded bg-gray-100">{['MTD','YTD'].map(v => (<button key={v} onClick={() => setRevView(v)} className={`px-2 py-1 text-[10px] rounded ${revView===v ? 'bg-gray-900 text-white' : ''}`}>{v}</button>))}</div>
+                </div>
               </div>
-              <div className="mt-2 flex justify-center gap-2">
-                {periodOptions.map(p => (<button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>))}
-                <div className="ml-2 inline-flex rounded bg-gray-100">{['MTD','YTD'].map(v => (<button key={v} onClick={() => setRevView(v)} className={`px-2 py-1 text-[10px] rounded ${revView===v ? 'bg-gray-900 text-white' : ''}`}>{v}</button>))}</div>
+              <div className="text-sm text-gray-700">Total {revView}: ${revenue?.total_revenue?.toLocaleString?.() || '—'}</div>
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">MRR</div><div className="text-sm font-semibold text-gray-900">${(kpis?.mrr||0).toLocaleString?.()}</div></div>
+                <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">ARR</div><div className="text-sm font-semibold text-gray-900">${(kpis?.arr||0).toLocaleString?.()}</div></div>
+                <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">ARPU</div><div className="text-sm font-semibold text-gray-900">${(kpis?.arpu||0).toLocaleString?.()}</div></div>
+                <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">Churn</div><div className="text-sm font-semibold text-gray-900">{(kpis?.churn_rate_pct??0)}%</div></div>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">Est. Gross {(kpis?.gross_margin_pct ?? 0)}% • Net {(kpis?.net_margin_pct ?? 0)}%</div>
+            </div>
+
+            {/* Revenue Streams */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Revenue Streams</h3></div>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {(revenue?.revenue_breakdown || []).map((r, i) => (
+                  <li key={i} className="flex justify-between"><span>{r?.source || 'Source'}</span><span>${(r?.amount || 0).toLocaleString?.()}</span></li>
+                ))}
+                {((revenue?.revenue_breakdown || []).length===0) && (<li className="text-gray-500">No revenue data.</li>)}
+              </ul>
+              <div className="mt-4 h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={(revenue?.revenue_breakdown || []).map(x => ({ name: x?.source, value: x?.amount }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" stroke="#6B7280" />
+                    <YAxis stroke="#6B7280" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#10B981" name="Revenue" />
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
-            <div className="text-sm text-gray-700">Total {revView}: ${revenue?.total_revenue?.toLocaleString?.() || '—'}</div>
-            <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">MRR</div><div className="text-sm font-semibold text-gray-900">${(kpis?.mrr||0).toLocaleString?.()}</div></div>
-              <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">ARR</div><div className="text-sm font-semibold text-gray-900">${(kpis?.arr||0).toLocaleString?.()}</div></div>
-              <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">ARPU</div><div className="text-sm font-semibold text-gray-900">${(kpis?.arpu||0).toLocaleString?.()}</div></div>
-              <div className="bg-gray-50 rounded p-2"><div className="text-[10px] text-gray-500">Churn</div><div className="text-sm font-semibold text-gray-900">{(kpis?.churn_rate_pct??0)}%</div></div>
-            </div>
-            <div className="mt-2 text-xs text-gray-500">Est. Gross {(kpis?.gross_margin_pct ?? 0)}% • Net {(kpis?.net_margin_pct ?? 0)}%</div>
-          </div>
 
-          {/* Expense Breakdown (bar) */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-red-500" />Expense Breakdown ({period})</h3>
-              <Pill tone="info">{expView}</Pill>
+            {/* Revenue Trend (stacked) */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Revenue Trend by Stream (90d)</h3></div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueTrend.map(p => ({ name: p.date, Products: p.streams?.Products, Subscriptions: p.streams?.Subscriptions, Consulting: p.streams?.Consulting }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" stroke="#6B7280" />
+                    <YAxis stroke="#6B7280" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="Products" stackId="rev" fill="#10B981" />
+                    <Bar dataKey="Subscriptions" stackId="rev" fill="#3B82F6" />
+                    <Bar dataKey="Consulting" stackId="rev" fill="#8B5CF6" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={(expenses?.expense_breakdown || []).map(x => ({ name: x?.category, value: x?.amount }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="name" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#EF4444" name="Expenses" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
 
-          {/* Revenue Streams (bar) */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Revenue Streams</h3></div>
-            <ul className="text-sm text-gray-700 space-y-1">
-              {(revenue?.revenue_breakdown || []).map((r, i) => (
-                <li key={i} className="flex justify-between"><span>{r?.source || 'Source'}</span><span>${(r?.amount || 0).toLocaleString?.()}</span></li>
-              ))}
-              {((revenue?.revenue_breakdown || []).length===0) && (<li className="text-gray-500">No revenue data.</li>)}
-            </ul>
-            <div className="mt-4 h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={(revenue?.revenue_breakdown || []).map(x => ({ name: x?.source, value: x?.amount }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="name" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="value" fill="#10B981" name="Revenue" />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Top Customers */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Top Customers</h3></div>
+              <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
+                {topCustomers.map((c, i) => (<li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setCustomerModal(c)}><span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span></li>))}
+                {topCustomers.length === 0 && <li className="text-gray-500">No customers in this period.</li>}
+              </ul>
+              <div className="mt-2 flex justify-end"><button className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => exportCsv(topCustomers.map(c=>({ customer:c.customer, amount:c.amount })), ['customer','amount'], 'top_customers.csv')}>Export CSV</button></div>
             </div>
           </div>
 
-          {/* Expense Trend */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Expense Trend (90d)</h3></div>
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <RLineChart data={expenseTrend.map(p => ({ name: p.date, total: p.total }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="name" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="total" stroke="#EF4444" dot={false} name="Total" />
-                </RLineChart>
-              </ResponsiveContainer>
+          {/* RIGHT COLUMN: EXPENSES */}
+          <div className="space-y-6">
+            {/* Expense Breakdown */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-red-500" />Expense Breakdown ({period})</h3>
+                <Pill tone="info">{expView}</Pill>
+              </div>
+              <div className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={(expenses?.expense_breakdown || []).map(x => ({ name: x?.category, value: x?.amount }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" stroke="#6B7280" />
+                    <YAxis stroke="#6B7280" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#EF4444" name="Expenses" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
 
-          {/* Revenue Trend (stacked) */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Revenue Trend by Stream (90d)</h3></div>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueTrend.map(p => ({ name: p.date, Products: p.streams?.Products, Subscriptions: p.streams?.Subscriptions, Consulting: p.streams?.Consulting }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="name" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="Products" stackId="rev" fill="#10B981" />
-                  <Bar dataKey="Subscriptions" stackId="rev" fill="#3B82F6" />
-                  <Bar dataKey="Consulting" stackId="rev" fill="#8B5CF6" />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Expense Trend */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Expense Trend (90d)</h3></div>
+              <div className="h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RLineChart data={expenseTrend.map(p => ({ name: p.date, total: p.total }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="name" stroke="#6B7280" />
+                    <YAxis stroke="#6B7280" />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="total" stroke="#EF4444" dot={false} name="Total" />
+                  </RLineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
 
-          {/* Top Customers */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Top Customers</h3></div>
-            <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
-              {topCustomers.map((c, i) => (<li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setCustomerModal(c)}><span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span></li>))}
-              {topCustomers.length === 0 && <li className="text-gray-500">No customers in this period.</li>}
-            </ul>
-            <div className="mt-2 flex justify-end"><button className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => exportCsv(topCustomers.map(c=>({ customer:c.customer, amount:c.amount })), ['customer','amount'], 'top_customers.csv')}>Export CSV</button></div>
-          </div>
-
-          {/* Top Vendors */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Top Vendors</h3></div>
-            <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
-              {topVendors.map((v, i) => (<li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setVendorModal(v)}><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>))}
-              {topVendors.length === 0 && <li className="text-gray-500">No vendors in this period.</li>}
-            </ul>
-            <div className="mt-2 flex justify-end"><button className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => exportCsv(topVendors.map(v=>({ vendor:v.vendor, amount:v.amount })), ['vendor','amount'], 'top_vendors.csv')}>Export CSV</button></div>
-          </div>
-
-          {/* Fixed vs Variable */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Fixed vs Variable Costs</h3></div>
-            <div className="h-40">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie dataKey="value" data={[
-                    { name: 'Fixed', value: fixedVariable?.fixed_pct || 0, color: '#64748B' },
-                    { name: 'Variable', value: fixedVariable?.variable_pct || 0, color: '#F59E0B' },
-                  ]} innerRadius={40} outerRadius={70}>
-                    <Cell fill="#64748B" />
-                    <Cell fill="#F59E0B" />
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+            {/* Top Vendors */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Top Vendors</h3></div>
+              <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
+                {topVendors.map((v, i) => (<li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setVendorModal(v)}><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>))}
+                {topVendors.length === 0 && <li className="text-gray-500">No vendors in this period.</li>}
+              </ul>
+              <div className="mt-2 flex justify-end"><button className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200" onClick={() => exportCsv(topVendors.map(v=>({ vendor:v.vendor, amount:v.amount })), ['vendor','amount'], 'top_vendors.csv')}>Export CSV</button></div>
             </div>
-          </div>
 
-          {/* Cost Overruns */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Cost Overruns</h3></div>
-            <ul className="text-xs text-gray-700 space-y-1">
-              {(budgetActual?.categories||[]).filter(c => (c.actual||0) > (c.budget||0)).map((c,i) => (
-                <li key={i} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded px-2 py-1"><span>{c.category}</span><span>Actual ${c.actual} vs Budget ${c.budget}</span></li>
-              ))}
-              {((budgetActual?.categories||[]).filter(c => (c.actual||0) > (c.budget||0)).length===0) && (<li className="text-gray-500">No overruns detected.</li>)}
-            </ul>
+            {/* Fixed vs Variable */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Fixed vs Variable Costs</h3></div>
+              <div className="h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie dataKey="value" data={[
+                      { name: 'Fixed', value: fixedVariable?.fixed_pct || 0, color: '#64748B' },
+                      { name: 'Variable', value: fixedVariable?.variable_pct || 0, color: '#F59E0B' },
+                    ]} innerRadius={40} outerRadius={70}>
+                      <Cell fill="#64748B" />
+                      <Cell fill="#F59E0B" />
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Cost Overruns */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Cost Overruns</h3></div>
+              <ul className="text-xs text-gray-700 space-y-1">
+                {(budgetActual?.categories||[]).filter(c => (c.actual||0) > (c.budget||0)).map((c,i) => (
+                  <li key={i} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded px-2 py-1"><span>{c.category}</span><span>Actual ${c.actual} vs Budget ${c.budget}</span></li>
+                ))}
+                {((budgetActual?.categories||[]).filter(c => (c.actual||0) > (c.budget||0)).length===0) && (<li className="text-gray-500">No overruns detected.</li>)}
+              </ul>
+            </div>
           </div>
         </div>
       )}
