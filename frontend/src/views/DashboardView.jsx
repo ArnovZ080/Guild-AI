@@ -12,6 +12,7 @@ import { AgentActivityTheater } from '../components/theater/AgentActivityTheater
 import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
 import HighLevelOverview from '../components/dashboard/HighLevelOverview.jsx';
+import CEOSnapshot from '../components/dashboard/CEOSnapshot.jsx';
 
 // Mock customer data for constellation
 const mockCustomers = [
@@ -364,8 +365,7 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <HighLevelOverview />
-            <EnhancedCommandCenter />
+            <CEOSnapshot />
             
             {/* Main Business Drivers */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
