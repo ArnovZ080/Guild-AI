@@ -12,6 +12,7 @@ import { AgentActivityTheater } from '../components/theater/AgentActivityTheater
 import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
 import HighLevelOverview from '../components/dashboard/HighLevelOverview.jsx';
+import CEOSnapshot from '../components/dashboard/CEOSnapshot.jsx';
 
 // Mock customer data for constellation
 const mockCustomers = [
@@ -308,6 +309,103 @@ const EnhancedOpportunityRadar = () => {
 };
 
 const DashboardView = () => {
+  // Simplified Main Dashboard: CEO Snapshot + three friendly cards
+  return (
+    <div className="space-y-6">
+      <CEOSnapshot />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Financial Health */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <DollarSign className="w-5 h-5 mr-2 text-green-500" />
+              Financial Health
+            </h3>
+            <span className="text-sm text-green-600 font-medium">Healthy</span>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Monthly Revenue</span>
+              <span className="font-semibold text-green-600">$125,000</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Monthly Expenses</span>
+              <span className="font-semibold text-red-600">$85,000</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Net Profit</span>
+              <span className="font-semibold text-blue-600">$40,000</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: '68%' }}></div>
+            </div>
+            <p className="text-xs text-gray-500">68% profit margin</p>
+          </div>
+        </div>
+
+        {/* Content Performance */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-blue-500" />
+              Content Performance
+            </h3>
+            <span className="text-sm text-blue-600 font-medium">Growing</span>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Total Views</span>
+              <span className="font-semibold text-blue-600">45.2K</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Engagement Rate</span>
+              <span className="font-semibold text-green-600">12.4%</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Content Pieces</span>
+              <span className="font-semibold text-purple-600">156</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+            </div>
+            <p className="text-xs text-gray-500">75% of monthly goal</p>
+          </div>
+        </div>
+
+        {/* Agent Activities */}
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Brain className="w-5 h-5 mr-2 text-purple-500" />
+              Agent Activities
+            </h3>
+            <span className="text-sm text-purple-600 font-medium">Active</span>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Active Agents</span>
+              <span className="font-semibold text-purple-600">12/52</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Tasks Completed</span>
+              <span className="font-semibold text-green-600">47</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">In Progress</span>
+              <span className="font-semibold text-blue-600">8</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-purple-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+            </div>
+            <p className="text-xs text-gray-500">85% efficiency rate</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  
+  // Legacy content below is intentionally unreachable and will be removed after review
   const [activeTab, setActiveTab] = useState('overview');
   const [contentSubTab, setContentSubTab] = useState('performance');
   const { triggerCelebration } = useCelebrations();
@@ -364,8 +462,7 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <HighLevelOverview />
-            <EnhancedCommandCenter />
+            <CEOSnapshot />
             
             {/* Main Business Drivers */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
