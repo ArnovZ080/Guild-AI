@@ -35,7 +35,7 @@ const navigationItems = [
     description: 'Your business overview'
   },
   {
-    id: 'analytics',
+    id: 'financial',
     label: 'Financial Dashboard',
     icon: BarChart,
     category: 'primary',
