@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
@@ -9,7 +9,7 @@ import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
 import SettingsView from './views/SettingsView.jsx';
-const ChatInterface = lazy(() => import('./components/chat/ChatInterface.jsx'));
+import ChatInterface from './components/chat/ChatInterface.jsx';
 import CalendarView from './views/CalendarView.jsx';
 import CustomersView from './views/CustomersView.jsx';
 import GoalsView from './views/GoalsView.jsx';
@@ -57,9 +57,7 @@ function App() {
               } />
               <Route path="/onboarding" element={<OnboardingView />} />
               <Route path="/chat" element={
-                <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center"><div className="text-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div><p className="text-gray-600">Loading Chat...</p></div></div>}>
-                  <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
-                </Suspense>
+                <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
               } />
               <Route path="/dashboard" element={
                 <DashboardLayout>
