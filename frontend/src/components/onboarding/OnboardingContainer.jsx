@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WelcomeStep from './WelcomeStep';
 import BusinessQuestions from './BusinessQuestions';
 import AudienceQuestions from './AudienceQuestions';
+import BrandQuestions from './BrandQuestions.jsx';
 import FinancialQuestions from './FinancialQuestions';
 import GoalsQuestions from './GoalsQuestions';
 import PreferencesStep from './PreferencesStep';
@@ -15,9 +16,24 @@ import CompletionScreen from './CompletionScreen';
 const OnboardingContainer = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState('welcome');
   const [answers, setAnswers] = useState({});
+  const [unknowns, setUnknowns] = useState([]); // track questions answered as unknown
   const [showScreenRecording, setShowScreenRecording] = useState(false);
 
-  const updateAnswers = (newData) => setAnswers(prev => ({ ...prev, ...newData }));
+  const updateAnswers = (newData) => {
+    // merge answers
+    setAnswers(prev => ({ ...prev, ...newData }));
+    // collect unknowns based on simple heuristics
+    const lowered = Object.entries(newData).map(([k, v]) => [k, String(v || '').toLowerCase()]);
+    const newUnknowns = lowered
+      .filter(([, v]) => v.includes("not sure") || v.includes("don't know") || v === '' )
+      .map(([k]) => k);
+    if (newUnknowns.length) {
+      setUnknowns(prev => Array.from(new Set([...
+        prev,
+        ...newUnknowns
+      ])));
+    }
+  };
 
   const steps = {
     welcome: <WelcomeStep onNext={() => setCurrentStep('business')} />,
@@ -33,9 +49,17 @@ const OnboardingContainer = ({ onComplete }) => {
       <AudienceQuestions
         onNext={(data) => { 
           updateAnswers(data); 
-          setCurrentStep('financial'); 
+          setCurrentStep('brand'); 
         }}
         businessType={answers.business_type}
+      />
+    ),
+    brand: (
+      <BrandQuestions
+        onNext={(data) => {
+          updateAnswers(data);
+          setCurrentStep('financial');
+        }}
       />
     ),
     financial: (
@@ -85,8 +109,8 @@ const OnboardingContainer = ({ onComplete }) => {
     ),
     completion: (
       <CompletionScreen
-        answers={answers}
-        onFinish={() => onComplete(answers)}
+        answers={{ ...answers, unknowns }}
+        onFinish={() => onComplete({ ...answers, unknowns })}
       />
     ),
   };
