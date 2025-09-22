@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations';
+// Removed celebrations to avoid circular deps and runtime init issues
 import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
 import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
-  const { triggerCelebration } = useCelebrations();
   
   // Check if user has completed onboarding
   const onboardingData = localStorage.getItem('guild_onboarding_data');
@@ -16,31 +15,52 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [messages, setMessages] = useState(() => {
     if (hasCompletedOnboarding && onboardingData) {
       const data = JSON.parse(onboardingData);
+      const buildSuggestions = () => {
+        try {
+          const notSurePhrases = [
+            'not sure', "i don't know", 'unsure', 'not sure yet', "i'm not sure",
+            "don't know", 'uncertain', 'maybe later', "i haven't really thought",
+            "i'm not sure what", "i don't think", "i haven't", "i don't have",
+            "don't track", 'not sure what that is'
+          ];
+          const isUnknown = (val) => {
+            if (!val) return true;
+            if (typeof val !== 'string') return false;
+            const s = val.toLowerCase();
+            return notSurePhrases.some(p => s.includes(p));
+          };
+          const onboarding = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+          const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
+          const filtered = pending.filter(f => {
+            const key = (f.id || '').replace(/^followup_/, '');
+            const val = onboarding[key];
+            return isUnknown(val);
+          });
+          const top = filtered.slice(0, 6).map(p => p.followUpQuestion);
+          const defaults = [
+            'Create content for my social media',
+            'Help me with my marketing strategy',
+            'Analyze my business performance',
+            'Plan my next 30 days',
+          ];
+          const merged = [...top, ...defaults].filter(Boolean);
+          return merged.length ? merged : defaults;
+        } catch {
+          return [
+            'Create content for my social media',
+            'Help me with my marketing strategy',
+            'Analyze my business performance',
+            'Plan my next 30 days',
+          ];
+        }
+      };
       return [
         {
           id: '1',
           type: 'assistant',
           content: `👋 Welcome back! I see you've completed your onboarding. Based on your business profile, I'm ready to help you with ${data.firstTask || 'your business goals'}. What would you like to work on today?`,
           timestamp: new Date(),
-          suggestions: (() => {
-            try {
-              const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
-              const top = pending.slice(0, 6).map(p => p.followUpQuestion);
-              const defaults = [
-                'Create content for my social media',
-                'Help me with my marketing strategy',
-                'Analyze my business performance',
-                'Plan my next 30 days',
-              ];
-              const merged = [...top, ...defaults].filter(Boolean);
-              return merged.length ? merged : defaults;
-            } catch { return [
-              'Create content for my social media',
-              'Help me with my marketing strategy',
-              'Analyze my business performance',
-              'Plan my next 30 days',
-            ]; }
-          })()
+          suggestions: buildSuggestions()
         }
       ];
     } else {
@@ -60,8 +80,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       ];
     }
   });
-  // persist history when it changes
-  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
   const [showAgentMentions, setShowAgentMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   
@@ -71,6 +89,51 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgent, setActiveAgent] = useState('strategy');
   const [chatHistory, setChatHistory] = useState(() => loadConversations());
+  // persist history when it changes (moved below declaration to avoid TDZ)
+  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
+
+  // Listen to onboarding updates (follow-up completion) and refresh first assistant message suggestions
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const notSurePhrases = [
+          'not sure', "i don't know", 'unsure', 'not sure yet', "i'm not sure",
+          "don't know", 'uncertain', 'maybe later', "i haven't really thought",
+          "i'm not sure what", "i don't think", "i haven't", "i don't have",
+          "don't track", 'not sure what that is'
+        ];
+        const isUnknown = (val) => {
+          if (!val) return true;
+          if (typeof val !== 'string') return false;
+          const s = val.toLowerCase();
+          return notSurePhrases.some(p => s.includes(p));
+        };
+        const onboarding = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+        const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
+        const filtered = pending.filter(f => {
+          const key = (f.id || '').replace(/^followup_/, '');
+          const val = onboarding[key];
+          return isUnknown(val);
+        });
+        const defaults = [
+          'Create content for my social media',
+          'Help me with my marketing strategy',
+          'Analyze my business performance',
+          'Plan my next 30 days',
+        ];
+        const merged = [...filtered.slice(0, 6).map(p => p.followUpQuestion), ...defaults].filter(Boolean);
+        setMessages(prev => {
+          if (!prev.length) return prev;
+          const first = prev[0];
+          if (first.type !== 'assistant') return prev;
+          const updatedFirst = { ...first, suggestions: merged.length ? merged : defaults };
+          return [updatedFirst, ...prev.slice(1)];
+        });
+      } catch {}
+    };
+    window.addEventListener('guild:onboardingUpdated', handler);
+    return () => window.removeEventListener('guild:onboardingUpdated', handler);
+  }, []);
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -210,10 +273,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       if (dispatch?.task_id) {
         responseContent += `Task accepted (ID: ${dispatch.task_id}). I'll update you here as it progresses. `;
         actions.push('🔔 Notify me on completion');
-        triggerCelebration(CelebrationType.TASK_COMPLETE, {
-          message: 'Task queued with the agent! 🎯',
-          intensity: 'normal',
-        });
       }
 
       if (!actions.length) {
@@ -255,10 +314,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       onNavigateToDashboard?.();
     } else if (action.includes('Workflow')) {
       // Navigate to workflow details
-      triggerCelebration(CelebrationType.MILESTONE_REACHED, {
-        message: "Taking action! 🚀",
-        intensity: 'normal'
-      });
     } else {
       // Handle other actions
       const actionMessage = {

@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
-import { CelebrationProvider } from './components/psychological/MicroCelebrations.jsx';
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
 import DashboardView from './views/DashboardView.jsx';
 import AgentsView from './views/AgentsView.jsx';
 import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
+import SettingsView from './views/SettingsView.jsx';
 import ChatInterface from './components/chat/ChatInterface.jsx';
 import CalendarView from './views/CalendarView.jsx';
 import CustomersView from './views/CustomersView.jsx';
@@ -48,7 +48,6 @@ function App() {
   return (
     <PsychologicalOptimizationProvider>
       <AdaptiveModeProvider>
-        <CelebrationProvider>
           <Router>
             <Routes>
               <Route path="/" element={
@@ -129,12 +128,11 @@ function App() {
               } />
               <Route path="/settings" element={
                 <DashboardLayout>
-                  <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
+                  <SettingsView />
                 </DashboardLayout>
               } />
             </Routes>
           </Router>
-        </CelebrationProvider>
       </AdaptiveModeProvider>
     </PsychologicalOptimizationProvider>
   );
