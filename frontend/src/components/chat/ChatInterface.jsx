@@ -87,7 +87,17 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           );
         }
       } catch (e) {
-        if (!abort) console.warn('Failed to load agents', e);
+        if (!abort) {
+          console.warn('Failed to load agents', e);
+          // Fallback list so @mentions still work without API
+          setAvailableAgents([
+            { id: 'orchestrator', name: 'Orchestrator', description: 'Main coordinator', icon: '🎯', category: 'Core' },
+            { id: 'judge', name: 'Judge', description: 'Evaluator League - rubrics/scoring', icon: '⚖️', category: 'Evaluator' },
+            { id: 'research', name: 'Research', description: 'Research & analysis', icon: '🔍', category: 'Core' },
+            { id: 'contentcreator', name: 'Content Creator', description: 'Content generation', icon: '✍️', category: 'Core' },
+            { id: 'analytics', name: 'Analytics', description: 'Data insights', icon: '📈', category: 'Core' },
+          ]);
+        }
       }
     };
     // simple debounce
