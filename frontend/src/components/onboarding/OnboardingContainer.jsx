@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import WelcomeStep from './WelcomeStep';
 import BusinessQuestions from './BusinessQuestions';
 import AudienceQuestions from './AudienceQuestions';
 import BrandQuestions from './BrandQuestions.jsx';
@@ -14,7 +13,7 @@ import CapabilitiesStep from './CapabilitiesStep';
 import CompletionScreen from './CompletionScreen';
 
 const OnboardingContainer = ({ onComplete }) => {
-  const [currentStep, setCurrentStep] = useState('welcome');
+  const [currentStep, setCurrentStep] = useState('business');
   const [answers, setAnswers] = useState({});
   const [unknowns, setUnknowns] = useState([]); // track questions answered as unknown
   const [showScreenRecording, setShowScreenRecording] = useState(false);
@@ -48,7 +47,6 @@ const OnboardingContainer = ({ onComplete }) => {
   };
 
   const steps = {
-    welcome: <WelcomeStep onNext={() => setCurrentStep('business')} />,
     business: (
       <BusinessQuestions
         onNext={(data) => { 
