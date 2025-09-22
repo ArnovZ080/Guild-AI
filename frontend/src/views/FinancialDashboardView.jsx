@@ -76,6 +76,8 @@ const FinancialDashboardView = () => {
   useEffect(() => { localStorage.setItem('financial.scenario', scenario); }, [scenario]);
 
   const [invoices, setInvoices] = useState([]);
+  const [approvalModal, setApprovalModal] = useState(null);
+  const [reallocateModal, setReallocateModal] = useState(null);
 
   if (loading) {
     return (
@@ -426,12 +428,8 @@ const FinancialDashboardView = () => {
                   <button
                     className="px-3 py-2 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
                     onClick={async () => {
-                      try {
-                        await financialApi.executeFinancialAction('apply_recommendation', { index: idx });
-                        alert('Action queued: applying recommendation.');
-                      } catch (e) {
-                        alert('Action queued.');
-                      }
+                      const prop = await financialApi.getBudgetReallocationProposal(idx);
+                      setReallocateModal({ index: idx, data: prop?.data });
                     }}
                   >
                     Act now
@@ -488,8 +486,8 @@ const FinancialDashboardView = () => {
                     <td className="px-4 py-2 capitalize">{inv.status}</td>
                     <td className="px-4 py-2 space-x-2">
                       <button className="px-2 py-1 text-xs rounded bg-emerald-600 text-white" onClick={async () => {
-                        await financialApi.approveInvoice(inv.id);
-                        setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'approved' } : i));
+                        const ctx = await financialApi.getInvoiceApprovalContext(inv.id);
+                        setApprovalModal({ context: ctx?.data });
                       }}>Approve</button>
                       <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
                         await financialApi.markInvoicePaid(inv.id);
@@ -503,6 +501,50 @@ const FinancialDashboardView = () => {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Approval Modals */}
+      {approvalModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Approve Payment</h4>
+            <div className="text-sm text-gray-700 mb-3">Vendor: {approvalModal.context?.vendor} • Amount: ${approvalModal.context?.amount?.toLocaleString?.()} • Due: {approvalModal.context?.due_date}</div>
+            <div className="text-sm text-gray-700 mb-2">Rationale: {approvalModal.context?.rationale}</div>
+            <div className="text-xs text-gray-500 mb-4">Confidence: {Math.round((approvalModal.context?.confidence_pct||0)*100)}% • Risk: {approvalModal.context?.risk}</div>
+            <div className="flex justify-end gap-2">
+              <button className="px-3 py-2 text-sm rounded bg-gray-100" onClick={() => setApprovalModal(null)}>Cancel</button>
+              <button className="px-3 py-2 text-sm rounded bg-emerald-600 text-white" onClick={async () => {
+                try {
+                  await financialApi.approveInvoice(approvalModal.context?.invoice_id);
+                } finally {
+                  setApprovalModal(null);
+                }
+              }}>Confirm Approve</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {reallocateModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h4 className="text-lg font-semibold text-gray-900 mb-2">Budget Reallocation</h4>
+            <div className="text-sm text-gray-700 mb-2">From: {reallocateModal.data?.from?.channel} (${reallocateModal.data?.from?.amount}) • ROAS {reallocateModal.data?.from?.current_roas}x</div>
+            <div className="text-sm text-gray-700 mb-2">To: {reallocateModal.data?.to?.channel} (${reallocateModal.data?.to?.amount}) • ROAS {reallocateModal.data?.to?.current_roas}x</div>
+            <div className="text-sm text-gray-700 mb-2">Recommendation: {reallocateModal.data?.recommendation}</div>
+            <div className="text-xs text-gray-500 mb-4">Confidence: {Math.round((reallocateModal.data?.confidence_pct||0)*100)}% • Risk: {reallocateModal.data?.risk}</div>
+            <div className="flex justify-end gap-2">
+              <button className="px-3 py-2 text-sm rounded bg-gray-100" onClick={() => setReallocateModal(null)}>Cancel</button>
+              <button className="px-3 py-2 text-sm rounded bg-emerald-600 text-white" onClick={async () => {
+                try {
+                  await financialApi.executeFinancialAction('apply_recommendation', { index: reallocateModal.index });
+                } finally {
+                  setReallocateModal(null);
+                }
+              }}>Confirm Reallocate</button>
+            </div>
           </div>
         </div>
       )}

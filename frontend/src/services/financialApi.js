@@ -136,6 +136,28 @@ export const financialApi = {
       return { success: true, data: { id: invoiceId, status: 'paid' } };
     }
   },
+  getInvoiceApprovalContext: async (invoiceId) => {
+    try { return await request(`/financial/invoices/${encodeURIComponent(invoiceId)}/approval-context`); } catch {
+      return { success: true, data: {
+        invoice_id: invoiceId,
+        rationale: 'Vendor is on-time, amount within budget, avoids late fees.',
+        confidence_pct: 0.86,
+        risk: 'low',
+        vendor: 'Sample Vendor', amount: 1250, due_date: '2025-10-05'
+      } };
+    }
+  },
+  getBudgetReallocationProposal: async (idx = 0) => {
+    try { return await request(`/financial/budget-reallocation?idx=${idx}`); } catch {
+      return { success: true, data: {
+        from: { channel: 'Meta Ads', current_roas: 1.2, amount: 2000 },
+        to: { channel: 'Google Ads', current_roas: 2.3, amount: 2000 },
+        recommendation: 'Shift $2k from Meta to Google to improve ROAS.',
+        confidence_pct: 0.88,
+        risk: 'medium',
+      } };
+    }
+  },
   executeFinancialAction: async (actionId, actionData = {}) => {
     return request('/financial/execute-action', { method: 'POST', body: JSON.stringify({ action_id: actionId, ...actionData }) });
   },
