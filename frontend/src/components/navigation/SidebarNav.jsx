@@ -152,15 +152,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
     } catch {}
   }, [location.pathname]);
 
-  const getSuggestedItems = () => {
-    return userPatterns[currentMode] || [];
-  };
-
-  const getItemPriority = (itemId) => {
-    const suggested = getSuggestedItems();
-    if (suggested.includes(itemId)) return 'high';
-    return 'normal';
-  };
+  // Only highlight the active item per user request
 
   const handleItemClick = (item) => {
     onItemSelect?.(item);
@@ -193,20 +185,16 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
   const getItemClasses = (item) => {
     const isActive = activeItem === item.id;
     const isHovered = hoveredItem === item.id;
-    const priority = getItemPriority(item.id);
-    
     return cn(
       "relative flex items-center w-full rounded-lg transition-all duration-200 group cursor-pointer",
       "hover:bg-white/10 dark:hover:bg-slate-700/50",
       isActive && "bg-white/20 dark:bg-slate-700/70 shadow-lg",
-      priority === 'high' && "ring-1 ring-blue-400/30 bg-blue-50/10",
       isHovered && "scale-105"
     );
   };
 
   const getIconClasses = (item) => {
     const isActive = activeItem === item.id;
-    
     return cn(
       "w-5 h-5 transition-all duration-200",
       isActive ? "text-blue-400" : "text-slate-600 dark:text-slate-300",
@@ -351,15 +339,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                       )}
                     </AnimatePresence>
                     
-                    {/* Priority Indicator */}
-                    {getItemPriority(item.id) === 'high' && (
-                      <motion.div
-                        className="absolute -right-1 -top-1 w-3 h-3 bg-blue-500 rounded-full"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
+                    {/* Only the active item is highlighted; no extra indicators */}
                   </motion.div>
                 ))}
             </div>
