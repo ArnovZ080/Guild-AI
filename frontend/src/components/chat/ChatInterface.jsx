@@ -70,6 +70,31 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [chatHistory, setChatHistory] = useState(() => loadConversations());
   // persist history when it changes (moved below declaration to avoid TDZ)
   useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
+
+  // Listen to onboarding updates (follow-up completion) and refresh first assistant message suggestions
+  useEffect(() => {
+    const handler = (e) => {
+      try {
+        const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
+        const defaults = [
+          'Create content for my social media',
+          'Help me with my marketing strategy',
+          'Analyze my business performance',
+          'Plan my next 30 days',
+        ];
+        const merged = [...pending.slice(0, 6).map(p => p.followUpQuestion), ...defaults].filter(Boolean);
+        setMessages(prev => {
+          if (!prev.length) return prev;
+          const first = prev[0];
+          if (first.type !== 'assistant') return prev;
+          const updatedFirst = { ...first, suggestions: merged.length ? merged : defaults };
+          return [updatedFirst, ...prev.slice(1)];
+        });
+      } catch {}
+    };
+    window.addEventListener('guild:onboardingUpdated', handler);
+    return () => window.removeEventListener('guild:onboardingUpdated', handler);
+  }, []);
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
