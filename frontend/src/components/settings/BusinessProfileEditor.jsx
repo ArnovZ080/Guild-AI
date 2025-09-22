@@ -29,6 +29,7 @@ const defaultModel = {
   audience_type: '',
   customer_avatar: '',
   audience_problem: '',
+  audience_size: '',
   // Summary: Goals & Priorities
   priority_3months: '',
   guild_support_focus: '',
@@ -42,6 +43,25 @@ const defaultModel = {
   // Optional brand/financial quick fields
   brandVoice: '',
   financialGoals: '',
+  // Detailed Brand (from onboarding)
+  brand_voice_tone: '',
+  brand_personality: '',
+  brand_colors: '',
+  logo_status: '',
+  brand_visual_style: '',
+  brand_values: '',
+  brand_story: '',
+  brand_positioning: '',
+  brand_differentiation: '',
+  brand_consistency: '',
+  // Financials (from onboarding)
+  share_financials: '',
+  financial_goals: '',
+  // Extra preferences and challenges
+  guild_working_style: '',
+  notification_preferences: '',
+  sensitive_data: '',
+  biggest_challenge: '',
 };
 
 const sections = [
@@ -59,6 +79,22 @@ const sections = [
       { key: 'audience_type', label: 'Target Audience' },
       { key: 'customer_avatar', label: 'Customer Avatar' },
       { key: 'audience_problem', label: 'Main Problem' },
+      { key: 'audience_size', label: 'Audience Size' },
+    ],
+  },
+  {
+    title: 'Brand',
+    fields: [
+      { key: 'brand_voice_tone', label: 'Brand Voice / Tone' },
+      { key: 'brand_personality', label: 'Brand Personality' },
+      { key: 'brand_colors', label: 'Brand Colors' },
+      { key: 'logo_status', label: 'Logo Status' },
+      { key: 'brand_visual_style', label: 'Visual Style' },
+      { key: 'brand_values', label: 'Brand Values' },
+      { key: 'brand_story', label: 'Brand Story' },
+      { key: 'brand_positioning', label: 'Positioning' },
+      { key: 'brand_differentiation', label: 'Differentiation' },
+      { key: 'brand_consistency', label: 'Brand Consistency' },
     ],
   },
   {
@@ -67,7 +103,7 @@ const sections = [
       { key: 'priority_3months', label: '3-Month Priority' },
       { key: 'guild_support_focus', label: 'Guild Focus' },
       { key: 'vision_12months', label: '12-Month Vision' },
-      { key: 'financialGoals', label: 'Financial Goals (next 12 months)' },
+      { key: 'biggest_challenge', label: 'Biggest Challenge' },
     ],
   },
   {
@@ -75,14 +111,24 @@ const sections = [
     fields: [
       { key: 'data_storage', label: 'Data Storage' },
       { key: 'automation_level', label: 'Automation Level' },
+      { key: 'guild_working_style', label: 'Working Style' },
+      { key: 'notification_preferences', label: 'Notification Preferences' },
+      { key: 'sensitive_data', label: 'Sensitive Data Preference' },
       { key: 'selectedSoftware', label: 'Connected Tools (comma separated)', type: 'csv' },
+    ],
+  },
+  {
+    title: 'Financials',
+    fields: [
+      { key: 'share_financials', label: 'Share Financials' },
+      { key: 'financial_goals', label: 'Financial Goals (next 12 months)' },
     ],
   },
   {
     title: 'Chat Personalization',
     fields: [
       { key: 'firstTask', label: 'First Task You Want Help With' },
-      { key: 'brandVoice', label: 'Brand Voice / Personality' },
+      { key: 'brandVoice', label: 'Brand Voice (for chat greeting)' },
     ],
   },
 ];
@@ -96,6 +142,13 @@ const BusinessProfileEditor = () => {
   useEffect(() => {
     const existing = loadOnboardingData();
     const merged = { ...defaultModel, ...(existing || {}) };
+    // Derive convenience fields if present in onboarding payload
+    if (existing && !merged.brandVoice && existing.brand_voice_tone) {
+      merged.brandVoice = existing.brand_voice_tone;
+    }
+    if (existing && !merged.financialGoals && existing.financial_goals) {
+      merged.financialGoals = existing.financial_goals;
+    }
     setModel(merged);
     setRawJson(JSON.stringify(existing || {}, null, 2));
   }, []);
@@ -113,6 +166,16 @@ const BusinessProfileEditor = () => {
         .split(',')
         .map(s => s.trim())
         .filter(Boolean);
+    }
+    // Keep convenience keys in sync with onboarding keys
+    if (!next.financial_goals && next.financialGoals) {
+      next.financial_goals = next.financialGoals;
+    }
+    if (!next.financialGoals && next.financial_goals) {
+      next.financialGoals = next.financial_goals;
+    }
+    if (!next.brand_voice_tone && next.brandVoice) {
+      next.brand_voice_tone = next.brandVoice;
     }
     saveOnboardingData(next);
     localStorage.setItem(COMPLETED_KEY, 'true');
