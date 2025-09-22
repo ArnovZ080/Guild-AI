@@ -64,6 +64,7 @@ export const financialApi = {
     try { return await request(`/financial/kpis?period=${encodeURIComponent(period)}`); } catch {
       return { success: true, data: {
         cash_on_hand: 32500,
+        current_liabilities: 18200,
         ar_total: 4200,
         ap_total: 6100,
         runway_months: 8.2,
@@ -76,6 +77,21 @@ export const financialApi = {
         roas: 2.1,
         cost_savings_automation: 950,
       } };
+    }
+  },
+  getCampaignRoiTop: async (period = '30d', limit = 3) => {
+    try { return await request(`/financial/campaign-roi?period=${encodeURIComponent(period)}&limit=${limit}`); } catch {
+      return { success: true, data: { campaigns: [
+        { id: 'cmp_fb_01', name: 'FB Prospecting', spend: 1200, revenue: 2500, roas: 2.08 },
+        { id: 'cmp_gg_02', name: 'Google Search', spend: 900, revenue: 2100, roas: 2.33 },
+        { id: 'cmp_em_03', name: 'Email Nurture', spend: 300, revenue: 700, roas: 2.33 },
+      ] } };
+    }
+  },
+  getHealthScoreTimeline: async (period = '90d') => {
+    try { return await request(`/financial/health-score-timeline?period=${encodeURIComponent(period)}`); } catch {
+      const points = Array.from({ length: 12 }, (_, i) => ({ idx: i+1, score: 60 + Math.round(Math.random()*20) }));
+      return { success: true, data: { points } };
     }
   },
   getBudgetVsActual: async (period = '30d') => {

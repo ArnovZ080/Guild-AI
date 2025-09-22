@@ -26,6 +26,8 @@ const FinancialDashboardView = () => {
   const [kpis, setKpis] = useState(null);
   const [budgetActual, setBudgetActual] = useState(null);
   const [adRoi, setAdRoi] = useState(null);
+  const [campaignTop, setCampaignTop] = useState([]);
+  const [healthTimeline, setHealthTimeline] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -33,6 +35,12 @@ const FinancialDashboardView = () => {
       setAnalysis(res?.data || {});
       const k = await financialApi.getFinancialKpis(period);
       setKpis(k?.data || {});
+      const [cTop, htl] = await Promise.all([
+        financialApi.getCampaignRoiTop(period, 3),
+        financialApi.getHealthScoreTimeline('90d'),
+      ]);
+      setCampaignTop(cTop?.data?.campaigns || []);
+      setHealthTimeline(htl?.data?.points || []);
       setLoading(false);
     })();
   }, []);
@@ -176,6 +184,52 @@ const FinancialDashboardView = () => {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-xs text-gray-500 mb-1">Margins & ROAS</div>
             <div className="text-sm text-gray-900">Gross {(kpis?.gross_margin_pct||0)}% • Net {(kpis?.net_margin_pct||0)}% • ROAS {(kpis?.roas||0)}x</div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-2">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Campaign Spend & ROI (Top 3)</h3>
+              <Pill tone="info">Live</Pill>
+            </div>
+            <ul className="text-sm text-gray-700 space-y-2">
+              {campaignTop.map(c => (
+                <li key={c.id} className="flex justify-between">
+                  <span className="truncate pr-3">{c.name}</span>
+                  <span>Spend ${c.spend} • ROAS {c.roas}x</span>
+                </li>
+              ))}
+              {campaignTop.length === 0 && <li className="text-gray-500">No active campaigns</li>}
+            </ul>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Financial Health Score</h3>
+              <Pill tone={score >= 80 ? 'good' : score >= 60 ? 'info' : 'warn'}>{String(score)}</Pill>
+            </div>
+            <div className="h-40">
+              <ResponsiveContainer width="100%" height="100%">
+                <RLineChart data={healthTimeline.map((p,i)=>({ name: i+1, score: p.score }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" hide />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="score" stroke="#10B981" dot={false} name="Score" />
+                </RLineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">Liquidity Ratio</h3>
+              <Pill tone={(kpis?.cash_on_hand||0)/Math.max(1,(kpis?.current_liabilities||1)) >= 1.5 ? 'good' : 'warn'}>{((kpis?.cash_on_hand||0)/Math.max(1,(kpis?.current_liabilities||1))).toFixed(2)}x</Pill>
+            </div>
+            <div className="text-sm text-gray-700">Cash ${((kpis?.cash_on_hand)||0).toLocaleString?.()} ÷ Current Liabilities ${((kpis?.current_liabilities)||0).toLocaleString?.()}</div>
+            <div className="text-xs text-gray-500 mt-2">Rule of thumb ≥ 1.5x is healthy</div>
           </div>
         </div>
       )}
