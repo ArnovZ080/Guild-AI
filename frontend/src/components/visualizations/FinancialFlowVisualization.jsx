@@ -37,7 +37,7 @@ const FinancialFlowVisualization = ({ revenueBreakdown = [], expenseBreakdown = 
   const maxWidth = 220;
 
   return (
-    <div className="w-full relative rounded-lg p-6 overflow-hidden bg-gradient-to-b from-blue-50 to-emerald-50 border border-gray-200">
+    <div className="w-full h-96 relative rounded-lg p-6 overflow-hidden bg-gradient-to-b from-blue-50 to-emerald-50 border border-gray-200">
       {/* Header */}
       <div className="text-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Financial Flow</h3>
@@ -60,7 +60,7 @@ const FinancialFlowVisualization = ({ revenueBreakdown = [], expenseBreakdown = 
       </div>
 
       {/* River center */}
-      <div className="absolute left-1/2 top-10 bottom-10 -translate-x-1/2 w-14">
+      <div className="absolute left-1/2 top-16 bottom-14 -translate-x-1/2 w-14">
         <motion.div className="w-full h-full rounded-full bg-gradient-to-b from-blue-400 to-emerald-400 relative overflow-hidden shadow" animate={{ opacity: [0.9, 1, 0.9] }} transition={{ duration: 2.2, repeat: Infinity }}>
           <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-white to-transparent opacity-25" animate={{ y: ['-100%', '100%'] }} transition={{ duration: 3.6, repeat: Infinity, ease: 'linear' }} />
         </motion.div>
