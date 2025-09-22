@@ -19,6 +19,34 @@ function saveOnboardingData(data) {
   } catch {}
 }
 
+function prunePendingFollowUpsFromModel(model) {
+  try {
+    const raw = localStorage.getItem(FOLLOWUPS_KEY);
+    const pending = raw ? JSON.parse(raw) : [];
+    const notSurePhrases = [
+      'not sure', "i don't know", 'unsure', 'not sure yet', "i'm not sure",
+      "don't know", 'uncertain', 'maybe later', "i haven't really thought",
+      "i'm not sure what", "i don't think", "i haven't", "i don't have",
+      "don't track", 'not sure what that is'
+    ];
+    const isCertain = (val) => {
+      if (!val || typeof val !== 'string') return false;
+      const s = val.toLowerCase();
+      return !notSurePhrases.some(p => s.includes(p));
+    };
+    const nextPending = pending.filter(fu => {
+      const key = (fu.id || '').replace(/^followup_/, '');
+      const val = model[key];
+      // keep follow-up if value still unknown/empty; remove if now certain
+      return !(typeof val === 'string' ? isCertain(val) : Boolean(val));
+    });
+    localStorage.setItem(FOLLOWUPS_KEY, JSON.stringify(nextPending));
+    return nextPending;
+  } catch {
+    return null;
+  }
+}
+
 // Merge keys from Onboarding Summary + a few convenience fields used by chat
 const defaultModel = {
   // Summary: Business Overview
@@ -179,10 +207,22 @@ const BusinessProfileEditor = () => {
     }
     saveOnboardingData(next);
     localStorage.setItem(COMPLETED_KEY, 'true');
+    // Prune resolved follow-ups based on updated answers
+    const nextPending = prunePendingFollowUpsFromModel(next);
     // Optional: clear pending follow-ups so they can regenerate later
     // localStorage.removeItem(FOLLOWUPS_KEY);
     setRawJson(JSON.stringify(next, null, 2));
     setSaved(true);
+    // Broadcast update so chat can refresh suggestions immediately
+    if (typeof window !== 'undefined' && window.dispatchEvent) {
+      const evt = new CustomEvent('guild:onboardingUpdated', {
+        detail: {
+          onboarding: next,
+          pendingFollowUps: nextPending,
+        },
+      });
+      window.dispatchEvent(evt);
+    }
   };
 
   const handleSaveAdvanced = () => {
@@ -192,6 +232,13 @@ const BusinessProfileEditor = () => {
       localStorage.setItem(COMPLETED_KEY, 'true');
       setModel({ ...defaultModel, ...parsed });
       setSaved(true);
+      const nextPending = prunePendingFollowUpsFromModel(parsed);
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        const evt = new CustomEvent('guild:onboardingUpdated', {
+          detail: { onboarding: parsed, pendingFollowUps: nextPending },
+        });
+        window.dispatchEvent(evt);
+      }
     } catch (e) {
       alert('Invalid JSON. Please fix and try again.');
     }
