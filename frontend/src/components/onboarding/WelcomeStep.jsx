@@ -31,13 +31,13 @@ const WelcomeStep = ({ onNext }) => (
 
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-4">
       <h2 className="text-lg font-semibold text-gray-900">What we'll cover:</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600">
-        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Business basics (type, stage, description)</span></div>
-        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Audience (avatar, problems, size)</span></div>
-        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Brand (voice, colors, logo, story, positioning)</span></div>
-        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Financials (optional: revenue, pricing, budget, goals)</span></div>
-        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Goals & working style</span></div>
-        <div className="flex items-center space-x-2"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span>Preferences & integrations</span></div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-600 text-left">
+        <div className="flex items-center space-x-2 text-left"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-left">Business basics (type, stage, description)</span></div>
+        <div className="flex items-center space-x-2 text-left"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-left">Audience (avatar, problems, size)</span></div>
+        <div className="flex items-center space-x-2 text-left"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-left">Brand (voice, colors, logo, story, positioning)</span></div>
+        <div className="flex items-center space-x-2 text-left"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-left">Financials (optional: revenue, pricing, budget, goals)</span></div>
+        <div className="flex items-center space-x-2 text-left"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-left">Goals & working style</span></div>
+        <div className="flex items-center space-x-2 text-left"><div className="w-2 h-2 bg-blue-500 rounded-full"></div><span className="text-left">Preferences & integrations</span></div>
       </div>
     </div>
 

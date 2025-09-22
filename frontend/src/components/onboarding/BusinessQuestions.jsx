@@ -67,6 +67,17 @@ const BusinessQuestions = ({ onNext }) => {
 
   return (
     <div className="space-y-8">
+      {/* Intro banner */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-blue-50 border border-blue-200 rounded-xl p-6"
+      >
+        <h3 className="font-semibold text-blue-900 mb-2">Let's get to know your Business</h3>
+        <p className="text-blue-800 italic">
+          This is where we just get to know a bit more about where you are in your business journey so that we can see what we have to work with and where we can be most useful.
+        </p>
+      </motion.div>
       {/* Progress indicator */}
       <div className="flex items-center justify-center space-x-2 mb-8">
         {questions.map((_, index) => (

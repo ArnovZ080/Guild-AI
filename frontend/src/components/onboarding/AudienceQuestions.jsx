@@ -88,16 +88,14 @@ const AudienceQuestions = ({ onNext, businessType }) => {
 
   return (
     <div className="space-y-8">
-      {/* Contextual intro */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-blue-50 border border-blue-200 rounded-xl p-6"
-      >
+      {/* Header + Contextual intro */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 className="font-semibold text-blue-900 mb-2">Let's talk about who you want to serve in your business</h3>
         <p className="text-gray-700 italic text-lg leading-relaxed">
           {getIntro()}
         </p>
-      </motion.div>
+      </div>
+      
 
       {/* Progress indicator */}
       <div className="flex items-center justify-center space-x-2 mb-8">
