@@ -19,20 +19,72 @@ function saveOnboardingData(data) {
   } catch {}
 }
 
+// Merge keys from Onboarding Summary + a few convenience fields used by chat
 const defaultModel = {
-  businessType: '',
-  brandVoice: '',
-  idealCustomer: '',
-  financialGoals: '',
+  // Summary: Business Overview
+  business_type: '',
+  business_stage: '',
+  business_description: '',
+  // Summary: Audience & Clients
+  audience_type: '',
+  customer_avatar: '',
+  audience_problem: '',
+  // Summary: Goals & Priorities
+  priority_3months: '',
+  guild_support_focus: '',
+  vision_12months: '',
+  // Summary: Preferences
+  data_storage: '',
+  automation_level: '',
+  selectedSoftware: [],
+  // Convenience used in Chat welcome
   firstTask: '',
+  // Optional brand/financial quick fields
+  brandVoice: '',
+  financialGoals: '',
 };
 
-const fieldMeta = [
-  { key: 'businessType', label: 'Business Type' },
-  { key: 'brandVoice', label: 'Brand Voice / Personality' },
-  { key: 'idealCustomer', label: 'Ideal Customer / Audience' },
-  { key: 'financialGoals', label: 'Financial Goals (next 12 months)' },
-  { key: 'firstTask', label: 'First Task You Want Help With' },
+const sections = [
+  {
+    title: 'Business Overview',
+    fields: [
+      { key: 'business_type', label: 'Business Type' },
+      { key: 'business_stage', label: 'Business Stage' },
+      { key: 'business_description', label: 'Description', type: 'textarea' },
+    ],
+  },
+  {
+    title: 'Audience & Clients',
+    fields: [
+      { key: 'audience_type', label: 'Target Audience' },
+      { key: 'customer_avatar', label: 'Customer Avatar' },
+      { key: 'audience_problem', label: 'Main Problem' },
+    ],
+  },
+  {
+    title: 'Goals & Priorities',
+    fields: [
+      { key: 'priority_3months', label: '3-Month Priority' },
+      { key: 'guild_support_focus', label: 'Guild Focus' },
+      { key: 'vision_12months', label: '12-Month Vision' },
+      { key: 'financialGoals', label: 'Financial Goals (next 12 months)' },
+    ],
+  },
+  {
+    title: 'Preferences',
+    fields: [
+      { key: 'data_storage', label: 'Data Storage' },
+      { key: 'automation_level', label: 'Automation Level' },
+      { key: 'selectedSoftware', label: 'Connected Tools (comma separated)', type: 'csv' },
+    ],
+  },
+  {
+    title: 'Chat Personalization',
+    fields: [
+      { key: 'firstTask', label: 'First Task You Want Help With' },
+      { key: 'brandVoice', label: 'Brand Voice / Personality' },
+    ],
+  },
 ];
 
 const BusinessProfileEditor = () => {
@@ -55,6 +107,13 @@ const BusinessProfileEditor = () => {
 
   const handleSaveSimple = () => {
     const next = { ...model };
+    // Normalize csv field
+    if (typeof next.selectedSoftware === 'string') {
+      next.selectedSoftware = next.selectedSoftware
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
     saveOnboardingData(next);
     localStorage.setItem(COMPLETED_KEY, 'true');
     // Optional: clear pending follow-ups so they can regenerate later
@@ -93,17 +152,42 @@ const BusinessProfileEditor = () => {
       </div>
 
       {!useAdvanced ? (
-        <div className="space-y-4">
-          {fieldMeta.map(f => (
-            <div key={f.key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
-              <input
-                type="text"
-                value={model[f.key] || ''}
-                onChange={(e) => handleChange(f.key, e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                placeholder={f.label}
-              />
+        <div className="space-y-6">
+          {sections.map(section => (
+            <div key={section.title} className="bg-white border border-gray-200 rounded-xl p-4">
+              <h3 className="text-base font-semibold text-gray-900 mb-3">{section.title}</h3>
+              <div className="space-y-4">
+                {section.fields.map(f => (
+                  <div key={f.key}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
+                    {f.type === 'textarea' ? (
+                      <textarea
+                        rows={4}
+                        value={model[f.key] || ''}
+                        onChange={(e) => handleChange(f.key, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                        placeholder={f.label}
+                      />
+                    ) : f.type === 'csv' ? (
+                      <input
+                        type="text"
+                        value={Array.isArray(model[f.key]) ? model[f.key].join(', ') : (model[f.key] || '')}
+                        onChange={(e) => handleChange(f.key, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                        placeholder="e.g., Notion, Slack, Google Drive"
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        value={model[f.key] || ''}
+                        onChange={(e) => handleChange(f.key, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                        placeholder={f.label}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
           <div className="pt-2">
