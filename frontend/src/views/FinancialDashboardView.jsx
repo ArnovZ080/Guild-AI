@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { financialApi } from '../services/financialApi.js';
 import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck, Lightbulb } from 'lucide-react';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RLineChart } from 'recharts';
 
 const Pill = ({ tone = 'info', children }) => {
   const map = {
@@ -81,18 +82,13 @@ const FinancialDashboardView = () => {
           <button onClick={() => setActiveTab('opportunities')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='opportunities' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Growth Opportunities</button>
           <button onClick={() => setActiveTab('invoices')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='invoices' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Invoices/Payments</button>
           </div>
-          <div className="flex gap-2">
-            {periodOptions.map(p => (
-              <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
-            ))}
-            {activeTab === 'cashflow' && (
-              <div className="ml-2 flex gap-2">
-                {['expected','best','worst'].map(s => (
-                  <button key={s} onClick={() => setScenario(s)} className={`px-2 py-1 text-xs rounded capitalize ${scenario===s ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{s}</button>
-                ))}
-              </div>
-            )}
-          </div>
+          {activeTab === 'overview' && (
+            <div className="flex gap-2">
+              {periodOptions.map(p => (
+                <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -153,9 +149,16 @@ const FinancialDashboardView = () => {
       {activeTab === 'income_expenses' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-emerald-500" />Revenue (30d)</h3>
-              <Pill tone="info">Trend</Pill>
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-emerald-500" />Revenue ({period})</h3>
+                <Pill tone="info">Trend</Pill>
+              </div>
+              <div className="mt-2 flex justify-center gap-2">
+                {periodOptions.map(p => (
+                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+                ))}
+              </div>
             </div>
             <div className="text-sm text-gray-700">Total: ${revenue?.total_revenue?.toLocaleString?.() || '—'}</div>
             <ul className="mt-3 text-sm text-gray-600 space-y-1">
@@ -166,11 +169,30 @@ const FinancialDashboardView = () => {
                 </li>
               ))}
             </ul>
+            <div className="mt-4 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={(revenue?.revenue_breakdown || []).map(x => ({ name: x?.source, value: x?.amount }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#10B981" name="Revenue" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
           <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-red-500" />Expenses (30d)</h3>
-              <Pill tone="info">Breakdown</Pill>
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-red-500" />Expenses ({period})</h3>
+                <Pill tone="info">Breakdown</Pill>
+              </div>
+              <div className="mt-2 flex justify-center gap-2">
+                {periodOptions.map(p => (
+                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+                ))}
+              </div>
             </div>
             <ul className="mt-1 text-sm text-gray-600 space-y-1">
               {(expenses?.expense_breakdown || []).map((e, i) => (
@@ -180,20 +202,51 @@ const FinancialDashboardView = () => {
                 </li>
               ))}
             </ul>
+            <div className="mt-4 h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={(expenses?.expense_breakdown || []).map(x => ({ name: x?.category, value: x?.amount }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#EF4444" name="Expenses" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}
 
       {/* Cashflow Analytics */}
       {activeTab === 'cashflow' && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 relative">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-blue-500" />Cashflow Projections (90d)</h3>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-blue-500" />Cashflow Projections ({period})</h3>
             <Pill tone={runway >= 12 ? 'good' : runway >= 6 ? 'info' : 'warn'}>{runway >= 12 ? 'Comfortable' : runway >= 6 ? 'Okay' : 'Needs Attention'}</Pill>
           </div>
-          <div className="text-sm text-gray-700">Scenario: {projections?.scenario_type || 'expected'}</div>
-          <div className="mt-2 text-sm text-gray-600">Projection points: {(projections?.projections || []).length}</div>
-          <div className="mt-4 text-xs text-gray-500">(Charts coming soon)</div>
+          <div className="absolute right-4 top-4 flex gap-2">
+            {['expected','best','worst'].map(s => (
+              <button key={s} onClick={() => setScenario(s)} className={`px-2 py-1 text-xs rounded capitalize ${scenario===s ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{s}</button>
+            ))}
+          </div>
+          <div className="mt-2 flex justify-center gap-2">
+            {periodOptions.map(p => (
+              <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+            ))}
+          </div>
+          <div className="mt-4 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <RLineChart data={(projections?.projections || []).map((pt, idx) => ({ name: pt?.date || idx+1, balance: pt?.balance || 0 }))}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="name" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="balance" stroke="#3B82F6" dot={false} name="Balance" />
+              </RLineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
