@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { financialApi } from '../services/financialApi.js';
 import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck, Lightbulb } from 'lucide-react';
 
@@ -18,6 +18,9 @@ const FinancialDashboardView = () => {
   const [revenue, setRevenue] = useState(null);
   const [expenses, setExpenses] = useState(null);
   const [projections, setProjections] = useState(null);
+  const [period, setPeriod] = useState(() => localStorage.getItem('financial.period') || '30d');
+  const [scenario, setScenario] = useState(() => localStorage.getItem('financial.scenario') || 'expected');
+  const periodOptions = ['7d','30d','90d'];
 
   useEffect(() => {
     (async () => {
@@ -32,17 +35,25 @@ const FinancialDashboardView = () => {
     (async () => {
       if (activeTab === 'income_expenses') {
         const [rev, exp] = await Promise.all([
-          financialApi.getRevenueAnalysis('30d'),
-          financialApi.getExpenseBreakdown('30d'),
+          financialApi.getRevenueAnalysis(period),
+          financialApi.getExpenseBreakdown(period),
         ]);
         setRevenue(rev?.data || {});
         setExpenses(exp?.data || {});
       } else if (activeTab === 'cashflow') {
-        const proj = await financialApi.getCashFlowProjections('expected', '90d');
+        const proj = await financialApi.getCashFlowProjections(scenario, period === '7d' ? '30d' : period);
         setProjections(proj?.data || {});
+      } else if (activeTab === 'invoices') {
+        const inv = await financialApi.getInvoices('pending');
+        setInvoices(inv?.data?.invoices || []);
       }
     })();
-  }, [activeTab]);
+  }, [activeTab, period, scenario]);
+
+  useEffect(() => { localStorage.setItem('financial.period', period); }, [period]);
+  useEffect(() => { localStorage.setItem('financial.scenario', scenario); }, [scenario]);
+
+  const [invoices, setInvoices] = useState([]);
 
   if (loading) {
     return (
@@ -60,14 +71,28 @@ const FinancialDashboardView = () => {
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
+      {/* Tabs + Filters */}
       <div className="bg-white rounded-lg shadow-lg p-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center justify-between">
+          <div className="flex flex-wrap gap-2">
           <button onClick={() => setActiveTab('overview')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='overview' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Overview</button>
           <button onClick={() => setActiveTab('income_expenses')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='income_expenses' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Income & Expenses</button>
           <button onClick={() => setActiveTab('cashflow')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='cashflow' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Cashflow Analytics</button>
           <button onClick={() => setActiveTab('opportunities')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='opportunities' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Growth Opportunities</button>
           <button onClick={() => setActiveTab('invoices')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='invoices' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Invoices/Payments</button>
+          </div>
+          <div className="flex gap-2">
+            {periodOptions.map(p => (
+              <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+            ))}
+            {activeTab === 'cashflow' && (
+              <div className="ml-2 flex gap-2">
+                {['expected','best','worst'].map(s => (
+                  <button key={s} onClick={() => setScenario(s)} className={`px-2 py-1 text-xs rounded capitalize ${scenario===s ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{s}</button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -194,15 +219,44 @@ const FinancialDashboardView = () => {
             <h3 className="text-lg font-semibold text-gray-900 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-blue-500" />Invoices & Payments</h3>
             <Pill tone="warn">Needs Attention</Pill>
           </div>
-          <p className="text-sm text-gray-700">Pending approvals and due dates will appear here.</p>
-          <button className="mt-4 px-3 py-2 rounded-md bg-gray-900 text-white text-sm" onClick={async () => {
-            try {
-              await financialApi.executeFinancialAction('request_invoice_summary');
-              alert('Requested latest invoice summary.');
-            } catch (e) {
-              alert('Action queued.');
-            }
-          }}>Request Invoice Summary</button>
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-600">
+                  <th className="px-4 py-2">Invoice</th>
+                  <th className="px-4 py-2">Customer</th>
+                  <th className="px-4 py-2">Amount</th>
+                  <th className="px-4 py-2">Due</th>
+                  <th className="px-4 py-2">Status</th>
+                  <th className="px-4 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {invoices.map(inv => (
+                  <tr key={inv.id} className="border-t">
+                    <td className="px-4 py-2 font-medium text-gray-900">{inv.id}</td>
+                    <td className="px-4 py-2">{inv.customer}</td>
+                    <td className="px-4 py-2">${(inv.amount||0).toLocaleString?.()}</td>
+                    <td className="px-4 py-2">{inv.due_date}</td>
+                    <td className="px-4 py-2 capitalize">{inv.status}</td>
+                    <td className="px-4 py-2 space-x-2">
+                      <button className="px-2 py-1 text-xs rounded bg-emerald-600 text-white" onClick={async () => {
+                        await financialApi.approveInvoice(inv.id);
+                        setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'approved' } : i));
+                      }}>Approve</button>
+                      <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
+                        await financialApi.markInvoicePaid(inv.id);
+                        setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'paid' } : i));
+                      }}>Mark Paid</button>
+                    </td>
+                  </tr>
+                ))}
+                {invoices.length === 0 && (
+                  <tr><td className="px-4 py-6 text-gray-500" colSpan="6">No invoices found.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

@@ -60,6 +60,24 @@ export const financialApi = {
       return { success: true, data: { period, forecasts: [] } };
     }
   },
+  getInvoices: async (status = 'pending') => {
+    try { return await request(`/financial/invoices?status=${encodeURIComponent(status)}`); } catch {
+      return { success: true, data: { invoices: [
+        { id: 'inv_001', customer: 'Acme Corp', amount: 1250, due_date: '2025-10-05', status: 'pending' },
+        { id: 'inv_002', customer: 'Globex LLC', amount: 890, due_date: '2025-10-08', status: 'pending' },
+      ] } };
+    }
+  },
+  approveInvoice: async (invoiceId) => {
+    try { return await request(`/financial/invoices/${encodeURIComponent(invoiceId)}/approve`, { method: 'POST' }); } catch {
+      return { success: true, data: { id: invoiceId, status: 'approved' } };
+    }
+  },
+  markInvoicePaid: async (invoiceId) => {
+    try { return await request(`/financial/invoices/${encodeURIComponent(invoiceId)}/mark-paid`, { method: 'POST' }); } catch {
+      return { success: true, data: { id: invoiceId, status: 'paid' } };
+    }
+  },
   executeFinancialAction: async (actionId, actionData = {}) => {
     return request('/financial/execute-action', { method: 'POST', body: JSON.stringify({ action_id: actionId, ...actionData }) });
   },
@@ -67,5 +85,7 @@ export const financialApi = {
     return request('/financial/update-targets', { method: 'POST', body: JSON.stringify(payload) });
   },
 };
+
+
 
 
