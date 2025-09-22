@@ -11,6 +11,7 @@ import ActionTheater from '../components/theater/ActionTheater.jsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
 import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
+import HighLevelOverview from '../components/dashboard/HighLevelOverview.jsx';
 
 // Mock customer data for constellation
 const mockCustomers = [
@@ -363,6 +364,7 @@ const DashboardView = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
+            <HighLevelOverview />
             <EnhancedCommandCenter />
             
             {/* Main Business Drivers */}
