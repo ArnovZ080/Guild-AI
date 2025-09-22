@@ -9,9 +9,9 @@ const StatusPill = ({ status, children }) => {
     excellent: 'bg-emerald-100 text-emerald-800',
     good: 'bg-green-100 text-green-800',
     warning: 'bg-amber-100 text-amber-800',
-    critical: 'bg-amber-100 text-amber-800', // show as Needs Attention color
+    critical: 'bg-amber-100 text-amber-800', // render critical as needs attention styling
   };
-  const label = children === 'Critical' ? 'Needs Attention' : children;
+  const label = normalized === 'critical' ? 'Needs Attention' : (children || status || '');
   return <span className={`px-2 py-1 rounded-full text-xs font-medium ${map[normalized] || 'bg-gray-100 text-gray-800'}`}>{label}</span>;
 };
 
