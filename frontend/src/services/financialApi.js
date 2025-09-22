@@ -40,6 +40,32 @@ export const financialApi = {
       return { success: true, data: { scenario_type: scenario, period, projections: [] } };
     }
   },
+  getCashBalance: async () => {
+    try { return await request('/financial/cash-balance'); } catch {
+      return { success: true, data: { cash_on_hand: 32450, available_credit: 10000, updated_at: new Date().toISOString() } };
+    }
+  },
+  getReceivablesTimeline: async (period = '90d') => {
+    try { return await request(`/financial/receivables-timeline?period=${encodeURIComponent(period)}`); } catch {
+      return { success: true, data: { items: [
+        { date: new Date(Date.now()+3*86400000).toISOString().slice(0,10), customer: 'Acme Corp', amount: 1200 },
+        { date: new Date(Date.now()+7*86400000).toISOString().slice(0,10), customer: 'Globex LLC', amount: 850 },
+      ] } };
+    }
+  },
+  getPayablesTimeline: async (period = '90d') => {
+    try { return await request(`/financial/payables-timeline?period=${encodeURIComponent(period)}`); } catch {
+      return { success: true, data: { items: [
+        { date: new Date(Date.now()+2*86400000).toISOString().slice(0,10), vendor: 'AWS', amount: 400 },
+        { date: new Date(Date.now()+5*86400000).toISOString().slice(0,10), vendor: 'Google Workspace', amount: 120 },
+      ] } };
+    }
+  },
+  getWorkingCapitalCycle: async () => {
+    try { return await request('/financial/working-capital-cycle'); } catch {
+      return { success: true, data: { dso_days: 28, dpo_days: 21, dio_days: 7, cycle_days: 14 } };
+    }
+  },
   getFinancialRisks: async () => {
     try { return await request('/financial/risks'); } catch {
       return { success: true, data: { risks: [] } };

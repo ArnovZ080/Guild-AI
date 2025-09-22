@@ -20,6 +20,10 @@ const FinancialDashboardView = () => {
   const [revenue, setRevenue] = useState(null);
   const [expenses, setExpenses] = useState(null);
   const [projections, setProjections] = useState(null);
+  const [cashBalance, setCashBalance] = useState(null);
+  const [receivables, setReceivables] = useState([]);
+  const [payables, setPayables] = useState([]);
+  const [wcCycle, setWcCycle] = useState(null);
   const [period, setPeriod] = useState(() => localStorage.getItem('financial.period') || '30d');
   const [scenario, setScenario] = useState(() => localStorage.getItem('financial.scenario') || 'expected');
   const periodOptions = ['7d','30d','90d'];
@@ -76,8 +80,18 @@ const FinancialDashboardView = () => {
         setRevenue(rev?.data || {});
         setExpenses(exp?.data || {});
       } else if (activeTab === 'cashflow') {
-        const proj = await financialApi.getCashFlowProjections(scenario, period === '7d' ? '30d' : period);
+        const [proj, cash, rec, pay, wcc] = await Promise.all([
+          financialApi.getCashFlowProjections(scenario, period === '7d' ? '30d' : period),
+          financialApi.getCashBalance(),
+          financialApi.getReceivablesTimeline('90d'),
+          financialApi.getPayablesTimeline('90d'),
+          financialApi.getWorkingCapitalCycle(),
+        ]);
         setProjections(proj?.data || {});
+        setCashBalance(cash?.data || {});
+        setReceivables(rec?.data?.items || []);
+        setPayables(pay?.data?.items || []);
+        setWcCycle(wcc?.data || {});
       } else if (activeTab === 'invoices') {
         const inv = await financialApi.getInvoices('pending');
         setInvoices(inv?.data?.invoices || []);
@@ -468,32 +482,86 @@ const FinancialDashboardView = () => {
 
       {/* Cashflow Analytics */}
       {activeTab === 'cashflow' && (
-        <div className="bg-white rounded-lg shadow-lg p-6 relative">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-blue-500" />Cashflow Projections ({period})</h3>
-            <Pill tone={runway >= 12 ? 'good' : runway >= 6 ? 'info' : 'warn'}>{runway >= 12 ? 'Comfortable' : runway >= 6 ? 'Okay' : 'Needs Attention'}</Pill>
+        <div className="space-y-6">
+          {/* Cash balance & working capital */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="text-xs text-gray-500 mb-1">Cash on Hand</div>
+              <div className="text-2xl font-semibold text-gray-900">${(cashBalance?.cash_on_hand||0).toLocaleString?.()}</div>
+              <div className="text-xs text-gray-500 mt-1">Available Credit: ${((cashBalance?.available_credit)||0).toLocaleString?.()}</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="text-xs text-gray-500 mb-1">Working Capital Cycle</div>
+              <div className="text-sm text-gray-900">DSO {wcCycle?.dso_days||0}d • DPO {wcCycle?.dpo_days||0}d • DIO {wcCycle?.dio_days||0}d</div>
+              <div className="text-xs text-gray-500 mt-1">Cycle: {wcCycle?.cycle_days||0} days</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-gray-500">Scenario</div>
+                <div className="flex gap-2">
+                  {['expected','best','worst'].map(s => (
+                    <button key={s} onClick={() => setScenario(s)} className={`px-2 py-1 text-xs rounded capitalize ${scenario===s ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{s}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-2 flex justify-center gap-2">
+                {periodOptions.map(p => (
+                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="absolute right-4 top-4 flex gap-2">
-            {['expected','best','worst'].map(s => (
-              <button key={s} onClick={() => setScenario(s)} className={`px-2 py-1 text-xs rounded capitalize ${scenario===s ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>{s}</button>
-            ))}
+
+          {/* Projections */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-blue-500" />Cashflow Projections ({period})</h3>
+              <Pill tone={runway >= 12 ? 'good' : runway >= 6 ? 'info' : 'warn'}>{runway >= 12 ? 'Comfortable' : runway >= 6 ? 'Okay' : 'Needs Attention'}</Pill>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RLineChart data={(projections?.projections || []).map((pt, idx) => ({ name: pt?.date || idx+1, balance: pt?.balance || 0 }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="balance" stroke="#3B82F6" dot={false} name="Balance" />
+                </RLineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="mt-2 flex justify-center gap-2">
-            {periodOptions.map(p => (
-              <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
-            ))}
-          </div>
-          <div className="mt-4 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <RLineChart data={(projections?.projections || []).map((pt, idx) => ({ name: pt?.date || idx+1, balance: pt?.balance || 0 }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="name" stroke="#6B7280" />
-                <YAxis stroke="#6B7280" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="balance" stroke="#3B82F6" dot={false} name="Balance" />
-              </RLineChart>
-            </ResponsiveContainer>
+
+          {/* Receivables & Payables timelines */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900">Receivables Timeline (90d)</h3>
+              </div>
+              <ul className="text-sm text-gray-700 space-y-2 max-h-64 overflow-y-auto">
+                {receivables.map((r,i)=>(
+                  <li key={i} className="flex items-center justify-between">
+                    <span>{r.date} • {r.customer}</span>
+                    <span>${(r.amount||0).toLocaleString?.()}</span>
+                  </li>
+                ))}
+                {receivables.length===0 && (<li className="text-gray-500">No receivables on timeline.</li>)}
+              </ul>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-semibold text-gray-900">Payables Timeline (90d)</h3>
+              </div>
+              <ul className="text-sm text-gray-700 space-y-2 max-h-64 overflow-y-auto">
+                {payables.map((p,i)=>(
+                  <li key={i} className="flex items-center justify-between">
+                    <span>{p.date} • {p.vendor}</span>
+                    <span>${(p.amount||0).toLocaleString?.()}</span>
+                  </li>
+                ))}
+                {payables.length===0 && (<li className="text-gray-500">No payables on timeline.</li>)}
+              </ul>
+            </div>
           </div>
         </div>
       )}
