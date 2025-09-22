@@ -23,11 +23,16 @@ const FinancialDashboardView = () => {
   const [period, setPeriod] = useState(() => localStorage.getItem('financial.period') || '30d');
   const [scenario, setScenario] = useState(() => localStorage.getItem('financial.scenario') || 'expected');
   const periodOptions = ['7d','30d','90d'];
+  const [kpis, setKpis] = useState(null);
+  const [budgetActual, setBudgetActual] = useState(null);
+  const [adRoi, setAdRoi] = useState(null);
 
   useEffect(() => {
     (async () => {
       const res = await financialApi.getFinancialAnalysis();
       setAnalysis(res?.data || {});
+      const k = await financialApi.getFinancialKpis(period);
+      setKpis(k?.data || {});
       setLoading(false);
     })();
   }, []);
@@ -48,6 +53,13 @@ const FinancialDashboardView = () => {
       } else if (activeTab === 'invoices') {
         const inv = await financialApi.getInvoices('pending');
         setInvoices(inv?.data?.invoices || []);
+      } else if (activeTab === 'analytics') {
+        const [bva, roi] = await Promise.all([
+          financialApi.getBudgetVsActual(period),
+          financialApi.getAdRoi(period),
+        ]);
+        setBudgetActual(bva?.data || {});
+        setAdRoi(roi?.data || {});
       }
     })();
   }, [activeTab, period, scenario]);
@@ -82,6 +94,7 @@ const FinancialDashboardView = () => {
           <button onClick={() => setActiveTab('cashflow')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='cashflow' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Cashflow Analytics</button>
           <button onClick={() => setActiveTab('opportunities')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='opportunities' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Growth Opportunities</button>
           <button onClick={() => setActiveTab('invoices')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='invoices' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Invoices/Payments</button>
+          <button onClick={() => setActiveTab('analytics')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='analytics' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Financial Analytics</button>
           </div>
           {activeTab === 'overview' && (
             <div className="flex gap-2">
@@ -147,6 +160,27 @@ const FinancialDashboardView = () => {
       )}
 
       {activeTab === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-2">
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-xs text-gray-500 mb-1">Cash on Hand</div>
+            <div className="text-2xl font-semibold text-gray-900">${(kpis?.cash_on_hand || 0).toLocaleString?.()}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-xs text-gray-500 mb-1">AR / AP</div>
+            <div className="text-sm text-gray-900">AR: ${((kpis?.ar_total)||0).toLocaleString?.()} • AP: ${((kpis?.ap_total)||0).toLocaleString?.()}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-xs text-gray-500 mb-1">Runway / Burn</div>
+            <div className="text-sm text-gray-900">{(kpis?.runway_months||0)} months • Burn ${((kpis?.burn_rate)||0).toLocaleString?.()}</div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="text-xs text-gray-500 mb-1">Margins & ROAS</div>
+            <div className="text-sm text-gray-900">Gross {(kpis?.gross_margin_pct||0)}% • Net {(kpis?.net_margin_pct||0)}% • ROAS {(kpis?.roas||0)}x</div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'overview' && (
         <div className="mt-2">
           <FinancialFlowVisualization
             revenueBreakdown={(analysis?.financial_metrics?.revenue_metrics?.breakdown || revenue?.revenue_breakdown || []).map(r => ({ source: r.source || r.name, amount: r.amount, color: r.color }))}
@@ -180,6 +214,9 @@ const FinancialDashboardView = () => {
                 </li>
               ))}
             </ul>
+          <div className="mt-2 text-xs text-gray-500">
+            Est. Gross Margin: {(kpis?.gross_margin_pct ?? 0)}% • Net Margin: {(kpis?.net_margin_pct ?? 0)}%
+          </div>
             <div className="mt-4 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={(revenue?.revenue_breakdown || []).map(x => ({ name: x?.source, value: x?.amount }))}>
@@ -213,6 +250,9 @@ const FinancialDashboardView = () => {
                 </li>
               ))}
             </ul>
+          <div className="mt-2 text-xs text-gray-500">
+            Budget vs Actual detail in Analytics tab
+          </div>
             <div className="mt-4 h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={(expenses?.expense_breakdown || []).map(x => ({ name: x?.category, value: x?.amount }))}>
@@ -257,6 +297,62 @@ const FinancialDashboardView = () => {
                 <Line type="monotone" dataKey="balance" stroke="#3B82F6" dot={false} name="Balance" />
               </RLineChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'analytics' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Budget vs Actual ({period})</h3>
+                <Pill tone="info">Tracking</Pill>
+              </div>
+              <div className="mt-2 flex justify-center gap-2">
+                {periodOptions.map(p => (
+                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+                ))}
+              </div>
+            </div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={(budgetActual?.categories || []).map(x => ({ name: x.category, Budget: x.budget, Actual: x.actual }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="Budget" fill="#A78BFA" />
+                  <Bar dataKey="Actual" fill="#60A5FA" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="mb-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Ad ROI by Channel ({period})</h3>
+                <Pill tone="info">ROAS</Pill>
+              </div>
+              <div className="mt-2 flex justify-center gap-2">
+                {periodOptions.map(p => (
+                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
+                ))}
+              </div>
+            </div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={(adRoi?.channels || []).map(x => ({ name: x.channel, ROAS: x.roas }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="ROAS" fill="#34D399" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       )}

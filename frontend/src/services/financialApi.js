@@ -60,6 +60,48 @@ export const financialApi = {
       return { success: true, data: { period, forecasts: [] } };
     }
   },
+  getFinancialKpis: async (period = '30d') => {
+    try { return await request(`/financial/kpis?period=${encodeURIComponent(period)}`); } catch {
+      return { success: true, data: {
+        cash_on_hand: 32500,
+        ar_total: 4200,
+        ap_total: 6100,
+        runway_months: 8.2,
+        burn_rate: 8500,
+        gross_margin_pct: 62.5,
+        net_margin_pct: 18.4,
+        mrr: 45200,
+        arr: 540000,
+        growth_rate_pct: 15.2,
+        roas: 2.1,
+        cost_savings_automation: 950,
+      } };
+    }
+  },
+  getBudgetVsActual: async (period = '30d') => {
+    try { return await request(`/financial/budget-vs-actual?period=${encodeURIComponent(period)}`); } catch {
+      return { success: true, data: {
+        period,
+        categories: [
+          { category: 'Marketing', budget: 5000, actual: 6200 },
+          { category: 'Software', budget: 1200, actual: 1100 },
+          { category: 'Operations', budget: 3000, actual: 2800 },
+        ],
+      } };
+    }
+  },
+  getAdRoi: async (period = '30d') => {
+    try { return await request(`/financial/ad-roi?period=${encodeURIComponent(period)}`); } catch {
+      return { success: true, data: {
+        period,
+        channels: [
+          { channel: 'Meta Ads', spend: 2200, revenue: 3100, roas: 1.41 },
+          { channel: 'Google Ads', spend: 1800, revenue: 4200, roas: 2.33 },
+          { channel: 'TikTok Ads', spend: 900, revenue: 800, roas: 0.89 },
+        ],
+      } };
+    }
+  },
   getInvoices: async (status = 'pending') => {
     try { return await request(`/financial/invoices?status=${encodeURIComponent(status)}`); } catch {
       return { success: true, data: { invoices: [
