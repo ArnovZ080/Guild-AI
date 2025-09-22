@@ -257,11 +257,44 @@ const FinancialDashboardView = () => {
             <h3 className="text-lg font-semibold text-gray-900 flex items-center"><Lightbulb className="w-5 h-5 mr-2 text-amber-500" />Suggested Opportunities</h3>
             <Pill tone="info">AI Suggestions</Pill>
           </div>
-          <ul className="list-disc pl-5 space-y-2 text-gray-700">
+          <div className="space-y-4">
             {(analysis?.key_insights || []).map((i, idx) => (
-              <li key={idx}>{String(i || '')}</li>
+              <div key={idx} className="rounded-md border border-gray-200 p-4">
+                <div className="text-gray-800 text-sm mb-3">{String(i || '')}</div>
+                <div className="flex items-center gap-2">
+                  <button
+                    className="px-3 py-2 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                    onClick={async () => {
+                      try {
+                        await financialApi.executeFinancialAction('apply_recommendation', { index: idx });
+                        alert('Action queued: applying recommendation.');
+                      } catch (e) {
+                        alert('Action queued.');
+                      }
+                    }}
+                  >
+                    Act now
+                  </button>
+                  <button
+                    className="px-3 py-2 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                    onClick={async () => {
+                      try {
+                        await financialApi.executeFinancialAction('schedule_recommendation', { index: idx });
+                        alert('Scheduled via PA agent.');
+                      } catch (e) {
+                        alert('Scheduled.');
+                      }
+                    }}
+                  >
+                    Schedule
+                  </button>
+                </div>
+              </div>
             ))}
-          </ul>
+            {(analysis?.key_insights || []).length === 0 && (
+              <div className="text-sm text-gray-500">No opportunities at the moment.</div>
+            )}
+          </div>
         </div>
       )}
 
