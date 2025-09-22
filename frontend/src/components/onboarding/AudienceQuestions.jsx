@@ -10,6 +10,10 @@ const AudienceQuestions = ({ onNext, businessType }) => {
   // Generate contextual intro based on business type
   const getIntro = () => {
     if (businessType) {
+      const lowered = String(businessType).toLowerCase();
+      if (lowered.includes("not sure")) {
+       return "It's fine if you're not sure yet. We can work on that. In the meantime, let's talk about your ideal audience or clients. This is where the magic happens — when you know exactly who you're serving, everything else becomes clearer.";
+      }
       return `Perfect! Now that we understand your ${businessType.toLowerCase()} business, let's talk about your ideal audience or clients. This is where the magic happens — when you know exactly who you're serving, everything else becomes clearer.`;
     }
     return "Now let's talk about your ideal audience or clients. This is where the magic happens — when you know exactly who you're serving, everything else becomes clearer.";
@@ -96,7 +100,6 @@ const AudienceQuestions = ({ onNext, businessType }) => {
         </p>
       </div>
       
-
       {/* Progress indicator */}
       <div className="flex items-center justify-center space-x-2 mb-8">
         {questions.map((_, index) => (

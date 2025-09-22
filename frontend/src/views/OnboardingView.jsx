@@ -26,8 +26,8 @@ const OnboardingView = () => {
   };
 
   if (isCompleted) {
-    // Redirect immediately to dashboard/chat after completion
-    window.location.href = '/dashboard';
+    // Redirect immediately to chat after completion
+    window.location.href = '/chat';
     return null;
   }
 
