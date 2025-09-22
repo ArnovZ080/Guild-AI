@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations';
+// Removed celebrations to avoid circular deps and runtime init issues
 import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
 import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
-  const { triggerCelebration } = useCelebrations();
   
   // Check if user has completed onboarding
   const onboardingData = localStorage.getItem('guild_onboarding_data');
@@ -60,8 +59,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       ];
     }
   });
-  // persist history when it changes
-  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
   const [showAgentMentions, setShowAgentMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   
@@ -71,6 +68,8 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgent, setActiveAgent] = useState('strategy');
   const [chatHistory, setChatHistory] = useState(() => loadConversations());
+  // persist history when it changes (moved below declaration to avoid TDZ)
+  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -210,10 +209,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       if (dispatch?.task_id) {
         responseContent += `Task accepted (ID: ${dispatch.task_id}). I'll update you here as it progresses. `;
         actions.push('🔔 Notify me on completion');
-        triggerCelebration(CelebrationType.TASK_COMPLETE, {
-          message: 'Task queued with the agent! 🎯',
-          intensity: 'normal',
-        });
       }
 
       if (!actions.length) {
@@ -255,10 +250,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       onNavigateToDashboard?.();
     } else if (action.includes('Workflow')) {
       // Navigate to workflow details
-      triggerCelebration(CelebrationType.MILESTONE_REACHED, {
-        message: "Taking action! 🚀",
-        intensity: 'normal'
-      });
     } else {
       // Handle other actions
       const actionMessage = {
