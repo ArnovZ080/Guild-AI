@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchCeoSnapshot } from '../../services/biaApi.js';
+import { fetchCeoSnapshot, fetchKpiDetails } from '../../services/biaApi.js';
+import KPIDetailsModal from './KPIDetailsModal.jsx';
 import { AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 
 const StatusPill = ({ status, children }) => {
@@ -17,6 +18,9 @@ const StatusPill = ({ status, children }) => {
 const CEOSnapshot = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalDetails, setModalDetails] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -45,6 +49,13 @@ const CEOSnapshot = () => {
   }
 
   const kpis = data?.kpis || {};
+
+  const openDetails = async (kpiId, title) => {
+    setModalTitle(title);
+    setModalOpen(true);
+    const details = await fetchKpiDetails(kpiId);
+    setModalDetails(details);
+  };
 
   return (
     <div className="bg-white rounded-lg p-6 shadow-lg">
@@ -102,19 +113,21 @@ const CEOSnapshot = () => {
         </div>
       </div>
 
-      {/* KPI blocks */}
+      {/* KPI blocks (clickable for details) */}
       <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         {(kpis.financial || []).map((k) => (
-          <div key={k.key} className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
+          <button key={k.key} onClick={() => openDetails(k.key, k.label)} className="text-left border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
             <div className="flex items-center justify-between">
               <div className="font-medium text-gray-800">{k.label}</div>
               <StatusPill status={k.status}>{k.status}</StatusPill>
             </div>
             <div className="text-2xl font-bold text-gray-900 mt-1">{k.value}</div>
-            <button className="mt-2 text-sm text-blue-600 hover:underline inline-flex items-center">View details <ArrowRight className="w-4 h-4 ml-1" /></button>
-          </div>
+            <div className="mt-2 text-sm text-blue-600 inline-flex items-center">View details <ArrowRight className="w-4 h-4 ml-1" /></div>
+          </button>
         ))}
       </div>
+
+      <KPIDetailsModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle} details={modalDetails} />
     </div>
   );
 };

@@ -51,4 +51,36 @@ export async function fetchCeoSnapshot() {
   }
 }
 
+export async function fetchKpiDetails(kpiId) {
+  try {
+    const token = localStorage.getItem('guild.auth.jwt') || '';
+    const res = await fetch(`${API_BASE}/bi/kpi-details/${encodeURIComponent(kpiId)}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    // Safe fallback minimal shape
+    return {
+      success: true,
+      data: {
+        kpi_id: kpiId,
+        detailed_metrics: {
+          current_performance: 'unknown',
+          benchmark_comparison: 'n/a',
+          forecast_accuracy: 'n/a',
+        },
+        recommendations: [
+          'Collect more data to refine this KPI.',
+        ],
+        related_metrics: [],
+        last_updated: new Date().toISOString(),
+      },
+    };
+  }
+}
+
 
