@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations';
 import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
+import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
@@ -21,12 +22,25 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           type: 'assistant',
           content: `👋 Welcome back! I see you've completed your onboarding. Based on your business profile, I'm ready to help you with ${data.firstTask || 'your business goals'}. What would you like to work on today?`,
           timestamp: new Date(),
-          suggestions: [
-            "Create content for my social media",
-            "Help me with my marketing strategy", 
-            "Analyze my business performance",
-            "Plan my next 30 days"
-          ]
+          suggestions: (() => {
+            try {
+              const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
+              const top = pending.slice(0, 6).map(p => p.followUpQuestion);
+              const defaults = [
+                'Create content for my social media',
+                'Help me with my marketing strategy',
+                'Analyze my business performance',
+                'Plan my next 30 days',
+              ];
+              const merged = [...top, ...defaults].filter(Boolean);
+              return merged.length ? merged : defaults;
+            } catch { return [
+              'Create content for my social media',
+              'Help me with my marketing strategy',
+              'Analyze my business performance',
+              'Plan my next 30 days',
+            ]; }
+          })()
         }
       ];
     } else {
@@ -46,6 +60,8 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       ];
     }
   });
+  // persist history when it changes
+  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
   const [showAgentMentions, setShowAgentMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   
@@ -54,11 +70,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgent, setActiveAgent] = useState('strategy');
-  const [chatHistory, setChatHistory] = useState([
-    { id: '1', title: 'Social Media Strategy', timestamp: '2 hours ago', preview: 'Created 30-day content calendar...' },
-    { id: '2', title: 'Marketing Campaign', timestamp: '1 day ago', preview: 'Launched Facebook and Instagram ads...' },
-    { id: '3', title: 'Business Analysis', timestamp: '3 days ago', preview: 'Revenue up 15% this quarter...' }
-  ]);
+  const [chatHistory, setChatHistory] = useState(() => loadConversations());
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -275,7 +287,13 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           </div>
           
           <button 
-            onClick={() => setMessages([messages[0]])}
+            onClick={() => {
+              if (messages.length > 1) {
+                const archived = archiveThread(messages);
+                if (archived) setChatHistory(prev => [archived, ...prev]);
+              }
+              setMessages([messages[0]]);
+            }}
             className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2"
           >
             <MessageSquare className="w-4 h-4" />
@@ -293,10 +311,14 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
                   className="p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
                   whileHover={{ x: 2 }}
                   whileTap={{ scale: 0.98 }}
+                  onClick={() => {
+                    const thread = loadThread(chat.id);
+                    if (thread && thread.length) setMessages(thread);
+                  }}
                 >
                   <h4 className="text-sm font-medium text-gray-900 truncate">{chat.title}</h4>
                   <p className="text-xs text-gray-500 mt-1 truncate">{chat.preview}</p>
-                  <p className="text-xs text-gray-400 mt-1">{chat.timestamp}</p>
+                  <p className="text-xs text-gray-400 mt-1">{new Date(chat.timestamp).toLocaleString()}</p>
                 </motion.div>
               ))}
             </div>
