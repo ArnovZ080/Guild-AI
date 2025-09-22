@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Navigation from './components/Navigation';
+import TopHeader from './components/TopHeader';
 import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
 import GoalsView from './components/GoalsView';
@@ -32,7 +33,9 @@ function App() {
         <Navigation />
         
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden" style={{ marginLeft: 256 }}>
+          <TopHeader />
+          <div className="flex-1 overflow-auto p-6">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -43,6 +46,7 @@ function App() {
             <Route path="/calendar" element={<CalendarView />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
+          </div>
         </main>
       </div>
     </Router>
