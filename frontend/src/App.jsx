@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
@@ -8,7 +8,6 @@ import AgentsView from './views/AgentsView.jsx';
 import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
-import React, { Suspense, lazy } from 'react';
 const ChatInterface = lazy(() => import('./components/chat/ChatInterface.jsx'));
 import CalendarView from './views/CalendarView.jsx';
 import CustomersView from './views/CustomersView.jsx';
