@@ -141,7 +141,34 @@ const GoalsQuestions = ({ onNext }) => {
         />
       </motion.div>
 
-      {/* Skip option */}
+      {/* Navigation controls */}
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => currentQuestion > 0 && setCurrentQuestion(currentQuestion - 1)}
+          className={`text-sm underline transition-colors ${
+            currentQuestion > 0 ? 'text-gray-600 hover:text-gray-900' : 'text-gray-300 cursor-not-allowed'
+          }`}
+          disabled={currentQuestion === 0}
+        >
+          Back
+        </button>
+        <button
+          onClick={() => {
+            const nextIndex = currentQuestion + 1;
+            setAnswers(prev => ({ ...prev, [currentQ.id]: '' }));
+            if (nextIndex < questions.length) {
+              setCurrentQuestion(nextIndex);
+            } else {
+              onNext({ ...answers, [currentQ.id]: '' });
+            }
+          }}
+          className="text-sm text-gray-500 hover:text-gray-700 underline"
+        >
+          Skip this question
+        </button>
+      </div>
+
+      {/* Skip remaining */}
       <div className="text-center">
         <button
           onClick={() => onNext(answers)}

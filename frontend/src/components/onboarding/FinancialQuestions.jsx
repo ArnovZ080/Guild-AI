@@ -7,6 +7,7 @@ const FinancialQuestions = ({ onNext }) => {
   const [answers, setAnswers] = useState({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showFinancials, setShowFinancials] = useState(false);
+  const [showFinalOnly, setShowFinalOnly] = useState(false);
 
   const questions = [
     {
@@ -79,16 +80,14 @@ const FinancialQuestions = ({ onNext }) => {
     setAnswers(newAnswers);
 
     // If they choose not to share financials, skip the rest
-    if (questionId === 'share_financials' && answer === 'I prefer to keep this private') {
-      onNext(newAnswers);
+    if (questionId === 'share_financials' && (answer === 'I prefer to keep this private' || answer === 'Not yet, but maybe later')) {
+      // Jump to the last question (financial goals) and allow skipping it
+      setShowFinalOnly(true);
+      setTimeout(() => setCurrentQuestion(questions.length - 1), 300);
       return;
     }
 
-    // If they choose not yet, skip financial details
-    if (questionId === 'share_financials' && answer === 'Not yet, but maybe later') {
-      onNext(newAnswers);
-      return;
-    }
+    // (handled above)
 
     // If they choose to share, show financial questions
       if (questionId === 'share_financials' && answer === 'Yes, I\'ll share some details') {
@@ -162,14 +161,50 @@ const FinancialQuestions = ({ onNext }) => {
         />
       </motion.div>
 
-      {/* Skip option */}
-      <div className="text-center">
+      {/* Navigation controls */}
+      <div className="flex items-center justify-between">
         <button
-          onClick={() => onNext(answers)}
+          onClick={() => currentQuestion > 0 && setCurrentQuestion(currentQuestion - 1)}
+          className={`text-sm underline transition-colors ${
+            currentQuestion > 0 ? 'text-gray-600 hover:text-gray-900' : 'text-gray-300 cursor-not-allowed'
+          }`}
+          disabled={currentQuestion === 0}
+        >
+          Back
+        </button>
+        <button
+          onClick={() => {
+            const nextIndex = currentQuestion + 1;
+            setAnswers(prev => ({ ...prev, [currentQ.id]: '' }));
+            if (nextIndex < questions.length) {
+              setCurrentQuestion(nextIndex);
+            } else {
+              onNext({ ...answers, [currentQ.id]: '' });
+            }
+          }}
           className="text-sm text-gray-500 hover:text-gray-700 underline"
         >
-          Skip all financial questions
+          Skip this question
         </button>
+      </div>
+
+      {/* Skip option */}
+      <div className="text-center">
+        {showFinalOnly && currentQuestion === questions.length - 1 ? (
+          <button
+            onClick={() => onNext(answers)}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Skip this question
+          </button>
+        ) : (
+          <button
+            onClick={() => onNext(answers)}
+            className="text-sm text-gray-500 hover:text-gray-700 underline"
+          >
+            Skip all financial questions
+          </button>
+        )}
       </div>
     </div>
   );
