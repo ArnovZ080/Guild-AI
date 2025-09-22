@@ -10,122 +10,139 @@ export const useAdaptiveMode = () => {
   return context;
 };
 
+const modeConfigs = {
+  morning: {
+    name: 'Morning Focus',
+    description: 'Start your day with clarity and purpose. Let\'s plan your priorities and set the tone for success.',
+    colors: {
+      background: 'from-blue-50 via-indigo-50 to-purple-50',
+      text: 'text-indigo-900',
+      accent: 'from-blue-500 to-indigo-600'
+    },
+    focus: 'planning',
+    widgets: ['momentum', 'opportunities', 'financial', 'pulse'],
+    greeting: 'Good morning! Ready to make today amazing? 🌅',
+    suggestions: [
+      'Review yesterday\'s progress',
+      'Set today\'s top 3 priorities',
+      'Check new opportunities',
+      'Plan your content strategy'
+    ]
+  },
+  active: {
+    name: 'Active Work',
+    description: 'You\'re in the zone! Let\'s maximize your productivity and tackle those important tasks.',
+    colors: {
+      background: 'from-emerald-50 via-teal-50 to-cyan-50',
+      text: 'text-emerald-900',
+      accent: 'from-emerald-500 to-teal-600'
+    },
+    focus: 'execution',
+    widgets: ['agents', 'financial', 'customers', 'pulse'],
+    greeting: 'You\'re crushing it! Let\'s keep this momentum going! ⚡',
+    suggestions: [
+      'Check agent progress',
+      'Review customer feedback',
+      'Monitor campaign performance',
+      'Optimize workflows'
+    ]
+  },
+  evening: {
+    name: 'Evening Reflection',
+    description: 'Time to reflect on your achievements and plan for tomorrow. Celebrate your wins!',
+    colors: {
+      background: 'from-amber-50 via-orange-50 to-red-50',
+      text: 'text-amber-900',
+      accent: 'from-amber-500 to-orange-600'
+    },
+    focus: 'reflection',
+    widgets: ['momentum', 'content', 'customers', 'opportunities'],
+    greeting: 'Great work today! Let\'s celebrate your wins and plan tomorrow! 🌅',
+    suggestions: [
+      'Review today\'s accomplishments',
+      'Plan tomorrow\'s priorities',
+      'Check content performance',
+      'Celebrate your progress'
+    ]
+  }
+};
+
 export const AdaptiveModeProvider = ({ children }) => {
   const [currentMode, setCurrentMode] = useState('morning');
-  const [timeOfDay, setTimeOfDay] = useState('');
-  const [userPreferences, setUserPreferences] = useState({
-    autoMode: true,
-    manualMode: null,
-    workingHours: { start: 9, end: 17 },
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-  });
+  const [lastModeChange, setLastModeChange] = useState(Date.now());
 
-  const determineMode = () => {
-    const now = new Date();
-    const hour = now.getHours();
-
-    if (hour < 12) {
-      setTimeOfDay('Morning');
-    } else if (hour < 17) {
-      setTimeOfDay('Afternoon');
-    } else {
-      setTimeOfDay('Evening');
-    }
-
-    if (!userPreferences.autoMode && userPreferences.manualMode) {
-      setCurrentMode(userPreferences.manualMode);
-      return;
-    }
-
-    if (hour >= 6 && hour < 12) {
-      setCurrentMode('morning');
-    } else if (hour >= 12 && hour < 18) {
-      setCurrentMode('active');
-    } else {
-      setCurrentMode('evening');
-    }
-  };
-
+  // Auto-detect mode based on time of day
   useEffect(() => {
-    determineMode();
-    const interval = setInterval(determineMode, 60000);
-    return () => clearInterval(interval);
-  }, [userPreferences]);
-
-  const setManualMode = (mode) => {
-    setUserPreferences(prev => ({
-      ...prev,
-      autoMode: false,
-      manualMode: mode
-    }));
-    setCurrentMode(mode);
-  };
-
-  const enableAutoMode = () => {
-    setUserPreferences(prev => ({
-      ...prev,
-      autoMode: true,
-      manualMode: null
-    }));
-    determineMode();
-  };
-
-  const getModeConfig = (mode) => {
-    const configs = {
-      morning: {
-        name: 'Morning Briefing',
-        description: 'Start your day with clarity and purpose',
-        colors: {
-          primary: 'blue',
-          background: 'from-sky-50 via-blue-50 to-indigo-50',
-          text: 'text-blue-900',
-          accent: 'text-blue-600'
-        },
-        spacing: 'relaxed',
-        emphasis: ['priorities', 'opportunities', 'planning'],
-        hiddenElements: ['detailed-analytics', 'complex-workflows'],
-        prominentElements: ['goals', 'calendar', 'inspiration']
-      },
-      active: {
-        name: 'Active Management',
-        description: 'Real-time operational intelligence',
-        colors: {
-          primary: 'emerald',
-          background: 'from-emerald-50 via-teal-50 to-cyan-50',
-          text: 'text-emerald-900',
-          accent: 'text-emerald-600'
-        },
-        spacing: 'compact',
-        emphasis: ['current-tasks', 'agent-status', 'immediate-actions'],
-        hiddenElements: ['reflection', 'long-term-planning'],
-        prominentElements: ['workflows', 'real-time-data', 'quick-actions']
-      },
-      evening: {
-        name: 'Evening Reflection',
-        description: 'Celebrate progress and plan ahead',
-        colors: {
-          primary: 'amber',
-          background: 'from-amber-50 via-orange-50 to-rose-50',
-          text: 'text-amber-900',
-          accent: 'text-amber-600'
-        },
-        spacing: 'comfortable',
-        emphasis: ['achievements', 'insights', 'tomorrow-prep'],
-        hiddenElements: ['urgent-tasks', 'real-time-alerts'],
-        prominentElements: ['analytics', 'achievements', 'planning']
+    const detectMode = () => {
+      const hour = new Date().getHours();
+      let newMode;
+      
+      if (hour >= 6 && hour < 12) {
+        newMode = 'morning';
+      } else if (hour >= 12 && hour < 18) {
+        newMode = 'active';
+      } else {
+        newMode = 'evening';
+      }
+      
+      if (newMode !== currentMode) {
+        setCurrentMode(newMode);
+        setLastModeChange(Date.now());
       }
     };
-    return configs[mode] || configs.morning;
+
+    // Check immediately
+    detectMode();
+    
+    // Check every hour
+    const interval = setInterval(detectMode, 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [currentMode]);
+
+  const getModeConfig = (mode = currentMode) => {
+    return modeConfigs[mode] || modeConfigs.morning;
+  };
+
+  const switchMode = (mode) => {
+    if (modeConfigs[mode]) {
+      setCurrentMode(mode);
+      setLastModeChange(Date.now());
+    }
+  };
+
+  const getTimeBasedGreeting = () => {
+    const hour = new Date().getHours();
+    const config = getModeConfig();
+    
+    if (hour >= 6 && hour < 12) {
+      return config.greeting;
+    } else if (hour >= 12 && hour < 18) {
+      return config.greeting;
+    } else {
+      return config.greeting;
+    }
+  };
+
+  const getRecommendedActions = () => {
+    return getModeConfig().suggestions;
+  };
+
+  const getWidgetPriority = (widgetId) => {
+    const config = getModeConfig();
+    const index = config.widgets.indexOf(widgetId);
+    return index >= 0 ? index + 1 : 999;
   };
 
   const value = {
     currentMode,
-    timeOfDay,
-    userPreferences,
-    setManualMode,
-    enableAutoMode,
+    setCurrentMode: switchMode,
     getModeConfig,
-    isAutoMode: userPreferences.autoMode
+    getTimeBasedGreeting,
+    getRecommendedActions,
+    getWidgetPriority,
+    lastModeChange,
+    availableModes: Object.keys(modeConfigs)
   };
 
   return (
@@ -134,5 +151,3 @@ export const AdaptiveModeProvider = ({ children }) => {
     </AdaptiveModeContext.Provider>
   );
 };
-
-

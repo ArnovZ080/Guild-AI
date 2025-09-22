@@ -1,55 +1,140 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import Navigation from './components/Navigation';
-import TopHeader from './components/TopHeader';
-import Dashboard from './components/Dashboard';
-import ChatInterface from './components/ChatInterface';
-import GoalsView from './components/GoalsView';
-import CustomersView from './components/CustomersView';
-import ConversationsView from './components/ConversationsView';
-import CalendarView from './components/CalendarView';
-import OnboardingFlow from './components/OnboardingFlow';
+import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
+import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
+import { CelebrationProvider } from './components/psychological/MicroCelebrations.jsx';
+import DashboardLayout from './components/layouts/DashboardLayout.jsx';
+import DashboardView from './views/DashboardView.jsx';
+import AgentsView from './views/AgentsView.jsx';
+import WorkflowsView from './views/WorkflowsView.jsx';
+import AnalyticsView from './views/AnalyticsView.jsx';
+import ComingSoonView from './views/ComingSoonView.jsx';
+import ChatInterface from './components/chat/ChatInterface.jsx';
+import CalendarView from './views/CalendarView.jsx';
+import CustomersView from './views/CustomersView.jsx';
+import GoalsView from './views/GoalsView.jsx';
+import ConversationsView from './views/ConversationsView.jsx';
+import DocumentsView from './views/DocumentsView.jsx';
+import VoiceView from './views/VoiceView.jsx';
+import OnboardingView from './views/OnboardingView.jsx';
+import ConnectorsView from './views/ConnectorsView.jsx';
+import GrowthView from './views/GrowthView.jsx';
+import AchievementsView from './views/AchievementsView.jsx';
+import './App.css';
 import './index.css';
 
 function App() {
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(
-    localStorage.getItem('guild_onboarding_completed') === 'true'
-  );
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleOnboardingComplete = () => {
-    setHasCompletedOnboarding(true);
-    localStorage.setItem('guild_onboarding_completed', 'true');
-  };
+  useEffect(() => {
+    // Check if onboarding is completed
+    const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
+    setIsOnboardingCompleted(onboardingCompleted);
+    setIsLoading(false);
+  }, []);
 
-  if (!hasCompletedOnboarding) {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading Guild...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <Router>
-      <div className="flex h-screen bg-gray-50">
-        {/* Fixed Sidebar Navigation */}
-        <Navigation />
-        
-        {/* Main Content Area */}
-        <main className="flex-1 flex flex-col overflow-hidden" style={{ marginLeft: 256 }}>
-          <TopHeader />
-          <div className="flex-1 overflow-auto p-6">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/chat" element={<ChatInterface />} />
-            <Route path="/goals" element={<GoalsView />} />
-            <Route path="/customers" element={<CustomersView />} />
-            <Route path="/conversations" element={<ConversationsView />} />
-            <Route path="/calendar" element={<CalendarView />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-          </div>
-        </main>
-      </div>
-    </Router>
+    <PsychologicalOptimizationProvider>
+      <AdaptiveModeProvider>
+        <CelebrationProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={
+                isOnboardingCompleted ?
+                  <Navigate to="/chat" replace /> :
+                  <Navigate to="/onboarding" replace />
+              } />
+              <Route path="/onboarding" element={<OnboardingView />} />
+              <Route path="/chat" element={
+                <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
+              } />
+              <Route path="/dashboard" element={
+                <DashboardLayout>
+                  <DashboardView />
+                </DashboardLayout>
+              } />
+              <Route path="/agents" element={
+                <DashboardLayout>
+                  <AgentsView />
+                </DashboardLayout>
+              } />
+              <Route path="/workflows" element={
+                <DashboardLayout>
+                  <WorkflowsView />
+                </DashboardLayout>
+              } />
+              <Route path="/analytics" element={
+                <DashboardLayout>
+                  <AnalyticsView />
+                </DashboardLayout>
+              } />
+              <Route path="/customers" element={
+                <DashboardLayout>
+                  <CustomersView />
+                </DashboardLayout>
+              } />
+              <Route path="/goals" element={
+                <DashboardLayout>
+                  <GoalsView />
+                </DashboardLayout>
+              } />
+              <Route path="/calendar" element={
+                <DashboardLayout>
+                  <CalendarView />
+                </DashboardLayout>
+              } />
+              <Route path="/conversations" element={
+                <DashboardLayout>
+                  <ConversationsView />
+                </DashboardLayout>
+              } />
+              <Route path="/documents" element={
+                <DashboardLayout>
+                  <DocumentsView />
+                </DashboardLayout>
+              } />
+          <Route path="/voice" element={
+            <DashboardLayout>
+              <VoiceView />
+            </DashboardLayout>
+          } />
+          <Route path="/connectors" element={
+            <DashboardLayout>
+              <ConnectorsView />
+            </DashboardLayout>
+          } />
+              <Route path="/achievements" element={
+                <DashboardLayout>
+                  <AchievementsView />
+                </DashboardLayout>
+              } />
+              <Route path="/growth" element={
+                <DashboardLayout>
+                  <GrowthView />
+                </DashboardLayout>
+              } />
+              <Route path="/settings" element={
+                <DashboardLayout>
+                  <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
+                </DashboardLayout>
+              } />
+            </Routes>
+          </Router>
+        </CelebrationProvider>
+      </AdaptiveModeProvider>
+    </PsychologicalOptimizationProvider>
   );
 }
 
