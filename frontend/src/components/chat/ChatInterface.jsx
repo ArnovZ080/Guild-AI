@@ -15,31 +15,52 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [messages, setMessages] = useState(() => {
     if (hasCompletedOnboarding && onboardingData) {
       const data = JSON.parse(onboardingData);
+      const buildSuggestions = () => {
+        try {
+          const notSurePhrases = [
+            'not sure', "i don't know", 'unsure', 'not sure yet', "i'm not sure",
+            "don't know", 'uncertain', 'maybe later', "i haven't really thought",
+            "i'm not sure what", "i don't think", "i haven't", "i don't have",
+            "don't track", 'not sure what that is'
+          ];
+          const isUnknown = (val) => {
+            if (!val) return true;
+            if (typeof val !== 'string') return false;
+            const s = val.toLowerCase();
+            return notSurePhrases.some(p => s.includes(p));
+          };
+          const onboarding = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+          const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
+          const filtered = pending.filter(f => {
+            const key = (f.id || '').replace(/^followup_/, '');
+            const val = onboarding[key];
+            return isUnknown(val);
+          });
+          const top = filtered.slice(0, 6).map(p => p.followUpQuestion);
+          const defaults = [
+            'Create content for my social media',
+            'Help me with my marketing strategy',
+            'Analyze my business performance',
+            'Plan my next 30 days',
+          ];
+          const merged = [...top, ...defaults].filter(Boolean);
+          return merged.length ? merged : defaults;
+        } catch {
+          return [
+            'Create content for my social media',
+            'Help me with my marketing strategy',
+            'Analyze my business performance',
+            'Plan my next 30 days',
+          ];
+        }
+      };
       return [
         {
           id: '1',
           type: 'assistant',
           content: `👋 Welcome back! I see you've completed your onboarding. Based on your business profile, I'm ready to help you with ${data.firstTask || 'your business goals'}. What would you like to work on today?`,
           timestamp: new Date(),
-          suggestions: (() => {
-            try {
-              const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
-              const top = pending.slice(0, 6).map(p => p.followUpQuestion);
-              const defaults = [
-                'Create content for my social media',
-                'Help me with my marketing strategy',
-                'Analyze my business performance',
-                'Plan my next 30 days',
-              ];
-              const merged = [...top, ...defaults].filter(Boolean);
-              return merged.length ? merged : defaults;
-            } catch { return [
-              'Create content for my social media',
-              'Help me with my marketing strategy',
-              'Analyze my business performance',
-              'Plan my next 30 days',
-            ]; }
-          })()
+          suggestions: buildSuggestions()
         }
       ];
     } else {
@@ -75,14 +96,32 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   useEffect(() => {
     const handler = (e) => {
       try {
+        const notSurePhrases = [
+          'not sure', "i don't know", 'unsure', 'not sure yet', "i'm not sure",
+          "don't know", 'uncertain', 'maybe later', "i haven't really thought",
+          "i'm not sure what", "i don't think", "i haven't", "i don't have",
+          "don't track", 'not sure what that is'
+        ];
+        const isUnknown = (val) => {
+          if (!val) return true;
+          if (typeof val !== 'string') return false;
+          const s = val.toLowerCase();
+          return notSurePhrases.some(p => s.includes(p));
+        };
+        const onboarding = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
         const pending = JSON.parse(localStorage.getItem('guild_pending_followups') || '[]');
+        const filtered = pending.filter(f => {
+          const key = (f.id || '').replace(/^followup_/, '');
+          const val = onboarding[key];
+          return isUnknown(val);
+        });
         const defaults = [
           'Create content for my social media',
           'Help me with my marketing strategy',
           'Analyze my business performance',
           'Plan my next 30 days',
         ];
-        const merged = [...pending.slice(0, 6).map(p => p.followUpQuestion), ...defaults].filter(Boolean);
+        const merged = [...filtered.slice(0, 6).map(p => p.followUpQuestion), ...defaults].filter(Boolean);
         setMessages(prev => {
           if (!prev.length) return prev;
           const first = prev[0];
