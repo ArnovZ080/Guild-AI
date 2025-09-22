@@ -60,7 +60,7 @@ const FinancialFlowVisualization = ({ revenueBreakdown = [], expenseBreakdown = 
       </div>
 
       {/* River center */}
-      <div className="absolute left-1/2 top-16 bottom-14 -translate-x-1/2 w-14">
+      <div className="absolute left-1/2 top-24 bottom-20 -translate-x-1/2 w-14">
         <motion.div className="w-full h-full rounded-full bg-gradient-to-b from-blue-400 to-emerald-400 relative overflow-hidden shadow" animate={{ opacity: [0.9, 1, 0.9] }} transition={{ duration: 2.2, repeat: Infinity }}>
           <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-white to-transparent opacity-25" animate={{ y: ['-100%', '100%'] }} transition={{ duration: 3.6, repeat: Infinity, ease: 'linear' }} />
         </motion.div>
