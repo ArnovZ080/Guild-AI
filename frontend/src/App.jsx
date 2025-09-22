@@ -58,9 +58,7 @@ function App() {
               } />
               <Route path="/onboarding" element={<OnboardingView />} />
               <Route path="/chat" element={
-                <DashboardLayout>
-                  <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
-                </DashboardLayout>
+                <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
               } />
               <Route path="/dashboard" element={
                 <DashboardLayout>
