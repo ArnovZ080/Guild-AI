@@ -61,8 +61,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       ];
     }
   });
-  // persist history when it changes
-  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
+  // NOTE: chatHistory declared below; move effect after its declaration to avoid TDZ
   const [showAgentMentions, setShowAgentMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
   
@@ -72,6 +71,9 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeAgent, setActiveAgent] = useState('strategy');
   const [chatHistory, setChatHistory] = useState(() => loadConversations());
+
+  // persist history when it changes (placed after declaration to avoid TDZ)
+  useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
