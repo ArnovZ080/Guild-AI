@@ -31,8 +31,9 @@ const DashboardLayout = ({ children }) => {
     }
   };
 
+  const isChat = location.pathname === '/chat';
   return (
-    <div className={getLayoutClasses()}>
+    <div className={isChat ? 'min-h-screen' : getLayoutClasses()}>
       {/* Navigation Sidebar */}
       <SidebarNav 
         expanded={sidebarExpanded} 
@@ -53,6 +54,7 @@ const DashboardLayout = ({ children }) => {
         layout
       >
         {/* Header */}
+        {!isChat && (
         <motion.section 
           className="bg-white/80 backdrop-blur-sm border-b border-gray-200 p-6"
           initial={{ opacity: 0, y: -20 }}
@@ -98,15 +100,16 @@ const DashboardLayout = ({ children }) => {
             </motion.div>
           </div>
         </motion.section>
+        )}
 
         {/* Main Content */}
         <motion.main 
-          className="p-6"
+          className={isChat ? "p-0" : "p-6"}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
         >
-          <div className="max-w-7xl mx-auto">
+          <div className={isChat ? "" : "max-w-7xl mx-auto"}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

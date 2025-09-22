@@ -259,21 +259,23 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
         {location.pathname === '/chat' && (
           <div className="px-2 py-3 border-b border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/40">
             {/* New Conversation */}
-            <div className="mb-3">
-              <button
-                onClick={() => {
-                  if (typeof window !== 'undefined' && window.dispatchEvent) {
-                    window.dispatchEvent(new CustomEvent('guild:newConversation'));
-                  }
-                }}
-                className={cn(
-                  'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
-                  'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
-                )}
-              >
-                New Conversation
-              </button>
-            </div>
+            {expanded && (
+              <div className="mb-3">
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.dispatchEvent) {
+                      window.dispatchEvent(new CustomEvent('guild:newConversation'));
+                    }
+                  }}
+                  className={cn(
+                    'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+                    'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
+                  )}
+                >
+                  New Conversation
+                </button>
+              </div>
+            )}
             {/* Recent Conversations */}
             {expanded && (
               <div className="space-y-2">
