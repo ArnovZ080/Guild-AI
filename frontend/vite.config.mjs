@@ -7,9 +7,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "framer-motion": path.resolve(__dirname, "./src/shims/noopMotion.jsx"),
     },
   },
   css: {
     postcss: './postcss.config.js',
+  },
+  build: {
+    sourcemap: true,
   },
 })
