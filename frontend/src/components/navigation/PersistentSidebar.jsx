@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { loadConversations } from '../../services/conversationsStore.js';
 
 export const PersistentSidebar = ({ 
   currentPath,
@@ -42,6 +43,7 @@ export const PersistentSidebar = ({
 
   const isActive = (path) => (currentPath || '').startsWith(path);
   const navigate = (path) => onNavigate ? onNavigate(path) : (window.location.href = path);
+  const recent = loadConversations().slice(0, 6);
 
   return (
     <motion.aside
@@ -80,12 +82,47 @@ export const PersistentSidebar = ({
         </div>
       </div>
 
-      {/* Recent Conversations (compact) */}
-      {recentConversationsLabel && (
-        <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 truncate">
-          {recentConversationsLabel}
+      {/* Recent Conversations Section */}
+      <div className="px-2 py-3 bg-gray-50 dark:bg-gray-900/40 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => navigate('/chat')}
+          className={`w-full ${expanded ? 'px-3 py-2' : 'p-2'} bg-orange-500 hover:bg-orange-600 text-white rounded-lg flex items-center justify-center transition-all duration-200 mb-2`}
+        >
+          <MessageSquare className="w-5 h-5" />
+          <AnimatePresence>
+            {expanded && (
+              <motion.span 
+                className="ml-3 text-sm font-medium"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                Chat
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </button>
+        <div className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Recent Conversations</div>
+        <div className="space-y-1">
+          {recent.map(c => (
+            <button
+              key={c.id}
+              onClick={() => navigate('/chat')}
+              className={`w-full text-left ${expanded ? 'px-2 py-1.5' : 'p-1.5'} rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors`}
+              title={c.title}
+            >
+              <div className="text-xs font-medium text-gray-800 dark:text-gray-100 truncate">{c.title}</div>
+              {expanded && (
+                <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">{c.preview}</div>
+              )}
+            </button>
+          ))}
+          {recent.length === 0 && (
+            <div className="text-[11px] text-gray-500 dark:text-gray-400">No conversations yet</div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Nav Groups */}
       <div className="flex-1 overflow-y-auto py-3">
@@ -162,30 +199,8 @@ export const PersistentSidebar = ({
         </div>
       </div>
 
-      {/* Quick Chat Button */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <motion.button
-          onClick={() => navigate('/chat')}
-          className={`w-full ${expanded ? 'px-3 py-2' : 'p-2'} bg-orange-500 hover:bg-orange-600 text-white rounded-lg flex items-center justify-center transition-all duration-200`}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <MessageSquare className="w-5 h-5" />
-          <AnimatePresence>
-            {expanded && (
-              <motion.span 
-                className="ml-3 text-sm font-medium"
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                Chat
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
-      </div>
+      {/* Footer spacing */}
+      <div className="p-2 border-t border-gray-200 dark:border-gray-700" />
     </motion.aside>
   );
 };
