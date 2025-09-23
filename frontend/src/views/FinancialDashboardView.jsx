@@ -633,26 +633,48 @@ const FinancialDashboardView = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Lifetime Value (LTV) */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer" onClick={()=>setCustomerModal({ title: 'Lifetime Value (LTV) Details', customer: 'Cohorts', amount: analyticsKpis?.ltv })}>
-            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Lifetime Value (LTV)</h3><Pill tone="info">${analyticsKpis?.ltv?.toLocaleString?.()}</Pill></div>
-            <div className="text-xs text-gray-500">Total revenue expected from an average customer over their relationship.</div>
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Lifetime Value (LTV)</h3><Pill tone="info">Info</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Total revenue expected from an average customer over their relationship.</div>
+            <div className="text-2xl font-bold text-gray-900">${analyticsKpis?.ltv?.toLocaleString?.()}</div>
           </div>
           {/* Customer Acquisition Cost (CAC) */}
           <div className="bg-white rounded-lg shadow p-6 cursor-pointer" onClick={()=>setVendorModal({ vendor: 'Acquisition', amount: analyticsKpis?.cac })}>
-            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Customer Acquisition Cost (CAC)</h3><Pill tone="info">${analyticsKpis?.cac?.toLocaleString?.()}</Pill></div>
-            <div className="text-xs text-gray-500">Average cost to acquire one new customer (marketing + sales).</div>
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Customer Acquisition Cost (CAC)</h3><Pill tone="info">Info</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Average cost to acquire one new customer (marketing + sales).</div>
+            <div className="text-2xl font-bold text-gray-900">${analyticsKpis?.cac?.toLocaleString?.()}</div>
           </div>
           {/* LTV:CAC Ratio */}
-          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">LTV:CAC Ratio</h3><Pill tone={analyticsKpis?.ltv_cac_ratio>=3?'good':'warn'}>{analyticsKpis?.ltv_cac_ratio}x</Pill></div><div className="text-xs text-gray-500">Indicates scalability; rule of thumb ≥ 3x.</div></div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">LTV:CAC Ratio</h3><Pill tone={analyticsKpis?.ltv_cac_ratio>=3?'good':'warn'}>Guide</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Indicates scalability; rule of thumb ≥ 3x.</div>
+            <div className="text-2xl font-bold text-gray-900">{analyticsKpis?.ltv_cac_ratio}x</div>
+          </div>
 
           {/* Gross Margin % */}
-          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Gross Margin %</h3><Pill tone={analyticsKpis?.gross_margin_pct>=60?'good':'info'}>{analyticsKpis?.gross_margin_pct}%</Pill></div><div className="text-xs text-gray-500">Percentage of revenue left after cost of goods sold.</div></div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Gross Margin %</h3><Pill tone={analyticsKpis?.gross_margin_pct>=60?'good':'info'}>Health</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Percentage of revenue left after cost of goods sold.</div>
+            <div className="text-2xl font-bold text-gray-900">{analyticsKpis?.gross_margin_pct}%</div>
+          </div>
           {/* Operating Margin % */}
-          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Operating Margin %</h3><Pill tone={analyticsKpis?.operating_margin_pct>=10?'good':'info'}>{analyticsKpis?.operating_margin_pct}%</Pill></div><div className="text-xs text-gray-500">Operating profit divided by revenue (EBIT / Revenue).</div></div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Operating Margin %</h3><Pill tone={analyticsKpis?.operating_margin_pct>=10?'good':'info'}>Health</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Operating profit divided by revenue (EBIT / Revenue).</div>
+            <div className="text-2xl font-bold text-gray-900">{analyticsKpis?.operating_margin_pct}%</div>
+          </div>
           {/* CAC Payback Period */}
-          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">CAC Payback Period</h3><Pill tone={analyticsKpis?.payback_months<=3?'good':'warn'}>{analyticsKpis?.payback_months} mo</Pill></div><div className="text-xs text-gray-500">Months to recover acquisition cost from gross profit.</div></div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">CAC Payback Period</h3><Pill tone={analyticsKpis?.payback_months<=3?'good':'warn'}>Goal</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Months to recover acquisition cost from gross profit.</div>
+            <div className="text-2xl font-bold text-gray-900">{analyticsKpis?.payback_months} mo</div>
+          </div>
 
           {/* Debt-to-Equity Ratio */}
-          <div className="bg-white rounded-lg shadow p-6 lg:col-span-1"><div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Debt-to-Equity Ratio</h3><Pill tone={analyticsKpis?.debt_to_equity<=0.5?'good':'warn'}>{analyticsKpis?.debt_to_equity}</Pill></div><div className="text-xs text-gray-500">Measures leverage: lower generally safer.</div></div>
+          <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
+            <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Debt-to-Equity Ratio</h3><Pill tone={analyticsKpis?.debt_to_equity<=0.5?'good':'warn'}>Risk</Pill></div>
+            <div className="text-xs text-gray-500 mb-2">Measures leverage: lower generally safer.</div>
+            <div className="text-2xl font-bold text-gray-900">{analyticsKpis?.debt_to_equity ?? '—'}</div>
+          </div>
 
           {/* ROI by Channel */}
           <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
