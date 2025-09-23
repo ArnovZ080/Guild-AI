@@ -845,15 +845,17 @@ const FinancialDashboardView = () => {
                       <td className="px-4 py-2">${(inv.amount||0).toLocaleString?.()}</td>
                       <td className="px-4 py-2">{inv.due_date}</td>
                       <td className="px-4 py-2 capitalize">{inv.status}</td>
-                      <td className="px-4 py-2 space-x-2">
-                        <button className="px-2 py-1 text-xs rounded bg-emerald-600 text-white" onClick={async () => {
-                          const ctx = await financialApi.getInvoiceApprovalContext(inv.id);
-                          setApprovalModal({ context: ctx?.data });
-                        }}>Approve</button>
-                        <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
-                          await financialApi.markInvoicePaid(inv.id);
-                          setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'paid' } : i));
-                        }}>Mark Paid</button>
+                      <td className="px-4 py-2 align-top">
+                        <div className="flex flex-col gap-2">
+                          <button className="px-2 py-1 text-xs rounded bg-emerald-600 text-white" onClick={async () => {
+                            const ctx = await financialApi.getInvoiceApprovalContext(inv.id);
+                            setApprovalModal({ context: ctx?.data });
+                          }}>Approve</button>
+                          <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
+                            await financialApi.markInvoicePaid(inv.id);
+                            setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'paid' } : i));
+                          }}>Mark Paid</button>
+                        </div>
                       </td>
                     </tr>
                   ))}
