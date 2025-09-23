@@ -222,49 +222,53 @@ const FinancialDashboardView = () => {
       {activeTab === 'overview' && (
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <DollarSign className="w-5 h-5 mr-2 text-green-500" />
               Income
             </h3>
             <Pill tone="good">Up</Pill>
           </div>
+          <div className="text-xs text-gray-500 mb-1">Total recurring revenue flowing in this period.</div>
           <div className="text-2xl font-bold text-gray-900">${analysis?.financial_metrics?.revenue_metrics?.mrr?.current?.toLocaleString?.() || '—'}</div>
           <div className="text-xs text-gray-500 mt-1">Monthly Recurring Revenue</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <TrendingUp className="w-5 h-5 mr-2 text-red-500" />
               Expenses
             </h3>
             <Pill tone="info">Stable</Pill>
           </div>
+          <div className="text-xs text-gray-500 mb-1">Total operating costs for the selected period.</div>
           <div className="text-2xl font-bold text-gray-900">${analysis?.financial_metrics?.cash_flow_metrics?.burn_rate?.current?.toLocaleString?.() || '—'}</div>
           <div className="text-xs text-gray-500 mt-1">Monthly Burn</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <Receipt className="w-5 h-5 mr-2 text-blue-500" />
               Invoices
             </h3>
             <Pill tone="warn">Needs Attention</Pill>
           </div>
+          <div className="text-xs text-gray-500 mb-1">Bills awaiting approval or payment.</div>
           <div className="text-2xl font-bold text-gray-900">—</div>
           <div className="text-xs text-gray-500 mt-1">Pending approvals</div>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <AlertTriangle className="w-5 h-5 mr-2 text-amber-500" />
               Cashflow
             </h3>
             <Pill tone={runway >= 12 ? 'good' : runway >= 6 ? 'info' : 'warn'}>{runway >= 12 ? 'Comfortable' : runway >= 6 ? 'Okay' : 'Needs Attention'}</Pill>
           </div>
+          <div className="text-xs text-gray-500 mb-1">How long current cash is expected to last (runway).</div>
           <div className="text-2xl font-bold text-gray-900">{runway ?? '—'} months</div>
           <div className="text-xs text-gray-500 mt-1">Projected runway</div>
         </div>
@@ -276,18 +280,22 @@ const FinancialDashboardView = () => {
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-xs text-gray-500 mb-1">Cash on Hand</div>
             <div className="text-2xl font-semibold text-gray-900">${(kpis?.cash_on_hand || 0).toLocaleString?.()}</div>
+            <div className="text-[11px] text-gray-500">Liquid cash available right now.</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-xs text-gray-500 mb-1">AR / AP</div>
             <div className="text-sm text-gray-900">AR: ${((kpis?.ar_total)||0).toLocaleString?.()} • AP: ${((kpis?.ap_total)||0).toLocaleString?.()}</div>
+            <div className="text-[11px] text-gray-500">Accounts Receivable vs Accounts Payable.</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-xs text-gray-500 mb-1">Runway / Burn</div>
             <div className="text-sm text-gray-900">{(kpis?.runway_months||0)} months • Burn ${((kpis?.burn_rate)||0).toLocaleString?.()}</div>
+            <div className="text-[11px] text-gray-500">Months of cash left at current burn rate.</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-xs text-gray-500 mb-1">Margins & ROAS</div>
             <div className="text-sm text-gray-900">Gross {(kpis?.gross_margin_pct||0)}% • Net {(kpis?.net_margin_pct||0)}% • ROAS {(kpis?.roas||0)}x</div>
+            <div className="text-[11px] text-gray-500">Profit margins and advertising efficiency.</div>
           </div>
         </div>
       )}
