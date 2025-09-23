@@ -42,7 +42,12 @@ import {
   ToggleLeft,
   ToggleRight,
   Layers,
-  Workflow
+  Workflow,
+  // Added icons from backup builder
+  Target,
+  Database,
+  Globe,
+  BarChart3
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -339,11 +344,77 @@ const ENHANCED_NODE_TYPES = {
   }
 };
 
+// Add primitive node ids set for quick checks
+const PRIMITIVE_NODE_IDS = new Set(['trigger', 'action', 'condition', 'split', 'agent', 'merge']);
+
+// Backup builder categories and nodes integrated
+const NODE_CATEGORIES = [
+  { id: 'triggers', name: 'Triggers', icon: Zap },
+  { id: 'agents', name: 'AI Agents', icon: Brain },
+  { id: 'actions', name: 'Actions', icon: Play },
+  { id: 'logic', name: 'Logic', icon: Target },
+  { id: 'data', name: 'Data', icon: Database },
+  { id: 'communication', name: 'Communication', icon: MessageSquare },
+  { id: 'integrations', name: 'Integrations', icon: Globe },
+  { id: 'analytics', name: 'Analytics', icon: BarChart3 },
+  { id: 'timing', name: 'Timing', icon: Clock },
+  { id: 'files', name: 'Files', icon: FileText },
+];
+
+const BACKUP_NODES: Array<{
+  id: string;
+  name: string;
+  icon: any;
+  description: string;
+  category: string; // category id from NODE_CATEGORIES
+  baseCredits: number;
+}> = [
+  { id: 'trigger', name: 'Trigger', icon: Zap, description: 'Start your workflow with a trigger event', category: 'triggers', baseCredits: 0 },
+  { id: 'condition', name: 'Condition', icon: Target, description: 'Add conditional logic to your workflow', category: 'logic', baseCredits: 0 },
+  { id: 'action', name: 'Action', icon: Play, description: 'Execute an action or task', category: 'actions', baseCredits: 1 },
+  { id: 'agent', name: 'AI Agent', icon: Brain, description: 'Delegate task to an AI agent', category: 'agents', baseCredits: 2 },
+  { id: 'delay', name: 'Delay', icon: Clock, description: 'Add a delay or wait period', category: 'timing', baseCredits: 0 },
+  { id: 'notification', name: 'Notification', icon: MessageSquare, description: 'Send notifications or alerts', category: 'communication', baseCredits: 1 },
+  { id: 'data', name: 'Data Processing', icon: Database, description: 'Process and transform data', category: 'data', baseCredits: 1 },
+  { id: 'integration', name: 'Integration', icon: Globe, description: 'Connect with external services', category: 'integrations', baseCredits: 1 },
+  { id: 'email', name: 'Email', icon: Mail, description: 'Send or process emails', category: 'communication', baseCredits: 1 },
+  { id: 'analytics', name: 'Analytics', icon: BarChart3, description: 'Analyze data and generate insights', category: 'analytics', baseCredits: 1 },
+  { id: 'schedule', name: 'Schedule', icon: Calendar, description: 'Schedule tasks or events', category: 'timing', baseCredits: 0 },
+  { id: 'file', name: 'File Operation', icon: FileText, description: 'Create, read, or modify files', category: 'files', baseCredits: 1 },
+  // Keep existing split/merge primitives
+  { id: 'split', name: 'Split', icon: GitBranch, description: 'Fan-out to multiple paths', category: 'logic', baseCredits: 0 },
+  { id: 'merge', name: 'Merge', icon: GitBranch, description: 'Join multiple paths', category: 'logic', baseCredits: 0 },
+];
+
+// Include all backup node ids in primitive recognition
+for (const n of BACKUP_NODES) {
+  PRIMITIVE_NODE_IDS.add(n.id);
+}
+
+// Workflow primitive catalog for sidebar (kept for quick access)
+const WORKFLOW_PRIMITIVES: Array<{ id: string; name: string; icon: any; description: string; baseCredits: number }> = [
+  { id: 'trigger', name: 'Trigger', icon: Zap, description: 'Starts a workflow when an event occurs', baseCredits: 0 },
+  { id: 'action', name: 'Action', icon: Play, description: 'Performs a task or transformation', baseCredits: 1 },
+  { id: 'condition', name: 'Condition', icon: ToggleLeft, description: 'Branch logic based on a condition', baseCredits: 0 },
+  { id: 'split', name: 'Split', icon: GitBranch, description: 'Fan-out to multiple paths', baseCredits: 0 },
+  { id: 'agent', name: 'Agent', icon: Bot, description: 'Delegate work to an AI agent', baseCredits: 2 },
+  { id: 'merge', name: 'Merge', icon: GitBranch, description: 'Join multiple paths', baseCredits: 0 },
+];
+
 // Enhanced Node Component
 const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
-  
+  const [nlInput, setNlInput] = useState('');
+  const [conditionBranches, setConditionBranches] = useState<{ label: string; nl: string }[]>(
+    data.category === 'condition' || data.category === 'split'
+      ? data.branches || [
+          { label: 'yes', nl: '' },
+          { label: 'no', nl: '' },
+        ]
+      : []
+  );
+
   const nodeType = ENHANCED_NODE_TYPES[data.category as keyof typeof ENHANCED_NODE_TYPES];
   
   const getStatusIcon = (status: string) => {
@@ -366,6 +437,64 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
     }
   };
 
+  const saveNaturalLanguageConfig = () => {
+    // Minimal NL -> structured config scaffold per category
+    const updated: any = { ...data };
+    if (data.category === 'trigger') {
+      updated.config = {
+        triggerType: 'natural_language',
+        description: nlInput,
+      };
+      updated.naturalLanguageDescription = nlInput;
+      updated.status = 'configured';
+      updated.estimatedCredits = 0;
+      updated.estimatedCost = 0;
+    } else if (data.category === 'action') {
+      updated.config = {
+        actionType: 'natural_language',
+        instruction: nlInput,
+      };
+      updated.naturalLanguageDescription = nlInput;
+      updated.status = 'configured';
+      updated.estimatedCredits = 1;
+      updated.estimatedCost = 0.1;
+    } else if (data.category === 'condition') {
+      updated.config = {
+        conditionType: 'natural_language',
+        rule: nlInput,
+      };
+      updated.branches = conditionBranches;
+      updated.naturalLanguageDescription = nlInput;
+      updated.status = 'configured';
+      updated.estimatedCredits = 0;
+      updated.estimatedCost = 0;
+    } else if (data.category === 'split') {
+      updated.config = {
+        splitType: 'natural_language',
+        rule: nlInput,
+      };
+      updated.branches = conditionBranches;
+      updated.naturalLanguageDescription = nlInput;
+      updated.status = 'configured';
+      updated.estimatedCredits = 0;
+      updated.estimatedCost = 0;
+    } else if (data.category === 'agent') {
+      updated.config = {
+        agentInstruction: nlInput,
+      };
+      updated.naturalLanguageDescription = nlInput;
+      updated.status = 'configured';
+      updated.estimatedCredits = 2;
+      updated.estimatedCost = 0.2;
+    } else {
+      updated.config = { note: nlInput };
+      updated.naturalLanguageDescription = nlInput;
+      updated.status = 'configured';
+    }
+    Object.assign(data, updated);
+    setIsConfiguring(false);
+  };
+
   return (
     <div
       className={`px-4 py-3 shadow-lg rounded-xl border-2 transition-all duration-200 ${
@@ -375,7 +504,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
       {/* Node Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="text-2xl">{nodeType?.icon || '🤖'}</div>
+          <div className="text-2xl">{nodeType?.icon || (PRIMITIVE_NODE_IDS.has(data.category) ? '🧩' : '🤖')}</div>
           <div>
             <h3 className="font-semibold text-gray-800 text-sm">{data.label}</h3>
             <p className="text-xs text-gray-500 capitalize">{data.category}</p>
@@ -393,7 +522,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
         </div>
       </div>
 
-      {/* Natural Language Description */}
+      {/* Natural Language Description or Configure CTA */}
       {data.naturalLanguageDescription ? (
         <div className="mb-2">
           <p className="text-xs text-gray-600 bg-gray-100 p-2 rounded italic">
@@ -422,7 +551,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
             onClick={() => setIsConfiguring(true)}
             className="w-full text-xs p-2 border border-purple-300 rounded bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors"
           >
-            Click to configure with natural language
+            Configure with natural language
           </button>
         </div>
       )}
@@ -438,10 +567,32 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
       {/* Expanded Details */}
       {showDetails && (
         <div className="border-t pt-2 mt-2">
-          <div className="text-xs text-gray-600 space-y-1">
+          <div className="text-xs text-gray-600 space-y-2">
             <div><strong>Type:</strong> {data.category}</div>
             {data.industry && <div><strong>Industry:</strong> {data.industry}</div>}
             <div><strong>Status:</strong> {data.status}</div>
+            {data.category === 'agent' && (
+              <div className="space-y-1">
+                <div className="font-medium text-gray-700">Assign Agent</div>
+                <select
+                  className="w-full border rounded px-2 py-1"
+                  value={data.assignedAgentId || ''}
+                  onChange={(e) => {
+                    data.assignedAgentId = e.target.value;
+                  }}
+                >
+                  <option value="">Select an agent...</option>
+                  {(data.availableAgents || [
+                    { id: 'research_agent', name: 'Research Agent' },
+                    { id: 'marketing_agent', name: 'Marketing Agent' },
+                    { id: 'sales_agent', name: 'Sales Agent' },
+                    { id: 'operations_agent', name: 'Operations Agent' },
+                  ]).map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             {data.config && Object.keys(data.config).length > 0 && (
               <div><strong>Config:</strong> {Object.keys(data.config).length} settings</div>
             )}
@@ -453,12 +604,58 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
       {isConfiguring && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Configure Node</h3>
+            <h3 className="text-lg font-bold mb-4">Configure {data.label}</h3>
+
+            {/* Primary NL input */}
             <textarea
               className="w-full p-3 border border-gray-300 rounded-md mb-4"
               rows={3}
-              placeholder="Describe what this node should do in natural language..."
+              value={nlInput}
+              onChange={(e) => setNlInput(e.target.value)}
+              placeholder={
+                data.category === 'trigger' ? 'e.g., When I receive an email with subject contains "pricing"' :
+                data.category === 'action' ? 'e.g., Filter emails between spam and useful' :
+                data.category === 'condition' || data.category === 'split' ? 'e.g., If spam then trash, else send to agent' :
+                data.category === 'agent' ? 'e.g., Read and reply with a professional tone' :
+                'Describe the behavior...'
+              }
             />
+
+            {(data.category === 'condition' || data.category === 'split') && (
+              <div className="mb-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
+                {conditionBranches.map((b, idx) => (
+                  <div key={idx} className="flex items-center gap-2 mb-2">
+                    <input
+                      className="w-24 px-2 py-1 border rounded"
+                      value={b.label}
+                      onChange={(e) => {
+                        const copy = [...conditionBranches];
+                        copy[idx] = { ...copy[idx], label: e.target.value };
+                        setConditionBranches(copy);
+                      }}
+                    />
+                    <input
+                      className="flex-1 px-2 py-1 border rounded"
+                      placeholder={`NL rule for ${b.label}`}
+                      value={b.nl}
+                      onChange={(e) => {
+                        const copy = [...conditionBranches];
+                        copy[idx] = { ...copy[idx], nl: e.target.value };
+                        setConditionBranches(copy);
+                      }}
+                    />
+                  </div)
+                )}
+                <button
+                  className="text-xs text-blue-600 hover:underline"
+                  onClick={() => setConditionBranches([...conditionBranches, { label: 'branch', nl: '' }])}
+                >
+                  + Add branch
+                </button>
+              </div>
+            )}
+
             <div className="flex justify-end space-x-2">
               <button
                 onClick={() => setIsConfiguring(false)}
@@ -467,13 +664,9 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // Update node configuration
-                  data.naturalLanguageDescription = "Configured with natural language";
-                  data.status = 'configured';
-                  setIsConfiguring(false);
-                }}
+                onClick={saveNaturalLanguageConfig}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                disabled={!nlInput.trim() && !(data.category === 'condition' || data.category === 'split')}
               >
                 Save
               </button>
@@ -521,6 +714,26 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   const [showCustomIndustryConfig, setShowCustomIndustryConfig] = useState(false);
   const [customIndustryName, setCustomIndustryName] = useState('');
   const [customIndustryDescription, setCustomIndustryDescription] = useState('');
+  const [availableAgents, setAvailableAgents] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    // TODO: Replace with real subscription-fed fetch
+    async function fetchAgents() {
+      try {
+        // Placeholder local list until backend route is available
+        const fallback = [
+          { id: 'research_agent', name: 'Research Agent' },
+          { id: 'marketing_agent', name: 'Marketing Agent' },
+          { id: 'sales_agent', name: 'Sales Agent' },
+          { id: 'operations_agent', name: 'Operations Agent' },
+        ];
+        setAvailableAgents(fallback);
+      } catch (e) {
+        setAvailableAgents([]);
+      }
+    }
+    fetchAgents();
+  }, []);
 
   const onConnect = useCallback((params: Connection | Edge) => {
     setEdges((eds) => addEdge(params, eds));
@@ -543,23 +756,38 @@ const EnhancedWorkflowBuilder: React.FC = () => {
           y: event.clientY,
         });
 
+        const isPrimitive = PRIMITIVE_NODE_IDS.has(nodeType);
+        const baseCredits = (WORKFLOW_PRIMITIVES.find(p => p.id === nodeType)?.baseCredits
+          ?? BACKUP_NODES.find(n => n.id === nodeType)?.baseCredits
+          ?? 0);
+
         const newNode: Node = {
           id: `${nodeType}-${Date.now()}`,
           type: 'enhancedNode',
           position,
-          data: {
-            label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)} Agent`,
-            category: nodeType,
-            description: `AI-powered ${nodeType} automation`,
-            status: 'pending',
-            industry: selectedIndustry
-          },
+          data: isPrimitive
+            ? {
+                label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)}`,
+                category: nodeType,
+                description: `Workflow ${nodeType}`,
+                status: 'pending',
+                estimatedCredits: baseCredits,
+                estimatedCost: baseCredits * 0.1,
+                ...(nodeType === 'agent' ? { availableAgents } : {}),
+              }
+            : {
+                label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)} Agent`,
+                category: nodeType,
+                description: `AI-powered ${nodeType} automation`,
+                status: 'pending',
+                industry: selectedIndustry
+              },
         };
 
         setNodes((nds) => nds.concat(newNode));
       }
     },
-    [reactFlowInstance, setNodes, selectedIndustry],
+    [reactFlowInstance, setNodes, selectedIndustry, availableAgents],
   );
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -603,35 +831,112 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     if (!aiWorkflowSuggestion.trim()) return;
 
     try {
-      // Simulate AI workflow generation
-      const mockNodes = [
-        { name: 'Lead Capture', category: 'marketing', description: 'Capture leads from website' },
-        { name: 'Email Follow-up', category: 'sales', description: 'Send personalized follow-up emails' },
-        { name: 'CRM Update', category: 'operations', description: 'Update customer database' }
+      // Primitive-based workflow example derived from NL prompt
+      const baseX = 100;
+      const baseY = 120;
+      const gapX = 280;
+
+      const triggerId = `trigger-${Date.now()}`;
+      const actionFilterId = `action-${Date.now() + 1}`;
+      const conditionId = `condition-${Date.now() + 2}`;
+      const agentId = `agent-${Date.now() + 3}`;
+      const actionReplyId = `action-${Date.now() + 4}`;
+
+      const primitiveNodes: Node[] = [
+        {
+          id: triggerId,
+          type: 'enhancedNode',
+          position: { x: baseX, y: baseY },
+          data: {
+            label: 'Trigger',
+            category: 'trigger',
+            description: 'Workflow trigger',
+            status: 'configured',
+            estimatedCredits: 0,
+            estimatedCost: 0,
+            naturalLanguageDescription: aiWorkflowSuggestion,
+            config: { triggerType: 'natural_language', description: aiWorkflowSuggestion },
+          },
+        },
+        {
+          id: actionFilterId,
+          type: 'enhancedNode',
+          position: { x: baseX + gapX, y: baseY },
+          data: {
+            label: 'Action: Filter Emails',
+            category: 'action',
+            description: 'Filter spam vs useful',
+            status: 'configured',
+            estimatedCredits: 1,
+            estimatedCost: 0.1,
+            naturalLanguageDescription: 'Filter emails between spam and useful',
+            config: { actionType: 'natural_language', instruction: 'Filter emails between spam and useful' },
+          },
+        },
+        {
+          id: conditionId,
+          type: 'enhancedNode',
+          position: { x: baseX + gapX * 2, y: baseY },
+          data: {
+            label: 'Condition',
+            category: 'condition',
+            description: 'Spam? Then trash, else to agent',
+            status: 'configured',
+            estimatedCredits: 0,
+            estimatedCost: 0,
+            naturalLanguageDescription: 'If spam then trash, else send to agent',
+            config: { conditionType: 'natural_language', rule: 'spam vs not spam' },
+            branches: [
+              { label: 'spam', nl: 'Send to trash' },
+              { label: 'not_spam', nl: 'Send to agent' },
+            ],
+          },
+        },
+        {
+          id: agentId,
+          type: 'enhancedNode',
+          position: { x: baseX + gapX * 3, y: baseY - 80 },
+          data: {
+            label: 'Agent',
+            category: 'agent',
+            description: 'Handle replies or delegate',
+            status: 'configured',
+            estimatedCredits: 2,
+            estimatedCost: 0.2,
+            naturalLanguageDescription: 'Read and reply professionally or delegate appropriately',
+            availableAgents,
+            config: { agentInstruction: 'Read and reply professionally or delegate appropriately' },
+          },
+        },
+        {
+          id: actionReplyId,
+          type: 'enhancedNode',
+          position: { x: baseX + gapX * 4, y: baseY - 80 },
+          data: {
+            label: 'Action: Send Reply',
+            category: 'action',
+            description: 'Send reply / forward',
+            status: 'configured',
+            estimatedCredits: 1,
+            estimatedCost: 0.1,
+            naturalLanguageDescription: 'Send the crafted reply or forward to relevant agent',
+            config: { actionType: 'natural_language', instruction: 'Send reply or forward' },
+          },
+        },
       ];
 
-      const newNodes = mockNodes.map((node, index) => ({
-        id: `ai-generated-${index}`,
-        type: 'enhancedNode',
-        position: { x: 100 + (index * 300), y: 100 + (index % 2) * 200 },
-        data: {
-          label: node.name,
-          category: node.category,
-          description: node.description,
-          naturalLanguageDescription: `AI-generated: ${node.description}`,
-          estimatedCredits: 10,
-          estimatedCost: 0.10,
-          status: 'configured',
-          confidence: 85,
-          industry: selectedIndustry
-        }
-      }));
+      const primitiveEdges: Edge[] = [
+        { id: `${triggerId}->${actionFilterId}`, source: triggerId, target: actionFilterId },
+        { id: `${actionFilterId}->${conditionId}`, source: actionFilterId, target: conditionId },
+        { id: `${conditionId}->${agentId}`, source: conditionId, target: agentId },
+        { id: `${agentId}->${actionReplyId}`, source: agentId, target: actionReplyId },
+      ];
 
-      setNodes((nds) => [...nds, ...newNodes]);
-      toast.success('AI workflow generated successfully!');
+      setNodes((nds) => [...nds, ...primitiveNodes]);
+      setEdges((eds) => [...eds, ...primitiveEdges]);
+      toast.success('AI workflow generated with primitives!');
       setShowAIAssistant(false);
       setAiWorkflowSuggestion('');
-
     } catch (error) {
       toast.error('Failed to generate AI workflow. Please try again.');
     }
@@ -807,7 +1112,68 @@ const EnhancedWorkflowBuilder: React.FC = () => {
         <div className="w-80 bg-white p-4 shadow-md overflow-y-auto">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <Wand2 className="w-5 h-5 text-purple-600" />
-            AI Agent Library
+            Workflow Primitives
+          </h2>
+
+          <div className="space-y-3 mb-8">
+            {WORKFLOW_PRIMITIVES.map((primitive) => (
+              <div
+                key={primitive.id}
+                className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 cursor-grab transition-all flex items-start gap-3"
+                onDragStart={(event) => onDragStart(event, primitive.id)}
+                draggable
+              >
+                <primitive.icon className="w-5 h-5 text-gray-700 mt-0.5" />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-gray-800 text-sm">{primitive.name}</h3>
+                    <span className="text-xs text-gray-500">{primitive.baseCredits} cr</span>
+                  </div>
+                  <p className="text-xs text-gray-600">{primitive.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+            <Wand2 className="w-5 h-5 text-purple-600" />
+            Nodes by Category
+          </h2>
+
+          {/* Categorized nodes from backup builder */}
+          <div className="space-y-4">
+            {NODE_CATEGORIES.map((cat) => (
+              <div key={cat.id}>
+                <div className="flex items-center gap-2 mb-2 text-gray-700">
+                  <cat.icon className="w-4 h-4" />
+                  <span className="text-sm font-medium">{cat.name}</span>
+                </div>
+                <div className="space-y-2">
+                  {BACKUP_NODES.filter(n => n.category === cat.id).map((n) => (
+                    <div
+                      key={n.id}
+                      className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all flex items-start gap-3"
+                      onDragStart={(event) => onDragStart(event, n.id)}
+                      draggable
+                    >
+                      <n.icon className="w-5 h-5 text-gray-700 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-800 text-sm">{n.name}</h3>
+                          <span className="text-xs text-gray-500">{n.baseCredits} cr</span>
+                        </div>
+                        <p className="text-xs text-gray-600">{n.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 mt-8 flex items-center gap-2">
+            <Wand2 className="w-5 h-5 text-purple-600" />
+            Workflow Presets (AI Agents)
           </h2>
           
           <div className="space-y-3">
