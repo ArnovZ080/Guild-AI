@@ -646,7 +646,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                       }}
                     />
                   </div>
-                )}
+                ))}
                 <button
                   className="text-xs text-blue-600 hover:underline"
                   onClick={() => setConditionBranches([...conditionBranches, { label: 'branch', nl: '' }])}
