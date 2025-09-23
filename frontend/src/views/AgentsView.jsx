@@ -155,6 +155,8 @@ const AgentsView = () => {
   const [theaterWorkflow, setTheaterWorkflow] = useState(null);
   const [selectedWorkflowCard, setSelectedWorkflowCard] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const [showWorkflowDetailsModal, setShowWorkflowDetailsModal] = useState(false);
   const [agentConfiguration, setAgentConfiguration] = useState({
     customInstructions: '',
     duration: 'indefinite',
@@ -275,6 +277,33 @@ const AgentsView = () => {
       error: 'bg-red-100 text-red-800'
     };
     return styles[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  // Integration icon helper for workflow cards
+  const getIntegrationIcon = (integration) => {
+    const icons = {
+      'Zapier': Wrench,
+      'Make.com': Workflow,
+      'N8N': Network,
+      'HubSpot': Database,
+      'Gmail': Mail,
+      'WhatsApp': MessageSquare,
+      'Messenger': MessageSquare,
+      'Facebook': Globe,
+      'Instagram': Camera,
+      'LinkedIn': Users,
+      'QuickBooks': DollarSign,
+      'Excel': FileText,
+      'CRM': Database,
+      'Google Analytics': BarChart,
+      'Slack': MessageSquare,
+      'Zendesk': Headphones,
+      'Intercom': MessageSquare,
+      'Buffer': Share,
+      'Hootsuite': Share,
+      'Twitter': Globe
+    };
+    return icons[integration] || Link;
   };
 
   if (loading) {
@@ -687,9 +716,81 @@ const AgentsView = () => {
           {/* Autonomous Workflows below theater as separate cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { id: 'wf-1', name: 'Customer Onboarding Automation', description: 'Onboard new customers with personalized sequence', status: 'running', progress: 75, type: 'autonomous', currentStep: 'Sending welcome email sequence' },
-              { id: 'wf-2', name: 'Lead Qualification & Nurturing', description: 'Qualify and nurture leads based on behavior', status: 'running', progress: 68, type: 'autonomous', currentStep: 'Analyzing lead behavior patterns' },
-              { id: 'wf-3', name: 'Content Distribution & Optimization', description: 'Distribute and optimize content across platforms', status: 'running', progress: 82, type: 'autonomous', currentStep: 'Optimizing social media posts' },
+              {
+                id: '1',
+                name: 'Customer Onboarding Automation',
+                type: 'autonomous',
+                status: 'running',
+                progress: 75,
+                currentStep: 'Sending welcome email sequence',
+                description: 'Automatically onboard new customers with personalized welcome sequence',
+                agents: ['Customer Success Agent', 'Email Marketing Agent', 'Personalization Agent'],
+                integrations: ['Zapier', 'Gmail', 'HubSpot'],
+                triggers: ['New customer signup', 'Payment confirmation'],
+                actions: [
+                  { step: 'Send welcome email', status: 'completed', agent: 'Email Marketing Agent' },
+                  { step: 'Create customer profile', status: 'completed', agent: 'Customer Success Agent' },
+                  { step: 'Schedule onboarding call', status: 'in-progress', agent: 'Calendar Agent' },
+                  { step: 'Send product tutorial', status: 'pending', agent: 'Content Agent' }
+                ],
+                metrics: {
+                  customersProcessed: 234,
+                  successRate: 94,
+                  avgTimeToComplete: '2.3 hours',
+                  costPerCustomer: '$12.50'
+                },
+                businessGoal: 'Reduce onboarding time by 60%'
+              },
+              {
+                id: '2',
+                name: 'Lead Qualification & Nurturing',
+                type: 'autonomous',
+                status: 'running',
+                progress: 68,
+                currentStep: 'Analyzing lead behavior patterns',
+                description: 'Automatically qualify and nurture leads based on behavior and engagement',
+                agents: ['Lead Personalization Agent', 'Sales Agent', 'Analytics Agent'],
+                integrations: ['HubSpot', 'LinkedIn', 'Gmail', 'WhatsApp'],
+                triggers: ['Website visit', 'Form submission', 'Email engagement'],
+                actions: [
+                  { step: 'Score lead quality', status: 'completed', agent: 'Analytics Agent' },
+                  { step: 'Personalize outreach', status: 'completed', agent: 'Lead Personalization Agent' },
+                  { step: 'Schedule follow-up', status: 'in-progress', agent: 'Sales Agent' },
+                  { step: 'Update CRM', status: 'pending', agent: 'Data Agent' }
+                ],
+                metrics: {
+                  leadsProcessed: 1247,
+                  qualificationRate: 78,
+                  conversionRate: 23,
+                  avgResponseTime: '15 minutes'
+                },
+                businessGoal: 'Increase lead conversion by 40%'
+              },
+              {
+                id: '3',
+                name: 'Content Distribution & Optimization',
+                type: 'autonomous',
+                status: 'running',
+                progress: 82,
+                currentStep: 'Optimizing social media posts',
+                description: 'Automatically distribute content across platforms and optimize for engagement',
+                agents: ['Content Strategist Agent', 'Social Media Agent', 'SEO Agent'],
+                integrations: ['Facebook', 'Instagram', 'LinkedIn', 'Gmail', 'WhatsApp'],
+                triggers: ['New content published', 'Performance threshold met'],
+                actions: [
+                  { step: 'Schedule social posts', status: 'completed', agent: 'Social Media Agent' },
+                  { step: 'Optimize for SEO', status: 'completed', agent: 'SEO Agent' },
+                  { step: 'A/B test variations', status: 'in-progress', agent: 'Content Strategist Agent' },
+                  { step: 'Analyze performance', status: 'pending', agent: 'Analytics Agent' }
+                ],
+                metrics: {
+                  postsScheduled: 156,
+                  avgEngagement: 8.3,
+                  reachIncrease: 45,
+                  timeSaved: '12 hours/week'
+                },
+                businessGoal: 'Increase content reach by 50%'
+              }
             ].map(wf => (
               <div key={wf.id} className={`bg-white rounded-lg shadow p-6 border hover:shadow-xl transition-shadow ${theaterWorkflow?.id===wf.id ? 'ring-2 ring-blue-600' : ''}`}>
                 <div className="flex items-start justify-between mb-4">
@@ -707,8 +808,89 @@ const AgentsView = () => {
                   <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} /></div>
                 </div>
                 <div className="text-sm text-gray-700 mb-4"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                {/* Agents */}
+                {Array.isArray(wf.agents) && (
+                  <div className="mb-3">
+                    <h4 className="text-sm font-medium text-gray-700 mb-1">Agents Involved</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {wf.agents.slice(0, 4).map((a, idx) => (
+                        <span key={`${a}-${idx}`} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">{a}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Integrations */}
+                {Array.isArray(wf.integrations) && (
+                  <div className="mb-3">
+                    <h4 className="text-sm font-medium text-gray-700 mb-1">Integrations</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {wf.integrations.slice(0, 5).map(integration => {
+                        const Icon = getIntegrationIcon(integration);
+                        return (
+                          <div key={integration} className="flex items-center space-x-1 px-2 py-1 bg-gray-100 rounded-full">
+                            <Icon className="w-3 h-3 text-gray-600" />
+                            <span className="text-xs text-gray-600">{integration}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {/* Metrics */}
+                {wf.metrics && (
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="text-center p-2 bg-gray-50 rounded-lg">
+                      <div className="text-lg font-bold text-gray-900">
+                        {wf.metrics.customersProcessed || wf.metrics.leadsProcessed || wf.metrics.postsScheduled || wf.metrics.reportsGenerated || wf.metrics.ticketsHandled}
+                      </div>
+                      <div className="text-xs text-gray-500">Processed</div>
+                    </div>
+                    <div className="text-center p-2 bg-gray-50 rounded-lg">
+                      <div className="text-lg font-bold text-gray-900">
+                        {(wf.metrics.successRate || wf.metrics.qualificationRate || wf.metrics.avgEngagement || wf.metrics.accuracyRate || wf.metrics.autoResolutionRate) ? `${wf.metrics.successRate || wf.metrics.qualificationRate || wf.metrics.avgEngagement || wf.metrics.accuracyRate || wf.metrics.autoResolutionRate}%` : '—'}
+                      </div>
+                      <div className="text-xs text-gray-500">Success Rate</div>
+                    </div>
+                  </div>
+                )}
+                {/* Triggers & Actions */}
+                {(Array.isArray(wf.triggers) || Array.isArray(wf.actions)) && (
+                  <div className="mb-3 grid grid-cols-2 gap-3">
+                    {Array.isArray(wf.triggers) && (
+                      <div className="bg-gray-50 rounded p-2">
+                        <div className="text-xs font-medium text-gray-700 mb-1">Triggers</div>
+                        <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
+                          {wf.triggers.map((t, i) => (<li key={`tr-${wf.id}-${i}`}>{t}</li>))}
+                        </ul>
+                      </div>
+                    )}
+                    {Array.isArray(wf.actions) && (
+                      <div className="bg-gray-50 rounded p-2">
+                        <div className="text-xs font-medium text-gray-700 mb-1">Actions</div>
+                        <ul className="text-xs text-gray-600 space-y-1">
+                          {wf.actions.map((a, i) => (
+                            <li key={`ac-${wf.id}-${i}`} className="flex items-center justify-between">
+                              <span>{a.step}</span>
+                              <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${a.status==='completed'?'bg-green-100 text-green-700': a.status==='in-progress'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{a.status}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Business Goal */}
+                {wf.businessGoal && (
+                  <div className="bg-blue-50 rounded-lg p-3 mb-3">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Target className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm font-medium text-blue-900">Business Goal</span>
+                    </div>
+                    <p className="text-sm text-blue-800">{wf.businessGoal}</p>
+                  </div>
+                )}
                 <div className="flex items-center justify-end gap-2">
-                  <button className="px-3 py-1.5 text-sm border rounded" onClick={() => { setSelectedWorkflowCard(wf); setShowActivityModal(true); }}>Details</button>
+                  <button className="px-3 py-1.5 text-sm border rounded" onClick={() => { setSelectedWorkflow(wf); setShowWorkflowDetailsModal(true); }}>Details</button>
                   <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded" onClick={() => { setTheaterWorkflow(wf); }}>View in Theater</button>
                 </div>
               </div>
@@ -720,6 +902,96 @@ const AgentsView = () => {
       {/* Agent Detail Modal */}
       <AgentDetailModal />
 
+      {/* Workflow Details Modal (for cards) */}
+      {showWorkflowDetailsModal && selectedWorkflow && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-6 relative max-h-[85vh] overflow-y-auto">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={() => setShowWorkflowDetailsModal(false)}>×</button>
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">{selectedWorkflow.name}</h3>
+                  <p className="text-sm text-gray-500">{selectedWorkflow.description}</p>
+                </div>
+                <div className="text-right">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(selectedWorkflow.status)}`}>{selectedWorkflow.status}</span>
+                  <div className="text-xs text-gray-500 capitalize mt-1">{selectedWorkflow.type}</div>
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{selectedWorkflow.progress}%</span></div>
+                <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${selectedWorkflow.progress}%` }} /></div>
+              </div>
+              {selectedWorkflow.currentStep && (
+                <div className="text-sm text-gray-700"><span className="font-medium">Current Step:</span> {selectedWorkflow.currentStep}</div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="font-medium text-gray-800 mb-2">Agents</div>
+                  <div className="flex flex-wrap gap-1">
+                    {(selectedWorkflow.agents||[]).map((a, idx)=> (
+                      <span key={`${a}-${idx}`} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">{a}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <div className="font-medium text-gray-800 mb-2">Integrations</div>
+                  <div className="flex flex-wrap gap-2">
+                    {(selectedWorkflow.integrations||[]).map(integration => { const Icon = getIntegrationIcon(integration); return (
+                      <div key={integration} className="flex items-center space-x-1 px-2 py-1 bg-gray-100 rounded-full">
+                        <Icon className="w-3 h-3 text-gray-600" />
+                        <span className="text-xs text-gray-600">{integration}</span>
+                      </div>
+                    );})}
+                  </div>
+                </div>
+              </div>
+              {(selectedWorkflow.triggers || selectedWorkflow.actions) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="font-medium text-gray-800 mb-2">Triggers</div>
+                    <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+                      {(selectedWorkflow.triggers||[]).map((t,i)=>(<li key={`t-${i}`}>{t}</li>))}
+                    </ul>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <div className="font-medium text-gray-800 mb-2">Actions</div>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {(selectedWorkflow.actions||[]).map((a,i)=>(
+                        <li key={`a-${i}`} className="flex items-center justify-between">
+                          <span>{a.step}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${a.status==='completed'?'bg-green-100 text-green-700': a.status==='in-progress'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{a.status}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+              {selectedWorkflow.metrics && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-lg font-bold text-gray-900">{selectedWorkflow.metrics.customersProcessed || selectedWorkflow.metrics.leadsProcessed || selectedWorkflow.metrics.postsScheduled || selectedWorkflow.metrics.reportsGenerated || selectedWorkflow.metrics.ticketsHandled}</div>
+                    <div className="text-xs text-gray-500">Processed</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-lg font-bold text-gray-900">{(selectedWorkflow.metrics.successRate || selectedWorkflow.metrics.qualificationRate || selectedWorkflow.metrics.avgEngagement || selectedWorkflow.metrics.accuracyRate || selectedWorkflow.metrics.autoResolutionRate) ? `${selectedWorkflow.metrics.successRate || selectedWorkflow.metrics.qualificationRate || selectedWorkflow.metrics.avgEngagement || selectedWorkflow.metrics.accuracyRate || selectedWorkflow.metrics.autoResolutionRate}%` : '—'}</div>
+                    <div className="text-xs text-gray-500">Success Rate</div>
+                  </div>
+                </div>
+              )}
+              {selectedWorkflow.businessGoal && (
+                <div className="bg-blue-50 rounded-lg p-3">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Target className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-medium text-blue-900">Business Goal</span>
+                  </div>
+                  <p className="text-sm text-blue-800">{selectedWorkflow.businessGoal}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Configure Agent Modal */}
       {showConfigureModal && selectedAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
