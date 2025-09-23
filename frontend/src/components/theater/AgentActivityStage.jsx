@@ -178,7 +178,7 @@ const AgentActivityStage = () => {
           </div>
         ))}
 
-        {/* Collaboration Lines (centered, behind avatars) */
+        {/* Collaboration Lines (centered, behind avatars) */}
         {agents
           .filter(agent => agent.collaboration)
           .map(agent => {
