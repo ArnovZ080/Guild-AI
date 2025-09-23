@@ -502,11 +502,34 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
     <div
       className={`px-4 py-3 shadow-lg rounded-xl border-2 transition-all duration-200 ${
         selected ? 'border-blue-500 shadow-xl' : 'hover:border-gray-300'
-      } ${getStatusColor(data.status)}`}
+      } ${getStatusColor(data.status)} relative`}
     >
       {/* Node Handles */}
       <Handle type="target" position={Position.Left} className="w-2 h-2 bg-blue-500" />
-      <Handle type="source" position={Position.Right} className="w-2 h-2 bg-green-500" />
+      {/* Source handles: single for most, multiple labeled for condition/split */}
+      {!(data.category === 'condition' || data.category === 'split') && (
+        <Handle type="source" position={Position.Right} className="w-2 h-2 bg-green-500" />
+      )}
+      {(data.category === 'condition' || data.category === 'split') && (
+        <>
+          {((data.branches && Array.isArray(data.branches) && data.branches.length > 0)
+            ? data.branches
+            : [{ label: 'yes', nl: '' }, { label: 'no', nl: '' }]
+          ).map((b: any, idx: number) => (
+            <div key={`branch-handle-${idx}`} className="absolute right-0 flex items-center" style={{ top: 34 + idx * 22 }}>
+              <span className="mr-2 text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200">
+                {b.label || `branch_${idx+1}`}
+              </span>
+              <Handle
+                id={`branch-${idx}`}
+                type="source"
+                position={Position.Right}
+                className="w-2 h-2 bg-green-500"
+              />
+            </div>
+          ))}
+        </>
+      )}
       {/* Node Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -855,23 +878,32 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   }
 
   useEffect(() => {
-    // TODO: Replace with real subscription-fed fetch
     async function fetchAgents() {
+      const fallback = [
+        { id: 'research_agent', name: 'Research Agent' },
+        { id: 'marketing_agent', name: 'Marketing Agent' },
+        { id: 'sales_agent', name: 'Sales Agent' },
+        { id: 'operations_agent', name: 'Operations Agent' },
+      ];
       try {
-        // Placeholder local list until backend route is available
-        const fallback = [
-          { id: 'research_agent', name: 'Research Agent' },
-          { id: 'marketing_agent', name: 'Marketing Agent' },
-          { id: 'sales_agent', name: 'Sales Agent' },
-          { id: 'operations_agent', name: 'Operations Agent' },
-        ];
-        setAvailableAgents(fallback);
+        if (!API) { setAvailableAgents(fallback); return; }
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+        const res = await fetch(`${API}/agents/available`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        });
+        if (!res.ok) { setAvailableAgents(fallback); return; }
+        const data = await res.json();
+        const entitled = Array.isArray(data)
+          ? data.filter((a: any) => a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date()))
+          : [];
+        const mapped = entitled.map((a: any) => ({ id: a.agent_id || a.id, name: a.name }));
+        setAvailableAgents(mapped.length ? mapped : fallback);
       } catch (e) {
-        setAvailableAgents([]);
+        setAvailableAgents(fallback);
       }
     }
     fetchAgents();
-  }, []);
+  }, [API]);
 
   const onConnect = useCallback((params: Connection | Edge) => {
     setEdges((eds) => addEdge(params, eds));
