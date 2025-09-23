@@ -200,6 +200,7 @@ const AgentsView = () => {
     
     return matchesSearch && matchesCategory && matchesType && matchesStatus;
   });
+  const workforceList = (filteredAgents.length ? filteredAgents : allAgents);
 
   // Get category styling
   const getCategoryStyle = (category) => {
@@ -657,7 +658,7 @@ const AgentsView = () => {
       {activeTab === 'workforce' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence>
-            {(filteredAgents.length ? filteredAgents : allAgents).map(agent => (
+            {workforceList.map(agent => (
               <AgentCard key={agent.id} agent={agent} />
             ))}
           </AnimatePresence>

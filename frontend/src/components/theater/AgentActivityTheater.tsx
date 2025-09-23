@@ -108,6 +108,17 @@ export const AgentActivityTheater: React.FC = () => {
           ? Math.min(agent.progress + Math.random() * 0.1, 1)
           : agent.progress
       })));
+      // occasionally add a new collaboration
+      if (Math.random() < 0.4) {
+        const from = agents[Math.floor(Math.random() * agents.length)]?.id;
+        const to = agents[Math.floor(Math.random() * agents.length)]?.id;
+        if (from && to && from !== to) {
+          setActiveTasks(prev => ([
+            ...prev.slice(-4),
+            { id: `task-${Date.now()}`, from, to, type: 'data', progress: 0.5 }
+          ]));
+        }
+      }
     }, 2000);
     return () => clearInterval(interval);
   }, []);
@@ -141,7 +152,7 @@ export const AgentActivityTheater: React.FC = () => {
         return (
           <motion.div
             key={agent.id}
-            className="absolute cursor-pointer"
+            className="absolute cursor-pointer group"
             style={{ left: `${agent.position.x}%`, top: `${agent.position.y}%` }}
             animate={{ scale: agent.status === 'working' ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 2, repeat: agent.status === 'working' ? Infinity : 0 }}
@@ -176,10 +187,10 @@ export const AgentActivityTheater: React.FC = () => {
               )}
             </motion.div>
             <motion.div
-              className="absolute left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-2 min-w-max z-10"
+              className="absolute left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-2 min-w-max z-10 opacity-0 group-hover:opacity-100"
               style={{ top: '3.5rem' }}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={false}
+              animate={{}}
             >
               <div className="text-xs font-medium text-gray-800">{agent.name}</div>
               <div className="text-xs text-gray-600">{agent.currentTask}</div>
@@ -188,6 +199,27 @@ export const AgentActivityTheater: React.FC = () => {
           </motion.div>
         );
       })}
+
+      {/* Collaboration lines between agents */}
+      <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+        {activeTasks.map((task) => {
+          const fromAgent = agents.find(a => a.id === task.from);
+          const toAgent = agents.find(a => a.id === task.to);
+          if (!fromAgent || !toAgent) return null;
+          return (
+            <line
+              key={`line-${task.id}`}
+              x1={`${fromAgent.position.x}%`}
+              y1={`${fromAgent.position.y}%`}
+              x2={`${toAgent.position.x}%`}
+              y2={`${toAgent.position.y}%`}
+              stroke="rgba(59, 130, 246, 0.35)"
+              strokeWidth="2"
+              strokeDasharray="4,4"
+            />
+          );
+        })}
+      </svg>
 
       {activeTasks.map((task) => {
         const fromAgent = agents.find(a => a.id === task.from);
@@ -245,8 +277,50 @@ export const AgentActivityTheater: React.FC = () => {
                       </ul>
                     </div>
                   </div>
+                  {/* Recent Assets */}
+                  <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                    <div className="font-medium text-gray-800 mb-2">Recent Assets</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                        <span>🖼️</span>
+                        <span className="truncate">campaign_concept.png</span>
+                      </a>
+                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                        <span>📝</span>
+                        <span className="truncate">brief_Q4.md</span>
+                      </a>
+                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                        <span>📄</span>
+                        <span className="truncate">proposal.pdf</span>
+                      </a>
+                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                        <span>✉️</span>
+                        <span className="truncate">email_sequence.eml</span>
+                      </a>
+                    </div>
+                  </div>
                   <div className="flex items-center justify-end gap-2">
-                    <button className="px-3 py-1.5 text-sm rounded-md border">Assign Task</button>
+                    {/* Quick task dropdown */}
+                    <div className="relative">
+                      <details className="relative">
+                        <summary className="px-3 py-1.5 text-sm rounded-md border cursor-pointer select-none">Quick Tasks</summary>
+                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border p-3 z-10">
+                          <div className="text-xs text-gray-500 mb-2">Select tasks for {a.name}</div>
+                          <div className="space-y-2 text-sm">
+                            <label className="flex items-center gap-2"><input type="checkbox" /> Generate brief</label>
+                            <label className="flex items-center gap-2"><input type="checkbox" /> Draft email</label>
+                            <label className="flex items-center gap-2"><input type="checkbox" /> Create report</label>
+                          </div>
+                          <div className="mt-3">
+                            <textarea placeholder="Additional instructions..." className="w-full p-2 border rounded-md text-sm"></textarea>
+                          </div>
+                          <div className="mt-3 flex justify-end gap-2">
+                            <button className="px-3 py-1 text-sm border rounded-md" onClick={(e)=>{e.preventDefault(); (e.currentTarget.closest('details') as HTMLDetailsElement)?.removeAttribute('open');}}>Cancel</button>
+                            <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md" onClick={(e)=>{e.preventDefault(); alert('Tasks assigned'); (e.currentTarget.closest('details') as HTMLDetailsElement)?.removeAttribute('open');}}>Assign</button>
+                          </div>
+                        </div>
+                      </details>
+                    </div>
                     <button className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white">Open Chat</button>
                   </div>
                 </div>
