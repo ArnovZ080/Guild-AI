@@ -723,7 +723,7 @@ const AgentsView = () => {
           <div className="space-y-8">
             {/* Included section */}
             <div>
-               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className=\"text-sm font-semibold text-black\">({includedAgents.length})</span></h3>
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className="text-sm font-semibold text-black">({includedAgents.length})</span></h3>
               {includedAgents.length === 0 ? (
                 <div className="text-sm text-gray-500">No included agents yet.</div>
               ) : (
@@ -747,7 +747,7 @@ const AgentsView = () => {
 
             {/* Hireable section */}
             <div>
-               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className=\"text-sm font-semibold text-black\">({hireableAgents.length})</span></h3>
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className="text-sm font-semibold text-black">({hireableAgents.length})</span></h3>
               {hireableAgents.length === 0 ? (
                 <div className="text-sm text-gray-500">All agents are included or hired.</div>
               ) : (
