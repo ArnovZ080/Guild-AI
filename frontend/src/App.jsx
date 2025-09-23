@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
-import { CelebrationProvider } from './components/psychological/MicroCelebrations.jsx';
+// Celebrations disabled to avoid runtime issues
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
 import DashboardView from './views/DashboardView.jsx';
 import AgentsView from './views/AgentsView.jsx';
 import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
+import FinancialDashboardView from './views/FinancialDashboardView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
 import ChatInterface from './components/chat/ChatInterface.jsx';
 import CalendarView from './views/CalendarView.jsx';
@@ -48,7 +49,6 @@ function App() {
   return (
     <PsychologicalOptimizationProvider>
       <AdaptiveModeProvider>
-        <CelebrationProvider>
           <Router>
             <Routes>
               <Route path="/" element={
@@ -58,7 +58,9 @@ function App() {
               } />
               <Route path="/onboarding" element={<OnboardingView />} />
               <Route path="/chat" element={
-                <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
+                <DashboardLayout>
+                  <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
+                </DashboardLayout>
               } />
               <Route path="/dashboard" element={
                 <DashboardLayout>
@@ -130,9 +132,13 @@ function App() {
                   <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
                 </DashboardLayout>
               } />
+              <Route path="/financial" element={
+                <DashboardLayout>
+                  <FinancialDashboardView />
+                </DashboardLayout>
+              } />
             </Routes>
           </Router>
-        </CelebrationProvider>
       </AdaptiveModeProvider>
     </PsychologicalOptimizationProvider>
   );
