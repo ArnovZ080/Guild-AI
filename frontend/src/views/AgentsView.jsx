@@ -682,43 +682,37 @@ const AgentsView = () => {
       {activeTab === 'theater' && (
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-lg p-6 overflow-visible">
-            <AgentActivityTheater />
+            <AgentActivityTheater selectedWorkflowName={theaterWorkflow?.name || null} />
           </div>
-          {/* Autonomous Workflows below theater */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows</h2>
-              <div className="text-sm text-gray-600">Live workflows appear here as individual cards</div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { id: 'wf-1', name: 'Customer Onboarding Automation', description: 'Onboard new customers with personalized sequence', status: 'running', progress: 75, type: 'autonomous', currentStep: 'Sending welcome email sequence' },
-                { id: 'wf-2', name: 'Lead Qualification & Nurturing', description: 'Qualify and nurture leads based on behavior', status: 'running', progress: 68, type: 'autonomous', currentStep: 'Analyzing lead behavior patterns' },
-                { id: 'wf-3', name: 'Content Distribution & Optimization', description: 'Distribute and optimize content across platforms', status: 'running', progress: 82, type: 'autonomous', currentStep: 'Optimizing social media posts' },
-              ].map(wf => (
-                <div key={wf.id} className="bg-white rounded-lg shadow p-6 border hover:shadow-xl transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="font-semibold text-gray-900">{wf.name}</div>
-                      <p className="text-sm text-gray-600">{wf.description}</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${wf.status==='running'?'bg-green-100 text-green-800':'bg-gray-100 text-gray-800'}`}>{wf.status}</span>
-                      <span className="text-xs text-gray-500 capitalize">{wf.type}</span>
-                    </div>
+          {/* Autonomous Workflows below theater as separate cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { id: 'wf-1', name: 'Customer Onboarding Automation', description: 'Onboard new customers with personalized sequence', status: 'running', progress: 75, type: 'autonomous', currentStep: 'Sending welcome email sequence' },
+              { id: 'wf-2', name: 'Lead Qualification & Nurturing', description: 'Qualify and nurture leads based on behavior', status: 'running', progress: 68, type: 'autonomous', currentStep: 'Analyzing lead behavior patterns' },
+              { id: 'wf-3', name: 'Content Distribution & Optimization', description: 'Distribute and optimize content across platforms', status: 'running', progress: 82, type: 'autonomous', currentStep: 'Optimizing social media posts' },
+            ].map(wf => (
+              <div key={wf.id} className={`bg-white rounded-lg shadow p-6 border hover:shadow-xl transition-shadow ${theaterWorkflow?.id===wf.id ? 'ring-2 ring-blue-600' : ''}`}>
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <div className="font-semibold text-gray-900">{wf.name}</div>
+                    <p className="text-sm text-gray-600">{wf.description}</p>
                   </div>
-                  <div className="mb-3">
-                    <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{wf.progress}%</span></div>
-                    <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} /></div>
-                  </div>
-                  <div className="text-sm text-gray-700 mb-4"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
-                  <div className="flex items-center justify-end gap-2">
-                    <button className="px-3 py-1.5 text-sm border rounded" onClick={() => { setSelectedWorkflowCard(wf); setShowActivityModal(true); }}>Details</button>
-                    <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded" onClick={() => { setTheaterWorkflow(wf); }}>View in Theater</button>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${wf.status==='running'?'bg-green-100 text-green-800':'bg-gray-100 text-gray-800'}`}>{wf.status}</span>
+                    <span className="text-xs text-gray-500 capitalize">{wf.type}</span>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="mb-3">
+                  <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{wf.progress}%</span></div>
+                  <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} /></div>
+                </div>
+                <div className="text-sm text-gray-700 mb-4"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                <div className="flex items-center justify-end gap-2">
+                  <button className="px-3 py-1.5 text-sm border rounded" onClick={() => { setSelectedWorkflowCard(wf); setShowActivityModal(true); }}>Details</button>
+                  <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded" onClick={() => { setTheaterWorkflow(wf); }}>View in Theater</button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

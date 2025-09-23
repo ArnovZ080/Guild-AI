@@ -20,7 +20,7 @@ interface Task {
   progress: number;
 }
 
-export const AgentActivityTheater: React.FC = () => {
+export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | null }> = ({ selectedWorkflowName }) => {
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: 'research-1',
@@ -124,13 +124,12 @@ export const AgentActivityTheater: React.FC = () => {
       setAgents(prev => prev.map(agent => {
         if (paused.has(agent.id)) return agent;
         return {
-          ...agent,
-          progress: agent.status === 'working'
-            ? Math.min(agent.progress + Math.random() * 0.1, 1)
-            : agent.progress
+        ...agent,
+        progress: agent.status === 'working'
+          ? Math.min(agent.progress + Math.random() * 0.1, 1)
+          : agent.progress
         };
       }));
-      // occasionally add a new collaboration
       if (Math.random() < 0.4) {
         const from = agents[Math.floor(Math.random() * agents.length)]?.id;
         const to = agents[Math.floor(Math.random() * agents.length)]?.id;
@@ -141,7 +140,6 @@ export const AgentActivityTheater: React.FC = () => {
           ]));
         }
       }
-      // append granular activity per working/collaborating agent
       setAgents(prev => prev.map(a => {
         if (paused.has(a.id)) return a;
         if (a.status === 'working' || a.status === 'collaborating') {
@@ -200,12 +198,15 @@ export const AgentActivityTheater: React.FC = () => {
   const estimateWorkflowCost = () => {
     const activeCount = agents.filter(a => a.status === 'working' || a.status === 'collaborating').length;
     const baseCredits = activeCount * 5 + activeTasks.length * 2;
-    const estimatedCost = baseCredits * 0.1; // $0.10 per credit to mirror builder heuristic
+    const estimatedCost = baseCredits * 0.1;
     return { baseCredits, estimatedCost };
   };
 
   return (
     <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
+      {selectedWorkflowName && (
+        <div className="absolute top-2 left-2 z-20 px-2 py-1 text-xs rounded bg-blue-600 text-white shadow">{selectedWorkflowName}</div>
+      )}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-200 opacity-50" />
 
       <div className="absolute inset-4">
@@ -231,7 +232,7 @@ export const AgentActivityTheater: React.FC = () => {
         return (
           <motion.div
             key={agent.id}
-            className="absolute cursor-pointer group"
+            className="absolute cursor-pointer group z-10"
             style={{ left: `${agent.position.x}%`, top: `${agent.position.y}%` }}
             animate={{ scale: agent.status === 'working' ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 2, repeat: agent.status === 'working' ? Infinity : 0 }}
@@ -280,7 +281,7 @@ export const AgentActivityTheater: React.FC = () => {
       })}
 
       {/* Collaboration lines between agents */}
-      <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+      <svg className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
         {activeTasks.map((task) => {
           const fromAgent = agents.find(a => a.id === task.from);
           const toAgent = agents.find(a => a.id === task.to);

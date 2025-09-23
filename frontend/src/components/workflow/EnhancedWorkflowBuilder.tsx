@@ -620,8 +620,51 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                 ✕
               </button>
             </div>
-            <div className="flex gap-4">
-              <div className="w-1/2">
+            <div className="grid grid-cols-3 gap-4">
+              {/* Tips / Recommendations */}
+              <div className="col-span-1">
+                <div className="p-3 border rounded-md bg-gray-50">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Suggestions</div>
+                  {data.category === 'trigger' && (
+                    <ul className="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                      <li>Incoming email with subject or sender filter</li>
+                      <li>Form submission or website event</li>
+                      <li>Scheduled time (every day at 9am)</li>
+                      <li>Webhook received with JSON payload</li>
+                    </ul>
+                  )}
+                  {data.category === 'action' && (
+                    <ul className="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                      <li>Transform data or enrich a record</li>
+                      <li>Send an email/DM/notification</li>
+                      <li>Call an integration (CRM, Sheets, Slack)</li>
+                      <li>Create/update a database row</li>
+                    </ul>
+                  )}
+                  {(data.category === 'condition' || data.category === 'split') && (
+                    <ul className="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                      <li>Define clear branch labels (e.g., spam / not_spam)</li>
+                      <li>Use simple NL rules per branch</li>
+                      <li>Prefer mutually exclusive conditions</li>
+                      <li>Keep branches under 5 for readability</li>
+                    </ul>
+                  )}
+                  {data.category === 'agent' && (
+                    <ul className="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                      <li>Choose the most relevant agent to the task</li>
+                      <li>Be explicit about tone and constraints</li>
+                      <li>Specify handoff criteria to other agents</li>
+                      <li>Redact PII if sending externally</li>
+                    </ul>
+                  )}
+                  {!(data.category === 'trigger' || data.category === 'action' || data.category === 'condition' || data.category === 'split' || data.category === 'agent') && (
+                    <div className="text-xs text-gray-600">Describe what this step should do in one or two sentences.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Primary NL input */}
+              <div className="col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Describe this step</label>
                 <textarea
                   className="w-full p-3 border border-gray-300 rounded-md mb-4"
@@ -652,7 +695,8 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                   </button>
                 </div>
               </div>
-              <div className="w-1/2">
+              {/* Branches / Advanced */}
+              <div className="col-span-1">
                 {(data.category === 'condition' || data.category === 'split') && (
                   <div className="mb-4">
                     <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
