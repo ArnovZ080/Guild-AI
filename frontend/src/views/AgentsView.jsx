@@ -146,7 +146,7 @@ const AgentsView = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list, detailed
-  const [activeTab, setActiveTab] = useState('workforce'); // workforce | theater | builder
+  const [activeTab, setActiveTab] = useState('theater'); // theater | workforce | builder
   const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [agentConfiguration, setAgentConfiguration] = useState({
@@ -287,7 +287,7 @@ const AgentsView = () => {
     );
   }
 
-  // Agent card component
+  // Agent card component (Workforce)
   const AgentCard = ({ agent }) => {
     const TypeIcon = getTypeIcon(agent.type);
     
@@ -359,6 +359,72 @@ const AgentsView = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // Agent Theater card (distinct visual with quick actions)
+  const TheaterAgentCard = ({ agent }) => {
+    const TypeIcon = getTypeIcon(agent.type);
+    const energy = Math.max(20, Math.min(95, 50 + (agent.id.charCodeAt(0) % 41))); // pseudo energy level
+    return (
+      <motion.div
+        className="bg-white rounded-xl p-5 shadow-lg border hover:shadow-xl transition-shadow"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-lg ${getCategoryStyle(agent.category).replace('100', '200')}`}>
+              <TypeIcon className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-gray-900 leading-tight">{agent.name}</h3>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusStyle(agent.status)}`}>
+                  {agent.status}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 capitalize">{agent.category} • {agent.type}</p>
+            </div>
+          </div>
+        </div>
+
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{agent.description}</p>
+
+        {/* Energy/progress bar */}
+        <div className="mb-3">
+          <div className="flex justify-between text-xs text-gray-600 mb-1">
+            <span>Energy</span>
+            <span>{energy}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${energy}%` }} />
+          </div>
+        </div>
+
+        {/* Quick actions */}
+        <div className="flex items-center gap-2">
+          <button
+            className="flex-1 px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200"
+            onClick={() => setSelectedAgent(agent)}
+          >
+            Details
+          </button>
+          <button
+            className="flex-1 px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200"
+            onClick={() => handleConfigureAgent(agent)}
+          >
+            Assign Task
+          </button>
+          <button
+            className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200"
+            onClick={() => alert('Chat coming soon')}
+          >
+            Chat
           </button>
         </div>
       </motion.div>
@@ -486,8 +552,8 @@ const AgentsView = () => {
       {/* Tabs */}
       <div className="bg-white rounded-lg p-4 shadow-lg">
         <div className="flex gap-2">
-          <button onClick={()=>setActiveTab('workforce')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='workforce'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Workforce</button>
           <button onClick={()=>setActiveTab('theater')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='theater'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Theater</button>
+          <button onClick={()=>setActiveTab('workforce')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='workforce'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Workforce</button>
           <button onClick={()=>setActiveTab('builder')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='builder'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Workflow Builder</button>
         </div>
       </div>
@@ -567,11 +633,11 @@ const AgentsView = () => {
       </div>
       )}
 
-      {/* Agent Grid */}
+      {/* Agent Grid - Workforce (shows all agents with filters/search) */}
       {activeTab === 'workforce' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence>
-            {filteredAgents.map(agent => (
+            {(filteredAgents.length ? filteredAgents : allAgents).map(agent => (
               <AgentCard key={agent.id} agent={agent} />
             ))}
           </AnimatePresence>
@@ -588,13 +654,13 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Agent Theater Tab (simple grid placeholder) */}
+      {/* Agent Theater Tab (distinct visual) */}
       {activeTab === 'theater' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="text-xs text-gray-500 mb-3">Live view of agents collaborating and handing off tasks.</div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredAgents.slice(0, 12).map(agent => (
-              <AgentCard key={`theater-${agent.id}`} agent={agent} />
+          <div className="text-sm text-gray-600 mb-4">Live view of agents with quick actions for transparency and control.</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {allAgents.slice(0, 16).map(agent => (
+              <TheaterAgentCard key={`theater-${agent.id}`} agent={agent} />
             ))}
           </div>
         </div>
