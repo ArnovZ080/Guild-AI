@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -605,10 +606,10 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
         </div>
       )}
 
-      {/* Configuration Modal - landscape, static size with close */}
-      {isConfiguring && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl mx-4">
+      {/* Configuration Modal - landscape, static size with close (portal to body) */}
+      {isConfiguring && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-lg font-bold">Configure {data.label}</h3>
               <button
@@ -624,7 +625,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Describe this step</label>
                 <textarea
                   className="w-full p-3 border border-gray-300 rounded-md mb-4"
-                  rows={7}
+                  style={{ minHeight: '240px' }}
                   value={nlInput}
                   onChange={(e) => setNlInput(e.target.value)}
                   placeholder={
@@ -689,8 +690,8 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </div>, document.body)
+      }
     </div>
   );
 };
