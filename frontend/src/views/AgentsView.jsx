@@ -679,6 +679,47 @@ const AgentsView = () => {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
           <AgentActivityTheater />
+          {/* Autonomous Workflows Cards below theater */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Autonomous Workflows</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[{
+                id: '1', name: 'Customer Onboarding Automation', status: 'running', progress: 75,
+                description: 'Automatically onboard new customers with personalized welcome sequence',
+                currentStep: 'Sending welcome email sequence'
+              },{
+                id: '2', name: 'Lead Qualification & Nurturing', status: 'running', progress: 68,
+                description: 'Automatically qualify and nurture leads based on behavior and engagement',
+                currentStep: 'Analyzing lead behavior patterns'
+              },{
+                id: '3', name: 'Content Distribution & Optimization', status: 'running', progress: 82,
+                description: 'Automatically distribute content and optimize for engagement',
+                currentStep: 'Optimizing social media posts'
+              },{
+                id: '5', name: 'Customer Support Automation', status: 'running', progress: 91,
+                description: 'Automatically handle support queries and escalate when needed',
+                currentStep: 'Escalating complex queries'
+              }].map(wf => (
+                <div key={wf.id} className="bg-white rounded-lg shadow p-5 border">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="text-sm text-gray-500">{wf.status}</div>
+                      <div className="font-semibold text-gray-900">{wf.name}</div>
+                      <div className="text-sm text-gray-600">{wf.description}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500">Progress</div>
+                      <div className="text-sm font-semibold">{wf.progress}%</div>
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} />
+                  </div>
+                  <div className="text-sm text-gray-700"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
