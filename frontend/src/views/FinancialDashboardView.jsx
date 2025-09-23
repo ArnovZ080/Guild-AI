@@ -753,15 +753,27 @@ const FinancialDashboardView = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold text-gray-900">Stress Tests</h3>
+              <div className="text-xs text-gray-500">Use sliders to model shocks</div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { label: 'Subscriptions -15%', params: { revenueDeltaPct: -15 } },
-                { label: 'Ad spend +20%', params: { adSpendDeltaPct: 20 } },
-                { label: '+2 hires', params: { hiresDelta: 2 } },
-              ].map((t, i) => (
-                <button key={i} onClick={async ()=>{ const res = await financialApi.simulateScenario(t.params); setScenarioResult(res?.data||{}); }} className="px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200 text-sm">{t.label}</button>
-              ))}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Subscriptions change (%)</div>
+                <input type="range" min="-50" max="50" step="1" value={scenarioParams.revenueDeltaPct} onChange={e=>setScenarioParams({...scenarioParams, revenueDeltaPct: Number(e.target.value)})} className="w-full" />
+                <div className="text-xs text-gray-500 mt-1">{scenarioParams.revenueDeltaPct}%</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Ad spend change (%)</div>
+                <input type="range" min="-50" max="50" step="1" value={scenarioParams.adSpendDeltaPct} onChange={e=>setScenarioParams({...scenarioParams, adSpendDeltaPct: Number(e.target.value)})} className="w-full" />
+                <div className="text-xs text-gray-500 mt-1">{scenarioParams.adSpendDeltaPct}%</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Hiring change (heads)</div>
+                <input type="range" min="-5" max="10" step="1" value={scenarioParams.hiresDelta} onChange={e=>setScenarioParams({...scenarioParams, hiresDelta: Number(e.target.value)})} className="w-full" />
+                <div className="text-xs text-gray-500 mt-1">{scenarioParams.hiresDelta} hires</div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <button onClick={async ()=>{ const res = await financialApi.simulateScenario(scenarioParams); setScenarioResult(res?.data||{}); }} className="px-3 py-2 rounded bg-gray-900 text-white text-sm">Run Stress Test</button>
             </div>
           </div>
         </div>
