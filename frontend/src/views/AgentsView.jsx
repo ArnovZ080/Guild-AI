@@ -150,6 +150,7 @@ const AgentsView = () => {
   const [viewMode, setViewMode] = useState('grid'); // grid, list, detailed
   const [activeTab, setActiveTab] = useState('theater'); // theater | workforce | builder
   const [showConfigureModal, setShowConfigureModal] = useState(false);
+  const [assignAgent, setShowAssignModal] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [agentConfiguration, setAgentConfiguration] = useState({
     customInstructions: '',
@@ -335,9 +336,9 @@ const AgentsView = () => {
           </div>
         </div>
 
-        <div className="flex space-x-2 mt-4">
+        <div className="grid grid-cols-2 gap-2 mt-4">
           <button 
-            className="flex-1 px-3 py-2 bg-green-100 text-green-800 rounded-md text-sm font-medium hover:bg-green-200 transition-colors"
+            className="px-3 py-2 bg-green-100 text-green-800 rounded-md text-sm font-medium hover:bg-green-200 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               triggerCelebration(CelebrationType.TASK_COMPLETE, {
@@ -350,33 +351,35 @@ const AgentsView = () => {
             Start
           </button>
           <button 
-            className="flex-1 px-3 py-2 bg-yellow-100 text-yellow-800 rounded-md text-sm font-medium hover:bg-yellow-200 transition-colors"
+            className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-md text-sm font-medium hover:bg-yellow-200 transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
             <Pause className="w-4 h-4 inline mr-1" />
             Pause
           </button>
-          <button 
-            className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
-            onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
-            title="Details"
-          >
-            Details
-          </button>
-          <button 
-            className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
-            onClick={(e) => { e.stopPropagation(); handleConfigureAgent(agent); }}
-            title="Assign Task"
-          >
-            Assign
-          </button>
-          <button 
-            className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
-            onClick={(e) => { e.stopPropagation(); alert('Chat coming soon'); }}
-            title="Chat"
-          >
-            Chat
-          </button>
+          <div className="grid grid-cols-3 gap-2 col-span-2">
+            <button 
+              className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+              title="Details"
+            >
+              Details
+            </button>
+            <button 
+              className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
+              title="Assign Task"
+            >
+              Assign
+            </button>
+            <button 
+              className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+              onClick={(e) => { e.stopPropagation(); window?.toast?.info?.('Chat coming soon') || alert('Chat coming soon'); }}
+              title="Chat"
+            >
+              Chat
+            </button>
+          </div>
         </div>
       </motion.div>
     );
@@ -780,6 +783,48 @@ const AgentsView = () => {
                     Save Configuration
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Task Modal */}
+      {assignAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Assign Task to {assignAgent.name}</h2>
+                <button onClick={() => setShowAssignModal(null)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Task Title</label>
+                  <input className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Generate Q4 campaign brief" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Instructions</label>
+                  <textarea className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" rows={4} placeholder="Provide clear instructions for the agent..." />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                    <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                      <option>Normal</option>
+                      <option>High</option>
+                      <option>Urgent</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Due</label>
+                    <input type="date" className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button onClick={() => setShowAssignModal(null)} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors">Cancel</button>
+                <button onClick={() => { setShowAssignModal(null); alert('Task assigned'); }} className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">Assign Task</button>
               </div>
             </div>
           </div>

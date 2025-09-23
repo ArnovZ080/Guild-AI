@@ -112,6 +112,8 @@ export const AgentActivityTheater: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const [selected, setSelected] = useState<string | null>(null);
+
   return (
     <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-200 opacity-50" />
@@ -144,6 +146,7 @@ export const AgentActivityTheater: React.FC = () => {
             animate={{ scale: agent.status === 'working' ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 2, repeat: agent.status === 'working' ? Infinity : 0 }}
             whileHover={{ scale: 1.2 }}
+            onClick={() => setSelected(agent.id)}
           >
             <motion.div
               className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg relative"
@@ -173,9 +176,10 @@ export const AgentActivityTheater: React.FC = () => {
               )}
             </motion.div>
             <motion.div
-              className="absolute top-14 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-2 min-w-max z-10"
-              initial={{ opacity: 0, y: 10 }}
-              whileHover={{ opacity: 1, y: 0 }}
+              className="absolute left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-2 min-w-max z-10"
+              style={{ top: '3.5rem' }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
             >
               <div className="text-xs font-medium text-gray-800">{agent.name}</div>
               <div className="text-xs text-gray-600">{agent.currentTask}</div>
@@ -204,6 +208,53 @@ export const AgentActivityTheater: React.FC = () => {
         <button className="px-3 py-1 bg-white rounded-lg shadow text-xs font-medium hover:bg-gray-50">Pause</button>
         <button className="px-3 py-1 bg-blue-500 text-white rounded-lg shadow text-xs font-medium hover:bg-blue-600">Details</button>
       </div>
+
+      {selected && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={() => setSelected(null)}>×</button>
+            {(() => {
+              const a = agents.find(x => x.id === selected);
+              if (!a) return null;
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">{a.name}</h3>
+                    <p className="text-sm text-gray-500 capitalize">{a.type} • {a.status}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                    <div className="flex items-center justify-between mb-1"><span className="text-gray-600">Current Task</span><span className="font-medium">{Math.round(a.progress*100)}%</span></div>
+                    <div className="text-gray-800">{a.currentTask}</div>
+                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{width: `${a.progress*100}%`}}/></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="font-medium text-gray-800 mb-1">Completed Tasks</div>
+                      <ul className="list-disc list-inside text-gray-600 space-y-1">
+                        <li>Finished prior milestone</li>
+                        <li>Synced with teammate</li>
+                        <li>Queued deliverable</li>
+                      </ul>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <div className="font-medium text-gray-800 mb-1">Upcoming Todos</div>
+                      <ul className="list-disc list-inside text-gray-600 space-y-1">
+                        <li>Prepare handoff</li>
+                        <li>Validate output</li>
+                        <li>Notify owner</li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-2">
+                    <button className="px-3 py-1.5 text-sm rounded-md border">Assign Task</button>
+                    <button className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white">Open Chat</button>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

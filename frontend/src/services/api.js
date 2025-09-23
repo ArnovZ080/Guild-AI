@@ -22,7 +22,10 @@ class ApiService {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Unexpected content-type: ${contentType || 'unknown'}`);
+      }
       return await response.json();
     } catch (error) {
       console.log(`API request failed for ${endpoint}, using mock data:`, error.message);
