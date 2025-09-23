@@ -20,7 +20,7 @@ interface Task {
   progress: number;
 }
 
-export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | null }> = ({ selectedWorkflowName }) => {
+export const AgentActivityTheater: React.FC = () => {
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: 'research-1',
@@ -124,10 +124,10 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
       setAgents(prev => prev.map(agent => {
         if (paused.has(agent.id)) return agent;
         return {
-        ...agent,
-        progress: agent.status === 'working'
-          ? Math.min(agent.progress + Math.random() * 0.1, 1)
-          : agent.progress
+          ...agent,
+          progress: agent.status === 'working'
+            ? Math.min(agent.progress + Math.random() * 0.1, 1)
+            : agent.progress
         };
       }));
       // occasionally add a new collaboration
@@ -205,11 +205,8 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
   };
 
   return (
-    <div className="relative w-full bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
+    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-200 opacity-50" />
-      {selectedWorkflowName && (
-        <div className="absolute top-3 left-3 z-20 px-2 py-1 text-xs rounded bg-blue-600 text-white shadow">Showing: {selectedWorkflowName}</div>
-      )}
 
       <div className="absolute inset-4">
         <div className="absolute left-0 top-0 w-1/3 h-1/2 bg-blue-50 rounded-lg border-2 border-blue-200 border-dashed opacity-30">
@@ -229,33 +226,12 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
         </div>
       </div>
 
-      {/* Collaboration lines behind avatars */}
-      <svg className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
-        {activeTasks.map((task) => {
-          const fromAgent = agents.find(a => a.id === task.from);
-          const toAgent = agents.find(a => a.id === task.to);
-          if (!fromAgent || !toAgent) return null;
-          return (
-            <line
-              key={`line-${task.id}`}
-              x1={`calc(${fromAgent.position.x}% + 12px)`}
-              y1={`calc(${fromAgent.position.y}% + 12px)`}
-              x2={`calc(${toAgent.position.x}% + 12px)`}
-              y2={`calc(${toAgent.position.y}% + 12px)`}
-              stroke="rgba(59, 130, 246, 0.25)"
-              strokeWidth="2"
-              strokeDasharray="4,4"
-            />
-          );
-        })}
-      </svg>
-
       {agents.map((agent) => {
         const { color, opacity } = getAgentColor(agent.type, agent.status);
         return (
           <motion.div
             key={agent.id}
-            className="absolute cursor-pointer group z-10"
+            className="absolute cursor-pointer group"
             style={{ left: `${agent.position.x}%`, top: `${agent.position.y}%` }}
             animate={{ scale: agent.status === 'working' ? [1, 1.1, 1] : 1 }}
             transition={{ duration: 2, repeat: agent.status === 'working' ? Infinity : 0 }}
@@ -303,6 +279,27 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
         );
       })}
 
+      {/* Collaboration lines between agents */}
+      <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+        {activeTasks.map((task) => {
+          const fromAgent = agents.find(a => a.id === task.from);
+          const toAgent = agents.find(a => a.id === task.to);
+          if (!fromAgent || !toAgent) return null;
+          return (
+            <line
+              key={`line-${task.id}`}
+              x1={`calc(${fromAgent.position.x}% + 12px)`}
+              y1={`calc(${fromAgent.position.y}% + 12px)`}
+              x2={`calc(${toAgent.position.x}% + 12px)`}
+              y2={`calc(${toAgent.position.y}% + 12px)`}
+              stroke="rgba(59, 130, 246, 0.35)"
+              strokeWidth="2"
+              strokeDasharray="4,4"
+            />
+          );
+        })}
+      </svg>
+
       {activeTasks.map((task) => {
         const fromAgent = agents.find(a => a.id === task.from);
         const toAgent = agents.find(a => a.id === task.to);
@@ -310,7 +307,7 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
         return (
           <motion.div
             key={task.id}
-            className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg z-0"
+            className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg"
             initial={{ left: `calc(${fromAgent.position.x}% + 12px)`, top: `calc(${fromAgent.position.y}% + 12px)` }}
             animate={{ left: `calc(${toAgent.position.x}% + 12px)`, top: `calc(${toAgent.position.y}% + 12px)` }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
@@ -325,7 +322,7 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
 
       {selected && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-6 relative max-h-[85vh] overflow-y-auto overflow-visible">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-6 relative max-h-[85vh] overflow-y-auto">
             <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={() => setSelected(null)}>×</button>
             {(() => {
               const a = agents.find(x => x.id === selected);
@@ -400,10 +397,10 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
                       </div>
                       <div className="flex items-center justify-end gap-2">
                         {/* Quick task dropdown */}
-                        <div className="relative overflow-visible">
+                        <div className="relative">
                           <details className="relative">
                             <summary className="px-3 py-1.5 text-sm rounded-md border cursor-pointer select-none">Quick Tasks</summary>
-                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border p-3 z-50">
+                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border p-3 z-10">
                               <div className="text-xs text-gray-500 mb-2">Select tasks for {a.name}</div>
                               <div className="space-y-2 text-sm">
                                 <label className="flex items-center gap-2"><input type="checkbox" /> Generate brief</label>
@@ -423,7 +420,7 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
                         <button className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white">Open Chat</button>
                       </div>
                     </div>
-                    {/* Right column: Live activity feed and latest handoffs */}
+                    {/* Right column: Live activity feed */}
                     <div className="space-y-4">
                       <div className="bg-gray-50 rounded-lg p-3 text-sm">
                         <div className="font-medium text-gray-800 mb-2">Live Activity</div>
@@ -439,19 +436,6 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
                           ))}
                           {(a.activityLog || []).length === 0 && (
                             <li className="p-2 text-gray-500 text-sm">No activity yet</li>
-                          )}
-                        </ul>
-                      </div>
-                      <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                        <div className="font-medium text-gray-800 mb-2">Latest Handoffs</div>
-                        <ul className="list-disc list-inside text-gray-700 space-y-1 max-h-40 overflow-y-auto">
-                          {activeTasks.filter(t=> t.from===a.id || t.to===a.id).slice(-6).map(t=>{
-                            const from = agents.find(x=>x.id===t.from)?.name || t.from;
-                            const to = agents.find(x=>x.id===t.to)?.name || t.to;
-                            return <li key={`handoff-${t.id}`}>{from} → {to} ({t.type})</li>
-                          })}
-                          {activeTasks.filter(t=> t.from===a.id || t.to===a.id).length===0 && (
-                            <li className="text-gray-500">No recent handoffs</li>
                           )}
                         </ul>
                       </div>
@@ -474,18 +458,12 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
                   <h3 className="text-xl font-semibold text-gray-900">Workflow Overview</h3>
                   <p className="text-sm text-gray-500">Live orchestration of agents and handoffs</p>
                 </div>
-                {(() => { const { baseCredits, estimatedCost } = estimateWorkflowCost();
-                  const avgProgress = agents.length ? (agents.reduce((s,a)=> s + a.progress, 0) / agents.length) : 0;
-                  const consumedCredits = Math.round(baseCredits * avgProgress);
-                  const consumedUsd = (consumedCredits * 0.1).toFixed(2);
-                  return (
+                {(() => { const { baseCredits, estimatedCost } = estimateWorkflowCost(); return (
                   <div className="text-right">
                     <div className="text-xs text-gray-500">Estimated Credits</div>
                     <div className="text-lg font-semibold text-blue-600">{baseCredits}</div>
                     <div className="text-xs text-gray-500 mt-1">Est. Cost</div>
                     <div className="text-lg font-semibold text-green-600">${estimatedCost.toFixed(2)}</div>
-                    <div className="mt-2 text-xs text-gray-500">Consumed</div>
-                    <div className="text-sm font-semibold text-gray-800">{consumedCredits} cr (${consumedUsd})</div>
                   </div>
                 ); })()}
               </div>
