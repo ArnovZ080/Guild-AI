@@ -7,6 +7,7 @@ import {
   Globe, Database, Shield, Lightbulb, Briefcase, Heart, Star,
   ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone
 } from 'lucide-react';
+import { Workflow } from 'lucide-react';
 import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
