@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
 
 // Comprehensive 52 agents data
 const allAgents = [
@@ -145,6 +146,7 @@ const AgentsView = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list, detailed
+  const [activeTab, setActiveTab] = useState('workforce'); // workforce | theater | builder
   const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [agentConfiguration, setAgentConfiguration] = useState({
@@ -481,7 +483,16 @@ const AgentsView = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Tabs */}
+      <div className="bg-white rounded-lg p-4 shadow-lg">
+        <div className="flex gap-2">
+          <button onClick={()=>setActiveTab('workforce')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='workforce'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Workforce</button>
+          <button onClick={()=>setActiveTab('theater')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='theater'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Theater</button>
+          <button onClick={()=>setActiveTab('builder')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='builder'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Workflow Builder</button>
+        </div>
+      </div>
+      {/* Header + Controls (Workforce tab only) */}
+      {activeTab === 'workforce' && (
       <div className="bg-white rounded-lg p-6 shadow-lg">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -554,15 +565,40 @@ const AgentsView = () => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Agent Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <AnimatePresence>
-          {filteredAgents.map(agent => (
-            <AgentCard key={agent.id} agent={agent} />
-          ))}
-        </AnimatePresence>
-      </div>
+      {activeTab === 'workforce' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <AnimatePresence>
+            {filteredAgents.map(agent => (
+              <AgentCard key={agent.id} agent={agent} />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Workflow Builder Tab */}
+      {activeTab === 'builder' && (
+        <div className="bg-white rounded-lg shadow-lg p-4">
+          <div className="text-xs text-gray-500 mb-2">Design multi-agent workflows with a visual canvas.</div>
+          <div className="rounded-lg overflow-hidden border">
+            <EnhancedWorkflowBuilder />
+          </div>
+        </div>
+      )}
+
+      {/* Agent Theater Tab (simple grid placeholder) */}
+      {activeTab === 'theater' && (
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="text-xs text-gray-500 mb-3">Live view of agents collaborating and handing off tasks.</div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredAgents.slice(0, 12).map(agent => (
+              <AgentCard key={`theater-${agent.id}`} agent={agent} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Agent Detail Modal */}
       <AgentDetailModal />
