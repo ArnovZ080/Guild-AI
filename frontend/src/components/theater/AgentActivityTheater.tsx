@@ -124,9 +124,17 @@ export const AgentActivityTheater: React.FC = () => {
   }, []);
 
   const [selected, setSelected] = useState<string | null>(null);
+  const [showWorkflowDetails, setShowWorkflowDetails] = useState(false);
+
+  const estimateWorkflowCost = () => {
+    const activeCount = agents.filter(a => a.status === 'working' || a.status === 'collaborating').length;
+    const baseCredits = activeCount * 5 + activeTasks.length * 2;
+    const estimatedCost = baseCredits * 0.1; // $0.10 per credit to mirror builder heuristic
+    return { baseCredits, estimatedCost };
+  };
 
   return (
-    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-hidden">
+    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-200 opacity-50" />
 
       <div className="absolute inset-4">
@@ -236,9 +244,9 @@ export const AgentActivityTheater: React.FC = () => {
         );
       })}
 
-      <div className="absolute bottom-4 right-4 flex space-x-2">
+      <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
         <button className="px-3 py-1 bg-white rounded-lg shadow text-xs font-medium hover:bg-gray-50">Pause</button>
-        <button className="px-3 py-1 bg-blue-500 text-white rounded-lg shadow text-xs font-medium hover:bg-blue-600">Details</button>
+        <button onClick={()=>setShowWorkflowDetails(true)} className="px-3 py-1 bg-blue-500 text-white rounded-lg shadow text-xs font-medium hover:bg-blue-600">Details</button>
       </div>
 
       {selected && (
@@ -326,6 +334,70 @@ export const AgentActivityTheater: React.FC = () => {
                 </div>
               );
             })()}
+          </div>
+        </div>
+      )}
+
+      {showWorkflowDetails && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-6 relative">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={() => setShowWorkflowDetails(false)}>×</button>
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Workflow Overview</h3>
+                  <p className="text-sm text-gray-500">Live orchestration of agents and handoffs</p>
+                </div>
+                {(() => { const { baseCredits, estimatedCost } = estimateWorkflowCost(); return (
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500">Estimated Credits</div>
+                    <div className="text-lg font-semibold text-blue-600">{baseCredits}</div>
+                    <div className="text-xs text-gray-500 mt-1">Est. Cost</div>
+                    <div className="text-lg font-semibold text-green-600">${estimatedCost.toFixed(2)}</div>
+                  </div>
+                ); })()}
+              </div>
+              {/* Flow summary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="font-medium text-gray-800 mb-2">Current Flow</div>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    {activeTasks.slice(-6).map(t => {
+                      const from = agents.find(a=>a.id===t.from)?.name || t.from;
+                      const to = agents.find(a=>a.id===t.to)?.name || t.to;
+                      return <li key={`sum-${t.id}`}>{from} → {to} ({t.type})</li>;
+                    })}
+                    {activeTasks.length===0 && <li>No active handoffs detected</li>}
+                  </ul>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="font-medium text-gray-800 mb-2">Agent Status</div>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    {agents.map(a => (
+                      <li key={`status-${a.id}`} className="flex items-center justify-between">
+                        <span>{a.name}</span>
+                        <span className="text-gray-500 capitalize">{a.status}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              {/* Next steps & outcome */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="font-medium text-gray-800 mb-2">Upcoming Steps</div>
+                  <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                    <li>Complete current assignments</li>
+                    <li>Handoff to downstream agents</li>
+                    <li>Aggregate outputs and validate</li>
+                  </ul>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="font-medium text-gray-800 mb-2">Expected Outcome</div>
+                  <p className="text-sm text-gray-700">End-to-end workflow delivering ready-to-use assets and reports aligned to your objective.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
