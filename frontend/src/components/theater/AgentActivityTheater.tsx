@@ -209,10 +209,10 @@ export const AgentActivityTheater: React.FC = () => {
           return (
             <line
               key={`line-${task.id}`}
-              x1={`${fromAgent.position.x}%`}
-              y1={`${fromAgent.position.y}%`}
-              x2={`${toAgent.position.x}%`}
-              y2={`${toAgent.position.y}%`}
+              x1={`calc(${fromAgent.position.x}% + 12px)`}
+              y1={`calc(${fromAgent.position.y}% + 12px)`}
+              x2={`calc(${toAgent.position.x}% + 12px)`}
+              y2={`calc(${toAgent.position.y}% + 12px)`}
               stroke="rgba(59, 130, 246, 0.35)"
               strokeWidth="2"
               strokeDasharray="4,4"
@@ -229,8 +229,8 @@ export const AgentActivityTheater: React.FC = () => {
           <motion.div
             key={task.id}
             className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg"
-            initial={{ left: `${fromAgent.position.x}%`, top: `${fromAgent.position.y}%` }}
-            animate={{ left: `${toAgent.position.x}%`, top: `${toAgent.position.y}%` }}
+            initial={{ left: `calc(${fromAgent.position.x}% + 12px)`, top: `calc(${fromAgent.position.y}% + 12px)` }}
+            animate={{ left: `calc(${toAgent.position.x}% + 12px)`, top: `calc(${toAgent.position.y}% + 12px)` }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
         );
@@ -242,7 +242,7 @@ export const AgentActivityTheater: React.FC = () => {
       </div>
 
       {selected && (
-        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-20">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative">
             <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={() => setSelected(null)}>×</button>
             {(() => {
