@@ -11,6 +11,7 @@ import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
+import AgentActivityStage from '../components/theater/AgentActivityStage.jsx';
 
 // Comprehensive 52 agents data
 const allAgents = [
@@ -674,7 +675,10 @@ const AgentsView = () => {
       {activeTab === 'theater' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
-          <AgentActivityTheater />
+          <div className="space-y-6">
+            <AgentActivityStage />
+            <AgentActivityTheater />
+          </div>
         </div>
       )}
 
