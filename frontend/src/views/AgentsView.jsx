@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Brain, Zap, Users, BarChart, Settings, Play, Pause, RotateCcw, 
@@ -14,6 +14,7 @@ import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
+import apiService from '../services/api.js';
 
 // Comprehensive 52 agents data
 const allAgents = [
@@ -158,6 +159,8 @@ const AgentsView = () => {
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [showWorkflowDetailsModal, setShowWorkflowDetailsModal] = useState(false);
+  const [liveWorkflows, setLiveWorkflows] = useState([]);
+  const [liveLoading, setLiveLoading] = useState(true);
   const [agentConfiguration, setAgentConfiguration] = useState({
     customInstructions: '',
     duration: 'indefinite',
@@ -306,6 +309,84 @@ const AgentsView = () => {
     };
     return icons[integration] || Link;
   };
+
+  // Live workflows stream: websocket with polling fallback
+  useEffect(() => {
+    let ws;
+    let pollId;
+    let closed = false;
+
+    const unify = (w) => ({
+      id: w.workflow_id || w.id,
+      name: w.name || w.results?.campaign?.name || (w.workflow_id ? `Workflow ${w.workflow_id}` : 'Workflow'),
+      type: w.type || 'autonomous',
+      status: w.status || 'running',
+      progress: typeof w.progress === 'number' ? w.progress : 0,
+      currentStep: w.current_step || w.currentStep || 'Processing',
+      description: w.description || 'Orchestrated workflow',
+      agents: w.agents || w.agents_involved || [],
+      integrations: w.integrations || [],
+      triggers: w.triggers || [],
+      actions: w.actions || [],
+      metrics: w.metrics || {},
+      businessGoal: w.businessGoal || null,
+    });
+
+    const fetchAll = async () => {
+      try {
+        const data = await apiService.getAllWorkflows();
+        const arr = Array.isArray(data?.workflows) ? data.workflows : (Array.isArray(data) ? data : []);
+        setLiveWorkflows(arr.map(unify));
+      } catch {
+        // no-op
+      } finally {
+        setLiveLoading(false);
+      }
+    };
+
+    try {
+      const base = (import.meta.env.VITE_API_URL || '').replace(/^http/, 'ws');
+      if (base) {
+        ws = new WebSocket(`${base}/agents/workflows/stream`);
+        ws.onmessage = (evt) => {
+          try {
+            const msg = JSON.parse(evt.data);
+            if (msg && (msg.workflows || msg.workflow)) {
+              const list = msg.workflows ? msg.workflows : [msg.workflow];
+              setLiveWorkflows(list.map(unify));
+              setLiveLoading(false);
+            }
+          } catch {}
+        };
+        ws.onerror = () => {
+          if (!closed) {
+            try { ws.close(); } catch {}
+            ws = undefined;
+            fetchAll();
+            pollId = setInterval(fetchAll, 10000);
+          }
+        };
+        ws.onclose = () => {
+          if (!closed && !pollId) {
+            fetchAll();
+            pollId = setInterval(fetchAll, 10000);
+          }
+        };
+      } else {
+        fetchAll();
+        pollId = setInterval(fetchAll, 10000);
+      }
+    } catch {
+      fetchAll();
+      pollId = setInterval(fetchAll, 10000);
+    }
+
+    return () => {
+      closed = true;
+      if (ws) try { ws.close(); } catch {}
+      if (pollId) clearInterval(pollId);
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -716,7 +797,7 @@ const AgentsView = () => {
           </div>
           {/* Autonomous Workflows below theater as separate cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
+            {(liveWorkflows && liveWorkflows.length ? liveWorkflows : [
               {
                 id: '1',
                 name: 'Customer Onboarding Automation',
@@ -792,7 +873,7 @@ const AgentsView = () => {
                 },
                 businessGoal: 'Increase content reach by 50%'
               }
-            ].map(wf => (
+            ]).map(wf => (
               <div key={wf.id} className={`bg-white rounded-lg shadow p-6 border hover:shadow-xl transition-shadow ${theaterWorkflow?.id===wf.id ? 'ring-2 ring-blue-600' : ''}`}>
                 <div className="flex items-start justify-between mb-4">
                   <div>
