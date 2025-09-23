@@ -117,14 +117,19 @@ export const AgentActivityTheater: React.FC = () => {
     return icons[type] || '🤖';
   };
 
+  const [paused, setPaused] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     const interval = setInterval(() => {
-      setAgents(prev => prev.map(agent => ({
-        ...agent,
-        progress: agent.status === 'working'
-          ? Math.min(agent.progress + Math.random() * 0.1, 1)
-          : agent.progress
-      })));
+      setAgents(prev => prev.map(agent => {
+        if (paused.has(agent.id)) return agent;
+        return {
+          ...agent,
+          progress: agent.status === 'working'
+            ? Math.min(agent.progress + Math.random() * 0.1, 1)
+            : agent.progress
+        };
+      }));
       // occasionally add a new collaboration
       if (Math.random() < 0.4) {
         const from = agents[Math.floor(Math.random() * agents.length)]?.id;
@@ -138,6 +143,7 @@ export const AgentActivityTheater: React.FC = () => {
       }
       // append granular activity per working/collaborating agent
       setAgents(prev => prev.map(a => {
+        if (paused.has(a.id)) return a;
         if (a.status === 'working' || a.status === 'collaborating') {
           const catalogs: Record<string, string[]> = {
             research: [
@@ -186,7 +192,7 @@ export const AgentActivityTheater: React.FC = () => {
       }));
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [paused]);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [showWorkflowDetails, setShowWorkflowDetails] = useState(false);
@@ -316,103 +322,124 @@ export const AgentActivityTheater: React.FC = () => {
 
       {selected && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl p-6 relative max-h-[85vh] overflow-y-auto">
             <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={() => setSelected(null)}>×</button>
             {(() => {
               const a = agents.find(x => x.id === selected);
               if (!a) return null;
               return (
                 <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">{a.name}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{a.type} • {a.status}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                    <div className="flex items-center justify-between mb-1"><span className="text-gray-600">Current Task</span><span className="font-medium">{Math.round(a.progress*100)}%</span></div>
-                    <div className="text-gray-800">{a.currentTask}</div>
-                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{width: `${a.progress*100}%`}}/></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="font-medium text-gray-800 mb-1">Completed Tasks</div>
-                      <ul className="list-disc list-inside text-gray-600 space-y-1">
-                        <li>Finished prior milestone</li>
-                        <li>Synced with teammate</li>
-                        <li>Queued deliverable</li>
-                      </ul>
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">{a.name}</h3>
+                      <p className="text-sm text-gray-500 capitalize">{a.type} • {a.status}</p>
                     </div>
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <div className="font-medium text-gray-800 mb-1">Upcoming Todos</div>
-                      <ul className="list-disc list-inside text-gray-600 space-y-1">
-                        <li>Prepare handoff</li>
-                        <li>Validate output</li>
-                        <li>Notify owner</li>
-                      </ul>
-                    </div>
+                    <button
+                      onClick={() => {
+                        setPaused(prev => {
+                          const next = new Set(prev);
+                          if (next.has(a.id)) next.delete(a.id); else next.add(a.id);
+                          return next;
+                        });
+                      }}
+                      className={`px-3 py-1.5 text-sm rounded-md border ${paused.has(a.id)?'bg-yellow-100 text-yellow-800':'bg-white'}`}
+                    >
+                      {paused.has(a.id) ? 'Resume Agent' : 'Pause Agent'}
+                    </button>
                   </div>
-                  {/* Live granular activity */}
-                  <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                    <div className="font-medium text-gray-800 mb-2">Live Activity</div>
-                    <ul className="divide-y border rounded">
-                      {(a.activityLog || []).slice().reverse().map(item => (
-                        <li key={item.id} className="p-2 flex items-center justify-between">
-                          <div className="pr-3">
-                            <div className="text-gray-800">{item.text}</div>
-                            <div className="text-xs text-gray-500">{new Date(item.ts).toLocaleTimeString()}</div>
-                          </div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${item.status==='done'?'bg-green-100 text-green-700': item.status==='running'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{item.status}</span>
-                        </li>
-                      ))}
-                      {(a.activityLog || []).length === 0 && (
-                        <li className="p-2 text-gray-500 text-sm">No activity yet</li>
-                      )}
-                    </ul>
-                  </div>
-                  {/* Recent Assets */}
-                  <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                    <div className="font-medium text-gray-800 mb-2">Recent Assets</div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
-                        <span>🖼️</span>
-                        <span className="truncate">campaign_concept.png</span>
-                      </a>
-                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
-                        <span>📝</span>
-                        <span className="truncate">brief_Q4.md</span>
-                      </a>
-                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
-                        <span>📄</span>
-                        <span className="truncate">proposal.pdf</span>
-                      </a>
-                      <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
-                        <span>✉️</span>
-                        <span className="truncate">email_sequence.eml</span>
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-end gap-2">
-                    {/* Quick task dropdown */}
-                    <div className="relative">
-                      <details className="relative">
-                        <summary className="px-3 py-1.5 text-sm rounded-md border cursor-pointer select-none">Quick Tasks</summary>
-                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border p-3 z-10">
-                          <div className="text-xs text-gray-500 mb-2">Select tasks for {a.name}</div>
-                          <div className="space-y-2 text-sm">
-                            <label className="flex items-center gap-2"><input type="checkbox" /> Generate brief</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" /> Draft email</label>
-                            <label className="flex items-center gap-2"><input type="checkbox" /> Create report</label>
-                          </div>
-                          <div className="mt-3">
-                            <textarea placeholder="Additional instructions..." className="w-full p-2 border rounded-md text-sm"></textarea>
-                          </div>
-                          <div className="mt-3 flex justify-end gap-2">
-                            <button className="px-3 py-1 text-sm border rounded-md" onClick={(e)=>{e.preventDefault(); (e.currentTarget.closest('details') as HTMLDetailsElement)?.removeAttribute('open');}}>Cancel</button>
-                            <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md" onClick={(e)=>{e.preventDefault(); alert('Tasks assigned'); (e.currentTarget.closest('details') as HTMLDetailsElement)?.removeAttribute('open');}}>Assign</button>
-                          </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Left column: details */}
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                        <div className="flex items-center justify-between mb-1"><span className="text-gray-600">Current Task</span><span className="font-medium">{Math.round(a.progress*100)}%</span></div>
+                        <div className="text-gray-800">{a.currentTask}</div>
+                        <div className="mt-2 w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{width: `${a.progress*100}%`}}/></div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="font-medium text-gray-800 mb-1">Completed Tasks</div>
+                          <ul className="list-disc list-inside text-gray-600 space-y-1">
+                            <li>Finished prior milestone</li>
+                            <li>Synced with teammate</li>
+                            <li>Queued deliverable</li>
+                          </ul>
                         </div>
-                      </details>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="font-medium text-gray-800 mb-1">Upcoming Todos</div>
+                          <ul className="list-disc list-inside text-gray-600 space-y-1">
+                            <li>Prepare handoff</li>
+                            <li>Validate output</li>
+                            <li>Notify owner</li>
+                          </ul>
+                        </div>
+                      </div>
+                      {/* Recent Assets */}
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                        <div className="font-medium text-gray-800 mb-2">Recent Assets</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                            <span>🖼️</span>
+                            <span className="truncate">campaign_concept.png</span>
+                          </a>
+                          <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                            <span>📝</span>
+                            <span className="truncate">brief_Q4.md</span>
+                          </a>
+                          <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                            <span>📄</span>
+                            <span className="truncate">proposal.pdf</span>
+                          </a>
+                          <a href="#" className="p-2 rounded border hover:bg-gray-100 flex items-center gap-2">
+                            <span>✉️</span>
+                            <span className="truncate">email_sequence.eml</span>
+                          </a>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Quick task dropdown */}
+                        <div className="relative">
+                          <details className="relative">
+                            <summary className="px-3 py-1.5 text-sm rounded-md border cursor-pointer select-none">Quick Tasks</summary>
+                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border p-3 z-10">
+                              <div className="text-xs text-gray-500 mb-2">Select tasks for {a.name}</div>
+                              <div className="space-y-2 text-sm">
+                                <label className="flex items-center gap-2"><input type="checkbox" /> Generate brief</label>
+                                <label className="flex items-center gap-2"><input type="checkbox" /> Draft email</label>
+                                <label className="flex items-center gap-2"><input type="checkbox" /> Create report</label>
+                              </div>
+                              <div className="mt-3">
+                                <textarea placeholder="Additional instructions..." className="w-full p-2 border rounded-md text-sm"></textarea>
+                              </div>
+                              <div className="mt-3 flex justify-end gap-2">
+                                <button className="px-3 py-1 text-sm border rounded-md" onClick={(e)=>{e.preventDefault(); (e.currentTarget.closest('details') as HTMLDetailsElement)?.removeAttribute('open');}}>Cancel</button>
+                                <button className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md" onClick={(e)=>{e.preventDefault(); alert('Tasks assigned'); (e.currentTarget.closest('details') as HTMLDetailsElement)?.removeAttribute('open');}}>Assign</button>
+                              </div>
+                            </div>
+                          </details>
+                        </div>
+                        <button className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white">Open Chat</button>
+                      </div>
                     </div>
-                    <button className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white">Open Chat</button>
+                    {/* Right column: Live activity feed */}
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                        <div className="font-medium text-gray-800 mb-2">Live Activity</div>
+                        <ul className="divide-y border rounded max-h-[50vh] overflow-y-auto">
+                          {(a.activityLog || []).slice().reverse().map(item => (
+                            <li key={item.id} className="p-2 flex items-center justify-between">
+                              <div className="pr-3">
+                                <div className="text-gray-800">{item.text}</div>
+                                <div className="text-xs text-gray-500">{new Date(item.ts).toLocaleTimeString()}</div>
+                              </div>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${item.status==='done'?'bg-green-100 text-green-700': item.status==='running'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{item.status}</span>
+                            </li>
+                          ))}
+                          {(a.activityLog || []).length === 0 && (
+                            <li className="p-2 text-gray-500 text-sm">No activity yet</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );
