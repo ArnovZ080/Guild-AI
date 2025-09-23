@@ -66,6 +66,46 @@ export const financialApi = {
       return { success: true, data: { dso_days: 28, dpo_days: 21, dio_days: 7, cycle_days: 14 } };
     }
   },
+  getBaselineForecast: async (period = '90d') => {
+    try { return await request(`/financial/forecast/baseline?period=${encodeURIComponent(period)}`); } catch {
+      // simple mock: arrays of daily points with revenue, expenses, cashflow
+      const days = 90;
+      const start = Date.now();
+      const data = Array.from({ length: days }, (_, i) => {
+        const date = new Date(start + i * 86400000).toISOString().slice(0, 10);
+        const revenue = 800 + Math.sin(i / 6) * 120 + i * 2;
+        const expenses = 600 + Math.cos(i / 5) * 80 + i * 1.5;
+        return { date, revenue: Math.round(revenue), expenses: Math.round(expenses), cashflow: Math.round(revenue - expenses) };
+      });
+      return { success: true, data: { period, points: data } };
+    }
+  },
+  simulateScenario: async (params) => {
+    try { return await request('/financial/forecast/scenario', { method: 'POST', body: JSON.stringify(params) }); } catch {
+      // naive transform from baseline
+      const { revenueDeltaPct = 0, adSpendDeltaPct = 0, hiresDelta = 0 } = params || {};
+      const base = await (async () => (await (await Promise.resolve({})), (await module.exports.getBaselineForecast?.('90d'))))();
+      const baseline = base?.data?.points || [];
+      const hireCost = 6000 * (hiresDelta || 0) / (baseline.length / 30 || 1);
+      const points = baseline.map(p => {
+        const revenue = Math.round(p.revenue * (1 + revenueDeltaPct / 100));
+        const expenses = Math.round(p.expenses * (1 + adSpendDeltaPct / 100)) + Math.round(hireCost || 0);
+        return { date: p.date, revenue, expenses, cashflow: revenue - expenses };
+      });
+      return { success: true, data: { points } };
+    }
+  },
+  getBreakEven: async () => {
+    try { return await request('/financial/break-even'); } catch {
+      // mock: fixed costs, contribution margin
+      return { success: true, data: { fixed_costs: 12000, avg_price: 100, variable_cost_per_unit: 40, break_even_units: 200, break_even_revenue: 20000 } };
+    }
+  },
+  getRunway: async () => {
+    try { return await request('/financial/runway'); } catch {
+      return { success: true, data: { months: 8.5, burn_rate_monthly: 9500, assumptions: 'Based on last 3 months avg burn' } };
+    }
+  },
   getFinancialRisks: async () => {
     try { return await request('/financial/risks'); } catch {
       return { success: true, data: { risks: [] } };

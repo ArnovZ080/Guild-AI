@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { financialApi } from '../services/financialApi.js';
-import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck, Lightbulb } from 'lucide-react';
+import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RLineChart, PieChart, Pie, Cell } from 'recharts';
 import FinancialFlowVisualization from '../components/visualizations/FinancialFlowVisualization.jsx';
 
@@ -41,6 +41,12 @@ const FinancialDashboardView = () => {
   const [expView, setExpView] = useState('MTD');
   const [customerModal, setCustomerModal] = useState(null);
   const [vendorModal, setVendorModal] = useState(null);
+  // Forecasts & Scenarios state
+  const [forecastBaseline, setForecastBaseline] = useState(null);
+  const [scenarioParams, setScenarioParams] = useState({ revenueDeltaPct: 0, adSpendDeltaPct: 0, hiresDelta: 0 });
+  const [scenarioResult, setScenarioResult] = useState(null);
+  const [breakEven, setBreakEven] = useState(null);
+  const [runwayCalc, setRunwayCalc] = useState(null);
   const exportCsv = (rows, headers, filename) => {
     try {
       const headerLine = headers.join(',');
@@ -95,6 +101,15 @@ const FinancialDashboardView = () => {
       } else if (activeTab === 'invoices') {
         const inv = await financialApi.getInvoices('pending');
         setInvoices(inv?.data?.invoices || []);
+      } else if (activeTab === 'forecasts') {
+        const [baseline, be, rw] = await Promise.all([
+          financialApi.getBaselineForecast('90d'),
+          financialApi.getBreakEven(),
+          financialApi.getRunway(),
+        ]);
+        setForecastBaseline(baseline?.data || {});
+        setBreakEven(be?.data || {});
+        setRunwayCalc(rw?.data || {});
       } else if (activeTab === 'analytics') {
         const [bva, roi] = await Promise.all([
           financialApi.getBudgetVsActual(period),
@@ -149,7 +164,7 @@ const FinancialDashboardView = () => {
           <button onClick={() => setActiveTab('overview')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='overview' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Overview</button>
           <button onClick={() => setActiveTab('income_expenses')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='income_expenses' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Income & Expenses</button>
           <button onClick={() => setActiveTab('cashflow')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='cashflow' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Cashflow Analytics</button>
-          <button onClick={() => setActiveTab('opportunities')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='opportunities' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Growth Opportunities</button>
+          <button onClick={() => setActiveTab('forecasts')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='forecasts' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Forecasts & Scenarios</button>
           <button onClick={() => setActiveTab('invoices')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='invoices' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Invoices/Payments</button>
           <button onClick={() => setActiveTab('analytics')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='analytics' ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>Financial Analytics</button>
           </div>
@@ -622,46 +637,98 @@ const FinancialDashboardView = () => {
         </div>
       )}
 
-      {/* Growth Opportunities */}
-      {activeTab === 'opportunities' && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center"><Lightbulb className="w-5 h-5 mr-2 text-amber-500" />Suggested Opportunities</h3>
-            <Pill tone="info">AI Suggestions</Pill>
+      {/* Forecasts & Scenarios */}
+      {activeTab === 'forecasts' && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Baseline Forecast (90d)</h3>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RLineChart data={(forecastBaseline?.points || [])}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="date" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Line type="monotone" dataKey="revenue" stroke="#10B981" dot={false} name="Revenue" />
+                  <Line type="monotone" dataKey="expenses" stroke="#EF4444" dot={false} name="Expenses" />
+                  <Line type="monotone" dataKey="cashflow" stroke="#3B82F6" dot={false} name="Cashflow" />
+                </RLineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="space-y-4">
-            {(analysis?.key_insights || []).map((i, idx) => (
-              <div key={idx} className="rounded-md border border-gray-200 p-4">
-                <div className="text-gray-800 text-sm mb-3">{String(i || '')}</div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="px-3 py-2 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
-                    onClick={async () => {
-                      const prop = await financialApi.getBudgetReallocationProposal(idx);
-                      setReallocateModal({ index: idx, data: prop?.data });
-                    }}
-                  >
-                    Act now
-                  </button>
-                  <button
-                    className="px-3 py-2 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
-                    onClick={async () => {
-                      try {
-                        await financialApi.executeFinancialAction('schedule_recommendation', { index: idx });
-                        alert('Scheduled via PA agent.');
-                      } catch (e) {
-                        alert('Scheduled.');
-                      }
-                    }}
-                  >
-                    Schedule
-                  </button>
-                </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Scenario Modeling</h3>
+              <div className="text-xs text-gray-500">Play "what if" without a CFO</div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Revenue change (%)</div>
+                <input type="range" min="-50" max="50" step="1" value={scenarioParams.revenueDeltaPct} onChange={e=>setScenarioParams({...scenarioParams, revenueDeltaPct: Number(e.target.value)})} className="w-full" />
+                <div className="text-xs text-gray-500 mt-1">{scenarioParams.revenueDeltaPct}%</div>
               </div>
-            ))}
-            {(analysis?.key_insights || []).length === 0 && (
-              <div className="text-sm text-gray-500">No opportunities at the moment.</div>
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Ad spend change (%)</div>
+                <input type="range" min="-50" max="50" step="1" value={scenarioParams.adSpendDeltaPct} onChange={e=>setScenarioParams({...scenarioParams, adSpendDeltaPct: Number(e.target.value)})} className="w-full" />
+                <div className="text-xs text-gray-500 mt-1">{scenarioParams.adSpendDeltaPct}%</div>
+              </div>
+              <div>
+                <div className="text-xs text-gray-600 mb-1">Hiring change (heads)</div>
+                <input type="range" min="-5" max="10" step="1" value={scenarioParams.hiresDelta} onChange={e=>setScenarioParams({...scenarioParams, hiresDelta: Number(e.target.value)})} className="w-full" />
+                <div className="text-xs text-gray-500 mt-1">{scenarioParams.hiresDelta} hires</div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <button onClick={async ()=>{ const res = await financialApi.simulateScenario(scenarioParams); setScenarioResult(res?.data||{}); }} className="px-3 py-2 rounded bg-blue-600 text-white text-sm">Simulate</button>
+            </div>
+            {scenarioResult?.points && (
+              <div className="h-56 mt-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RLineChart data={scenarioResult.points}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="date" stroke="#6B7280" />
+                    <YAxis stroke="#6B7280" />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="revenue" stroke="#10B981" dot={false} name="Revenue" />
+                    <Line type="monotone" dataKey="expenses" stroke="#EF4444" dot={false} name="Expenses" />
+                    <Line type="monotone" dataKey="cashflow" stroke="#3B82F6" dot={false} name="Cashflow" />
+                  </RLineChart>
+                </ResponsiveContainer>
+              </div>
             )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Break-Even Analysis</h3>
+              <div className="text-sm text-gray-700">Fixed Costs: ${breakEven?.fixed_costs?.toLocaleString?.()} • Avg Price: ${breakEven?.avg_price} • Variable Cost: ${breakEven?.variable_cost_per_unit}</div>
+              <div className="mt-2 text-sm text-gray-900">Break-even: {breakEven?.break_even_units} units (${breakEven?.break_even_revenue?.toLocaleString?.()})</div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Runway Calculator</h3>
+              <div className="text-sm text-gray-700">Runway: {runwayCalc?.months} months</div>
+              <div className="text-xs text-gray-500">Burn rate: ${runwayCalc?.burn_rate_monthly?.toLocaleString?.()} / mo • {runwayCalc?.assumptions}</div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Stress Tests</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Subscriptions -15%', params: { revenueDeltaPct: -15 } },
+                { label: 'Ad spend +20%', params: { adSpendDeltaPct: 20 } },
+                { label: '+2 hires', params: { hiresDelta: 2 } },
+              ].map((t, i) => (
+                <button key={i} onClick={async ()=>{ const res = await financialApi.simulateScenario(t.params); setScenarioResult(res?.data||{}); }} className="px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200 text-sm">{t.label}</button>
+              ))}
+            </div>
           </div>
         </div>
       )}
