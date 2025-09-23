@@ -155,6 +155,39 @@ const FinancialDashboardView = () => {
   const score = analysis?.financial_health_score ?? '--';
   const runway = analysis?.financial_metrics?.cash_flow_metrics?.cash_runway?.current;
 
+  // Derived scenario metrics for Forecasts tab
+  const scenarioAvgDailyCashflow = useMemo(() => {
+    if (!scenarioResult?.points || scenarioResult.points.length === 0) return null;
+    const total = scenarioResult.points.reduce((sum, p) => sum + (p.cashflow || 0), 0);
+    return total / scenarioResult.points.length;
+  }, [scenarioResult]);
+
+  const scenarioRunwayMonths = useMemo(() => {
+    if (scenarioAvgDailyCashflow == null) return null;
+    const daily = Number(scenarioAvgDailyCashflow);
+    const monthlyBurn = daily < 0 ? -daily * 30 : 0;
+    const cash = (kpis?.cash_on_hand || 0);
+    if (monthlyBurn <= 0) return Infinity;
+    return Number((cash / monthlyBurn).toFixed(1));
+  }, [scenarioAvgDailyCashflow, kpis]);
+
+  const adjustedBreakEven = useMemo(() => {
+    if (!breakEven) return null;
+    const baseFixed = breakEven.fixed_costs || 0;
+    const baseVar = breakEven.variable_cost_per_unit || 0;
+    const price = breakEven.avg_price || 0;
+    // Simple adjustments: hires increase fixed costs; ad spend slightly increases variable cost
+    const fixedAdj = baseFixed + (scenarioParams?.hiresDelta || 0) * 6000;
+    const varAdj = baseVar * (1 + Math.max(0, scenarioParams?.adSpendDeltaPct || 0) * 0.002);
+    const cm = price - varAdj;
+    if (cm <= 0) {
+      return { ...breakEven, fixed_costs: fixedAdj, variable_cost_per_unit: varAdj, break_even_units: null, break_even_revenue: null };
+    }
+    const units = Math.ceil(fixedAdj / cm);
+    const revenueBE = units * price;
+    return { ...breakEven, fixed_costs: fixedAdj, variable_cost_per_unit: varAdj, break_even_units: units, break_even_revenue: revenueBE };
+  }, [breakEven, scenarioParams]);
+
   return (
     <div className="space-y-6">
       {/* Tabs + Filters */}
@@ -706,13 +739,15 @@ const FinancialDashboardView = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Break-Even Analysis</h3>
-              <div className="text-sm text-gray-700">Fixed Costs: ${breakEven?.fixed_costs?.toLocaleString?.()} • Avg Price: ${breakEven?.avg_price} • Variable Cost: ${breakEven?.variable_cost_per_unit}</div>
-              <div className="mt-2 text-sm text-gray-900">Break-even: {breakEven?.break_even_units} units (${breakEven?.break_even_revenue?.toLocaleString?.()})</div>
+              <div className="text-sm text-gray-700">Fixed Costs: ${adjustedBreakEven?.fixed_costs?.toLocaleString?.()} • Avg Price: ${adjustedBreakEven?.avg_price || breakEven?.avg_price} • Variable Cost: ${adjustedBreakEven?.variable_cost_per_unit?.toLocaleString?.()}</div>
+              <div className="mt-2 text-sm text-gray-900">Break-even: {adjustedBreakEven?.break_even_units ?? '—'} units ({adjustedBreakEven?.break_even_revenue ? `$${adjustedBreakEven?.break_even_revenue?.toLocaleString?.()}` : '—'})</div>
+              <div className="text-[11px] text-gray-500 mt-1">Adjusts with Ad Spend and Hires sliders</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Runway Calculator</h3>
-              <div className="text-sm text-gray-700">Runway: {runwayCalc?.months} months</div>
-              <div className="text-xs text-gray-500">Burn rate: ${runwayCalc?.burn_rate_monthly?.toLocaleString?.()} / mo • {runwayCalc?.assumptions}</div>
+              <div className="text-sm text-gray-700">Runway: {scenarioRunwayMonths != null && scenarioRunwayMonths !== Infinity ? `${scenarioRunwayMonths} months` : (runwayCalc?.months ?? '—')}</div>
+              <div className="text-xs text-gray-500">Burn rate: ${runwayCalc?.burn_rate_monthly?.toLocaleString?.()} / mo • {scenarioAvgDailyCashflow != null ? 'Based on simulated cashflow' : (runwayCalc?.assumptions || '')}</div>
+              {scenarioAvgDailyCashflow != null && (<div className="text-[11px] text-gray-500 mt-1">Updates when you click Simulate</div>)}
             </div>
           </div>
 
