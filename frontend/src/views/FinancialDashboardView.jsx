@@ -47,6 +47,38 @@ const FinancialDashboardView = () => {
   const [scenarioResult, setScenarioResult] = useState(null);
   const [breakEven, setBreakEven] = useState(null);
   const [runwayCalc, setRunwayCalc] = useState(null);
+  // Derived scenario metrics for Forecasts tab (must be declared before any early returns)
+  const scenarioAvgDailyCashflow = useMemo(() => {
+    if (!scenarioResult?.points || scenarioResult.points.length === 0) return null;
+    const total = scenarioResult.points.reduce((sum, p) => sum + (p.cashflow || 0), 0);
+    return total / scenarioResult.points.length;
+  }, [scenarioResult]);
+
+  const scenarioRunwayMonths = useMemo(() => {
+    if (scenarioAvgDailyCashflow == null) return null;
+    const daily = Number(scenarioAvgDailyCashflow);
+    const monthlyBurn = daily < 0 ? -daily * 30 : 0;
+    const cash = (kpis?.cash_on_hand || 0);
+    if (monthlyBurn <= 0) return Infinity;
+    return Number((cash / monthlyBurn).toFixed(1));
+  }, [scenarioAvgDailyCashflow, kpis]);
+
+  const adjustedBreakEven = useMemo(() => {
+    if (!breakEven) return null;
+    const baseFixed = breakEven.fixed_costs || 0;
+    const baseVar = breakEven.variable_cost_per_unit || 0;
+    const price = breakEven.avg_price || 0;
+    // Simple adjustments: hires increase fixed costs; ad spend slightly increases variable cost
+    const fixedAdj = baseFixed + (scenarioParams?.hiresDelta || 0) * 6000;
+    const varAdj = baseVar * (1 + Math.max(0, scenarioParams?.adSpendDeltaPct || 0) * 0.002);
+    const cm = price - varAdj;
+    if (cm <= 0) {
+      return { ...breakEven, fixed_costs: fixedAdj, variable_cost_per_unit: varAdj, break_even_units: null, break_even_revenue: null };
+    }
+    const units = Math.ceil(fixedAdj / cm);
+    const revenueBE = units * price;
+    return { ...breakEven, fixed_costs: fixedAdj, variable_cost_per_unit: varAdj, break_even_units: units, break_even_revenue: revenueBE };
+  }, [breakEven, scenarioParams]);
   const exportCsv = (rows, headers, filename) => {
     try {
       const headerLine = headers.join(',');
@@ -154,39 +186,6 @@ const FinancialDashboardView = () => {
 
   const score = analysis?.financial_health_score ?? '--';
   const runway = analysis?.financial_metrics?.cash_flow_metrics?.cash_runway?.current;
-
-  // Derived scenario metrics for Forecasts tab
-  const scenarioAvgDailyCashflow = useMemo(() => {
-    if (!scenarioResult?.points || scenarioResult.points.length === 0) return null;
-    const total = scenarioResult.points.reduce((sum, p) => sum + (p.cashflow || 0), 0);
-    return total / scenarioResult.points.length;
-  }, [scenarioResult]);
-
-  const scenarioRunwayMonths = useMemo(() => {
-    if (scenarioAvgDailyCashflow == null) return null;
-    const daily = Number(scenarioAvgDailyCashflow);
-    const monthlyBurn = daily < 0 ? -daily * 30 : 0;
-    const cash = (kpis?.cash_on_hand || 0);
-    if (monthlyBurn <= 0) return Infinity;
-    return Number((cash / monthlyBurn).toFixed(1));
-  }, [scenarioAvgDailyCashflow, kpis]);
-
-  const adjustedBreakEven = useMemo(() => {
-    if (!breakEven) return null;
-    const baseFixed = breakEven.fixed_costs || 0;
-    const baseVar = breakEven.variable_cost_per_unit || 0;
-    const price = breakEven.avg_price || 0;
-    // Simple adjustments: hires increase fixed costs; ad spend slightly increases variable cost
-    const fixedAdj = baseFixed + (scenarioParams?.hiresDelta || 0) * 6000;
-    const varAdj = baseVar * (1 + Math.max(0, scenarioParams?.adSpendDeltaPct || 0) * 0.002);
-    const cm = price - varAdj;
-    if (cm <= 0) {
-      return { ...breakEven, fixed_costs: fixedAdj, variable_cost_per_unit: varAdj, break_even_units: null, break_even_revenue: null };
-    }
-    const units = Math.ceil(fixedAdj / cm);
-    const revenueBE = units * price;
-    return { ...breakEven, fixed_costs: fixedAdj, variable_cost_per_unit: varAdj, break_even_units: units, break_even_revenue: revenueBE };
-  }, [breakEven, scenarioParams]);
 
   return (
     <div className="space-y-6">
