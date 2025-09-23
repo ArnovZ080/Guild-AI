@@ -191,6 +191,21 @@ export const financialApi = {
       } };
     }
   },
+  getAnalyticsMetrics: async (period = '30d') => {
+    try { return await request(`/financial/analytics-metrics?period=${encodeURIComponent(period)}`); } catch {
+      // Mock analytics KPIs
+      return { success: true, data: {
+        ltv: 1250,
+        cac: 310,
+        ltv_cac_ratio: 4.0,
+        gross_margin_pct: 62.5,
+        operating_margin_pct: 15.2,
+        payback_months: 2.8,
+        debt_to_equity: 0.35,
+        notes: 'Mocked analytics based on synthetic cohort and spend data.'
+      } };
+    }
+  },
   getRevenueTrend: async (period = '90d') => {
     try { return await request(`/financial/revenue-trend?period=${encodeURIComponent(period)}`); } catch {
       const dates = Array.from({ length: 8 }, (_, i) => `W${i+1}`);

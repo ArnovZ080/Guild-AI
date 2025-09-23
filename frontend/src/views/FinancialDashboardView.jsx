@@ -30,6 +30,7 @@ const FinancialDashboardView = () => {
   const [kpis, setKpis] = useState(null);
   const [budgetActual, setBudgetActual] = useState(null);
   const [adRoi, setAdRoi] = useState(null);
+  const [analyticsKpis, setAnalyticsKpis] = useState(null);
   const [campaignTop, setCampaignTop] = useState([]);
   const [healthTimeline, setHealthTimeline] = useState([]);
   const [revenueTrend, setRevenueTrend] = useState([]);
@@ -147,12 +148,14 @@ const FinancialDashboardView = () => {
         setBreakEven(be?.data || {});
         setRunwayCalc(rw?.data || {});
       } else if (activeTab === 'analytics') {
-        const [bva, roi] = await Promise.all([
+        const [bva, roi, kpis] = await Promise.all([
           financialApi.getBudgetVsActual(period),
           financialApi.getAdRoi(period),
+          financialApi.getAnalyticsMetrics(period),
         ]);
         setBudgetActual(bva?.data || {});
         setAdRoi(roi?.data || {});
+        setAnalyticsKpis(kpis?.data || {});
       } else if (activeTab === 'income_expenses') {
         const [rt, tc, et, tv, fv] = await Promise.all([
           financialApi.getRevenueTrend('90d'),
@@ -619,19 +622,50 @@ const FinancialDashboardView = () => {
       )}
 
       {activeTab === 'analytics' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="mb-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Budget vs Actual ({period})</h3>
-                <Pill tone="info">Tracking</Pill>
-              </div>
-              <div className="mt-2 flex justify-center gap-2">
-                {periodOptions.map(p => (
-                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
-                ))}
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* LTV */}
+          <div className="bg-white rounded-lg shadow p-6 cursor-pointer" onClick={()=>setCustomerModal({ title: 'Lifetime Value Details', customer: 'Cohorts', amount: analyticsKpis?.ltv })}>
+            <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">LTV</h3><Pill tone="info">${analyticsKpis?.ltv?.toLocaleString?.()}</Pill></div>
+            <div className="text-xs text-gray-500">Based on churn and ARPU</div>
+          </div>
+          {/* CAC */}
+          <div className="bg-white rounded-lg shadow p-6 cursor-pointer" onClick={()=>setVendorModal({ vendor: 'Acquisition', amount: analyticsKpis?.cac })}>
+            <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">CAC</h3><Pill tone="info">${analyticsKpis?.cac?.toLocaleString?.()}</Pill></div>
+            <div className="text-xs text-gray-500">Marketing + sales per new customer</div>
+          </div>
+          {/* LTV:CAC */}
+          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">LTV:CAC</h3><Pill tone={analyticsKpis?.ltv_cac_ratio>=3?'good':'warn'}>{analyticsKpis?.ltv_cac_ratio}x</Pill></div><div className="text-xs text-gray-500">Rule of thumb ≥ 3x</div></div>
+
+          {/* Gross Margin */}
+          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Gross Margin</h3><Pill tone={analyticsKpis?.gross_margin_pct>=60?'good':'info'}>{analyticsKpis?.gross_margin_pct}%</Pill></div><div className="text-xs text-gray-500">Revenue - COGS</div></div>
+          {/* Operating Margin */}
+          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Operating Margin</h3><Pill tone={analyticsKpis?.operating_margin_pct>=10?'good':'info'}>{analyticsKpis?.operating_margin_pct}%</Pill></div><div className="text-xs text-gray-500">EBIT / Revenue</div></div>
+          {/* Payback Period */}
+          <div className="bg-white rounded-lg shadow p-6"><div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">CAC Payback</h3><Pill tone={analyticsKpis?.payback_months<=3?'good':'warn'}>{analyticsKpis?.payback_months} mo</Pill></div><div className="text-xs text-gray-500">Months to break even</div></div>
+
+          {/* Debt-to-Equity */}
+          <div className="bg-white rounded-lg shadow p-6 lg:col-span-1"><div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Debt-to-Equity</h3><Pill tone={analyticsKpis?.debt_to_equity<=0.5?'good':'warn'}>{analyticsKpis?.debt_to_equity}</Pill></div><div className="text-xs text-gray-500">Leverage indicator</div></div>
+
+          {/* ROI by Channel */}
+          <div className="bg-white rounded-lg shadow p-6 lg:col-span-2">
+            <div className="mb-3 flex items-center justify-between"><h3 className="text-lg font-semibold text-gray-900">ROI by Channel ({period})</h3><Pill tone="info">ROAS</Pill></div>
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={(adRoi?.channels || []).map(x => ({ name: x.channel, ROAS: x.roas }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="name" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="ROAS" fill="#34D399" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+          </div>
+
+          {/* Budget vs Actual */}
+          <div className="bg-white rounded-lg shadow p-6 lg:col-span-3">
+            <div className="mb-3 flex items-center justify-between"><h3 className="text-lg font-semibold text-gray-900">Budget vs Actual ({period})</h3><div className="flex gap-2">{periodOptions.map(p => (<button key={p} onClick={()=>setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>))}</div></div>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={(budgetActual?.categories || []).map(x => ({ name: x.category, Budget: x.budget, Actual: x.actual }))}>
@@ -642,31 +676,6 @@ const FinancialDashboardView = () => {
                   <Legend />
                   <Bar dataKey="Budget" fill="#A78BFA" />
                   <Bar dataKey="Actual" fill="#60A5FA" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="mb-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Ad ROI by Channel ({period})</h3>
-                <Pill tone="info">ROAS</Pill>
-              </div>
-              <div className="mt-2 flex justify-center gap-2">
-                {periodOptions.map(p => (
-                  <button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>
-                ))}
-              </div>
-            </div>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={(adRoi?.channels || []).map(x => ({ name: x.channel, ROAS: x.roas }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="name" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="ROAS" fill="#34D399" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
