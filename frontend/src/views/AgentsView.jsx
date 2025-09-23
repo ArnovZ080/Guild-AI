@@ -153,6 +153,7 @@ const AgentsView = () => {
   const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [assignAgent, setShowAssignModal] = useState(null);
   const [theaterWorkflow, setTheaterWorkflow] = useState(null);
+  const [selectedWorkflowCard, setSelectedWorkflowCard] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [agentConfiguration, setAgentConfiguration] = useState({
     customInstructions: '',
@@ -682,6 +683,54 @@ const AgentsView = () => {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
           <ActionTheater />
+
+          {/* Autonomous Workflows - cards under the theater */}
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Autonomous Workflows</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[{
+                id: '1', name: 'Customer Onboarding Automation', status: 'running', progress: 75,
+                description: 'Automatically onboard new customers with personalized welcome sequence',
+                currentStep: 'Sending welcome email sequence'
+              },{
+                id: '2', name: 'Lead Qualification & Nurturing', status: 'running', progress: 68,
+                description: 'Automatically qualify and nurture leads based on behavior and engagement',
+                currentStep: 'Analyzing lead behavior patterns'
+              },{
+                id: '3', name: 'Content Distribution & Optimization', status: 'running', progress: 82,
+                description: 'Automatically distribute content and optimize for engagement',
+                currentStep: 'Optimizing social media posts'
+              },{
+                id: '5', name: 'Customer Support Automation', status: 'running', progress: 91,
+                description: 'Automatically handle support queries and escalate when needed',
+                currentStep: 'Escalating complex queries'
+              }].map(wf => (
+                <div key={wf.id} className="bg-white rounded-lg shadow-lg p-6 border hover:shadow-xl transition-shadow">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-3 bg-blue-100 rounded-lg"><Workflow className="w-5 h-5 text-blue-600" /></div>
+                      <div>
+                        <div className="font-semibold text-gray-900">{wf.name}</div>
+                        <p className="text-sm text-gray-600">{wf.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{wf.status}</span>
+                      <button onClick={()=>setSelectedWorkflowCard(wf)} className="text-sm text-blue-600 hover:underline">Details</button>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{wf.progress}%</span></div>
+                    <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} /></div>
+                  </div>
+                  <div className="text-sm text-gray-700"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                  <div className="mt-4 flex items-center justify-end">
+                    <button onClick={()=>setTheaterWorkflow(wf)} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Show in Theater</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
@@ -783,6 +832,46 @@ const AgentsView = () => {
                     Save Configuration
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Workflow Details Modal */}
+      {selectedWorkflowCard && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-6 relative">
+            <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600" onClick={()=>setSelectedWorkflowCard(null)}>×</button>
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">{selectedWorkflowCard.name}</h3>
+                  <p className="text-sm text-gray-500">{selectedWorkflowCard.description}</p>
+                </div>
+                <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 h-fit">{selectedWorkflowCard.status}</span>
+              </div>
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{selectedWorkflowCard.progress}%</span></div>
+                <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${selectedWorkflowCard.progress}%` }} /></div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="font-medium text-gray-800 mb-2">Current Step</div>
+                  <div className="text-gray-700">{selectedWorkflowCard.currentStep}</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="font-medium text-gray-800 mb-2">Agents Involved</div>
+                  <div className="flex flex-wrap gap-1">
+                    {['Research Agent','Marketing Agent','Sales Agent','Analytics Agent'].slice(0,3).map((a,i)=>(
+                      <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button className="px-3 py-1.5 text-sm border rounded" onClick={()=>setSelectedWorkflowCard(null)}>Close</button>
+                <button className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded" onClick={()=>{ setTheaterWorkflow(selectedWorkflowCard); setSelectedWorkflowCard(null); }}>Show in Theater</button>
               </div>
             </div>
           </div>
