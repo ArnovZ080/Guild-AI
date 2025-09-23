@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { repoAgentIds } from '../data/repoAgentIds.js';
+import { agentMeta } from '../data/agentMeta.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Brain, Zap, Users, BarChart, Settings, Play, Pause, RotateCcw, 
@@ -17,7 +18,7 @@ import { AgentActivityTheater } from '../components/theater/AgentActivityTheater
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
 // Fallback minimal metadata (category/type) for known ids can be expanded later
-const defaultAgentMeta = (id) => ({
+const defaultAgentMeta = (id) => (agentMeta[id] || {
   category: 'automation',
   type: 'management',
   description: toTitle(id),
@@ -683,14 +684,24 @@ const AgentsView = () => {
       </div>
       )}
 
-      {/* Agent Grid - Workforce (shows all agents with filters/search) */}
+      {/* Agent Grid - Workforce (grouped by category) */}
       {activeTab === 'workforce' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          <AnimatePresence>
-            {workforceList.map(agent => (
-              <AgentCard key={agent.id} agent={agent} />
-            ))}
-          </AnimatePresence>
+        <div className="space-y-8">
+          {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
+            <div key={category}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
+                <span className="text-sm text-gray-500">{workforceList.filter(a => a.category === category).length} agents</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {workforceList.filter(a => a.category === category).map(agent => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
