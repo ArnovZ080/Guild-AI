@@ -11,14 +11,5 @@ export default defineConfig({
   },
   css: {
     postcss: './postcss.config.js',
-  },
-  build: {
-    rollupOptions: {
-      external: [
-        'react-toastify',
-        '@radix-ui/react-separator',
-        '@radix-ui/react-select'
-      ]
-    }
   }
 })
