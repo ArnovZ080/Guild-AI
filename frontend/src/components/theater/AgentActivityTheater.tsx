@@ -9,6 +9,7 @@ interface Agent {
   currentTask: string;
   position: { x: number; y: number };
   progress: number;
+  activityLog?: { id: string; text: string; status: 'queued' | 'running' | 'done'; ts: string }[];
 }
 
 interface Task {
@@ -28,7 +29,12 @@ export const AgentActivityTheater: React.FC = () => {
       status: 'working',
       currentTask: 'Analyzing competitor pricing',
       position: { x: 20, y: 30 },
-      progress: 0.7
+      progress: 0.7,
+      activityLog: [
+        { id: 'a1', text: "Queued topics from backlog", status: 'done', ts: new Date(Date.now()-1000*60*6).toISOString() },
+        { id: 'a2', text: "Researching 'pricing models'", status: 'done', ts: new Date(Date.now()-1000*60*5).toISOString() },
+        { id: 'a3', text: "Scraping competitor sites", status: 'running', ts: new Date(Date.now()-1000*60*3).toISOString() },
+      ]
     },
     {
       id: 'marketing-1',
@@ -37,7 +43,11 @@ export const AgentActivityTheater: React.FC = () => {
       status: 'collaborating',
       currentTask: 'Creating campaign strategy',
       position: { x: 60, y: 20 },
-      progress: 0.4
+      progress: 0.4,
+      activityLog: [
+        { id: 'm1', text: 'Pulled audience segments', status: 'done', ts: new Date(Date.now()-1000*60*8).toISOString() },
+        { id: 'm2', text: 'Drafting value propositions', status: 'running', ts: new Date(Date.now()-1000*60*2).toISOString() },
+      ]
     },
     {
       id: 'sales-1',
@@ -46,7 +56,11 @@ export const AgentActivityTheater: React.FC = () => {
       status: 'working',
       currentTask: 'Qualifying leads',
       position: { x: 80, y: 60 },
-      progress: 0.9
+      progress: 0.9,
+      activityLog: [
+        { id: 's1', text: 'Scored inbound leads', status: 'done', ts: new Date(Date.now()-1000*60*10).toISOString() },
+        { id: 's2', text: 'Prioritizing outreach list', status: 'running', ts: new Date(Date.now()-1000*60*1).toISOString() },
+      ]
     },
     {
       id: 'content-1',
@@ -55,7 +69,10 @@ export const AgentActivityTheater: React.FC = () => {
       status: 'idle',
       currentTask: 'Waiting for brief',
       position: { x: 40, y: 70 },
-      progress: 0
+      progress: 0,
+      activityLog: [
+        { id: 'c1', text: 'Template cache warmed', status: 'done', ts: new Date(Date.now()-1000*60*20).toISOString() }
+      ]
     }
   ]);
 
@@ -119,6 +136,54 @@ export const AgentActivityTheater: React.FC = () => {
           ]));
         }
       }
+      // append granular activity per working/collaborating agent
+      setAgents(prev => prev.map(a => {
+        if (a.status === 'working' || a.status === 'collaborating') {
+          const catalogs: Record<string, string[]> = {
+            research: [
+              "Researching topic variations",
+              "Scraping web sources",
+              "Extracting key facts",
+              "Compiling research doc",
+              "Summarizing insights"
+            ],
+            marketing: [
+              "Analyzing audience cohorts",
+              "Drafting creative angles",
+              "Mapping channels",
+              "Outlining campaign timeline",
+            ],
+            sales: [
+              "Enriching lead data",
+              "Qualifying via rules",
+              "Preparing outreach copy",
+              "Scheduling follow-ups",
+            ],
+            content: [
+              "Gathering references",
+              "Outlining article structure",
+              "Drafting sections",
+              "Editing for tone",
+            ],
+            support: [
+              "Collecting recent tickets",
+              "Clustering issues",
+              "Generating responses",
+            ]
+          };
+          const pool = catalogs[a.type] || ["Processing task step"];
+          const next = pool[Math.floor(Math.random() * pool.length)];
+          const newLog = {
+            id: `log-${Date.now()}`,
+            text: next,
+            status: 'running' as const,
+            ts: new Date().toISOString()
+          };
+          const trimmed = (a.activityLog || []).concat(newLog).slice(-10);
+          return { ...a, activityLog: trimmed };
+        }
+        return a;
+      }));
     }, 2000);
     return () => clearInterval(interval);
   }, []);
@@ -284,6 +349,24 @@ export const AgentActivityTheater: React.FC = () => {
                         <li>Notify owner</li>
                       </ul>
                     </div>
+                  </div>
+                  {/* Live granular activity */}
+                  <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                    <div className="font-medium text-gray-800 mb-2">Live Activity</div>
+                    <ul className="divide-y border rounded">
+                      {(a.activityLog || []).slice().reverse().map(item => (
+                        <li key={item.id} className="p-2 flex items-center justify-between">
+                          <div className="pr-3">
+                            <div className="text-gray-800">{item.text}</div>
+                            <div className="text-xs text-gray-500">{new Date(item.ts).toLocaleTimeString()}</div>
+                          </div>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${item.status==='done'?'bg-green-100 text-green-700': item.status==='running'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{item.status}</span>
+                        </li>
+                      ))}
+                      {(a.activityLog || []).length === 0 && (
+                        <li className="p-2 text-gray-500 text-sm">No activity yet</li>
+                      )}
+                    </ul>
                   </div>
                   {/* Recent Assets */}
                   <div className="bg-gray-50 rounded-lg p-3 text-sm">
