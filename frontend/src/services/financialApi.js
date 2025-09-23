@@ -84,8 +84,15 @@ export const financialApi = {
     try { return await request('/financial/forecast/scenario', { method: 'POST', body: JSON.stringify(params) }); } catch {
       // naive transform from baseline
       const { revenueDeltaPct = 0, adSpendDeltaPct = 0, hiresDelta = 0 } = params || {};
-      const base = await (async () => (await (await Promise.resolve({})), (await module.exports.getBaselineForecast?.('90d'))))();
-      const baseline = base?.data?.points || [];
+      // generate a synthetic 90d baseline locally to ensure charts render without backend
+      const days = 90;
+      const start = Date.now();
+      const baseline = Array.from({ length: days }, (_, i) => {
+        const date = new Date(start + i * 86400000).toISOString().slice(0, 10);
+        const revenue = 800 + Math.sin(i / 6) * 120 + i * 2;
+        const expenses = 600 + Math.cos(i / 5) * 80 + i * 1.5;
+        return { date, revenue: Math.round(revenue), expenses: Math.round(expenses) };
+      });
       const hireCost = 6000 * (hiresDelta || 0) / (baseline.length / 30 || 1);
       const points = baseline.map(p => {
         const revenue = Math.round(p.revenue * (1 + revenueDeltaPct / 100));
