@@ -676,7 +676,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                             setConditionBranches(copy);
                           }}
                         />
-                      </div)
+                      </div>
                     )}
                     <button
                       className="text-xs text-blue-600 hover:underline"
