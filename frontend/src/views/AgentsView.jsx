@@ -5,7 +5,8 @@ import {
   Search, Filter, Eye, MessageSquare, Phone, Mail, Calendar, Target,
   DollarSign, TrendingUp, FileText, Image, Video, Mic, Camera,
   Globe, Database, Shield, Lightbulb, Briefcase, Heart, Star,
-  ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone
+  ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone,
+  Wrench, Network, Link, Share, Headphones
 } from 'lucide-react';
 import { Workflow } from 'lucide-react';
 // import AgentActivityStage from '../components/theater/AgentActivityStage.jsx';
