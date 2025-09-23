@@ -228,9 +228,15 @@ export const financialApi = {
   },
   getInvoices: async (status = 'pending') => {
     try { return await request(`/financial/invoices?status=${encodeURIComponent(status)}`); } catch {
+      if (status === 'receivable') {
+        return { success: true, data: { invoices: [
+          { id: 'rcv_101', customer: 'Delta Ltd', amount: 2100, due_date: '2025-10-06', status: 'sent' },
+          { id: 'rcv_102', customer: 'Omega Inc', amount: 1450, due_date: '2025-10-12', status: 'sent' },
+        ] } };
+      }
       return { success: true, data: { invoices: [
-        { id: 'inv_001', customer: 'Acme Corp', amount: 1250, due_date: '2025-10-05', status: 'pending' },
-        { id: 'inv_002', customer: 'Globex LLC', amount: 890, due_date: '2025-10-08', status: 'pending' },
+        { id: 'inv_001', vendor: 'AWS', amount: 1250, due_date: '2025-10-05', status: 'pending' },
+        { id: 'inv_002', vendor: 'Google Workspace', amount: 120, due_date: '2025-10-08', status: 'pending' },
       ] } };
     }
   },
@@ -242,6 +248,11 @@ export const financialApi = {
   markInvoicePaid: async (invoiceId) => {
     try { return await request(`/financial/invoices/${encodeURIComponent(invoiceId)}/mark-paid`, { method: 'POST' }); } catch {
       return { success: true, data: { id: invoiceId, status: 'paid' } };
+    }
+  },
+  markInvoiceReceived: async (invoiceId) => {
+    try { return await request(`/financial/invoices/${encodeURIComponent(invoiceId)}/mark-received`, { method: 'POST' }); } catch {
+      return { success: true, data: { id: invoiceId, status: 'received' } };
     }
   },
   getInvoiceApprovalContext: async (invoiceId) => {

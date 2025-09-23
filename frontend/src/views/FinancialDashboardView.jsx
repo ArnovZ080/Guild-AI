@@ -131,8 +131,12 @@ const FinancialDashboardView = () => {
         setPayables(pay?.data?.items || []);
         setWcCycle(wcc?.data || {});
       } else if (activeTab === 'invoices') {
-        const inv = await financialApi.getInvoices('pending');
-        setInvoices(inv?.data?.invoices || []);
+        const [pay, rec] = await Promise.all([
+          financialApi.getInvoices('pending'),
+          financialApi.getInvoices('receivable'),
+        ]);
+        setInvoices(pay?.data?.invoices || []);
+        setReceivableInvoices(rec?.data?.invoices || []);
       } else if (activeTab === 'forecasts') {
         const [baseline, be, rw] = await Promise.all([
           financialApi.getBaselineForecast('90d'),
@@ -170,6 +174,7 @@ const FinancialDashboardView = () => {
   useEffect(() => { localStorage.setItem('financial.scenario', scenario); }, [scenario]);
 
   const [invoices, setInvoices] = useState([]);
+  const [receivableInvoices, setReceivableInvoices] = useState([]);
   const [approvalModal, setApprovalModal] = useState(null);
   const [reallocateModal, setReallocateModal] = useState(null);
 
@@ -771,48 +776,93 @@ const FinancialDashboardView = () => {
 
       {/* Invoices/Payments */}
       {activeTab === 'invoices' && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-blue-500" />Invoices & Payments</h3>
-            <Pill tone="warn">Needs Attention</Pill>
-          </div>
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-600">
-                  <th className="px-4 py-2">Invoice</th>
-                  <th className="px-4 py-2">Customer</th>
-                  <th className="px-4 py-2">Amount</th>
-                  <th className="px-4 py-2">Due</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {invoices.map(inv => (
-                  <tr key={inv.id} className="border-t">
-                    <td className="px-4 py-2 font-medium text-gray-900">{inv.id}</td>
-                    <td className="px-4 py-2">{inv.customer}</td>
-                    <td className="px-4 py-2">${(inv.amount||0).toLocaleString?.()}</td>
-                    <td className="px-4 py-2">{inv.due_date}</td>
-                    <td className="px-4 py-2 capitalize">{inv.status}</td>
-                    <td className="px-4 py-2 space-x-2">
-                      <button className="px-2 py-1 text-xs rounded bg-emerald-600 text-white" onClick={async () => {
-                        const ctx = await financialApi.getInvoiceApprovalContext(inv.id);
-                        setApprovalModal({ context: ctx?.data });
-                      }}>Approve</button>
-                      <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
-                        await financialApi.markInvoicePaid(inv.id);
-                        setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'paid' } : i));
-                      }}>Mark Paid</button>
-                    </td>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Cash In / Payments Expected */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Cash In / Payments Expected</h3>
+              <Pill tone="info">AR</Pill>
+            </div>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-600">
+                    <th className="px-4 py-2">Invoice</th>
+                    <th className="px-4 py-2">Customer</th>
+                    <th className="px-4 py-2">Amount</th>
+                    <th className="px-4 py-2">Due</th>
+                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2">Actions</th>
                   </tr>
-                ))}
-                {invoices.length === 0 && (
-                  <tr><td className="px-4 py-6 text-gray-500" colSpan="6">No invoices found.</td></tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {receivableInvoices.map(inv => (
+                    <tr key={inv.id} className="border-t">
+                      <td className="px-4 py-2 font-medium text-gray-900">{inv.id}</td>
+                      <td className="px-4 py-2">{inv.customer}</td>
+                      <td className="px-4 py-2">${(inv.amount||0).toLocaleString?.()}</td>
+                      <td className="px-4 py-2">{inv.due_date}</td>
+                      <td className="px-4 py-2 capitalize">{inv.status}</td>
+                      <td className="px-4 py-2 space-x-2">
+                        <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
+                          await financialApi.markInvoiceReceived(inv.id);
+                          setReceivableInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'received' } : i));
+                        }}>Mark Received</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {receivableInvoices.length === 0 && (
+                    <tr><td className="px-4 py-6 text-gray-500" colSpan="6">No receivables found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Cash Out / Invoices to Pay */}
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center"><FileCheck className="w-5 h-5 mr-2 text-blue-500" />Cash Out / Invoices to Pay</h3>
+              <Pill tone="warn">Needs Attention</Pill>
+            </div>
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-600">
+                    <th className="px-4 py-2">Invoice</th>
+                    <th className="px-4 py-2">Vendor</th>
+                    <th className="px-4 py-2">Amount</th>
+                    <th className="px-4 py-2">Due</th>
+                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoices.map(inv => (
+                    <tr key={inv.id} className="border-t">
+                      <td className="px-4 py-2 font-medium text-gray-900">{inv.id}</td>
+                      <td className="px-4 py-2">{inv.vendor}</td>
+                      <td className="px-4 py-2">${(inv.amount||0).toLocaleString?.()}</td>
+                      <td className="px-4 py-2">{inv.due_date}</td>
+                      <td className="px-4 py-2 capitalize">{inv.status}</td>
+                      <td className="px-4 py-2 space-x-2">
+                        <button className="px-2 py-1 text-xs rounded bg-emerald-600 text-white" onClick={async () => {
+                          const ctx = await financialApi.getInvoiceApprovalContext(inv.id);
+                          setApprovalModal({ context: ctx?.data });
+                        }}>Approve</button>
+                        <button className="px-2 py-1 text-xs rounded bg-blue-600 text-white" onClick={async () => {
+                          await financialApi.markInvoicePaid(inv.id);
+                          setInvoices(prev => prev.map(i => i.id===inv.id ? { ...i, status: 'paid' } : i));
+                        }}>Mark Paid</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {invoices.length === 0 && (
+                    <tr><td className="px-4 py-6 text-gray-500" colSpan="6">No invoices found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
