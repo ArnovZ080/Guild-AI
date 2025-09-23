@@ -660,6 +660,42 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                   {!(data.category === 'trigger' || data.category === 'action' || data.category === 'condition' || data.category === 'split' || data.category === 'agent') && (
                     <div className="text-xs text-gray-600">Describe what this step should do in one or two sentences.</div>
                   )}
+
+                  {/* Quick Presets */}
+                  <div className="mt-3">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Quick presets</div>
+                    <div className="flex flex-wrap gap-2">
+                      {(data.category === 'trigger' ? [
+                        'When I receive an email containing "pricing"',
+                        'On form submission from /contact',
+                        'Every weekday at 09:00',
+                        'When webhook "lead.created" is received',
+                      ] : data.category === 'action' ? [
+                        'Filter emails between spam and useful',
+                        'Send Slack notification to #sales',
+                        'Create contact in CRM with extracted fields',
+                        'Append row to Google Sheet "Leads"',
+                      ] : (data.category === 'condition' || data.category === 'split') ? [
+                        'If subject contains "free" then spam else continue',
+                        'If score > 0.8 then proceed else review',
+                        'If customer is VIP then fast-track else normal',
+                      ] : data.category === 'agent' ? [
+                        'Summarize the email then reply professionally',
+                        'Draft friendly follow-up email with next steps',
+                        'Delegate to Research Agent if info missing',
+                      ] : [
+                        'Perform the intended step succinctly',
+                      ]).map((preset, idx) => (
+                        <button
+                          key={idx}
+                          className="px-2 py-1 text-xs border rounded-full hover:bg-gray-100"
+                          onClick={() => setNlInput(preset)}
+                        >
+                          {preset}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
 
