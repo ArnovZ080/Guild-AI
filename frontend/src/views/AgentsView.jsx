@@ -8,7 +8,7 @@ import {
   ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone
 } from 'lucide-react';
 import { Workflow } from 'lucide-react';
-import AgentActivityStage from '../components/theater/AgentActivityStage.jsx';
+// import AgentActivityStage from '../components/theater/AgentActivityStage.jsx';
 import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
@@ -680,8 +680,8 @@ const AgentsView = () => {
 
       {/* Agent Theater Tab (distinct visual) */}
       {activeTab === 'theater' && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <AgentActivityStage />
+        <div className="bg-white rounded-lg shadow-lg p-6 overflow-visible">
+          <AgentActivityTheater />
         </div>
       )}
 
