@@ -24,9 +24,9 @@ export const PersistentSidebar = ({
 }) => {
   const dashboards = [
     { id: 'dashboard', label: 'Main Dashboard', icon: Home, path: '/dashboard' },
-    { id: 'financial', label: 'Financial Dashboard', icon: TrendingUp, path: '/financial' },
+    { id: 'financial', label: 'Financial Dashboard', icon: TrendingUp, path: '/analytics' },
     { id: 'agents', label: 'Agent Dashboard', icon: Zap, path: '/agents' },
-    { id: 'content', label: 'Content Dashboard', icon: MessageSquare, path: '/content' },
+    { id: 'content', label: 'Content Dashboard', icon: MessageSquare, path: '/analytics' },
     { id: 'customers', label: 'Customer Dashboard', icon: Users, path: '/customers' },
     { id: 'conversations', label: 'Conversations Dashboard', icon: MessageSquare, path: '/conversations' },
   ];

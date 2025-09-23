@@ -368,6 +368,7 @@ const FinancialDashboardView = () => {
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-emerald-500" />Revenue ({period})</h3>
                   <div className="flex items-center gap-2"><Pill tone="info">{revView}</Pill></div>
                 </div>
+                <div className="text-xs text-gray-500 mt-1">Income generated from all sources in the selected period.</div>
                 <div className="mt-2 flex justify-center gap-2">
                   {periodOptions.map(p => (<button key={p} onClick={() => setPeriod(p)} className={`px-2 py-1 text-xs rounded ${period===p ? 'bg-gray-900 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>{p}</button>))}
                   <div className="ml-2 inline-flex rounded bg-gray-100">{['MTD','YTD'].map(v => (<button key={v} onClick={() => setRevView(v)} className={`px-2 py-1 text-[10px] rounded ${revView===v ? 'bg-gray-900 text-white' : ''}`}>{v}</button>))}</div>
@@ -386,6 +387,7 @@ const FinancialDashboardView = () => {
             {/* Revenue Streams */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Revenue Streams</h3></div>
+              <div className="text-xs text-gray-500 mb-2">Breakdown of revenue by product, subscription, or service.</div>
               <ul className="text-sm text-gray-700 space-y-1">
                 {(revenue?.revenue_breakdown || []).map((r, i) => (
                   <li key={i} className="flex justify-between"><span>{r?.source || 'Source'}</span><span>${(r?.amount || 0).toLocaleString?.()}</span></li>
@@ -409,6 +411,7 @@ const FinancialDashboardView = () => {
             {/* Revenue Trend (stacked) */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Revenue Trend by Stream (90d)</h3></div>
+              <div className="text-xs text-gray-500 mb-2">How each revenue stream has trended over time.</div>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={revenueTrend.map(p => ({ name: p.date, Products: p.streams?.Products, Subscriptions: p.streams?.Subscriptions, Consulting: p.streams?.Consulting }))}>
@@ -428,6 +431,7 @@ const FinancialDashboardView = () => {
             {/* Top Customers */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Top Customers</h3></div>
+              <div className="text-xs text-gray-500 mb-2">Customers contributing the most revenue in this period.</div>
               <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
                 {topCustomers.map((c, i) => (<li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setCustomerModal(c)}><span className="truncate pr-2">{c.customer}</span><span>${c.amount.toLocaleString?.()}</span></li>))}
                 {topCustomers.length === 0 && <li className="text-gray-500">No customers in this period.</li>}
@@ -444,6 +448,7 @@ const FinancialDashboardView = () => {
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center"><TrendingUp className="w-5 h-5 mr-2 text-red-500" />Expense Breakdown ({period})</h3>
                 <Pill tone="info">{expView}</Pill>
               </div>
+              <div className="text-xs text-gray-500 mb-2">Where money was spent by category in the selected period.</div>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={(expenses?.expense_breakdown || []).map(x => ({ name: x?.category, value: x?.amount }))}>
@@ -461,6 +466,7 @@ const FinancialDashboardView = () => {
             {/* Expense Trend */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-3"><h3 className="text-lg font-semibold text-gray-900">Expense Trend (90d)</h3></div>
+              <div className="text-xs text-gray-500 mb-2">Overall spending trend across recent periods.</div>
               <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%">
                   <RLineChart data={expenseTrend.map(p => ({ name: p.date, total: p.total }))}>
@@ -478,6 +484,7 @@ const FinancialDashboardView = () => {
             {/* Top Vendors */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Top Vendors</h3></div>
+              <div className="text-xs text-gray-500 mb-2">Vendors with the highest spend in this period.</div>
               <ul className="text-sm text-gray-700 space-y-1 max-h-40 overflow-y-auto">
                 {topVendors.map((v, i) => (<li key={i} className="flex justify-between hover:bg-gray-50 rounded px-1 cursor-pointer" onClick={() => setVendorModal(v)}><span className="truncate pr-2">{v.vendor}</span><span>${v.amount.toLocaleString?.()}</span></li>))}
                 {topVendors.length === 0 && <li className="text-gray-500">No vendors in this period.</li>}
@@ -488,6 +495,7 @@ const FinancialDashboardView = () => {
             {/* Fixed vs Variable */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Fixed vs Variable Costs</h3></div>
+              <div className="text-xs text-gray-500 mb-2">Share of fixed vs variable expenses in this period.</div>
               <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -508,6 +516,7 @@ const FinancialDashboardView = () => {
             {/* Cost Overruns */}
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-2"><h3 className="text-lg font-semibold text-gray-900">Cost Overruns</h3></div>
+              <div className="text-xs text-gray-500 mb-2">Categories where actual spend exceeded budget.</div>
               <ul className="text-xs text-gray-700 space-y-1">
                 {(budgetActual?.categories||[]).filter(c => (c.actual||0) > (c.budget||0)).map((c,i) => (
                   <li key={i} className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded px-2 py-1"><span>{c.category}</span><span>Actual ${c.actual} vs Budget ${c.budget}</span></li>
@@ -555,8 +564,10 @@ const FinancialDashboardView = () => {
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <div className="text-xs text-gray-500 mb-1">Working Capital Cycle</div>
-              <div className="text-sm text-gray-900">DSO {wcCycle?.dso_days||0}d • DPO {wcCycle?.dpo_days||0}d • DIO {wcCycle?.dio_days||0}d</div>
-              <div className="text-xs text-gray-500 mt-1">Cycle: {wcCycle?.cycle_days||0} days</div>
+              <div className="text-sm text-gray-900">
+                DSO (Days Sales Outstanding) {wcCycle?.dso_days||0}d • DPO (Days Payable Outstanding) {wcCycle?.dpo_days||0}d • DIO (Days Inventory Outstanding) {wcCycle?.dio_days||0}d
+              </div>
+              <div className="text-xs text-gray-500 mt-1">How quickly you collect, pay, and turn inventory. Cycle: {wcCycle?.cycle_days||0} days — lower is better.</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
@@ -581,6 +592,7 @@ const FinancialDashboardView = () => {
               <h3 className="text-lg font-semibold text-gray-900 flex items-center"><LineChart className="w-5 h-5 mr-2 text-blue-500" />Cashflow Projections ({period})</h3>
               <Pill tone={runway >= 12 ? 'good' : runway >= 6 ? 'info' : 'warn'}>{runway >= 12 ? 'Comfortable' : runway >= 6 ? 'Okay' : 'Needs Attention'}</Pill>
             </div>
+            <div className="text-xs text-gray-500 mb-2">Projected cash balance over time under the selected scenario.</div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <RLineChart data={(projections?.projections || []).map((pt, idx) => ({ name: pt?.date || idx+1, balance: pt?.balance || 0 }))}>
@@ -601,6 +613,7 @@ const FinancialDashboardView = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold text-gray-900">Receivables Timeline (90d)</h3>
               </div>
+              <div className="text-xs text-gray-500 mb-2">Expected incoming customer payments by date.</div>
               <ul className="text-sm text-gray-700 space-y-2 max-h-64 overflow-y-auto">
                 {receivables.map((r,i)=>(
                   <li key={i} className="flex items-center justify-between">
@@ -615,6 +628,7 @@ const FinancialDashboardView = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold text-gray-900">Payables Timeline (90d)</h3>
               </div>
+              <div className="text-xs text-gray-500 mb-2">Upcoming vendor/supplier obligations by date.</div>
               <ul className="text-sm text-gray-700 space-y-2 max-h-64 overflow-y-auto">
                 {payables.map((p,i)=>(
                   <li key={i} className="flex items-center justify-between">
