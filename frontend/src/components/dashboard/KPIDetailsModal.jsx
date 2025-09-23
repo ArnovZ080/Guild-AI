@@ -47,3 +47,6 @@ const KPIDetailsModal = ({ open, onClose, title, details }) => {
 export default KPIDetailsModal;
 
 
+
+
+

@@ -288,50 +288,6 @@ class OnboardingFollowUpService {
     }
     return { success: true, followUpQuestions: [], message: 'Onboarding complete.' };
   }
-
-  // Mark a follow-up as completed, persist into onboarding data, update pending list, and emit event
-  completeFollowUp(questionKey, value) {
-    try {
-      // Update onboarding data
-      const raw = localStorage.getItem('guild_onboarding_data');
-      const data = raw ? JSON.parse(raw) : {};
-      const updated = { ...data, [questionKey]: value };
-
-      // Remove from pending followups if present
-      const pendingRaw = localStorage.getItem('guild_pending_followups');
-      const pending = pendingRaw ? JSON.parse(pendingRaw) : [];
-      const nextPending = pending.filter((f) => f.id !== `followup_${questionKey}`);
-
-      // Optionally update flags
-      updated.hasPendingFollowUps = nextPending.length > 0;
-      updated.followUpCount = nextPending.length;
-
-      // Persist
-      localStorage.setItem('guild_onboarding_data', JSON.stringify(updated));
-      localStorage.setItem('guild_pending_followups', JSON.stringify(nextPending));
-
-      // In-memory state
-      this.pendingFollowUps = nextPending;
-      this.completedFollowUps = [...(this.completedFollowUps || []), { questionKey, value, completedAt: new Date().toISOString() }];
-
-      // Broadcast update to listeners (e.g., chat UI)
-      if (typeof window !== 'undefined' && window.dispatchEvent) {
-        const evt = new CustomEvent('guild:onboardingUpdated', {
-          detail: {
-            questionKey,
-            value,
-            onboarding: updated,
-            pendingFollowUps: nextPending,
-          },
-        });
-        window.dispatchEvent(evt);
-      }
-
-      return { success: true, pendingFollowUps: nextPending, onboarding: updated };
-    } catch (e) {
-      return { success: false, error: e?.message || 'Failed to complete follow-up' };
-    }
-  }
 }
 
 const onboardingFollowUpService = new OnboardingFollowUpService();
