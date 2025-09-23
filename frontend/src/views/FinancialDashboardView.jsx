@@ -283,7 +283,7 @@ const FinancialDashboardView = () => {
             <div className="text-[11px] text-gray-500">Liquid cash available right now.</div>
           </div>
           <div className="bg-white rounded-lg shadow p-4">
-            <div className="text-xs text-gray-500 mb-1">AR / AP</div>
+            <div className="text-xs text-gray-500 mb-1">Accounts Receivable / Accounts Payable</div>
             <div className="text-sm text-gray-900">AR: ${((kpis?.ar_total)||0).toLocaleString?.()} • AP: ${((kpis?.ap_total)||0).toLocaleString?.()}</div>
             <div className="text-[11px] text-gray-500">Accounts Receivable vs Accounts Payable.</div>
           </div>
@@ -673,7 +673,23 @@ const FinancialDashboardView = () => {
           <div className="bg-white rounded-lg shadow p-6 lg:col-span-1">
             <div className="flex items-center justify-between mb-1"><h3 className="text-lg font-semibold text-gray-900">Debt-to-Equity Ratio</h3><Pill tone={analyticsKpis?.debt_to_equity<=0.5?'good':'warn'}>Risk</Pill></div>
             <div className="text-xs text-gray-500 mb-2">Measures leverage: lower generally safer.</div>
-            <div className="text-2xl font-bold text-gray-900">{analyticsKpis?.debt_to_equity ?? '—'}</div>
+            <div className="text-2xl font-bold text-gray-900 mb-3">{analyticsKpis?.debt_to_equity ?? '—'}</div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Debt</div>
+                <ul className="space-y-1">
+                  {(analyticsKpis?.debt_breakdown||[]).map((d,i)=>(<li key={i} className="flex justify-between"><span>{d.label}</span><span>${d.amount?.toLocaleString?.()}</span></li>))}
+                  <li className="flex justify-between font-medium border-t pt-1"><span>Total</span><span>${(analyticsKpis?.debt_total||0).toLocaleString?.()}</span></li>
+                </ul>
+              </div>
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Equity</div>
+                <ul className="space-y-1">
+                  {(analyticsKpis?.equity_breakdown||[]).map((e,i)=>(<li key={i} className="flex justify-between"><span>{e.label}</span><span>${e.amount?.toLocaleString?.()}</span></li>))}
+                  <li className="flex justify-between font-medium border-t pt-1"><span>Total</span><span>${(analyticsKpis?.equity_total||0).toLocaleString?.()}</span></li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           {/* ROI by Channel */}

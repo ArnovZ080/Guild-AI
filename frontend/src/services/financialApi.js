@@ -202,6 +202,16 @@ export const financialApi = {
         operating_margin_pct: 15.2,
         payback_months: 2.8,
         debt_to_equity: 0.35,
+        debt_total: 120000,
+        equity_total: 340000,
+        debt_breakdown: [
+          { label: 'Bank Loan', amount: 80000 },
+          { label: 'Credit Lines', amount: 40000 },
+        ],
+        equity_breakdown: [
+          { label: 'Founder Equity', amount: 200000 },
+          { label: 'Retained Earnings', amount: 140000 },
+        ],
         notes: 'Mocked analytics based on synthetic cohort and spend data.'
       } };
     }
