@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { repoAgentIds } from '../data/repoAgentIds.js';
 import { agentMeta } from '../data/agentMeta.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -172,6 +172,12 @@ const getAgentActivityData = (agent) => {
 
 const AgentsView = () => {
   const { agents, loading } = useAgentStatus();
+  const API = (import.meta && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '';
+  const [apiAgents, setApiAgents] = useState(null);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [showHireModal, setShowHireModal] = useState(false);
+  const [hireCandidate, setHireCandidate] = useState(null);
+  const [hireTerm, setHireTerm] = useState('day');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -189,6 +195,27 @@ const AgentsView = () => {
     notifications: true
   });
   const { triggerCelebration } = useCelebrations();
+
+  useEffect(() => {
+    async function fetchAvailableAgents() {
+      if (!API) { setApiAgents(null); return; }
+      try {
+        setApiLoading(true);
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+        const res = await fetch(`${API}/agents/available`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        if (!res.ok) { setApiAgents(null); return; }
+        const list = await res.json();
+        if (Array.isArray(list)) setApiAgents(list);
+      } catch (e) {
+        setApiAgents(null);
+      } finally {
+        setApiLoading(false);
+      }
+    }
+    fetchAvailableAgents();
+  }, [API]);
 
   // Handler functions
   const handleActivateAgent = (agent) => {
@@ -231,6 +258,12 @@ const AgentsView = () => {
     return matchesSearch && matchesCategory && matchesType && matchesStatus;
   });
   const workforceList = (filteredAgents.length ? filteredAgents : allAgents);
+  const includedAgents = Array.isArray(apiAgents)
+    ? apiAgents.filter(a => a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date()))
+    : [];
+  const hireableAgents = Array.isArray(apiAgents)
+    ? apiAgents.filter(a => !(a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date())))
+    : [];
 
   // Get category styling
   const getCategoryStyle = (category) => {
@@ -684,25 +717,85 @@ const AgentsView = () => {
       </div>
       )}
 
-      {/* Agent Grid - Workforce (grouped by category) */}
+      {/* Agent Grid - Workforce */}
       {activeTab === 'workforce' && (
-        <div className="space-y-8">
-          {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
-            <div key={category}>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
-                <span className="text-sm text-gray-500">{workforceList.filter(a => a.category === category).length} agents</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <AnimatePresence>
-                  {workforceList.filter(a => a.category === category).map(agent => (
-                    <AgentCard key={agent.id} agent={agent} />
+        Array.isArray(apiAgents) && (includedAgents.length + hireableAgents.length > 0) ? (
+          <div className="space-y-8">
+            {/* Included section */}
+            <div>
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className=\"text-sm font-semibold text-black\">({includedAgents.length})</span></h3>
+              {includedAgents.length === 0 ? (
+                <div className="text-sm text-gray-500">No included agents yet.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {includedAgents.map(a => (
+                    <AgentCard key={a.agent_id || a.id} agent={{
+                      id: a.agent_id || a.id,
+                      name: a.name,
+                      category: a.category || 'automation',
+                      type: a.type || 'management',
+                      status: a.status || 'active',
+                      capabilities: a.capabilities || ['Core capability'],
+                      description: a.description || a.name
+                    }} />
                   ))}
-                </AnimatePresence>
-              </div>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+
+            <div className="h-px bg-gray-200" />
+
+            {/* Hireable section */}
+            <div>
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className=\"text-sm font-semibold text-black\">({hireableAgents.length})</span></h3>
+              {hireableAgents.length === 0 ? (
+                <div className="text-sm text-gray-500">All agents are included or hired.</div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {hireableAgents.map(a => (
+                    <div key={a.agent_id || a.id} className="relative">
+                      <AgentCard agent={{
+                        id: a.agent_id || a.id,
+                        name: a.name,
+                        category: a.category || 'automation',
+                        type: a.type || 'management',
+                        status: a.status || 'inactive',
+                        capabilities: a.capabilities || ['Core capability'],
+                        description: a.description || a.name
+                      }} />
+                      <div className="absolute top-3 right-3">
+                        <button
+                          className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700"
+                          onClick={(e) => { e.stopPropagation(); setHireCandidate(a); setHireTerm('day'); setShowHireModal(true); }}
+                        >
+                          Hire me
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
+              <div key={category}>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
+                <span className="text-sm font-semibold text-black">{workforceList.filter(a => a.category === category).length} agents</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <AnimatePresence>
+                    {workforceList.filter(a => a.category === category).map(agent => (
+                      <AgentCard key={agent.id} agent={agent} />
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Workflow Builder Tab */}
@@ -821,6 +914,71 @@ const AgentsView = () => {
                     Save Configuration
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hire Agent Modal */}
+      {showHireModal && hireCandidate && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">Hire {hireCandidate.name}</h2>
+                <button onClick={() => setShowHireModal(false)} className="text-gray-400 hover:text-gray-600">×</button>
+              </div>
+              <div className="space-y-4">
+                <div className="text-sm text-gray-700">Choose a term:</div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    className={`p-3 border rounded ${hireTerm==='day'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
+                    onClick={() => setHireTerm('day')}
+                  >
+                    <div className="text-sm font-semibold">Per Day</div>
+                    <div className="text-xs text-gray-600">${hireCandidate.daily_rate_usd ?? 29}/day</div>
+                  </button>
+                  <button
+                    className={`p-3 border rounded ${hireTerm==='month'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
+                    onClick={() => setHireTerm('month')}
+                  >
+                    <div className="text-sm font-semibold">30 Days</div>
+                    <div className="text-xs text-gray-600">${hireCandidate.monthly_rate_usd ?? 199}/30d</div>
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500">You can use this agent in workflows, tasks, and @mentions while hired.</div>
+              </div>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button onClick={() => setShowHireModal(false)} className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300">Cancel</button>
+                <button
+                  onClick={async () => {
+                    try {
+                      if (!API) { alert('API not configured'); return; }
+                      const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+                      const res = await fetch(`${API}/agents/hire`, {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        },
+                        body: JSON.stringify({ agent_id: hireCandidate.agent_id || hireCandidate.id, term: hireTerm })
+                      });
+                      if (!res.ok) { alert('Failed to start checkout'); return; }
+                      const data = await res.json();
+                      if (data && data.checkout_url) {
+                        window.location.href = data.checkout_url;
+                      } else {
+                        alert('Checkout URL missing');
+                      }
+                    } catch (e) {
+                      alert('Error starting checkout');
+                    }
+                  }}
+                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700"
+                >
+                  Continue to payment
+                </button>
               </div>
             </div>
           </div>
