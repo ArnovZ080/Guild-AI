@@ -20,7 +20,7 @@ interface Task {
   progress: number;
 }
 
-export const AgentActivityTheater: React.FC = () => {
+export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | null }> = ({ selectedWorkflowName }) => {
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: 'research-1',
@@ -207,6 +207,9 @@ export const AgentActivityTheater: React.FC = () => {
   return (
     <div className="relative w-full bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-200 opacity-50" />
+      {selectedWorkflowName && (
+        <div className="absolute top-3 left-3 z-20 px-2 py-1 text-xs rounded bg-blue-600 text-white shadow">Showing: {selectedWorkflowName}</div>
+      )}
 
       <div className="absolute inset-4">
         <div className="absolute left-0 top-0 w-1/3 h-1/2 bg-blue-50 rounded-lg border-2 border-blue-200 border-dashed opacity-30">

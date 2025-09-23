@@ -679,23 +679,50 @@ const AgentsView = () => {
       {activeTab === 'theater' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
-          <AgentActivityTheater />
+          <AgentActivityTheater selectedWorkflowName={theaterWorkflow?.name || null} />
           {/* Autonomous Workflows Cards below theater */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Autonomous Workflows</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Placeholder simple cards; TODO: replace with full WorkflowCard implementation */}
-              {['Customer Onboarding Automation','Lead Qualification & Nurturing','Content Distribution & Optimization','Customer Support Automation'].map((name, idx) => (
-                <div key={idx} className="bg-white rounded-lg shadow-lg p-6 border hover:shadow-xl transition-shadow">
+              {[{
+                id: '1', name: 'Customer Onboarding Automation', status: 'running', progress: 75,
+                description: 'Automatically onboard new customers with personalized welcome sequence',
+                currentStep: 'Sending welcome email sequence'
+              },{
+                id: '2', name: 'Lead Qualification & Nurturing', status: 'running', progress: 68,
+                description: 'Automatically qualify and nurture leads based on behavior and engagement',
+                currentStep: 'Analyzing lead behavior patterns'
+              },{
+                id: '3', name: 'Content Distribution & Optimization', status: 'running', progress: 82,
+                description: 'Automatically distribute content and optimize for engagement',
+                currentStep: 'Optimizing social media posts'
+              },{
+                id: '5', name: 'Customer Support Automation', status: 'running', progress: 91,
+                description: 'Automatically handle support queries and escalate when needed',
+                currentStep: 'Escalating complex queries'
+              }].map(wf => (
+                <div key={wf.id} className={`bg-white rounded-lg shadow-lg p-6 border hover:shadow-xl transition-shadow ${theaterWorkflow?.id===wf.id ? 'ring-2 ring-blue-500' : ''}`} onClick={() => setTheaterWorkflow(wf)}>
                   <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="font-semibold text-gray-900">{name}</div>
-                      <p className="text-sm text-gray-600">Click for full details and analytics</p>
+                    <div className="flex items-center space-x-3">
+                      <div className="p-3 bg-blue-100 rounded-lg"><Workflow className="w-5 h-5 text-blue-600" /></div>
+                      <div>
+                        <div className="font-semibold text-gray-900">{wf.name}</div>
+                        <p className="text-sm text-gray-600">{wf.description}</p>
+                      </div>
                     </div>
-                    <button onClick={() => alert('Show details modal like in Workflows view') } className="text-sm text-blue-600 hover:underline">Details</button>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">{wf.status}</span>
+                      <button onClick={(e)=>{ e.stopPropagation(); alert('Open full workflow analytics modal'); }} className="text-sm text-blue-600 hover:underline">Details</button>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-end">
-                    <button onClick={()=>alert('Will visualize selected workflow in theater')} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Show in Theater</button>
+                  <div className="mb-3">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1"><span>Progress</span><span>{wf.progress}%</span></div>
+                    <div className="w-full bg-gray-200 rounded-full h-2"><div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} /></div>
+                  </div>
+                  <div className="text-sm text-gray-700"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                  <div className="mt-4 flex items-center justify-end">
+                    <button onClick={(e)=>{ e.stopPropagation(); setTheaterWorkflow(wf); }} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Show in Theater</button>
                   </div>
                 </div>
               ))}

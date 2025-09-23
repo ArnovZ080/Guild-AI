@@ -11,6 +11,8 @@ import ReactFlow, {
   Node,
   ReactFlowProvider,
   useReactFlow,
+  Handle,
+  Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { motion, AnimatePresence } from '../common/AnimationWrapper';
@@ -53,7 +55,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Workflow Modes
-type WorkflowMode = 'ai-generated' | 'manual-construction' | 'hybrid';
+type WorkflowMode = 'ai' | 'hybrid' | 'prebuilt';
 
 // AI-Powered Node Types with Enhanced Features
 const ENHANCED_NODE_TYPES = {
@@ -501,6 +503,9 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
         selected ? 'border-blue-500 shadow-xl' : 'hover:border-gray-300'
       } ${getStatusColor(data.status)}`}
     >
+      {/* Node Handles */}
+      <Handle type="target" position={Position.Left} className="w-2 h-2 bg-blue-500" />
+      <Handle type="source" position={Position.Right} className="w-2 h-2 bg-green-500" />
       {/* Node Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -600,76 +605,88 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
         </div>
       )}
 
-      {/* Configuration Modal */}
+      {/* Configuration Modal - landscape, static size with close */}
       {isConfiguring && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Configure {data.label}</h3>
-
-            {/* Primary NL input */}
-            <textarea
-              className="w-full p-3 border border-gray-300 rounded-md mb-4"
-              rows={3}
-              value={nlInput}
-              onChange={(e) => setNlInput(e.target.value)}
-              placeholder={
-                data.category === 'trigger' ? 'e.g., When I receive an email with subject contains "pricing"' :
-                data.category === 'action' ? 'e.g., Filter emails between spam and useful' :
-                data.category === 'condition' || data.category === 'split' ? 'e.g., If spam then trash, else send to agent' :
-                data.category === 'agent' ? 'e.g., Read and reply with a professional tone' :
-                'Describe the behavior...'
-              }
-            />
-
-            {(data.category === 'condition' || data.category === 'split') && (
-              <div className="mb-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
-                {conditionBranches.map((b, idx) => (
-                  <div key={idx} className="flex items-center gap-2 mb-2">
-                    <input
-                      className="w-24 px-2 py-1 border rounded"
-                      value={b.label}
-                      onChange={(e) => {
-                        const copy = [...conditionBranches];
-                        copy[idx] = { ...copy[idx], label: e.target.value };
-                        setConditionBranches(copy);
-                      }}
-                    />
-                    <input
-                      className="flex-1 px-2 py-1 border rounded"
-                      placeholder={`NL rule for ${b.label}`}
-                      value={b.nl}
-                      onChange={(e) => {
-                        const copy = [...conditionBranches];
-                        copy[idx] = { ...copy[idx], nl: e.target.value };
-                        setConditionBranches(copy);
-                      }}
-                    />
-                  </div>
-                ))}
-                <button
-                  className="text-xs text-blue-600 hover:underline"
-                  onClick={() => setConditionBranches([...conditionBranches, { label: 'branch', nl: '' }])}
-                >
-                  + Add branch
-                </button>
-              </div>
-            )}
-
-            <div className="flex justify-end space-x-2">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl mx-4">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-bold">Configure {data.label}</h3>
               <button
                 onClick={() => setIsConfiguring(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
               >
-                Cancel
+                ✕
               </button>
-              <button
-                onClick={saveNaturalLanguageConfig}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                disabled={!nlInput.trim() && !(data.category === 'condition' || data.category === 'split')}
-              >
-                Save
-              </button>
+            </div>
+            <div className="flex gap-4">
+              <div className="w-1/2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Describe this step</label>
+                <textarea
+                  className="w-full p-3 border border-gray-300 rounded-md mb-4"
+                  rows={7}
+                  value={nlInput}
+                  onChange={(e) => setNlInput(e.target.value)}
+                  placeholder={
+                    data.category === 'trigger' ? 'e.g., When I receive an email with subject contains "pricing"' :
+                    data.category === 'action' ? 'e.g., Filter emails between spam and useful' :
+                    (data.category === 'condition' || data.category === 'split') ? 'e.g., If spam then trash, else send to agent' :
+                    data.category === 'agent' ? 'e.g., Read and reply with a professional tone' :
+                    'Describe the behavior...'
+                  }
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setIsConfiguring(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={saveNaturalLanguageConfig}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    disabled={!nlInput.trim() && !(data.category === 'condition' || data.category === 'split')}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+              <div className="w-1/2">
+                {(data.category === 'condition' || data.category === 'split') && (
+                  <div className="mb-4">
+                    <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
+                    {conditionBranches.map((b, idx) => (
+                      <div key={idx} className="flex items-center gap-2 mb-2">
+                        <input
+                          className="w-24 px-2 py-1 border rounded"
+                          value={b.label}
+                          onChange={(e) => {
+                            const copy = [...conditionBranches];
+                            copy[idx] = { ...copy[idx], label: e.target.value };
+                            setConditionBranches(copy);
+                          }}
+                        />
+                        <input
+                          className="flex-1 px-2 py-1 border rounded"
+                          placeholder={`NL rule for ${b.label}`}
+                          value={b.nl}
+                          onChange={(e) => {
+                            const copy = [...conditionBranches];
+                            copy[idx] = { ...copy[idx], nl: e.target.value };
+                            setConditionBranches(copy);
+                          }}
+                        />
+                      </div)
+                    )}
+                    <button
+                      className="text-xs text-blue-600 hover:underline"
+                      onClick={() => setConditionBranches([...conditionBranches, { label: 'branch', nl: '' }])}
+                    >
+                      + Add branch
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -715,6 +732,46 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   const [customIndustryName, setCustomIndustryName] = useState('');
   const [customIndustryDescription, setCustomIndustryDescription] = useState('');
   const [availableAgents, setAvailableAgents] = useState<Array<{ id: string; name: string }>>([]);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const API = (import.meta as any).env?.VITE_API_BASE_URL || '';
+  const [showMyWorkflows, setShowMyWorkflows] = useState(false);
+  const [ownedWorkflows, setOwnedWorkflows] = useState<any[]>([]);
+  const [purchasedWorkflows, setPurchasedWorkflows] = useState<any[]>([]);
+  const [wfTab, setWfTab] = useState<'owned' | 'purchased'>('owned');
+
+  async function refreshWorkflows() {
+    try {
+      const resOwned = await fetch(`${API}/marketplace/templates?mine=true`);
+      const owned = resOwned.ok ? await resOwned.json() : [];
+      setOwnedWorkflows(Array.isArray(owned) ? owned : []);
+    } catch { setOwnedWorkflows([]); }
+    try {
+      // Placeholder: browsing public as purchased until real endpoint is exposed
+      const resPurchased = await fetch(`${API}/marketplace/browse`);
+      const purchased = resPurchased.ok ? await resPurchased.json() : [];
+      setPurchasedWorkflows(Array.isArray(purchased) ? purchased : []);
+    } catch { setPurchasedWorkflows([]); }
+  }
+
+  function hydrateFromTemplate(t: any) {
+    try {
+      setTemplateId(t.id);
+      setWorkflowName(t.name);
+      setWorkflowDescription(t.description);
+      const dag = t.dag_definition;
+      const hydratedNodes: Node[] = dag.nodes.map((n: any, i: number) => ({
+        id: n.id,
+        type: 'enhancedNode',
+        position: { x: 100 + i * 200, y: 120 + (i % 2) * 120 },
+        data: { label: n.label || n.category, category: n.category, config: n.config || {}, naturalLanguageDescription: n.nl || '', status: 'configured', estimatedCredits: 1, estimatedCost: 0.1 }
+      }));
+      const hydratedEdges: Edge[] = dag.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target }));
+      setNodes(hydratedNodes);
+      setEdges(hydratedEdges);
+      toast.success('Workflow loaded');
+      setShowMyWorkflows(false);
+    } catch { toast.error('Failed to load workflow'); }
+  }
 
   useEffect(() => {
     // TODO: Replace with real subscription-fed fetch
@@ -757,37 +814,53 @@ const EnhancedWorkflowBuilder: React.FC = () => {
         });
 
         const isPrimitive = PRIMITIVE_NODE_IDS.has(nodeType);
+        const isPresetType = !isPrimitive && (nodeType in ENHANCED_NODE_TYPES);
         const baseCredits = (WORKFLOW_PRIMITIVES.find(p => p.id === nodeType)?.baseCredits
           ?? BACKUP_NODES.find(n => n.id === nodeType)?.baseCredits
           ?? 0);
+
+        // In prebuilt mode, dropping a preset generates a small primitive graph
+        if (workflowMode === 'prebuilt' && isPresetType) {
+          const t = Date.now();
+          const id1 = `trigger-${t}`;
+          const id2 = `action-${t+1}`;
+          const id3 = `agent-${t+2}`;
+          const id4 = `action-${t+3}`;
+          const newNodes: Node[] = [
+            { id: id1, type: 'enhancedNode', position: { x: position.x, y: position.y }, data: { label: 'Trigger', category: 'trigger', description: 'Start', status: 'pending', estimatedCredits: 0, estimatedCost: 0 } },
+            { id: id2, type: 'enhancedNode', position: { x: position.x + 220, y: position.y }, data: { label: 'Action', category: 'action', description: `Init ${nodeType}`, status: 'pending', estimatedCredits: 1, estimatedCost: 0.1 } },
+            { id: id3, type: 'enhancedNode', position: { x: position.x + 440, y: position.y }, data: { label: 'Agent', category: 'agent', description: `${nodeType} agent`, status: 'pending', estimatedCredits: 2, estimatedCost: 0.2, availableAgents } },
+            { id: id4, type: 'enhancedNode', position: { x: position.x + 660, y: position.y }, data: { label: 'Action', category: 'action', description: 'Finalize', status: 'pending', estimatedCredits: 1, estimatedCost: 0.1 } },
+          ];
+          const newEdges: Edge[] = [
+            { id: `${id1}->${id2}`, source: id1, target: id2 },
+            { id: `${id2}->${id3}`, source: id2, target: id3 },
+            { id: `${id3}->${id4}`, source: id3, target: id4 },
+          ];
+          setNodes((nds) => nds.concat(newNodes));
+          setEdges((eds) => eds.concat(newEdges));
+          return;
+        }
 
         const newNode: Node = {
           id: `${nodeType}-${Date.now()}`,
           type: 'enhancedNode',
           position,
-          data: isPrimitive
-            ? {
-                label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)}`,
-                category: nodeType,
-                description: `Workflow ${nodeType}`,
-                status: 'pending',
-                estimatedCredits: baseCredits,
-                estimatedCost: baseCredits * 0.1,
-                ...(nodeType === 'agent' ? { availableAgents } : {}),
-              }
-            : {
-                label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)} Agent`,
-                category: nodeType,
-                description: `AI-powered ${nodeType} automation`,
-                status: 'pending',
-                industry: selectedIndustry
-              },
+          data: {
+            label: `${nodeType.charAt(0).toUpperCase() + nodeType.slice(1)}`,
+            category: nodeType,
+            description: isPrimitive ? `Workflow ${nodeType}` : `Preset ${nodeType}`,
+            status: 'pending',
+            estimatedCredits: baseCredits,
+            estimatedCost: baseCredits * 0.1,
+            ...(nodeType === 'agent' ? { availableAgents } : {}),
+          },
         };
 
         setNodes((nds) => nds.concat(newNode));
       }
     },
-    [reactFlowInstance, setNodes, selectedIndustry, availableAgents],
+    [reactFlowInstance, setNodes, selectedIndustry, availableAgents, workflowMode],
   );
 
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
@@ -956,295 +1029,204 @@ const EnhancedWorkflowBuilder: React.FC = () => {
 
   const getModeIcon = (mode: WorkflowMode) => {
     switch (mode) {
-      case 'ai-generated': return <Sparkles className="w-5 h-5" />;
-      case 'manual-construction': return <Building className="w-5 h-5" />;
+      case 'ai': return <Sparkles className="w-5 h-5" />;
       case 'hybrid': return <Layers className="w-5 h-5" />;
+      case 'prebuilt': return <Building className="w-5 h-5" />;
     }
   };
 
   const getModeDescription = (mode: WorkflowMode) => {
     switch (mode) {
-      case 'ai-generated': return 'AI creates complete workflows from descriptions';
-      case 'manual-construction': return 'Build workflows step-by-step with precision';
-      case 'hybrid': return 'Combine AI generation with manual control';
+      case 'ai': return 'AI creates complete workflows from descriptions';
+      case 'hybrid': return 'Drag nodes and configure them with natural language';
+      case 'prebuilt': return 'Use industry-specific pre-built workflows';
     }
   };
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Enhanced Top Bar */}
-      <div className="flex items-center justify-between p-4 bg-white shadow-md z-10">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+      {/* Title Card */}
+      <div className="p-4">
+        <div className="bg-white shadow-md rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
             <Workflow className="w-8 h-8 text-blue-600" />
-            Enhanced Workflow Builder
-          </h1>
-          <input
-            type="text"
-            className="p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
-            value={workflowName}
-            onChange={(e) => setWorkflowName(e.target.value)}
-            placeholder="Workflow Name"
-          />
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          {/* Workflow Mode Toggle */}
+            <h1 className="text-2xl font-bold text-gray-800">Enhanced Workflow Builder</h1>
+          </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Mode:</span>
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              {(['ai-generated', 'manual-construction', 'hybrid'] as WorkflowMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setWorkflowMode(mode)}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm transition-colors ${
-                    workflowMode === mode 
-                      ? 'bg-blue-600 text-white' 
-                      : 'text-gray-600 hover:text-gray-800'
-                  }`}
-                >
-                  {getModeIcon(mode)}
-                  {mode.replace('-', ' ')}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Industry Selection */}
-          <select
-            value={selectedIndustry}
-            onChange={(e) => handleIndustryChange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="general">General</option>
-            
-            {/* Content & Media */}
-            <optgroup label="Content & Media">
-              <option value="contentcreator">🎬 Content Creator</option>
-              <option value="copywriter">✍️ Copywriter</option>
-              <option value="affiliate">💰 Affiliate Marketer</option>
-            </optgroup>
-            
-            {/* Personal Services */}
-            <optgroup label="Personal Services">
-              <option value="beauty">💄 Beauty & Wellness</option>
-              <option value="barber">✂️ Barber & Salon</option>
-              <option value="coach">🎯 Coach & Trainer</option>
-              <option value="consultant">💼 Consultant</option>
-            </optgroup>
-            
-            {/* Food & Beverage */}
-            <optgroup label="Food & Beverage">
-              <option value="foodservice">🍰 Food Service</option>
-              <option value="baker">🥖 Baker & Confectionery</option>
-            </optgroup>
-            
-            {/* Creative Services */}
-            <optgroup label="Creative Services">
-              <option value="designer">🎨 Designer</option>
-              <option value="photographer">📸 Photographer</option>
-            </optgroup>
-            
-            {/* Home Services */}
-            <optgroup label="Home Services">
-              <option value="cleaning">🧽 Cleaning Services</option>
-              <option value="landscaping">🌱 Landscaping</option>
-            </optgroup>
-            
-            {/* Traditional Industries */}
-            <optgroup label="Traditional Industries">
-              <option value="property">🏠 Real Estate</option>
-              <option value="ecommerce">🛒 E-commerce</option>
-              <option value="healthcare">🏥 Healthcare</option>
-            </optgroup>
-            
-            {/* Custom */}
-            <optgroup label="Other">
-              <option value="custom">🔧 Custom Industry</option>
-            </optgroup>
-          </select>
-          
-          {/* Cost Display */}
-          <div className="flex items-center gap-4 px-4 py-2 bg-gray-50 rounded-lg">
-            <div className="text-sm">
-              <span className="text-gray-600">Credits: </span>
-              <span className="font-semibold text-blue-600">{calculateTotalCredits()}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-gray-600">Cost: </span>
-              <span className="font-semibold text-green-600">${calculateTotalCost().toFixed(2)}</span>
-            </div>
-          </div>
-          
-          {/* AI Assistant Button */}
-          {(workflowMode === 'ai-generated' || workflowMode === 'hybrid') && (
-            <button
-              className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-              onClick={() => setShowAIAssistant(true)}
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Assistant
-            </button>
-          )}
-          
-          <button className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-            <Save className="w-4 h-4 mr-2" />
-            Save Workflow
-          </button>
-          
-          <button className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
-            <Share2 className="w-4 h-4 mr-2" />
-            Publish
-          </button>
-        </div>
-      </div>
-
-      {/* Mode Description */}
-      <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
-        <p className="text-sm text-blue-800 flex items-center gap-2">
-          <Lightbulb className="w-4 h-4" />
-          <strong>{workflowMode.replace('-', ' ').toUpperCase()} Mode:</strong> {getModeDescription(workflowMode)}
-        </p>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Enhanced Node Library */}
-        <div className="w-80 bg-white p-4 shadow-md overflow-y-auto">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Wand2 className="w-5 h-5 text-purple-600" />
-            Workflow Primitives
-          </h2>
-
-          <div className="space-y-3 mb-8">
-            {WORKFLOW_PRIMITIVES.map((primitive) => (
-              <div
-                key={primitive.id}
-                className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 cursor-grab transition-all flex items-start gap-3"
-                onDragStart={(event) => onDragStart(event, primitive.id)}
-                draggable
-              >
-                <primitive.icon className="w-5 h-5 text-gray-700 mt-0.5" />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-800 text-sm">{primitive.name}</h3>
-                    <span className="text-xs text-gray-500">{primitive.baseCredits} cr</span>
-                  </div>
-                  <p className="text-xs text-gray-600">{primitive.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
-            <Wand2 className="w-5 h-5 text-purple-600" />
-            Nodes by Category
-          </h2>
-
-          {/* Categorized nodes from backup builder */}
-          <div className="space-y-4">
-            {NODE_CATEGORIES.map((cat) => (
-              <div key={cat.id}>
-                <div className="flex items-center gap-2 mb-2 text-gray-700">
-                  <cat.icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{cat.name}</span>
-                </div>
-                <div className="space-y-2">
-                  {BACKUP_NODES.filter(n => n.category === cat.id).map((n) => (
-                    <div
-                      key={n.id}
-                      className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all flex items-start gap-3"
-                      onDragStart={(event) => onDragStart(event, n.id)}
-                      draggable
-                    >
-                      <n.icon className="w-5 h-5 text-gray-700 mt-0.5" />
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-800 text-sm">{n.name}</h3>
-                          <span className="text-xs text-gray-500">{n.baseCredits} cr</span>
-                        </div>
-                        <p className="text-xs text-gray-600">{n.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 mt-8 flex items-center gap-2">
-            <Wand2 className="w-5 h-5 text-purple-600" />
-            Workflow Presets (AI Agents)
-          </h2>
-          
-          <div className="space-y-3">
-            {Object.entries(ENHANCED_NODE_TYPES).map(([type, config]) => (
-              <div
-                key={type}
-                className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all"
-                onDragStart={(event) => onDragStart(event, type)}
-                draggable
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="text-2xl">{config.icon}</div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800 capitalize">{type}</h3>
-                    <p className="text-xs text-gray-600">{config.description}</p>
-                  </div>
-                </div>
-                
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-700">Examples:</p>
-                  {config.examples.slice(0, 2).map((example, index) => (
-                    <p key={index} className="text-xs text-gray-600 italic">
-                      "{example}"
-                    </p>
-                  ))}
-                </div>
-                
-                <div className="mt-2 flex justify-between items-center">
-                  <span className="text-xs text-gray-500">{config.baseCredits} credits</span>
-                  <span className="text-xs text-green-600">${(config.baseCredits * 0.10).toFixed(2)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Workflow Description */}
-          <div className="mt-8">
-            <h3 className="text-sm font-semibold text-gray-800 mb-2">Workflow Description</h3>
-            <textarea
-              className="w-full p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 min-h-[100px] text-sm"
-              value={workflowDescription}
-              onChange={(e) => setWorkflowDescription(e.target.value)}
-              placeholder="Describe what this workflow should accomplish..."
+            <label className="text-sm text-gray-600">Name</label>
+            <input
+              type="text"
+              className="p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
+              value={workflowName}
+              onChange={(e) => setWorkflowName(e.target.value)}
+              placeholder="Workflow Name"
             />
           </div>
         </div>
+      </div>
 
-        {/* React Flow Canvas */}
-        <div className="flex-1 h-full" ref={reactFlowWrapper}>
-          <ReactFlowProvider>
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onInit={setReactFlowInstance}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              nodeTypes={nodeTypes}
-              fitView
-              className="bg-gray-50"
-            >
-              <MiniMap />
-              <Controls />
-              <Background variant="dots" gap={12} size={1} />
-            </ReactFlow>
-          </ReactFlowProvider>
+      {/* Builder Card */}
+      <div className="px-4 pb-4">
+        <div className="bg-white shadow-md rounded-lg">
+          {/* Builder Top Bar */}
+          <div className="flex items-center justify-between p-4 border-b">
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <span className="text-sm text-gray-600">Mode:</span>
+              <div className="flex bg-gray-100 rounded-lg p-1 gap-2">
+                {(['ai', 'hybrid', 'prebuilt'] as WorkflowMode[]).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setWorkflowMode(mode)}
+                    className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm transition-colors ${
+                      workflowMode === mode 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    {getModeIcon(mode)}
+                    {mode === 'ai' ? 'AI Generated' : mode === 'hybrid' ? 'Hybrid' : 'Pre-Built'}
+                  </button>
+                ))}
+                {workflowMode === 'ai' && (
+                  <button
+                    className="ml-2 flex items-center px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                    onClick={() => setShowAIAssistant(true)}
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    AI Generate
+                  </button>
+                )}
+              </div>
+            </div>
+            {/* Cost Display */}
+            <div className="flex items-center gap-4 px-4 py-2 bg-gray-50 rounded-lg">
+              <div className="text-sm">
+                <span className="text-gray-600">Credits: </span>
+                <span className="font-semibold text-blue-600">{calculateTotalCredits()}</span>
+              </div>
+              <div className="text-sm">
+                <span className="text-gray-600">Cost: </span>
+                <span className="font-semibold text-green-600">${calculateTotalCost().toFixed(2)}</span>
+              </div>
+              <button
+                onClick={async () => { await refreshWorkflows(); setShowMyWorkflows(true); }}
+                className="ml-2 px-3 py-1 text-sm border rounded hover:bg-gray-100"
+              >
+                My Workflows
+              </button>
+            </div>
+          </div>
+
+          {/* Mode Description */}
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-2">
+            <p className="text-sm text-blue-800 flex items-center gap-2">
+              <Lightbulb className="w-4 h-4" />
+              <strong>{(workflowMode === 'ai' ? 'AI GENERATED' : workflowMode === 'hybrid' ? 'HYBRID' : 'PRE-BUILT')} Mode:</strong> {getModeDescription(workflowMode)}
+            </p>
+          </div>
+
+          <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 220px)' }}>
+            {/* Sidebar */}
+            <div className="w-80 bg-white p-4 overflow-y-auto border-r">
+              {workflowMode === 'hybrid' && (
+                <>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                    <Wand2 className="w-5 h-5 text-purple-600" />
+                    Nodes by Category
+                  </h2>
+                  <div className="space-y-4">
+                    {NODE_CATEGORIES.map((cat) => (
+                      <div key={cat.id}>
+                        <div className="flex items-center gap-2 mb-2 text-gray-700">
+                          <cat.icon className="w-4 h-4" />
+                          <span className="text-sm font-medium">{cat.name}</span>
+                        </div>
+                        <div className="space-y-2">
+                          {BACKUP_NODES.filter(n => n.category === cat.id).map((n) => (
+                            <div
+                              key={n.id}
+                              className="p-3 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all flex items-start gap-3"
+                              onDragStart={(event) => onDragStart(event, n.id)}
+                              draggable
+                            >
+                              <n.icon className="w-5 h-5 text-gray-700 mt-0.5" />
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-semibold text-gray-800 text-sm">{n.name}</h3>
+                                  <span className="text-xs text-gray-500">{n.baseCredits} cr</span>
+                                </div>
+                                <p className="text-xs text-gray-600">{n.description}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {workflowMode === 'prebuilt' && (
+                <>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Wand2 className="w-5 h-5 text-purple-600" />
+                    Pre-built Workflows by Industry
+                  </h2>
+                  <div className="space-y-3">
+                    {Object.entries(ENHANCED_NODE_TYPES).map(([type, config]) => (
+                      <div
+                        key={type}
+                        className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all"
+                        onDragStart={(event) => onDragStart(event, type)}
+                        draggable
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="text-2xl">{config.icon}</div>
+                          <div>
+                            <h3 className="font-semibold text-gray-800 capitalize">{type}</h3>
+                            <p className="text-xs text-gray-600">{config.description}</p>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs font-medium text-gray-700">Examples:</p>
+                          {config.examples.slice(0, 2).map((example, index) => (
+                            <p key={index} className="text-xs text-gray-600 italic">"{example}"</p>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* React Flow Canvas */}
+            <div className="flex-1 h-full" ref={reactFlowWrapper}>
+              <ReactFlowProvider>
+                <ReactFlow
+                  nodes={nodes}
+                  edges={edges}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={onConnect}
+                  onInit={setReactFlowInstance}
+                  onDrop={onDrop}
+                  onDragOver={onDragOver}
+                  nodeTypes={nodeTypes}
+                  fitView
+                  className="bg-gray-50"
+                >
+                  <MiniMap />
+                  <Controls />
+                  <Background variant="dots" gap={12} size={1} />
+                </ReactFlow>
+              </ReactFlowProvider>
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* AI Assistant Modal (overlay over canvas) */}
+      
       {/* AI Assistant Modal */}
       {showAIAssistant && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -1255,7 +1237,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             </h2>
             
             <p className="text-gray-600 mb-4">
-              Describe what you want to automate, and I'll create a complete workflow for you!
+              What would you like to achieve with this workflow? What do you want the end result to be? Describe it and I'll build a complete workflow for you.
             </p>
             
             <div className="space-y-4">
@@ -1298,6 +1280,40 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                 <Sparkles className="w-4 h-4" />
                 Generate Workflow
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* My Workflows Drawer */}
+      {showMyWorkflows && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowMyWorkflows(false)}>
+          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl p-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">My Workflows</h3>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowMyWorkflows(false)}>✕</button>
+            </div>
+            <div className="flex border-b mb-3">
+              <button className={`px-3 py-2 text-sm ${wfTab==='owned' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`} onClick={() => setWfTab('owned')}>Owned</button>
+              <button className={`px-3 py-2 text-sm ${wfTab==='purchased' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`} onClick={() => setWfTab('purchased')}>Purchased</button>
+            </div>
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100% - 120px)' }}>
+              {(wfTab === 'owned' ? ownedWorkflows : purchasedWorkflows).map((t: any) => (
+                <div key={t.id} className="p-3 border rounded mb-2 hover:bg-gray-50 cursor-pointer" onClick={() => hydrateFromTemplate(t)}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-gray-800">{t.name}</div>
+                      <div className="text-xs text-gray-500">{t.category || 'general'} • {t.is_public ? 'Public' : 'Draft'}</div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {t.execution_cost_credits ?? t.estimated_credits} cr
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {((wfTab === 'owned' ? ownedWorkflows : purchasedWorkflows).length === 0) && (
+                <div className="text-sm text-gray-500">No workflows to show.</div>
+              )}
             </div>
           </div>
         </div>
