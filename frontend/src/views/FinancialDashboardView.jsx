@@ -733,6 +733,21 @@ const FinancialDashboardView = () => {
                 </ResponsiveContainer>
               </div>
             )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {[
+                { label: 'Subscriptions -15%', params: { revenueDeltaPct: -15 } },
+                { label: 'Ad spend +20%', params: { adSpendDeltaPct: 20 } },
+                { label: '+2 hires', params: { hiresDelta: 2 } },
+              ].map((t, i) => (
+                <button
+                  key={i}
+                  onClick={async ()=>{ const res = await financialApi.simulateScenario({ ...scenarioParams, ...t.params }); setScenarioResult(res?.data||{}); }}
+                  className="px-3 py-1.5 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
