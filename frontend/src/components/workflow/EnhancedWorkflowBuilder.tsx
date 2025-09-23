@@ -1087,15 +1087,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                     {mode === 'ai' ? 'AI Generated' : mode === 'hybrid' ? 'Hybrid' : 'Pre-Built'}
                   </button>
                 ))}
-                {workflowMode === 'ai' && (
-                  <button
-                    className="ml-2 flex items-center px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                    onClick={() => setShowAIAssistant(true)}
-                  >
-                    <Sparkles className="w-4 h-4 mr-1" />
-                    AI Generate
-                  </button>
-                )}
+                {/* AI mode moves assistant into sidebar; no separate button here */}
               </div>
             </div>
             {/* Cost Display */}
@@ -1128,6 +1120,31 @@ const EnhancedWorkflowBuilder: React.FC = () => {
           <div className="flex flex-1 overflow-hidden" style={{ height: 'calc(100vh - 220px)' }}>
             {/* Sidebar */}
             <div className="w-80 bg-white p-4 overflow-y-auto border-r">
+              {workflowMode === 'ai' && (
+                <>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-600" />
+                    AI Workflow Assistant
+                  </h2>
+                  <p className="text-xs text-gray-600 mb-3">
+                    What would you like to achieve with this workflow? What should the end result be?
+                  </p>
+                  <textarea
+                    className="w-full p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500 min-h-[120px] text-sm"
+                    value={aiWorkflowSuggestion}
+                    onChange={(e) => setAiWorkflowSuggestion(e.target.value)}
+                    placeholder="Describe your desired outcome and steps..."
+                  />
+                  <button
+                    className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                    onClick={handleAIWorkflowGeneration}
+                    disabled={!aiWorkflowSuggestion.trim()}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Build Workflow
+                  </button>
+                </>
+              )}
               {workflowMode === 'hybrid' && (
                 <>
                   <h2 className="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
@@ -1225,65 +1242,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
         </div>
       </div>
 
-      {/* AI Assistant Modal (overlay over canvas) */}
-      
-      {/* AI Assistant Modal */}
-      {showAIAssistant && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-2xl w-full mx-4">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              <Brain className="w-6 h-6 text-purple-600" />
-              AI Workflow Assistant
-            </h2>
-            
-            <p className="text-gray-600 mb-4">
-              What would you like to achieve with this workflow? What do you want the end result to be? Describe it and I'll build a complete workflow for you.
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What do you want to automate?
-                </label>
-                <textarea
-                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  rows={4}
-                  value={aiWorkflowSuggestion}
-                  onChange={(e) => setAiWorkflowSuggestion(e.target.value)}
-                  placeholder="Example: I want to automatically create social media content for my new product launch, send personalized emails to my customer list, and follow up with leads who engage with the content..."
-                />
-              </div>
-              
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-medium text-blue-900 mb-2">💡 Example descriptions:</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• "Automate my customer onboarding process"</li>
-                  <li>• "Create and distribute weekly marketing content"</li>
-                  <li>• "Handle customer support tickets automatically"</li>
-                  <li>• "Generate and send monthly business reports"</li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-4 mt-6">
-              <button
-                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
-                onClick={() => setShowAIAssistant(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
-                onClick={handleAIWorkflowGeneration}
-                disabled={!aiWorkflowSuggestion.trim()}
-              >
-                <Sparkles className="w-4 h-4" />
-                Generate Workflow
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* AI Assistant now lives in the sidebar when mode is AI */}
 
       {/* My Workflows Drawer */}
       {showMyWorkflows && (
