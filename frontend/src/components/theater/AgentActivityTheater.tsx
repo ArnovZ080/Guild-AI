@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import AgentPersonality from '../agents/AgentPersonality';
 
 interface Agent {
   id: string;
   name: string;
-  type: 'research' | 'marketing' | 'sales' | 'support' | 'content' | 'content-strategist' | 'analytics' | 'strategy' | 'automation';
+  type: 'research' | 'marketing' | 'sales' | 'support' | 'content';
   status: 'idle' | 'working' | 'collaborating' | 'completed';
   currentTask: string;
+  position: { x: number; y: number };
+  progress: number;
+}
+
+interface Task {
+  id: string;
+  from: string;
+  to: string;
+  type: 'data' | 'request' | 'result';
   progress: number;
 }
 
@@ -19,6 +27,7 @@ export const AgentActivityTheater: React.FC = () => {
       type: 'research',
       status: 'working',
       currentTask: 'Analyzing competitor pricing',
+      position: { x: 20, y: 30 },
       progress: 0.7
     },
     {
@@ -27,6 +36,7 @@ export const AgentActivityTheater: React.FC = () => {
       type: 'marketing',
       status: 'collaborating',
       currentTask: 'Creating campaign strategy',
+      position: { x: 60, y: 20 },
       progress: 0.4
     },
     {
@@ -35,35 +45,61 @@ export const AgentActivityTheater: React.FC = () => {
       type: 'sales',
       status: 'working',
       currentTask: 'Qualifying leads',
+      position: { x: 80, y: 60 },
       progress: 0.9
     },
     {
       id: 'content-1',
       name: 'Content Agent',
-      type: 'content-strategist',
+      type: 'content',
       status: 'idle',
       currentTask: 'Waiting for brief',
+      position: { x: 40, y: 70 },
       progress: 0
-    },
-    {
-      id: 'analytics-1',
-      name: 'Analytics Agent',
-      type: 'analytics',
-      status: 'working',
-      currentTask: 'Processing performance data',
-      progress: 0.65
-    },
-    {
-      id: 'strategy-1',
-      name: 'Strategy Agent',
-      type: 'strategy',
-      status: 'collaborating',
-      currentTask: 'Developing growth plan',
-      progress: 0.3
     }
   ]);
 
-  // Simulate agent activity
+  const [activeTasks, setActiveTasks] = useState<Task[]>([
+    {
+      id: 'task-1',
+      from: 'research-1',
+      to: 'marketing-1',
+      type: 'data',
+      progress: 0.6
+    }
+  ]);
+
+  const getAgentColor = (type: string, status: string) => {
+    const baseColors: Record<string, string> = {
+      research: '#3B82F6',
+      marketing: '#10B981',
+      sales: '#F59E0B',
+      support: '#8B5CF6',
+      content: '#EF4444',
+    };
+    const statusModifier: Record<string, number> = {
+      idle: 0.4,
+      working: 0.8,
+      collaborating: 1.0,
+      completed: 0.6
+    };
+    return {
+      color: baseColors[type] || '#6B7280',
+      opacity: statusModifier[status] ?? 0.8
+    };
+  };
+
+  const getAgentIcon = (type: string) => {
+    const icons: Record<string, string> = {
+      research: '🔍',
+      marketing: '📈',
+      sales: '💼',
+      support: '🎧',
+      content: '✍️'
+    };
+    return icons[type] || '🤖';
+  };
+
   useEffect(() => {
     const interval = setInterval(() => {
       setAgents(prev => prev.map(agent => ({
@@ -73,34 +109,103 @@ export const AgentActivityTheater: React.FC = () => {
           : agent.progress
       })));
     }, 2000);
-
     return () => clearInterval(interval);
   }, []);
 
-  const handleAgentInteraction = (agentId: string, interaction: any) => {
-    console.log(`Interaction with agent ${agentId}:`, interaction);
-    // This is a placeholder for future implementation
-  };
-
   return (
-    <motion.div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-semibold text-foreground">Your AI Workforce</h2>
-        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-          <div className="w-2 h-2 bg-forest-growth rounded-full animate-pulse"></div>
-          <span>Live collaboration in progress</span>
+    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-200 opacity-50" />
+
+      <div className="absolute inset-4">
+        <div className="absolute left-0 top-0 w-1/3 h-1/2 bg-blue-50 rounded-lg border-2 border-blue-200 border-dashed opacity-30">
+          <div className="p-2 text-xs font-medium text-blue-600">Research</div>
+        </div>
+        <div className="absolute left-1/3 top-0 w-1/3 h-1/2 bg-green-50 rounded-lg border-2 border-green-200 border-dashed opacity-30">
+          <div className="p-2 text-xs font-medium text-green-600">Marketing</div>
+        </div>
+        <div className="absolute right-0 top-0 w-1/3 h-1/2 bg-amber-50 rounded-lg border-2 border-amber-200 border-dashed opacity-30">
+          <div className="p-2 text-xs font-medium text-amber-600">Sales</div>
+        </div>
+        <div className="absolute left-0 bottom-0 w-1/2 h-1/2 bg-purple-50 rounded-lg border-2 border-purple-200 border-dashed opacity-30">
+          <div className="p-2 text-xs font-medium text-purple-600">Operations</div>
+        </div>
+        <div className="absolute right-0 bottom-0 w-1/2 h-1/2 bg-red-50 rounded-lg border-2 border-red-200 border-dashed opacity-30">
+          <div className="p-2 text-xs font-medium text-red-600">Content</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {agents.map(agent => (
-          <AgentPersonality
+      {agents.map((agent) => {
+        const { color, opacity } = getAgentColor(agent.type, agent.status);
+        return (
+          <motion.div
             key={agent.id}
-            agent={agent}
-            onInteraction={(interaction: any) => handleAgentInteraction(agent.id, interaction)}
+            className="absolute cursor-pointer"
+            style={{ left: `${agent.position.x}%`, top: `${agent.position.y}%` }}
+            animate={{ scale: agent.status === 'working' ? [1, 1.1, 1] : 1 }}
+            transition={{ duration: 2, repeat: agent.status === 'working' ? Infinity : 0 }}
+            whileHover={{ scale: 1.2 }}
+          >
+            <motion.div
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg relative"
+              style={{ backgroundColor: color, opacity }}
+            >
+              <span className="text-lg">{getAgentIcon(agent.type)}</span>
+              {agent.status === 'working' && (
+                <motion.div
+                  className="absolute inset-0 rounded-full border-2 border-white"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                />
+              )}
+              {agent.progress > 0 && (
+                <svg className="absolute inset-0 w-full h-full -rotate-90">
+                  <circle
+                    cx="50%"
+                    cy="50%"
+                    r="20"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeDasharray={`${agent.progress * 125.6} 125.6`}
+                    className="transition-all duration-500"
+                  />
+                </svg>
+              )}
+            </motion.div>
+            <motion.div
+              className="absolute top-14 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-2 min-w-max z-10"
+              initial={{ opacity: 0, y: 10 }}
+              whileHover={{ opacity: 1, y: 0 }}
+            >
+              <div className="text-xs font-medium text-gray-800">{agent.name}</div>
+              <div className="text-xs text-gray-600">{agent.currentTask}</div>
+              <div className="text-xs text-gray-500">{Math.round(agent.progress * 100)}% complete</div>
+            </motion.div>
+          </motion.div>
+        );
+      })}
+
+      {activeTasks.map((task) => {
+        const fromAgent = agents.find(a => a.id === task.from);
+        const toAgent = agents.find(a => a.id === task.to);
+        if (!fromAgent || !toAgent) return null;
+        return (
+          <motion.div
+            key={task.id}
+            className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg"
+            initial={{ left: `${fromAgent.position.x}%`, top: `${fromAgent.position.y}%` }}
+            animate={{ left: `${toAgent.position.x}%`, top: `${toAgent.position.y}%` }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
-        ))}
+        );
+      })}
+
+      <div className="absolute bottom-4 right-4 flex space-x-2">
+        <button className="px-3 py-1 bg-white rounded-lg shadow text-xs font-medium hover:bg-gray-50">Pause</button>
+        <button className="px-3 py-1 bg-blue-500 text-white rounded-lg shadow text-xs font-medium hover:bg-blue-600">Details</button>
       </div>
-    </motion.div>
+    </div>
   );
 };
+
+export default AgentActivityTheater;

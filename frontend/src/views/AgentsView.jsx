@@ -10,6 +10,7 @@ import {
 import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
+import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
 
 // Comprehensive 52 agents data
 const allAgents = [
@@ -355,10 +356,25 @@ const AgentsView = () => {
             Pause
           </button>
           <button 
-            className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-sm font-medium hover:bg-gray-200 transition-colors"
-            onClick={(e) => e.stopPropagation()}
+            className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+            onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+            title="Details"
           >
-            <RotateCcw className="w-4 h-4" />
+            Details
+          </button>
+          <button 
+            className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+            onClick={(e) => { e.stopPropagation(); handleConfigureAgent(agent); }}
+            title="Assign Task"
+          >
+            Assign
+          </button>
+          <button 
+            className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+            onClick={(e) => { e.stopPropagation(); alert('Chat coming soon'); }}
+            title="Chat"
+          >
+            Chat
           </button>
         </div>
       </motion.div>
@@ -657,12 +673,8 @@ const AgentsView = () => {
       {/* Agent Theater Tab (distinct visual) */}
       {activeTab === 'theater' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="text-sm text-gray-600 mb-4">Live view of agents with quick actions for transparency and control.</div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {allAgents.slice(0, 16).map(agent => (
-              <TheaterAgentCard key={`theater-${agent.id}`} agent={agent} />
-            ))}
-          </div>
+          <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
+          <AgentActivityTheater />
         </div>
       )}
 
