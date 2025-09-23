@@ -150,6 +150,7 @@ const AgentsView = () => {
   const [activeTab, setActiveTab] = useState('theater'); // theater | workforce | builder
   const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [assignAgent, setShowAssignModal] = useState(null);
+  const [theaterWorkflow, setTheaterWorkflow] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [agentConfiguration, setAgentConfiguration] = useState({
     customInstructions: '',
@@ -678,7 +679,7 @@ const AgentsView = () => {
       {activeTab === 'theater' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
-          <AgentActivityTheater />
+          <AgentActivityTheater selectedWorkflowName={theaterWorkflow?.name} />
           {/* Autonomous Workflows Cards below theater */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Autonomous Workflows</h2>
@@ -700,7 +701,7 @@ const AgentsView = () => {
                 description: 'Automatically handle support queries and escalate when needed',
                 currentStep: 'Escalating complex queries'
               }].map(wf => (
-                <div key={wf.id} className="bg-white rounded-lg shadow p-5 border">
+                <div key={wf.id} className={`bg-white rounded-lg shadow p-5 border ${theaterWorkflow?.id===wf.id ? 'ring-2 ring-blue-500' : ''}`}>
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <div className="text-sm text-gray-500">{wf.status}</div>
@@ -715,7 +716,10 @@ const AgentsView = () => {
                   <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
                     <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} />
                   </div>
-                  <div className="text-sm text-gray-700"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                  <div className="text-sm text-gray-700 mb-3"><span className="font-medium">Current Step:</span> {wf.currentStep}</div>
+                  <div className="flex items-center justify-end">
+                    <button onClick={()=>setTheaterWorkflow(wf)} className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700">Show in Theater</button>
+                  </div>
                 </div>
               ))}
             </div>
