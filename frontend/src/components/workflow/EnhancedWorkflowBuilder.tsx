@@ -535,13 +535,12 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     (event: React.DragEvent) => {
       event.preventDefault();
 
-      const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
       const nodeType = event.dataTransfer.getData('application/reactflow');
 
-      if (reactFlowBounds && nodeType && reactFlowInstance) {
-        const position = reactFlowInstance.project({
-          x: event.clientX - reactFlowBounds.left,
-          y: event.clientY - reactFlowBounds.top,
+      if (nodeType && reactFlowInstance) {
+        const position = reactFlowInstance.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
         });
 
         const newNode: Node = {
