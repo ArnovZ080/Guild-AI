@@ -7,7 +7,8 @@ import {
   Search, Filter, Eye, MessageSquare, Phone, Mail, Calendar, Target,
   DollarSign, TrendingUp, FileText, Image, Video, Mic, Camera,
   Globe, Database, Shield, Lightbulb, Briefcase, Heart, Star,
-  ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone
+  ChevronDown, ChevronUp, Activity, Clock, CheckCircle, AlertCircle, Megaphone,
+  Workflow, GitBranch, RefreshCw, Upload, Wrench, Network, Link, Share, Headphones
 } from 'lucide-react';
 import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
@@ -190,6 +191,8 @@ const AgentsView = () => {
   const [wfLoading, setWfLoading] = useState(false);
   const [wfError, setWfError] = useState(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const [showWorkflowDetails, setShowWorkflowDetails] = useState(false);
+  const [deployingId, setDeployingId] = useState(null);
   const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [assignAgent, setShowAssignModal] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
@@ -240,6 +243,197 @@ const AgentsView = () => {
     timer = setInterval(loadWorkflows, 10000);
     return () => clearInterval(timer);
   }, []);
+
+  // Workflow helpers (match previous rich cards)
+  const getWfStatusStyle = (status) => {
+    const styles = {
+      running: 'bg-green-100 text-green-800 border-green-200',
+      completed: 'bg-blue-100 text-blue-800 border-blue-200',
+      paused: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      failed: 'bg-red-100 text-red-800 border-red-200',
+      pending: 'bg-gray-100 text-gray-800 border-gray-200'
+    };
+    return styles[status] || 'bg-gray-100 text-gray-800 border-gray-200';
+  };
+
+  const getIntegrationIcon = (integration) => {
+    const icons = {
+      'Zapier': Wrench,
+      'Make.com': Workflow,
+      'N8N': Network,
+      'HubSpot': Database,
+      'Gmail': Mail,
+      'WhatsApp': MessageSquare,
+      'Messenger': MessageSquare,
+      'Facebook': Globe,
+      'Instagram': Camera,
+      'LinkedIn': Users,
+      'QuickBooks': DollarSign,
+      'Excel': FileText,
+      'CRM': Database,
+      'Google Analytics': BarChart,
+      'Slack': MessageSquare,
+      'Zendesk': Headphones,
+      'Intercom': MessageSquare,
+      'Buffer': Share,
+      'Hootsuite': Share,
+      'Twitter': Globe
+    };
+    return icons[integration] || Link;
+  };
+
+  const handleDeploy = async (workflow) => {
+    const wfId = workflow.workflow_id || workflow.id;
+    if (!wfId) return;
+    setDeployingId(wfId);
+    try {
+      await apiService.deployWorkflow(wfId, 'n8n');
+      triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'Workflow deployed! 🚀', intensity: 'normal' });
+    } finally {
+      setDeployingId(null);
+    }
+  };
+
+  const WorkflowCard = ({ workflow }) => (
+    <motion.div
+      className="bg-white rounded-lg shadow-lg p-6 border hover:shadow-xl transition-shadow cursor-pointer"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.02 }}
+      onClick={() => { setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className="p-3 bg-blue-100 rounded-lg">
+            <Workflow className="w-6 h-6 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{workflow.name || workflow.results?.campaign?.name || (workflow.workflow_id || workflow.id)}</h3>
+            <p className="text-sm text-gray-500">{workflow.description}</p>
+          </div>
+        </div>
+        <div className="flex flex-col space-y-2 items-end">
+          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getWfStatusStyle(workflow.status)}`}>
+            {workflow.status}
+          </span>
+          <span className="text-xs text-gray-500 capitalize">{workflow.type || 'autonomous'}</span>
+          {(workflow.workflow_id || workflow.id) && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleDeploy(workflow); }}
+              disabled={deployingId === (workflow.workflow_id || workflow.id)}
+              className="mt-2 inline-flex items-center space-x-1 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+              {deployingId === (workflow.workflow_id || workflow.id) ? (
+                <>
+                  <RefreshCw className="w-3 h-3 animate-spin" />
+                  <span>Deploying…</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-3 h-3" />
+                  <span>Deploy</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      {typeof workflow.progress === 'number' && (
+        <div className="mb-4">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span>Progress</span>
+            <span>{workflow.progress}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <motion.div className="bg-blue-600 h-2 rounded-full" initial={{ width: 0 }} animate={{ width: `${workflow.progress}%` }} transition={{ duration: 1, delay: 0.2 }} />
+          </div>
+        </div>
+      )}
+
+      {/* Current Step */}
+      {workflow.current_step && (
+        <div className="mb-4">
+          <p className="text-sm text-gray-600"><span className="font-medium">Current Step:</span> {workflow.current_step}</p>
+        </div>
+      )}
+
+      {/* Agents */}
+      {(workflow.agents || workflow.agents_involved)?.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Agents Involved:</h4>
+          <div className="flex flex-wrap gap-1">
+            {(workflow.agents || workflow.agents_involved).slice(0, 4).map((agent, idx) => (
+              <span key={`${agent}-${idx}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{agent}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Integrations */}
+      {Array.isArray(workflow.integrations) && workflow.integrations.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Integrations:</h4>
+          <div className="flex flex-wrap gap-2">
+            {workflow.integrations.slice(0, 6).map(integration => {
+              const IntegrationIcon = getIntegrationIcon(integration);
+              return (
+                <div key={integration} className="flex items-center space-x-1 px-2 py-1 bg-gray-100 rounded-full">
+                  <IntegrationIcon className="w-3 h-3 text-gray-600" />
+                  <span className="text-xs text-gray-600">{integration}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Metrics */}
+      {workflow.metrics && (
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="text-center p-2 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-900">
+              {workflow.metrics.customersProcessed || workflow.metrics.leadsProcessed || workflow.metrics.postsScheduled || workflow.metrics.reportsGenerated || workflow.metrics.ticketsHandled}
+            </div>
+            <div className="text-xs text-gray-500">Processed</div>
+          </div>
+          <div className="text-center p-2 bg-gray-50 rounded-lg">
+            <div className="text-lg font-bold text-gray-900">
+              {(workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate) && `${workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate}%`}
+            </div>
+            <div className="text-xs text-gray-500">Success Rate</div>
+          </div>
+        </div>
+      )}
+
+      {/* Business Goal */}
+      {workflow.businessGoal && (
+        <div className="bg-blue-50 rounded-lg p-3">
+          <div className="flex items-center space-x-2 mb-1">
+            <Target className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-medium text-blue-900">Business Goal</span>
+          </div>
+          <p className="text-sm text-blue-800">{workflow.businessGoal}</p>
+        </div>
+      )}
+      <div className="mt-4 flex gap-2">
+        <button
+          className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
+        >
+          Details
+        </button>
+        <button
+          className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
+          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow({ id: workflow.workflow_id || workflow.id, name: workflow.name || workflow.results?.campaign?.name }); }}
+        >
+          View in Theater
+        </button>
+      </div>
+    </motion.div>
+  );
 
   // Handler functions
   const handleActivateAgent = (agent) => {
@@ -849,40 +1043,12 @@ const AgentsView = () => {
             {(!workflows || workflows.length === 0) ? (
               <div className="text-sm text-gray-500">No workflows yet.</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {workflows.map(wf => (
-                  <div key={wf.workflow_id || wf.id} className="border rounded-lg p-4 hover:shadow transition">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <div className="font-semibold text-gray-900">{wf.name || wf.results?.campaign?.name || (wf.workflow_id || wf.id)}</div>
-                        <div className="text-xs text-gray-500">Status: {wf.status || 'unknown'}</div>
-                      </div>
-                      <div className="text-xs text-gray-600">{typeof wf.progress === 'number' ? `${wf.progress}%` : ''}</div>
-                    </div>
-                    {typeof wf.progress === 'number' && (
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
-                        <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} />
-                      </div>
-                    )}
-                    {wf.current_step && (
-                      <div className="text-sm text-gray-700 mb-3">{wf.current_step}</div>
-                    )}
-                    <div className="flex gap-2">
-                      <button
-                        className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
-                        onClick={() => setSelectedWorkflow({ id: wf.workflow_id || wf.id, name: wf.name || (wf.results?.campaign?.name) })}
-                      >
-                        View in Theater
-                      </button>
-                      <button
-                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
-                        onClick={() => alert(JSON.stringify(wf, null, 2))}
-                      >
-                        Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <AnimatePresence>
+                  {workflows.map(wf => (
+                    <WorkflowCard key={wf.workflow_id || wf.id} workflow={wf} />
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </div>
