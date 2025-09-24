@@ -13,6 +13,7 @@ import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
+import apiService from '../services/api.js';
 
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -185,6 +186,10 @@ const AgentsView = () => {
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list, detailed
   const [activeTab, setActiveTab] = useState('theater'); // theater | workforce | builder
+  const [workflows, setWorkflows] = useState([]);
+  const [wfLoading, setWfLoading] = useState(false);
+  const [wfError, setWfError] = useState(null);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [showConfigureModal, setShowConfigureModal] = useState(false);
   const [assignAgent, setShowAssignModal] = useState(null);
   const [showActivityModal, setShowActivityModal] = useState(false);
@@ -216,6 +221,25 @@ const AgentsView = () => {
     }
     fetchAvailableAgents();
   }, [API]);
+
+  // Load workflows with polling fallback
+  useEffect(() => {
+    let timer;
+    async function loadWorkflows() {
+      try {
+        setWfLoading(true);
+        const list = await apiService.getAllWorkflows();
+        if (Array.isArray(list)) setWorkflows(list);
+      } catch (e) {
+        setWfError('Failed to load workflows');
+      } finally {
+        setWfLoading(false);
+      }
+    }
+    loadWorkflows();
+    timer = setInterval(loadWorkflows, 10000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Handler functions
   const handleActivateAgent = (agent) => {
@@ -810,9 +834,58 @@ const AgentsView = () => {
 
       {/* Agent Theater Tab (distinct visual) */}
       {activeTab === 'theater' && (
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
-          <AgentActivityTheater />
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
+            <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} />
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows</h2>
+              {wfLoading && <span className="text-sm text-gray-500">Refreshing…</span>}
+            </div>
+            {wfError && <div className="text-sm text-red-600 mb-3">{wfError}</div>}
+            {(!workflows || workflows.length === 0) ? (
+              <div className="text-sm text-gray-500">No workflows yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {workflows.map(wf => (
+                  <div key={wf.workflow_id || wf.id} className="border rounded-lg p-4 hover:shadow transition">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="font-semibold text-gray-900">{wf.name || wf.results?.campaign?.name || (wf.workflow_id || wf.id)}</div>
+                        <div className="text-xs text-gray-500">Status: {wf.status || 'unknown'}</div>
+                      </div>
+                      <div className="text-xs text-gray-600">{typeof wf.progress === 'number' ? `${wf.progress}%` : ''}</div>
+                    </div>
+                    {typeof wf.progress === 'number' && (
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                        <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} />
+                      </div>
+                    )}
+                    {wf.current_step && (
+                      <div className="text-sm text-gray-700 mb-3">{wf.current_step}</div>
+                    )}
+                    <div className="flex gap-2">
+                      <button
+                        className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
+                        onClick={() => setSelectedWorkflow({ id: wf.workflow_id || wf.id, name: wf.name || (wf.results?.campaign?.name) })}
+                      >
+                        View in Theater
+                      </button>
+                      <button
+                        className="px-3 py-1.5 text-sm bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+                        onClick={() => alert(JSON.stringify(wf, null, 2))}
+                      >
+                        Details
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
