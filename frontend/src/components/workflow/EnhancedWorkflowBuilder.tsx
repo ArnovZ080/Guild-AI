@@ -644,7 +644,77 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
               </button>
             </div>
             <div className="grid grid-cols-3 gap-4">
-              {/* Tips / Recommendations */}
+              {/* Left: Branches / Advanced */}
+              <div className="col-span-1">
+                {(data.category === 'condition' || data.category === 'split') && (
+                  <div className="mb-4">
+                    <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
+                    {conditionBranches.map((b, idx) => (
+                      <div key={idx} className="flex items-center gap-2 mb-2">
+                        <input
+                          className="w-24 px-2 py-1 border rounded"
+                          value={b.label}
+                          onChange={(e) => {
+                            const copy = [...conditionBranches];
+                            copy[idx] = { ...copy[idx], label: e.target.value };
+                            setConditionBranches(copy);
+                          }}
+                        />
+                        <input
+                          className="flex-1 px-2 py-1 border rounded"
+                          placeholder={`NL rule for ${b.label}`}
+                          value={b.nl}
+                          onChange={(e) => {
+                            const copy = [...conditionBranches];
+                            copy[idx] = { ...copy[idx], nl: e.target.value };
+                            setConditionBranches(copy);
+                          }}
+                        />
+                      </div>
+                    ))}
+                    <button
+                      className="text-xs text-blue-600 hover:underline"
+                      onClick={() => setConditionBranches([...conditionBranches, { label: 'branch', nl: '' }])}
+                    >
+                      + Add branch
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Middle: Primary NL input */}
+              <div className="col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Describe this step</label>
+                <textarea
+                  className="w-full p-3 border border-gray-300 rounded-md mb-4"
+                  style={{ minHeight: '240px' }}
+                  value={nlInput}
+                  onChange={(e) => setNlInput(e.target.value)}
+                  placeholder={
+                    data.category === 'trigger' ? 'e.g., When I receive an email with subject contains "pricing"' :
+                    data.category === 'action' ? 'e.g., Filter emails between spam and useful' :
+                    (data.category === 'condition' || data.category === 'split') ? 'e.g., If spam then trash, else send to agent' :
+                    data.category === 'agent' ? 'e.g., Read and reply with a professional tone' :
+                    'Describe the behavior...'
+                  }
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setIsConfiguring(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                  >
+                    Close
+                  </button>
+                  <button
+                    onClick={saveNaturalLanguageConfig}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    disabled={!nlInput.trim() && !(data.category === 'condition' || data.category === 'split')}
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+              {/* Right: Tips / Recommendations */}
               <div className="col-span-1">
                 <div className="p-3 border rounded-md bg-gray-50">
                   <div className="text-sm font-medium text-gray-700 mb-2">Suggestions</div>
@@ -720,76 +790,6 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Primary NL input */}
-              <div className="col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Describe this step</label>
-                <textarea
-                  className="w-full p-3 border border-gray-300 rounded-md mb-4"
-                  style={{ minHeight: '240px' }}
-                  value={nlInput}
-                  onChange={(e) => setNlInput(e.target.value)}
-                  placeholder={
-                    data.category === 'trigger' ? 'e.g., When I receive an email with subject contains "pricing"' :
-                    data.category === 'action' ? 'e.g., Filter emails between spam and useful' :
-                    (data.category === 'condition' || data.category === 'split') ? 'e.g., If spam then trash, else send to agent' :
-                    data.category === 'agent' ? 'e.g., Read and reply with a professional tone' :
-                    'Describe the behavior...'
-                  }
-                />
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setIsConfiguring(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                  >
-                    Close
-                  </button>
-                  <button
-                    onClick={saveNaturalLanguageConfig}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    disabled={!nlInput.trim() && !(data.category === 'condition' || data.category === 'split')}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-              {/* Branches / Advanced */}
-              <div className="col-span-1">
-                {(data.category === 'condition' || data.category === 'split') && (
-                  <div className="mb-4">
-                    <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
-                    {conditionBranches.map((b, idx) => (
-                      <div key={idx} className="flex items-center gap-2 mb-2">
-                        <input
-                          className="w-24 px-2 py-1 border rounded"
-                          value={b.label}
-                          onChange={(e) => {
-                            const copy = [...conditionBranches];
-                            copy[idx] = { ...copy[idx], label: e.target.value };
-                            setConditionBranches(copy);
-                          }}
-                        />
-                        <input
-                          className="flex-1 px-2 py-1 border rounded"
-                          placeholder={`NL rule for ${b.label}`}
-                          value={b.nl}
-                          onChange={(e) => {
-                            const copy = [...conditionBranches];
-                            copy[idx] = { ...copy[idx], nl: e.target.value };
-                            setConditionBranches(copy);
-                          }}
-                        />
-                      </div>
-                    ))}
-                    <button
-                      className="text-xs text-blue-600 hover:underline"
-                      onClick={() => setConditionBranches([...conditionBranches, { label: 'branch', nl: '' }])}
-                    >
-                      + Add branch
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -906,8 +906,23 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   }, [API]);
 
   const onConnect = useCallback((params: Connection | Edge) => {
-    setEdges((eds) => addEdge(params, eds));
-  }, [setEdges]);
+    setEdges((eds) => {
+      let label: string | undefined = undefined;
+      try {
+        const sourceNode = nodes.find((n) => n.id === (params as any).source);
+        const isCond = sourceNode && (sourceNode.data?.category === 'condition' || sourceNode.data?.category === 'split');
+        const handleId = (params as any).sourceHandle as string | undefined;
+        if (isCond && handleId && handleId.startsWith('branch-')) {
+          const idx = parseInt(handleId.split('-')[1] || '0', 10);
+          const branches = Array.isArray(sourceNode.data?.branches) ? sourceNode.data.branches : [];
+          const b = branches[idx];
+          if (b && b.label) label = String(b.label);
+        }
+      } catch {}
+      const edgeWithLabel = label ? { ...(params as any), label } : params;
+      return addEdge(edgeWithLabel as any, eds);
+    });
+  }, [setEdges, nodes]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
