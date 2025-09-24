@@ -372,6 +372,33 @@ const AgentsView = () => {
         </div>
       )}
 
+      {/* Triggers */}
+      {Array.isArray(workflow.triggers) && workflow.triggers.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Triggers:</h4>
+          <div className="flex flex-wrap gap-1">
+            {workflow.triggers.map((t, i) => (
+              <span key={`${t}-${i}`} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">{t}</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      {Array.isArray(workflow.actions) && workflow.actions.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Actions:</h4>
+          <div className="space-y-1">
+            {workflow.actions.map((a, i) => (
+              <div key={`${a.step}-${i}`} className="flex items-center justify-between text-sm">
+                <div className="text-gray-700 truncate pr-2">{a.step} <span className="text-xs text-gray-500">{a.agent ? `• ${a.agent}` : ''}</span></div>
+                <span className={`px-2 py-0.5 text-xs rounded-full ${a.status==='completed'?'bg-green-100 text-green-700':a.status==='in-progress'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{a.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Integrations */}
       {Array.isArray(workflow.integrations) && workflow.integrations.length > 0 && (
         <div className="mb-4">
@@ -392,19 +419,79 @@ const AgentsView = () => {
 
       {/* Metrics */}
       {workflow.metrics && (
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="text-center p-2 bg-gray-50 rounded-lg">
-            <div className="text-lg font-bold text-gray-900">
-              {workflow.metrics.customersProcessed || workflow.metrics.leadsProcessed || workflow.metrics.postsScheduled || workflow.metrics.reportsGenerated || workflow.metrics.ticketsHandled}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {workflow.metrics.customersProcessed !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.customersProcessed}</div>
+              <div className="text-xs text-gray-500">Customers Processed</div>
             </div>
-            <div className="text-xs text-gray-500">Processed</div>
-          </div>
-          <div className="text-center p-2 bg-gray-50 rounded-lg">
-            <div className="text-lg font-bold text-gray-900">
-              {(workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate) && `${workflow.metrics.successRate || workflow.metrics.qualificationRate || workflow.metrics.avgEngagement || workflow.metrics.accuracyRate || workflow.metrics.autoResolutionRate}%`}
+          )}
+          {workflow.metrics.leadsProcessed !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.leadsProcessed}</div>
+              <div className="text-xs text-gray-500">Leads Processed</div>
             </div>
-            <div className="text-xs text-gray-500">Success Rate</div>
-          </div>
+          )}
+          {workflow.metrics.postsScheduled !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.postsScheduled}</div>
+              <div className="text-xs text-gray-500">Posts Scheduled</div>
+            </div>
+          )}
+          {workflow.metrics.reportsGenerated !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.reportsGenerated}</div>
+              <div className="text-xs text-gray-500">Reports Generated</div>
+            </div>
+          )}
+          {workflow.metrics.ticketsHandled !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.ticketsHandled}</div>
+              <div className="text-xs text-gray-500">Tickets Handled</div>
+            </div>
+          )}
+          {workflow.metrics.successRate !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.successRate}%</div>
+              <div className="text-xs text-gray-500">Success Rate</div>
+            </div>
+          )}
+          {workflow.metrics.qualificationRate !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.qualificationRate}%</div>
+              <div className="text-xs text-gray-500">Qualification Rate</div>
+            </div>
+          )}
+          {workflow.metrics.avgEngagement !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.avgEngagement}%</div>
+              <div className="text-xs text-gray-500">Avg Engagement</div>
+            </div>
+          )}
+          {workflow.metrics.accuracyRate !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.accuracyRate}%</div>
+              <div className="text-xs text-gray-500">Accuracy Rate</div>
+            </div>
+          )}
+          {workflow.metrics.autoResolutionRate !== undefined && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-lg font-bold text-gray-900">{workflow.metrics.autoResolutionRate}%</div>
+              <div className="text-xs text-gray-500">Auto-Resolution</div>
+            </div>
+          )}
+          {workflow.metrics.avgTimeToComplete && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-sm font-semibold text-gray-900">{workflow.metrics.avgTimeToComplete}</div>
+              <div className="text-xs text-gray-500">Avg Time to Complete</div>
+            </div>
+          )}
+          {workflow.metrics.costPerCustomer && (
+            <div className="text-center p-2 bg-gray-50 rounded-lg">
+              <div className="text-sm font-semibold text-gray-900">{workflow.metrics.costPerCustomer}</div>
+              <div className="text-xs text-gray-500">Cost per Customer</div>
+            </div>
+          )}
         </div>
       )}
 
