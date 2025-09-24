@@ -289,10 +289,10 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
           return (
             <line
               key={`line-${task.id}`}
-              x1={`calc(${fromAgent.position.x}% + 12px)`}
-              y1={`calc(${fromAgent.position.y}% + 12px)`}
-              x2={`calc(${toAgent.position.x}% + 12px)`}
-              y2={`calc(${toAgent.position.y}% + 12px)`}
+              x1={`calc(${fromAgent.position.x}% + 24px)`}
+              y1={`calc(${fromAgent.position.y}% + 24px)`}
+              x2={`calc(${toAgent.position.x}% + 24px)`}
+              y2={`calc(${toAgent.position.y}% + 24px)`}
               stroke="rgba(59, 130, 246, 0.35)"
               strokeWidth="2"
               strokeDasharray="4,4"
@@ -308,9 +308,9 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
         return (
           <motion.div
             key={task.id}
-            className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg"
-            initial={{ left: `calc(${fromAgent.position.x}% + 12px)`, top: `calc(${fromAgent.position.y}% + 12px)` }}
-            animate={{ left: `calc(${toAgent.position.x}% + 12px)`, top: `calc(${toAgent.position.y}% + 12px)` }}
+            className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg z-0 pointer-events-none"
+            initial={{ left: `calc(${fromAgent.position.x}% + 24px)`, top: `calc(${fromAgent.position.y}% + 24px)` }}
+            animate={{ left: `calc(${toAgent.position.x}% + 24px)`, top: `calc(${toAgent.position.y}% + 24px)` }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
         );
