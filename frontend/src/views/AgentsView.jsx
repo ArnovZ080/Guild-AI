@@ -244,6 +244,67 @@ const AgentsView = () => {
     return () => clearInterval(timer);
   }, []);
 
+  // WebSocket stream for workflows with reconnect and schema unification
+  useEffect(() => {
+    const apiUrl = (import.meta && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) || '';
+    if (!apiUrl) return;
+    const makeWsUrl = (base) => {
+      try {
+        const u = new URL(base);
+        const proto = u.protocol === 'https:' ? 'wss:' : 'ws:';
+        return `${proto}//${u.host}/agents/workflows/stream`;
+      } catch {
+        return '';
+      }
+    };
+    const wsUrl = makeWsUrl(apiUrl);
+    if (!wsUrl) return;
+
+    let ws;
+    let shouldReconnect = true;
+    let retryMs = 2000;
+
+    const unify = (payload) => {
+      if (Array.isArray(payload)) return payload;
+      if (payload && Array.isArray(payload.workflows)) return payload.workflows;
+      return [];
+    };
+
+    const connect = () => {
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => { retryMs = 2000; };
+        ws.onmessage = (ev) => {
+          try {
+            const data = JSON.parse(ev.data);
+            const list = unify(data);
+            if (Array.isArray(list) && list.length >= 0) {
+              setWorkflows(list);
+              setWfError(null);
+            }
+          } catch {
+            // ignore malformed frames
+          }
+        };
+        ws.onerror = () => {};
+        ws.onclose = () => {
+          if (shouldReconnect) {
+            setTimeout(connect, retryMs);
+            retryMs = Math.min(retryMs * 2, 30000);
+          }
+        };
+      } catch {
+        // ignore
+      }
+    };
+    connect();
+
+    return () => {
+      shouldReconnect = false;
+      try { ws && ws.close(); } catch {}
+    };
+  }, []);
+
   // Workflow helpers (match previous rich cards)
   const getWfStatusStyle = (status) => {
     const styles = {
