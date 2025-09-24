@@ -108,8 +108,8 @@ export const agentMeta = {
   wellness_agent:{category:'customer',type:'support',description:'Employee wellness',capabilities:['Assessment','Plans','Interventions']}
 };
 
-// Curated metadata for agents discovered in guild/src/agents
-export const agentMeta = {
+// Curated metadata for agents discovered in guild/src/agents (deduplicated)
+/* export const agentMeta = {
   accountability_coach_agent:{category:'customer',type:'support',description:'Accountability and habit execution support',capabilities:['Goal tracking','Reminders','Habit design']},
   accounting_agent:{category:'financial',type:'analysis',description:'Accounting reports and reconciliation',capabilities:['P&L/Balance Sheet','Reconciliation','Variance checks']},
   ad_performance_optimizer_agent:{category:'marketing',type:'advertising',description:'Optimize paid ad performance',capabilities:['ROAS analysis','Bid/budget tuning','A/B tests']},
@@ -217,6 +217,6 @@ export const agentMeta = {
   wellbeing_agent:{category:'customer',type:'support',description:'Wellness support',capabilities:['Balance','Burnout prevention','Tracking']},
   wellbeing_workload_agent:{category:'hr',type:'management',description:'Align workload with wellbeing',capabilities:['Workload analysis','Schedules','Adjustments']},
   wellness_agent:{category:'customer',type:'support',description:'Employee wellness',capabilities:['Assessment','Plans','Interventions']}
-};
+}; */
 
 
