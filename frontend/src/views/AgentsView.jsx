@@ -204,6 +204,70 @@ const AgentsView = () => {
   });
   const { triggerCelebration } = useCelebrations();
 
+  // Rich demo workflows used as a visual fallback in the Agent Theater
+  const demoWorkflows = [
+    {
+      id: 'demo_wf_1',
+      name: 'Customer Onboarding Automation',
+      description: 'Automatically onboard new customers with Autonomous personalized welcome sequence',
+      status: 'running',
+      type: 'autonomous',
+      progress: 75,
+      current_step: 'Sending welcome email sequence',
+      agents: ['Customer Success Agent', 'Email Marketing Agent', 'Personalization Agent'],
+      integrations: ['Zapier', 'Gmail', 'HubSpot'],
+      metrics: { customersProcessed: 234, successRate: 94 },
+      triggers: ['New customer signup', 'Payment confirmation'],
+      actions: [
+        { step: 'Send welcome email', status: 'completed' },
+        { step: 'Create customer profile', status: 'completed' },
+        { step: 'Schedule onboarding call', status: 'in-progress' },
+        { step: 'Send product tutorial', status: 'pending' }
+      ],
+      businessGoal: 'Reduce onboarding time by 60%'
+    },
+    {
+      id: 'demo_wf_2',
+      name: 'Lead Qualification & Nurturing',
+      description: 'Automatically qualify and nurture leads based on behavior and engagement',
+      status: 'running',
+      type: 'autonomous',
+      progress: 68,
+      current_step: 'Analyzing lead behavior patterns',
+      agents: ['Lead Personalization Agent', 'Sales Agent', 'Analytics Agent'],
+      integrations: ['HubSpot', 'LinkedIn', 'Gmail', 'WhatsApp'],
+      metrics: { leadsProcessed: 1247, successRate: 78 },
+      triggers: ['Website visit', 'Form submission', 'Email engagement'],
+      actions: [
+        { step: 'Score lead quality', status: 'completed' },
+        { step: 'Personalize outreach', status: 'completed' },
+        { step: 'Schedule follow-up', status: 'in-progress' },
+        { step: 'Update CRM', status: 'pending' }
+      ],
+      businessGoal: 'Increase lead conversion by 40%'
+    },
+    {
+      id: 'demo_wf_3',
+      name: 'Content Distribution & Optimization',
+      description: 'Automatically distribute content across platforms and optimize for engagement',
+      status: 'running',
+      type: 'autonomous',
+      progress: 82,
+      current_step: 'Optimizing social media posts',
+      agents: ['Content Strategist Agent', 'Social Media Agent', 'SEO Agent'],
+      integrations: ['Facebook', 'Instagram', 'LinkedIn', 'Gmail', 'WhatsApp'],
+      metrics: { postsScheduled: 156, successRate: 8.3 },
+      triggers: ['New content published', 'Performance threshold met'],
+      actions: [
+        { step: 'Schedule social posts', status: 'completed' },
+        { step: 'Optimize for SEO', status: 'completed' },
+        { step: 'A/B test variations', status: 'in-progress' },
+        { step: 'Analyze performance', status: 'pending' }
+      ],
+      businessGoal: 'Increase content reach by 50%'
+    }
+  ];
+
   useEffect(() => {
     async function fetchAvailableAgents() {
       if (!API) { setApiAgents(null); return; }
@@ -1188,17 +1252,18 @@ const AgentsView = () => {
               {wfLoading && <span className="text-sm text-gray-500">Refreshing…</span>}
             </div>
             {wfError && <div className="text-sm text-red-600 mb-3">{wfError}</div>}
-            {(!workflows || workflows.length === 0) ? (
-              <div className="text-sm text-gray-500">No workflows yet.</div>
-            ) : (
+            {(() => {
+              const listToShow = (Array.isArray(workflows) && workflows.length >= 3) ? workflows : demoWorkflows;
+              return (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
-                  {workflows.map(wf => (
+                  {listToShow.map(wf => (
                     <WorkflowCard key={wf.workflow_id || wf.id} workflow={wf} />
                   ))}
                 </AnimatePresence>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
