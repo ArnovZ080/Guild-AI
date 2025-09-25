@@ -104,7 +104,7 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
     };
     return {
       color: baseColors[type] || '#6B7280',
-      opacity: statusModifier[status] ?? 0.8
+      auraOpacity: statusModifier[status] ?? 0.8
     };
   };
 
@@ -240,7 +240,7 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
       </div>
 
       {agents.map((agent) => {
-        const { color, opacity } = getAgentColor(agent.type, agent.status);
+        const { color, auraOpacity } = getAgentColor(agent.type, agent.status);
         return (
           <motion.div
             key={agent.id}
@@ -253,8 +253,13 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
           >
             <motion.div
               className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg relative"
-              style={{ backgroundColor: color, opacity }}
+              style={{ backgroundColor: color }}
             >
+              {/* Soft aura reflecting status; stays under avatar to occlude lines */}
+              <div
+                className="absolute rounded-full -inset-1"
+                style={{ backgroundColor: color, opacity: auraOpacity * 0.25, filter: 'blur(6px)', zIndex: -1 }}
+              />
               <span className="text-lg">{getAgentIcon(agent.type)}</span>
               {agent.status === 'working' && (
                 <motion.div
