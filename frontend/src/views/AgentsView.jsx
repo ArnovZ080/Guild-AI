@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ConversationalInterface, QuickActions } from '../components/agents/ConversationalUI.jsx';
 import { repoAgentIds } from '../data/repoAgentIds.js';
 import { agentMeta } from '../data/agentMeta.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -180,6 +181,8 @@ const AgentsView = () => {
   const [showHireModal, setShowHireModal] = useState(false);
   const [hireCandidate, setHireCandidate] = useState(null);
   const [hireTerm, setHireTerm] = useState('day');
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [chatAgent, setChatAgent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -202,6 +205,269 @@ const AgentsView = () => {
     priority: 'normal',
     notifications: true
   });
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
+
+  // Canonical capability/description overrides for known agents (shared by cards and modal)
+  const capabilityOverrides = {
+    'Accountability Coach Agent': {
+      purpose: 'Keeps the founder on track with habit design and follow-through; best for daily check-ins and momentum.',
+      capabilities: [
+        'Daily/weekly check-ins',
+        'Nudge scheduling',
+        'Habit loop micro-tasks'
+      ]
+    },
+    'Accounting Agent': {
+      purpose: 'Produces formal financial reports and reconciliations for bookkeeping and CFO workflows.',
+      capabilities: [
+        'P&L and balance sheet',
+        'Reconcile & flag anomalies',
+        'Export XLS/PDF reports'
+      ]
+    },
+    'Ad Performance Optimizer Agent': {
+      purpose: 'Automates paid-ad performance tuning across platforms for better ROAS.',
+      capabilities: [
+        'ROAS analysis',
+        'A/B test variants',
+        'Reallocate budgets'
+      ]
+    },
+    'Affiliate Partnerships Agent': {
+      purpose: 'Builds and runs affiliate/partner programs to scale distribution.',
+      capabilities: [
+        'Prospect onboarding',
+        'Offer packaging',
+        'Commission tracking'
+      ]
+    },
+    'Agent Evaluator': {
+      purpose: 'Scores outputs across agents and enforces quality thresholds (Judge/QA layer).',
+      capabilities: [
+        'Apply rubrics',
+        'Revision requests',
+        'Aggregate metrics'
+      ]
+    },
+    'Judge Agent': {
+      purpose: 'Generates rubrics and enforces quality thresholds across outputs.',
+      capabilities: [
+        'Task rubrics',
+        'Score & revise',
+        'Log evaluator trends'
+      ]
+    },
+    'Automation Agent': {
+      purpose: 'Orchestrates API-based automations and routine task flows.',
+      capabilities: [
+        'API triggers/actions',
+        'Data sync mapping',
+        'Retry scheduling'
+      ]
+    },
+    'Automation Bridge Agent': {
+      purpose: 'Connects disparate automation islands, ensuring cross-system reliability.',
+      capabilities: [
+        'Dependency graphs',
+        'Cross-tool handoffs',
+        'Health monitoring'
+      ]
+    },
+    'Board Advisor Agent': {
+      purpose: 'Provides board-level briefings, risk assessments and strategic recommendations.',
+      capabilities: [
+        'Executive summaries',
+        'Scenario analysis',
+        'Board briefings'
+      ]
+    },
+    'Bookkeeping Agent': {
+      purpose: 'Handles transaction ingestion, categorization and month-end closes.',
+      capabilities: [
+        'Bank feed ingest',
+        'Receipt matching',
+        'Month-end close'
+      ]
+    },
+    'Brand Strategist Agent': {
+      purpose: 'Designs brand narrative, tone and identity guidelines.',
+      capabilities: [
+        'Voice & messaging',
+        'Brand audits',
+        'Creative guidelines'
+      ]
+    },
+    'Business Intelligence Agent': {
+      purpose: 'Central KPI hub and anomaly detection across business systems.',
+      capabilities: [
+        'KPI dashboards',
+        'Anomaly alerts',
+        'Plain-language insights'
+      ]
+    },
+    'Business Strategist Agent': {
+      purpose: 'Develops long-term plans, OKRs and strategic prioritization.',
+      capabilities: [
+        'Roadmaps & OKRs',
+        'Trade-off analysis',
+        'Milestone planning'
+      ]
+    },
+    'Business Strategist': {
+      purpose: 'Strategy assistant variant (quick strategic guidance).',
+      capabilities: [
+        'Rapid frameworks',
+        'Quick SWOT/Porter',
+        'Next-step options'
+      ]
+    },
+    'Calendar Harmony Agent': {
+      purpose: 'Optimizes user calendar for focus, balance and throughput.',
+      capabilities: [
+        'Timeboxing blocks',
+        'Auto-schedule tasks',
+        'Rebalance overload'
+      ]
+    },
+    'Celebration Narrator Agent': {
+      purpose: 'Produces the micro-celebration narratives and communications.',
+      capabilities: [
+        'Milestone narratives',
+        'Celebratory assets',
+        'Recognition scheduling'
+      ]
+    },
+    'Chief Of Staff Agent': {
+      purpose: 'Cross-agent coordinator for priorities, resource allocation and status alignment.',
+      capabilities: [
+        'Weekly plans',
+        'Delegation matrix',
+        'Dependency tracking'
+      ]
+    },
+    'Churn Predictor Agent': {
+      purpose: 'Predicts churn risk and triggers retention plays.',
+      capabilities: [
+        'Risk scoring',
+        'Retention playbooks',
+        'Effectiveness monitoring'
+      ]
+    },
+    'Community Connector Agent': {
+      purpose: 'Builds and grows user communities and external engagement.',
+      capabilities: [
+        'Programs & loops',
+        'Events & advocacy',
+        'Community health'
+      ]
+    },
+    'Community Manager Agent': {
+      purpose: 'Operates community channels day-to-day (posting, replies, moderation).',
+      capabilities: [
+        'Schedule posts',
+        'Triage & respond',
+        'Engagement reports'
+      ]
+    },
+    'Competitive Intelligence Agent': {
+      purpose: 'Monitors competitors and provides actionable briefs.',
+      capabilities: [
+        'Competitive tracking',
+        'Landscape briefs',
+        'Countermeasure recs'
+      ]
+    },
+    'Compliance Agent': {
+      purpose: 'Ensures outputs and processes comply with policies/regulations.',
+      capabilities: [
+        'Compliance checks',
+        'Remediation plans',
+        'Audit checklists'
+      ]
+    },
+    'Connector Agent': {
+      purpose: 'Manages OAuth/API connectors and health-checks for external services.',
+      capabilities: [
+        'API auth & tokens',
+        'Connectivity tests',
+        'Unified status/errors'
+      ]
+    },
+    'Content Intelligence Agent': {
+      purpose: 'Measures content performance and prescribes improvements.',
+      capabilities: [
+        'Content KPIs',
+        'Opportunity surfacing',
+        'Cadence recommendations'
+      ]
+    },
+    'Content Repurposer Agent': {
+      purpose: 'Converts existing content into alternate formats tailored for platforms.',
+      capabilities: [
+        'Summarize/adapt',
+        'Platform reformat',
+        'Variant generation'
+      ]
+    },
+    'Content Strategist': {
+      purpose: 'Plans editorial calendars and content themes aligned to goals.',
+      capabilities: [
+        'Calendars & briefs',
+        'Funnel mapping',
+        'Production allocation'
+      ]
+    },
+    'Contract Analyzer Agent': {
+      purpose: 'Parses contracts and extracts risk/obligations.',
+      capabilities: [
+        'Clause extraction',
+        'Risk flagging',
+        'Redline suggestions'
+      ]
+    },
+    'Copywriter Agent': {
+      purpose: 'High-impact short-form copywriter for ads and CTAs.',
+      capabilities: [
+        'Ad headlines',
+        'Email CTAs',
+        'Platform copy'
+      ]
+    },
+    'Copywriter': {
+      purpose: 'General writing assistant for broader copy needs.',
+      capabilities: [
+        'Draft/edit content',
+        'Brand tone adjust',
+        'A/B variants'
+      ]
+    },
+    'CRM Agent': {
+      purpose: 'Manages CRM hygiene, segments and pipelines.',
+      capabilities: [
+        'Enrich & dedupe',
+        'Pipeline health',
+        'Segmentation sync'
+      ]
+    },
+    'CRM Automation Agent': {
+      purpose: 'Automates CRM workflows and routing logic.',
+      capabilities: [
+        'Triggers & routing',
+        'Auto-assign leads',
+        'Cross-tool sync'
+      ]
+    },
+    'Customer Intelligence Agent': {
+      purpose: '360° view of customers; journey mapping and health scoring.',
+      capabilities: [
+        'Unified profiles',
+        'Journey mapping',
+        'Retention plays'
+      ]
+    }
+  };
+
+  const getOverrideForAgent = (name) => capabilityOverrides[name] || null;
   const { triggerCelebration } = useCelebrations();
 
   // Rich demo workflows used as a visual fallback in the Agent Theater
@@ -287,6 +553,28 @@ const AgentsView = () => {
       }
     }
     fetchAvailableAgents();
+  }, [API]);
+
+  // Load subscription info for tier and features
+  useEffect(() => {
+    async function fetchSubscriptionInfo() {
+      if (!API) { setSubscriptionInfo(null); return; }
+      try {
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+        const res = await fetch(`${API}/subscription/info`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        if (!res.ok) { setSubscriptionInfo(null); return; }
+        const info = await res.json();
+        setSubscriptionInfo(info);
+      } catch {
+        setSubscriptionInfo(null);
+      }
+    }
+    fetchSubscriptionInfo();
   }, [API]);
 
   // Default-select first workflow when entering theater tab or when workflows load
@@ -911,6 +1199,39 @@ const AgentsView = () => {
             
           </div>
         </div>
+      {showArtifactModal && previewArtifact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4" onClick={() => { setShowArtifactModal(false); setPreviewArtifact(null); }}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">{previewArtifact.name}</h3>
+              <div className="flex items-center gap-2">
+                {previewArtifact.url && (
+                  <a
+                    href={previewArtifact.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Download
+                  </a>
+                )}
+                <button className="text-gray-500 hover:text-gray-700" onClick={() => { setShowArtifactModal(false); setPreviewArtifact(null); }}>×</button>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 h-[70vh] overflow-auto">
+              {previewArtifact.url ? (
+                <iframe src={previewArtifact.url} title={previewArtifact.name} className="w-full h-full rounded border" />
+              ) : (
+                <div className="text-sm text-gray-600">No preview available. {previewArtifact.content ? 'Showing inline content below.' : 'Please download to view.'}
+                  {previewArtifact.content && (
+                    <pre className="mt-3 p-3 bg-white border rounded overflow-auto whitespace-pre-wrap text-xs text-gray-800">{previewArtifact.content}</pre>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   };
@@ -944,6 +1265,106 @@ const AgentsView = () => {
     setShowConfigureModal(false);
   };
 
+  // Determine Base Pack agents to auto-include for non-Enterprise tiers
+  const basePackAgentNames = [
+    // Judge Layer
+    'Judge Agent', 'Agent Evaluator',
+    // Orchestration Layer
+    'Orchestrator Agent', 'Automation Agent', 'Connector Agent',
+    // Business Intelligence Layer
+    'Business Intelligence Agent', 'Financial Intelligence Agent', 'Customer Intelligence Agent',
+    // Execution Layer
+    'Content Intelligence Agent', 'Automation Bridge Agent',
+    // Operations Layer
+    'Onboarding Agent', 'Calendar Harmony Agent',
+    // Optional but strong (not auto-included unless present in plan_details)
+    // 'Security Agent', 'Wellbeing Agent'
+  ];
+
+  const tier = subscriptionInfo?.tier || null;
+  const isEnterprise = (tier || '').toLowerCase() === 'enterprise';
+
+  // Tier-based hiring rates
+  const getTierRates = (t) => {
+    const key = (t || '').toLowerCase();
+    if (key === 'starter') return { monthly: 12, daily: 1.5 };
+    if (key === 'growth') return { monthly: 11, daily: 1.25 };
+    if (key === 'professional') return { monthly: 10, daily: 1.0 };
+    // Enterprise: generally all agents included; fallback to professional rates if hire needed
+    if (key === 'enterprise') return { monthly: 0, daily: 0 };
+    // Default fallback
+    return { monthly: 12, daily: 1.5 };
+  };
+
+  // Helper: entitlement check for an API agent
+  const isApiAgentEntitled = (a) => {
+    const hired = Boolean(a?.hired_until && new Date(a.hired_until) > new Date());
+    return Boolean(a?.included_in_subscription) || hired;
+  };
+
+  // Merge API agents with Base Pack inclusion for non-Enterprise
+  const mergedApiAgents = Array.isArray(apiAgents) ? (() => {
+    const byName = new Map(apiAgents.map(a => [a.name, a]));
+    // Always ensure Base Pack is present and marked included, regardless of tier
+    basePackAgentNames.forEach(name => {
+      if (!byName.has(name)) {
+        byName.set(name, {
+          id: `base-${name}`,
+          agent_id: `base-${name}`,
+          name,
+          category: 'automation',
+          type: 'management',
+          description: name,
+          capabilities: ['Core capability'],
+          included_in_subscription: true,
+          hired_until: null,
+          daily_rate_usd: 0,
+          monthly_rate_usd: 0
+        });
+      } else {
+        const existing = byName.get(name);
+        byName.set(name, { ...existing, included_in_subscription: true });
+      }
+    });
+    return Array.from(byName.values());
+  })() : (() => {
+    // API unavailable: show Base Pack as included and all other local agents as hireable
+    const rates = getTierRates(tier);
+    const baseIncluded = basePackAgentNames.map(name => ({
+      id: `base-${name}`,
+      agent_id: `base-${name}`,
+      name,
+      category: 'automation',
+      type: 'management',
+      description: name,
+      capabilities: ['Core capability'],
+      included_in_subscription: true,
+      hired_until: null,
+      daily_rate_usd: 0,
+      monthly_rate_usd: 0,
+      can_hire_daily: false,
+      can_hire_monthly: false
+    }));
+    const otherLocal = allAgents
+      .filter(a => !basePackAgentNames.includes(a.name))
+      .map(a => ({
+        id: a.id,
+        agent_id: a.id,
+        name: a.name,
+        category: a.category,
+        type: a.type,
+        description: a.description,
+        capabilities: a.capabilities,
+        included_in_subscription: false,
+        hired_until: null,
+        daily_rate_usd: rates.daily,
+        monthly_rate_usd: rates.monthly,
+        can_hire_daily: true,
+        can_hire_monthly: true
+      }));
+    return [...baseIncluded, ...otherLocal];
+  })();
+
   // Filter agents based on search and filters
   const filteredAgents = allAgents.filter(agent => {
     const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -956,12 +1377,21 @@ const AgentsView = () => {
     return matchesSearch && matchesCategory && matchesType && matchesStatus;
   });
   const workforceList = (filteredAgents.length ? filteredAgents : allAgents);
-  const includedAgents = Array.isArray(apiAgents)
-    ? apiAgents.filter(a => a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date()))
+  const includedAgents = Array.isArray(mergedApiAgents)
+    ? mergedApiAgents.filter(a => isApiAgentEntitled(a))
     : [];
-  const hireableAgents = Array.isArray(apiAgents)
-    ? apiAgents.filter(a => !(a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date())))
+  const hireableAgents = Array.isArray(mergedApiAgents)
+    ? mergedApiAgents.filter(a => !isApiAgentEntitled(a))
     : [];
+
+  // Sort: Base Pack first within included section, then others by name
+  const basePackOrder = new Map(basePackAgentNames.map((n, i) => [n, i]));
+  const includedAgentsSorted = includedAgents.slice().sort((a, b) => {
+    const ai = basePackOrder.has(a.name) ? basePackOrder.get(a.name) : Number.MAX_SAFE_INTEGER;
+    const bi = basePackOrder.has(b.name) ? basePackOrder.get(b.name) : Number.MAX_SAFE_INTEGER;
+    if (ai !== bi) return ai - bi;
+    return (a.name || '').localeCompare(b.name || '');
+  });
 
   // Get category styling
   const getCategoryStyle = (category) => {
@@ -1053,12 +1483,26 @@ const AgentsView = () => {
   }
 
   // Agent card component (Workforce)
-  const AgentCard = ({ agent }) => {
+  const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null }) => {
     const TypeIcon = getTypeIcon(agent.type);
+    const [isActive, setIsActive] = useState(agent.status === 'active');
+
+    const canStartPause = entitled;
+    const showFullActions = entitled;
+    const showHireOnly = !entitled;
+
+    const handleToggle = (e) => {
+      e.stopPropagation();
+      setIsActive(prev => !prev);
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: `${agent.name} ${isActive ? 'paused' : 'started'}!`,
+        intensity: 'normal'
+      });
+    };
     
     return (
       <motion.div
-        className={`bg-white rounded-lg p-6 shadow-lg border-l-4 ${getCategoryStyle(agent.category)} cursor-pointer hover:shadow-xl transition-shadow`}
+        className={`bg-white rounded-lg p-6 shadow-lg border-l-4 ${getCategoryStyle(agent.category)} cursor-pointer hover:shadow-xl transition-shadow h-full flex flex-col`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -1080,68 +1524,91 @@ const AgentsView = () => {
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{agent.description}</p>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{(getOverrideForAgent(agent.name)?.purpose) || agent.description}</p>
 
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-700">Capabilities:</h4>
           <div className="flex flex-wrap gap-1">
-            {agent.capabilities.slice(0, 3).map(capability => (
+            {(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).slice(0, 3).map(capability => (
               <span key={capability} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                 {capability}
               </span>
             ))}
-            {agent.capabilities.length > 3 && (
+            {(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).length > 3 && (
               <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                +{agent.capabilities.length - 3} more
+                +{(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).length - 3} more
               </span>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <button 
-            className="px-3 py-2 bg-green-100 text-green-800 rounded-md text-sm font-medium hover:bg-green-200 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              triggerCelebration(CelebrationType.TASK_COMPLETE, {
-                message: `${agent.name} activated! 🤖`,
-                intensity: 'normal'
-              });
-            }}
-          >
-            <Play className="w-4 h-4 inline mr-1" />
-            Start
-          </button>
-          <button 
-            className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-md text-sm font-medium hover:bg-yellow-200 transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Pause className="w-4 h-4 inline mr-1" />
-            Pause
-          </button>
-          <div className="grid grid-cols-3 gap-2 col-span-2">
+        <div className="grid grid-cols-2 gap-2 mt-4 mt-auto">
+          {canStartPause && (
             <button 
-              className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
-              title="Details"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+              onClick={handleToggle}
             >
-              Details
+              {isActive ? (
+                <>
+                  <Pause className="w-4 h-4 inline mr-1" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 inline mr-1" />
+                  Start
+                </>
+              )}
             </button>
-            <button 
-              className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
-              title="Assign Task"
-            >
-              Assign
-            </button>
-            <button 
-              className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
-              onClick={(e) => { e.stopPropagation(); window?.toast?.info?.('Chat coming soon') || alert('Chat coming soon'); }}
-              title="Chat"
-            >
-              Chat
-            </button>
-          </div>
+          )}
+          {showFullActions && (
+            <>
+              <button 
+                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setSelectedAgent({ ...agent, _entitled: true, _hasHistory: true, _raw: rawAgent }); }}
+                title="Details"
+              >
+                Details
+              </button>
+              <div className="grid grid-cols-2 gap-2 col-span-2">
+                <button 
+                  className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
+                  title="Assign Task"
+                >
+                Assign Task
+                </button>
+                <button 
+                  className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setChatAgent(agent); setShowChatModal(true); }}
+                  title="Chat"
+                >
+                  Chat
+                </button>
+              </div>
+            </>
+          )}
+          {showHireOnly && (
+            <div className="grid grid-cols-2 gap-2 col-span-2">
+              <button 
+                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  const previouslyHired = Boolean(rawAgent && (rawAgent.last_hired_at || (rawAgent.hired_until && new Date(rawAgent.hired_until) < new Date())));
+                  setSelectedAgent({ ...agent, _entitled: false, _hasHistory: previouslyHired, _raw: rawAgent }); 
+                }}
+                title="Details"
+              >
+                Details
+              </button>
+              <button
+                className="px-3 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700"
+                onClick={(e) => { e.stopPropagation(); const raw = rawAgent || {}; setHireCandidate(raw.id ? raw : { ...raw, agent_id: agent.id, name: agent.name }); setHireTerm('day'); setShowHireModal(true); }}
+              >
+                Hire me
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -1218,6 +1685,307 @@ const AgentsView = () => {
     if (!selectedAgent) return null;
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
+    // Start/Pause control removed from Details modal per requirements
+    const [showArtifactModal, setShowArtifactModal] = useState(false);
+    const [previewArtifact, setPreviewArtifact] = useState(null);
+    // Suggested integrations by category (display purpose only)
+    const suggestedIntegrationsByCategory = {
+      marketing: ['Buffer', 'Hootsuite', 'Gmail', 'LinkedIn'],
+      content: ['Google Analytics', 'Gmail', 'Slack'],
+      research: ['Google Analytics', 'CRM'],
+      financial: ['QuickBooks', 'Excel'],
+      orchestration: ['N8N', 'Zapier', 'Make.com'],
+      automation: ['Zapier', 'Make.com', 'N8N'],
+      customer: ['HubSpot', 'CRM', 'Slack'],
+      analytics: ['Google Analytics', 'Excel'],
+      communication: ['Gmail', 'Slack', 'WhatsApp'],
+      technical: ['GitHub', 'Slack'],
+      executive: ['Google Analytics', 'CRM'],
+      evaluation: ['Google Analytics'],
+      operations: ['Calendar', 'Gmail']
+    };
+    const suggested = suggestedIntegrationsByCategory[selectedAgent.category] || ['Gmail', 'Slack'];
+
+    // Overrides for purpose and core capabilities keyed by canonical agent id/name
+    const capabilityOverrides = {
+      'Accountability Coach Agent': {
+        purpose: 'Keeps the founder on track with habit design and follow-through; best for daily check-ins and momentum.',
+        capabilities: [
+          'Daily/weekly check-ins and progress summaries',
+          'Nudge scheduling and reminder sequences',
+          'Break large goals into micro-tasks and habit loops'
+        ]
+      },
+      'Accounting Agent': {
+        purpose: 'Produces formal financial reports and reconciliations for bookkeeping and CFO workflows.',
+        capabilities: [
+          'Generate P&L, balance sheet, cashflow statements',
+          'Reconcile transactions and flag anomalies',
+          'Export professionally formatted spreadsheets/PDFs'
+        ]
+      },
+      'Ad Performance Optimizer Agent': {
+        purpose: 'Automates paid-ad performance tuning across platforms for better ROAS.',
+        capabilities: [
+          'Analyze ROAS and recommend budget/bid changes',
+          'Create and evaluate A/B test variants',
+          'Reallocate spend to top-performing creatives/channels'
+        ]
+      },
+      'Affiliate Partnerships Agent': {
+        purpose: 'Builds and runs affiliate/partner programs to scale distribution.',
+        capabilities: [
+          'Prospect and onboard affiliates',
+          'Package offers, track commissions and performance',
+          'Monitor channel KPIs and optimize partner incentives'
+        ]
+      },
+      'Agent Evaluator': {
+        purpose: 'Scores outputs across agents and enforces quality thresholds (Judge/QA layer).',
+        capabilities: [
+          'Apply rubrics and produce pass/fail scores',
+          'Provide revision requests and improvement suggestions',
+          'Aggregate evaluation metrics over time'
+        ]
+      },
+      'Judge Agent': {
+        purpose: 'Generates rubrics and enforces quality thresholds across outputs.',
+        capabilities: [
+          'Create task-specific rubrics and grading rules',
+          'Score deliverables and trigger revisions',
+          'Log evaluator outputs and trends'
+        ]
+      },
+      'Automation Agent': {
+        purpose: 'Orchestrates API-based automations and routine task flows.',
+        capabilities: [
+          'Build triggers/actions for API orchestration',
+          'Map data flows and syncs between services',
+          'Schedule and retry failed automations'
+        ]
+      },
+      'Automation Bridge Agent': {
+        purpose: 'Connects disparate automation islands, ensuring cross-system reliability.',
+        capabilities: [
+          'Manage dependency graphs and retries',
+          'Orchestrate cross-tool data handoffs',
+          'Monitor health and provide remediation steps'
+        ]
+      },
+      'Board Advisor Agent': {
+        purpose: 'Provides board-level briefings, risk assessments and strategic recommendations.',
+        capabilities: [
+          'Summarize performance for executive reviews',
+          'Scenario analysis and risk framing',
+          'Produce board-ready briefings and action items'
+        ]
+      },
+      'Bookkeeping Agent': {
+        purpose: 'Handles transaction ingestion, categorization and month-end closes.',
+        capabilities: [
+          'Bank feed ingestion and categorization',
+          'Receipt matching and reconciliation',
+          'Close month workflows and generate ledger exports'
+        ]
+      },
+      'Brand Strategist Agent': {
+        purpose: 'Designs brand narrative, tone and identity guidelines.',
+        capabilities: [
+          'Create voice & messaging frameworks',
+          'Audit existing content for brand fit',
+          'Generate actionable creative guidelines for assets'
+        ]
+      },
+      'Business Intelligence Agent': {
+        purpose: 'Central KPI hub and anomaly detection across business systems.',
+        capabilities: [
+          'Aggregate KPIs, cohorts and dashboards',
+          'Detect anomalies and send alerts',
+          'Provide plain-language insights and recommended actions'
+        ]
+      },
+      'Business Strategist Agent': {
+        purpose: 'Develops long-term plans, OKRs and strategic prioritization.',
+        capabilities: [
+          'Build roadmap and strategic options',
+          'Perform trade-off and impact analysis',
+          'Output prioritized initiatives and milestone plans'
+        ]
+      },
+      'Business Strategist': {
+        purpose: 'Strategy assistant variant (quick strategic guidance).',
+        capabilities: [
+          'Rapid strategy notes and frameworks',
+          'Generate quick SWOT/Porter-like analyses',
+          'Provide options and next-step recommendations'
+        ]
+      },
+      'Calendar Harmony Agent': {
+        purpose: 'Optimizes user calendar for focus, balance and throughput.',
+        capabilities: [
+          'Suggest timeboxing and focus blocks',
+          'Auto-schedule agent tasks and meetings',
+          'Detect overload and rebalance calendar'
+        ]
+      },
+      'Celebration Narrator Agent': {
+        purpose: 'Produces the micro-celebration narratives and communications.',
+        capabilities: [
+          'Generate milestone narratives and announcements',
+          'Create celebratory assets/messages',
+          'Schedule recognition items in UI/community channels'
+        ]
+      },
+      'Chief Of Staff Agent': {
+        purpose: 'Cross-agent coordinator for priorities, resource allocation and status alignment.',
+        capabilities: [
+          'Create weekly plans and delegation matrices',
+          'Reconcile competing priorities across agents',
+          'Track cross-agent dependencies and progress'
+        ]
+      },
+      'Churn Predictor Agent': {
+        purpose: 'Predicts churn risk and triggers retention plays.',
+        capabilities: [
+          'Compute churn risk scores and segments',
+          'Recommend retention playbooks and outreach sequences',
+          'Monitor effectiveness of interventions'
+        ]
+      },
+      'Community Connector Agent': {
+        purpose: 'Builds and grows user communities and external engagement.',
+        capabilities: [
+          'Design community programs and engagement loops',
+          'Run event & advocacy campaigns',
+          'Moderate & measure community health'
+        ]
+      },
+      'Community Manager Agent': {
+        purpose: 'Operates community channels day-to-day (posting, replies, moderation).',
+        capabilities: [
+          'Schedule and post community content',
+          'Triage and respond to member questions',
+          'Generate engagement reports and sentiment summaries'
+        ]
+      },
+      'Competitive Intelligence Agent': {
+        purpose: 'Monitors competitors and provides actionable briefs.',
+        capabilities: [
+          'Track competitor product/marketing moves',
+          'Produce competitive landscape and alerts',
+          'Recommend countermeasures or differentiation plays'
+        ]
+      },
+      'Compliance Agent': {
+        purpose: 'Ensures outputs and processes comply with policies/regulations.',
+        capabilities: [
+          'Run compliance checks and produce audit trails',
+          'Suggest remediation plans for non-compliance',
+          'Maintain regulatory mappings and checklists'
+        ]
+      },
+      'Connector Agent': {
+        purpose: 'Manages OAuth/API connectors and health-checks for external services.',
+        capabilities: [
+          'Authenticate/connect to services and renew tokens',
+          'Test connectivity and log failures',
+          'Provide unified API status & error translations'
+        ]
+      },
+      'Content Intelligence Agent': {
+        purpose: 'Measures content performance and prescribes improvements.',
+        capabilities: [
+          'Track content KPIs (CTR, engagement, conversions)',
+          'Surface topic/format opportunities',
+          'Recommend cadence and repurposing strategies'
+        ]
+      },
+      'Content Repurposer Agent': {
+        purpose: 'Converts existing content into alternate formats tailored for platforms.',
+        capabilities: [
+          'Summarize and convert long-form to posts/scripts',
+          'Reformat for platform constraints',
+          'Generate multiple format-ready variants'
+        ]
+      },
+      'Content Strategist': {
+        purpose: 'Plans editorial calendars and content themes aligned to goals.',
+        capabilities: [
+          'Create multi-channel calendars and briefs',
+          'Map content to funnels and KPIs',
+          'Allocate agent tasks for content production'
+        ]
+      },
+      'Contract Analyzer Agent': {
+        purpose: 'Parses contracts and extracts risk/obligations.',
+        capabilities: [
+          'Clause extraction and summarization',
+          'Flag risky terms and obligations',
+          'Produce redline suggestions and plain-language summaries'
+        ]
+      },
+      'Copywriter Agent': {
+        purpose: 'High-impact short-form copywriter for ads and CTAs.',
+        capabilities: [
+          'Produce ad headlines and variants',
+          'Generate email subject lines and CTAs',
+          'Create platform-optimized copy versions'
+        ]
+      },
+      'Copywriter': {
+        purpose: 'General writing assistant for broader copy needs.',
+        capabilities: [
+          'Draft long-form and short-form content',
+          'Edit to brand voice and tone',
+          'Produce multiple variants for A/B testing'
+        ]
+      },
+      'CRM Agent': {
+        purpose: 'Manages CRM hygiene, segments and pipelines.',
+        capabilities: [
+          'Enrich records and dedupe entries',
+          'Manage deal stages and pipeline health',
+          'Run segmentation and sync with other systems'
+        ]
+      },
+      'CRM Automation Agent': {
+        purpose: 'Automates CRM workflows and routing logic.',
+        capabilities: [
+          'Build triggers and routing rules',
+          'Auto-assign leads and create follow-up tasks',
+          'Sync CRM events across tools'
+        ]
+      },
+      'Customer Intelligence Agent': {
+        purpose: '360° view of customers; journey mapping and health scoring.',
+        capabilities: [
+          'Build unified customer profiles and LTV calculations',
+          'Map journeys and identify friction points',
+          'Suggest retention/expansion plays'
+        ]
+      }
+      // Additional overrides can be appended as needed
+    };
+
+    const override = capabilityOverrides[selectedAgent.name];
+    const activity = getAgentActivityData(selectedAgent).slice(0, 4);
+    // Lightweight artifacts mock based on category
+    const artifactsByCategory = {
+      content: ['Blog Post Draft.md', 'Social Graphics.zip', 'Newsletter.eml'],
+      research: ['Market Analysis.pdf', 'Lead Enrichment.csv'],
+      financial: ['P&L.xlsx', 'Cashflow.pdf'],
+      marketing: ['Ad Variations.docx', 'Landing A/B Report.pdf'],
+      analytics: ['KPI Dashboard.png', 'Weekly Metrics.csv'],
+      customer: ['Segment Report.csv', 'Churn Signals.pdf'],
+      automation: ['Workflow.json', 'Integration Map.png'],
+      orchestration: ['Runbook.md', 'Workflow Plan.md']
+    };
+    // Prefer real artifacts from API if present on the raw agent; fallback to mocks
+    const rawArtifacts = Array.isArray(selectedAgent._raw?.artifacts) ? selectedAgent._raw.artifacts : null;
+    // Normalize to objects: { name, url?, mime? }
+    const normalizedArtifacts = rawArtifacts
+      ? rawArtifacts.map(a => (typeof a === 'string' ? { name: a } : a))
+      : (artifactsByCategory[selectedAgent.category] || ['Summary Report.pdf']).map(n => ({ name: n }));
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1256,20 +2024,81 @@ const AgentsView = () => {
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-3">Description</h3>
-                  <p className="text-gray-700">{selectedAgent.description}</p>
+                  <p className="text-gray-700">{override?.purpose || selectedAgent.description}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-3">Capabilities</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {selectedAgent.capabilities.map(capability => (
-                      <div key={capability} className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">{capability}</span>
+                  <div className="space-y-2">
+                    {(override?.capabilities || selectedAgent.capabilities).map(capability => (
+                      <div key={capability} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 shrink-0 text-green-500" />
+                        <span className="text-gray-700 leading-tight">{capability}</span>
                       </div>
                     ))}
                   </div>
                 </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Connections</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {suggested.map((integration) => {
+                      const Icon = getIntegrationIcon(integration);
+                      return (
+                        <div key={integration} className="flex items-center space-x-1 px-2 py-1 bg-white border rounded-full">
+                          <Icon className="w-3 h-3 text-gray-600" />
+                          <span className="text-xs text-gray-700">{integration}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Suggested integrations based on this agent's category.</p>
+                </div>
+
+                {(selectedAgent._entitled || selectedAgent._hasHistory) ? (
+                  <>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">Recent Activity</h3>
+                      <div className="space-y-3">
+                        {activity.map(item => (
+                          <div key={item.id} className="border rounded p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-gray-900">{item.action}</span>
+                              <span className={`px-2 py-0.5 text-[10px] rounded-full ${
+                                item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                item.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                              }`}>{item.status}</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-1">{item.timestamp}</div>
+                            <div className="text-sm text-gray-700">{item.details}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">Artifacts</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {normalizedArtifacts.map(a => (
+                          <button
+                            key={a.name}
+                            className="px-2 py-1 bg-white border rounded text-xs text-gray-700 hover:bg-gray-100"
+                            onClick={() => { setPreviewArtifact({ ...a, url: a.url || a.preview_url || (a.content ? undefined : undefined) }); setShowArtifactModal(true); }}
+                            title={'Preview artifact'}
+                          >
+                            {a.name}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Click an artifact to preview or download.</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-2">History & Artifacts</h3>
+                    <p className="text-sm text-gray-700">No history yet. Hire this agent to generate work history and artifacts.</p>
+                  </div>
+                )}
               </div>
 
               {/* Sidebar */}
@@ -1298,14 +2127,8 @@ const AgentsView = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => handleActivateAgent(selectedAgent)}
-                    className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    <Play className="w-4 h-4" />
-                    <span>Activate Agent</span>
-                  </button>
+              <div className="space-y-3">
+                  {/* Start/Pause intentionally omitted in modal */}
                   <button 
                     onClick={() => handleConfigureAgent(selectedAgent)}
                     className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -1345,15 +2168,15 @@ const AgentsView = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">AI Workforce</h1>
-            <p className="text-gray-600 mt-2">Manage and monitor your 52 AI agents</p>
+            <p className="text-gray-600 mt-2">Manage and monitor your {Array.isArray(mergedApiAgents) ? mergedApiAgents.length : allAgents.length} AI agents</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">{filteredAgents.filter(a => a.status === 'active').length}</div>
+              <div className="text-2xl font-bold text-green-600">{Array.isArray(mergedApiAgents) ? includedAgents.length : filteredAgents.filter(a => a.status === 'active').length}</div>
               <div className="text-sm text-gray-500">Active Agents</div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-600">{allAgents.length}</div>
+              <div className="text-2xl font-bold text-gray-600">{Array.isArray(mergedApiAgents) ? mergedApiAgents.length : allAgents.length}</div>
               <div className="text-sm text-gray-500">Total Agents</div>
             </div>
           </div>
@@ -1409,7 +2232,7 @@ const AgentsView = () => {
           </div>
 
           <div className="text-sm text-gray-600">
-            {filteredAgents.length} of {allAgents.length} agents
+            {Array.isArray(mergedApiAgents) ? `${mergedApiAgents.length} of ${mergedApiAgents.length} agents` : `${filteredAgents.length} of ${allAgents.length} agents`}
           </div>
         </div>
       </div>
@@ -1417,7 +2240,7 @@ const AgentsView = () => {
 
       {/* Agent Grid - Workforce */}
       {activeTab === 'workforce' && (
-        Array.isArray(apiAgents) && (includedAgents.length + hireableAgents.length > 0) ? (
+        Array.isArray(mergedApiAgents) && (includedAgents.length + hireableAgents.length > 0) ? (
           <div className="space-y-8">
             {/* Included section */}
             <div>
@@ -1426,16 +2249,22 @@ const AgentsView = () => {
                 <div className="text-sm text-gray-500">No included agents yet.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {includedAgents.map(a => (
-                    <AgentCard key={a.agent_id || a.id} agent={{
-                      id: a.agent_id || a.id,
-                      name: a.name,
-                      category: a.category || 'automation',
-                      type: a.type || 'management',
-                      status: a.status || 'active',
-                      capabilities: a.capabilities || ['Core capability'],
-                      description: a.description || a.name
-                    }} />
+                  {includedAgentsSorted.map(a => (
+                    <AgentCard
+                      key={a.agent_id || a.id}
+                      agent={{
+                        id: a.agent_id || a.id,
+                        name: a.name,
+                        category: a.category || 'automation',
+                        type: a.type || 'management',
+                        status: 'active',
+                        capabilities: a.capabilities || ['Core capability'],
+                        description: a.description || a.name
+                      }}
+                      entitled={true}
+                      source="api"
+                      rawAgent={a}
+                    />
                   ))}
                 </div>
               )}
@@ -1451,25 +2280,21 @@ const AgentsView = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {hireableAgents.map(a => (
-                    <div key={a.agent_id || a.id} className="relative">
-                      <AgentCard agent={{
+                    <AgentCard
+                      key={a.agent_id || a.id}
+                      agent={{
                         id: a.agent_id || a.id,
                         name: a.name,
                         category: a.category || 'automation',
                         type: a.type || 'management',
-                        status: a.status || 'inactive',
+                        status: 'inactive',
                         capabilities: a.capabilities || ['Core capability'],
                         description: a.description || a.name
-                      }} />
-                      <div className="absolute top-3 right-3">
-                        <button
-                          className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700"
-                          onClick={(e) => { e.stopPropagation(); setHireCandidate(a); setHireTerm('day'); setShowHireModal(true); }}
-                        >
-                          Hire me
-                        </button>
-                      </div>
-                    </div>
+                      }}
+                      entitled={false}
+                      source="api"
+                      rawAgent={a}
+                    />
                   ))}
                 </div>
               )}
@@ -1542,8 +2367,35 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Agent Detail Modal disabled per requirements */}
-      {/* <AgentDetailModal /> */}
+      {/* Agent Detail Modal (Workforce tab only) */}
+      {activeTab === 'workforce' && !showWorkflowDetails && (
+        <AgentDetailModal />
+      )}
+      {/* Chat Modal */}
+      {activeTab === 'workforce' && showChatModal && chatAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <div>
+                <div className="text-sm text-gray-500">Chatting with</div>
+                <div className="text-lg font-semibold text-gray-900">{chatAgent.name}</div>
+              </div>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>×</button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ConversationalInterface 
+                messages={[]}
+                onSendMessage={(m) => console.log('Send to agent', chatAgent.id, m)}
+                activeAgentId={chatAgent.id}
+              />
+            </div>
+            <QuickActions 
+              actions={(getOverrideForAgent(chatAgent.name)?.capabilities || chatAgent.capabilities || []).slice(0, 6).map((cap, i) => ({ label: `Ask about: ${cap}` }))}
+              onActionSelect={(a) => console.log('Suggested ask →', a.label)}
+            />
+          </div>
+        </div>
+      )}
       <WorkflowDetailsModal />
 
       {/* Configure Agent Modal (disabled while workflow details open) */}
@@ -1659,20 +2511,24 @@ const AgentsView = () => {
               <div className="space-y-4">
                 <div className="text-sm text-gray-700">Choose a term:</div>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
-                    className={`p-3 border rounded ${hireTerm==='day'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
-                    onClick={() => setHireTerm('day')}
-                  >
-                    <div className="text-sm font-semibold">Per Day</div>
-                    <div className="text-xs text-gray-600">${hireCandidate.daily_rate_usd ?? 29}/day</div>
-                  </button>
-                  <button
-                    className={`p-3 border rounded ${hireTerm==='month'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
-                    onClick={() => setHireTerm('month')}
-                  >
-                    <div className="text-sm font-semibold">30 Days</div>
-                    <div className="text-xs text-gray-600">${hireCandidate.monthly_rate_usd ?? 199}/30d</div>
-                  </button>
+                  {(() => { const rates = getTierRates(tier); return (
+                  <>
+                    <button
+                      className={`p-3 border rounded ${hireTerm==='day'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
+                      onClick={() => setHireTerm('day')}
+                    >
+                      <div className="text-sm font-semibold">Per Day</div>
+                      <div className="text-xs text-gray-600">${rates.daily}/day</div>
+                    </button>
+                    <button
+                      className={`p-3 border rounded ${hireTerm==='month'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
+                      onClick={() => setHireTerm('month')}
+                    >
+                      <div className="text-sm font-semibold">30 Days</div>
+                      <div className="text-xs text-gray-600">${rates.monthly}/30d</div>
+                    </button>
+                  </>
+                  ); })()}
                 </div>
                 <div className="text-xs text-gray-500">You can use this agent in workflows, tasks, and @mentions while hired.</div>
               </div>
