@@ -407,6 +407,25 @@ const AgentsView = () => {
     return icons[integration] || Link;
   };
 
+  // Build a rich display workflow by merging sparse API data with demo defaults
+  const buildDisplayWorkflow = (wf, index) => {
+    const demo = demoWorkflows[index % demoWorkflows.length];
+    const id = wf.workflow_id || wf.id || demo.id;
+    const name = wf.name || wf.results?.campaign?.name || demo.name;
+    const description = wf.description || demo.description;
+    const status = wf.status || demo.status;
+    const type = wf.type || demo.type || 'autonomous';
+    const progress = typeof wf.progress === 'number' ? wf.progress : (typeof wf.results?.progress === 'number' ? wf.results.progress : demo.progress);
+    const current_step = wf.current_step || wf.currentStep || wf.results?.current_step || demo.current_step;
+    const agents = (wf.agents || wf.agents_involved || wf.results?.agents) || demo.agents;
+    const integrations = wf.integrations || wf.results?.integrations || demo.integrations;
+    const metrics = wf.metrics || wf.results?.metrics || demo.metrics;
+    const triggers = wf.triggers || wf.results?.triggers || demo.triggers;
+    const actions = wf.actions || wf.results?.actions || demo.actions;
+    const businessGoal = wf.businessGoal || wf.results?.businessGoal || demo.businessGoal;
+    return { id, name, description, status, type, progress, current_step, agents, integrations, metrics, triggers, actions, businessGoal };
+  };
+
   const handleDeploy = async (workflow) => {
     const wfId = workflow.workflow_id || workflow.id;
     if (!wfId) return;
@@ -1254,7 +1273,8 @@ const AgentsView = () => {
             {wfError && <div className="text-sm text-red-600 mb-3 px-1">{wfError}</div>}
             {(() => {
               // Show exactly what the API returns (1..n). Only use demo when none.
-              const listToShow = (Array.isArray(workflows) && workflows.length > 0) ? workflows : demoWorkflows;
+              const baseList = (Array.isArray(workflows) && workflows.length > 0) ? workflows : demoWorkflows;
+              const listToShow = baseList.map((wf, idx) => buildDisplayWorkflow(wf, idx));
               return (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
