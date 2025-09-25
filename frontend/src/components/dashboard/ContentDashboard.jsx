@@ -378,25 +378,28 @@ const ContentDashboard = () => {
         )}
       </AnimatePresence>
 
-      {/* Insight Details Modal */}
-      {selectedInsight && (
-        <InsightDetailsModal
-          insight={selectedInsight}
-          onClose={() => setSelectedInsight(null)}
-          onRepeatStrategy={handleRepeatStrategy}
-          isOrchestrating={isOrchestrating}
-        />
-      )}
+      {/* Modals */}
+      <AnimatePresence>
+        {/* Insight Details Modal */}
+        {selectedInsight && (
+          <InsightDetailsModal
+            insight={selectedInsight}
+            onClose={() => setSelectedInsight(null)}
+            onRepeatStrategy={handleRepeatStrategy}
+            isOrchestrating={isOrchestrating}
+          />
+        )}
 
-      {/* Action Details Modal */}
-      {selectedAction && (
-        <ActionDetailsModal
-          action={selectedAction}
-          onClose={() => setSelectedAction(null)}
-          onExecuteAction={handleExecuteAction}
-          isOrchestrating={isOrchestrating}
-        />
-      )}
+        {/* Action Details Modal */}
+        {selectedAction && (
+          <ActionDetailsModal
+            action={selectedAction}
+            onClose={() => setSelectedAction(null)}
+            onExecuteAction={handleExecuteAction}
+            isOrchestrating={isOrchestrating}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -587,21 +590,24 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                   <p className="text-gray-700">{insight}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedInsight({
-                    id: `insight_${index}`,
-                    text: insight,
-                    type: 'performance_insight',
-                    target_improvement: '15-25%',
-                    agents_involved: ['Content Intelligence Agent', 'Strategy Agent', 'Content Creator Agent'],
-                    content_attribution: [
-                      { platform: 'Instagram', content_type: 'Reels', performance: '+300% engagement' },
-                      { platform: 'LinkedIn', content_type: 'Articles', performance: '+150% lead quality' }
-                    ],
-                    kpis: [
-                      { metric: 'Engagement Rate', current: '8.5%', target: '5.0%', improvement: '+70%' },
-                      { metric: 'Lead Quality', current: 'High', target: 'Medium', improvement: '+200%' }
-                    ]
-                  })}
+                  onClick={() => {
+                    console.log('Insight Details clicked:', insight);
+                    setSelectedInsight({
+                      id: `insight_${index}`,
+                      text: insight,
+                      type: 'performance_insight',
+                      target_improvement: '15-25%',
+                      agents_involved: ['Content Intelligence Agent', 'Strategy Agent', 'Content Creator Agent'],
+                      content_attribution: [
+                        { platform: 'Instagram', content_type: 'Reels', performance: '+300% engagement' },
+                        { platform: 'LinkedIn', content_type: 'Articles', performance: '+150% lead quality' }
+                      ],
+                      kpis: [
+                        { metric: 'Engagement Rate', current: '8.5%', target: '5.0%', improvement: '+70%' },
+                        { metric: 'Lead Quality', current: 'High', target: 'Medium', improvement: '+200%' }
+                      ]
+                    });
+                  }}
                   className="ml-3 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
                 >
                   Details
@@ -627,27 +633,30 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                   <p className="text-red-700 font-medium">{action}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedAction({
-                    id: `action_${index}`,
-                    text: action,
-                    type: 'improvement_action',
-                    target_metrics: [
-                      { metric: 'Instagram Reels Content', current: '30%', target: '70%', gap: '40%' },
-                      { metric: 'Engagement Rate', current: '4.8%', target: '5.0%', gap: '0.2%' }
-                    ],
-                    agents_involved: ['Orchestrator Agent', 'Strategy Agent', 'Content Creator Agent', 'Social Media Agent'],
-                    content_analysis: [
-                      { platform: 'Instagram', issue: 'Low Reels content ratio', impact: 'Reduced engagement' },
-                      { platform: 'LinkedIn', issue: 'Article headlines not optimized', impact: 'Lower reach' }
-                    ],
-                    workflow_steps: [
-                      'Analyze current content mix',
-                      'Develop Reels-focused strategy',
-                      'Create content calendar',
-                      'Execute content creation',
-                      'Monitor performance'
-                    ]
-                  })}
+                  onClick={() => {
+                    console.log('Action Details clicked:', action);
+                    setSelectedAction({
+                      id: `action_${index}`,
+                      text: action,
+                      type: 'improvement_action',
+                      target_metrics: [
+                        { metric: 'Instagram Reels Content', current: '30%', target: '70%', gap: '40%' },
+                        { metric: 'Engagement Rate', current: '4.8%', target: '5.0%', gap: '0.2%' }
+                      ],
+                      agents_involved: ['Orchestrator Agent', 'Strategy Agent', 'Content Creator Agent', 'Social Media Agent'],
+                      content_analysis: [
+                        { platform: 'Instagram', issue: 'Low Reels content ratio', impact: 'Reduced engagement' },
+                        { platform: 'LinkedIn', issue: 'Article headlines not optimized', impact: 'Lower reach' }
+                      ],
+                      workflow_steps: [
+                        'Analyze current content mix',
+                        'Develop Reels-focused strategy',
+                        'Create content calendar',
+                        'Execute content creation',
+                        'Monitor performance'
+                      ]
+                    });
+                  }}
                   className="ml-3 px-3 py-1 text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
                 >
                   Details
@@ -1032,6 +1041,7 @@ const ContentDashboardSkeleton = () => (
 
 // Insight Details Modal Component
 const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrating }) => {
+  console.log('InsightDetailsModal rendering with insight:', insight);
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <motion.div
@@ -1151,6 +1161,7 @@ const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrati
 
 // Action Details Modal Component
 const ActionDetailsModal = ({ action, onClose, onExecuteAction, isOrchestrating }) => {
+  console.log('ActionDetailsModal rendering with action:', action);
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <motion.div
