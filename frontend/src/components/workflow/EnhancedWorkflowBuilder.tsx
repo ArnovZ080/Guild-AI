@@ -954,15 +954,15 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                     </div>
                   </div>
                 </div>
-                <div className="mt-3 flex justify-end">
-                  <button
-                    onClick={() => setIsConfiguring(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                  >
-                    Close
-                  </button>
-                </div>
               </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setIsConfiguring(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>, document.body)
