@@ -1597,7 +1597,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       )}
 
       {/* Scheduling Modal */}
-      {scheduleOpen && createPortal(
+      {(typeof scheduleOpen !== 'undefined' ? scheduleOpen : false) && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={() => setScheduleOpen(false)}>
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
