@@ -180,6 +180,8 @@ const AgentsView = () => {
   const [showHireModal, setShowHireModal] = useState(false);
   const [hireCandidate, setHireCandidate] = useState(null);
   const [hireTerm, setHireTerm] = useState('day');
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [chatAgent, setChatAgent] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterType, setFilterType] = useState('all');
@@ -202,6 +204,7 @@ const AgentsView = () => {
     priority: 'normal',
     notifications: true
   });
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const { triggerCelebration } = useCelebrations();
 
   // Rich demo workflows used as a visual fallback in the Agent Theater
@@ -287,6 +290,28 @@ const AgentsView = () => {
       }
     }
     fetchAvailableAgents();
+  }, [API]);
+
+  // Load subscription info for tier and features
+  useEffect(() => {
+    async function fetchSubscriptionInfo() {
+      if (!API) { setSubscriptionInfo(null); return; }
+      try {
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+        const res = await fetch(`${API}/subscription/info`, {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          }
+        });
+        if (!res.ok) { setSubscriptionInfo(null); return; }
+        const info = await res.json();
+        setSubscriptionInfo(info);
+      } catch {
+        setSubscriptionInfo(null);
+      }
+    }
+    fetchSubscriptionInfo();
   }, [API]);
 
   // Default-select first workflow when entering theater tab or when workflows load
@@ -944,6 +969,59 @@ const AgentsView = () => {
     setShowConfigureModal(false);
   };
 
+  // Determine Base Pack agents to auto-include for non-Enterprise tiers
+  const basePackAgentNames = [
+    // Judge Layer
+    'Judge Agent', 'Agent Evaluator',
+    // Orchestration Layer
+    'Orchestrator Agent', 'Automation Agent', 'Connector Agent',
+    // Business Intelligence Layer
+    'Business Intelligence Agent', 'Financial Intelligence Agent', 'Customer Intelligence Agent',
+    // Execution Layer
+    'Content Intelligence Agent', 'Automation Bridge Agent',
+    // Operations Layer
+    'Onboarding Agent', 'Calendar Harmony Agent',
+    // Optional but strong (not auto-included unless present in plan_details)
+    // 'Security Agent', 'Wellbeing Agent'
+  ];
+
+  const tier = subscriptionInfo?.tier || null;
+  const isEnterprise = (tier || '').toLowerCase() === 'enterprise';
+
+  // Helper: entitlement check for an API agent
+  const isApiAgentEntitled = (a) => {
+    const hired = Boolean(a?.hired_until && new Date(a.hired_until) > new Date());
+    return Boolean(a?.included_in_subscription) || hired;
+  };
+
+  // Merge API agents with Base Pack inclusion for non-Enterprise
+  const mergedApiAgents = Array.isArray(apiAgents) ? (() => {
+    const byName = new Map(apiAgents.map(a => [a.name, a]));
+    if (!isEnterprise) {
+      basePackAgentNames.forEach(name => {
+        if (!byName.has(name)) {
+          byName.set(name, {
+            id: `base-${name}`,
+            agent_id: `base-${name}`,
+            name,
+            category: 'automation',
+            type: 'management',
+            description: name,
+            capabilities: ['Core capability'],
+            included_in_subscription: true,
+            hired_until: null,
+            daily_rate_usd: 0,
+            monthly_rate_usd: 0
+          });
+        } else {
+          const existing = byName.get(name);
+          byName.set(name, { ...existing, included_in_subscription: true });
+        }
+      });
+    }
+    return Array.from(byName.values());
+  })() : null;
+
   // Filter agents based on search and filters
   const filteredAgents = allAgents.filter(agent => {
     const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -956,11 +1034,11 @@ const AgentsView = () => {
     return matchesSearch && matchesCategory && matchesType && matchesStatus;
   });
   const workforceList = (filteredAgents.length ? filteredAgents : allAgents);
-  const includedAgents = Array.isArray(apiAgents)
-    ? apiAgents.filter(a => a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date()))
+  const includedAgents = Array.isArray(mergedApiAgents)
+    ? mergedApiAgents.filter(a => isApiAgentEntitled(a))
     : [];
-  const hireableAgents = Array.isArray(apiAgents)
-    ? apiAgents.filter(a => !(a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date())))
+  const hireableAgents = Array.isArray(mergedApiAgents)
+    ? mergedApiAgents.filter(a => !isApiAgentEntitled(a))
     : [];
 
   // Get category styling
@@ -1053,8 +1131,22 @@ const AgentsView = () => {
   }
 
   // Agent card component (Workforce)
-  const AgentCard = ({ agent }) => {
+  const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null }) => {
     const TypeIcon = getTypeIcon(agent.type);
+    const [isActive, setIsActive] = useState(agent.status === 'active');
+
+    const canStartPause = entitled;
+    const showFullActions = entitled;
+    const showHireOnly = !entitled;
+
+    const handleToggle = (e) => {
+      e.stopPropagation();
+      setIsActive(prev => !prev);
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: `${agent.name} ${isActive ? 'paused' : 'started'}!`,
+        intensity: 'normal'
+      });
+    };
     
     return (
       <motion.div
@@ -1099,49 +1191,59 @@ const AgentsView = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-2 mt-4">
+          {canStartPause && (
+            <button 
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+              onClick={handleToggle}
+            >
+              {isActive ? (
+                <>
+                  <Pause className="w-4 h-4 inline mr-1" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 inline mr-1" />
+                  Start
+                </>
+              )}
+            </button>
+          )}
           <button 
-            className="px-3 py-2 bg-green-100 text-green-800 rounded-md text-sm font-medium hover:bg-green-200 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              triggerCelebration(CelebrationType.TASK_COMPLETE, {
-                message: `${agent.name} activated! 🤖`,
-                intensity: 'normal'
-              });
-            }}
+            className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+            onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+            title="Details"
           >
-            <Play className="w-4 h-4 inline mr-1" />
-            Start
+            Details
           </button>
-          <button 
-            className="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-md text-sm font-medium hover:bg-yellow-200 transition-colors"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Pause className="w-4 h-4 inline mr-1" />
-            Pause
-          </button>
-          <div className="grid grid-cols-3 gap-2 col-span-2">
-            <button 
-              className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
-              title="Details"
-            >
-              Details
-            </button>
-            <button 
-              className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
-              onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
-              title="Assign Task"
-            >
-              Assign
-            </button>
-            <button 
-              className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
-              onClick={(e) => { e.stopPropagation(); window?.toast?.info?.('Chat coming soon') || alert('Chat coming soon'); }}
-              title="Chat"
-            >
-              Chat
-            </button>
-          </div>
+          {showFullActions && (
+            <div className="grid grid-cols-2 gap-2 col-span-2">
+              <button 
+                className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
+                title="Assign Task"
+              >
+                Assign
+              </button>
+              <button 
+                className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setChatAgent(agent); setShowChatModal(true); }}
+                title="Chat"
+              >
+                Chat
+              </button>
+            </div>
+          )}
+          {showHireOnly && (
+            <div className="col-span-2 flex justify-end">
+              <button
+                className="px-3 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700"
+                onClick={(e) => { e.stopPropagation(); const raw = rawAgent || {}; setHireCandidate(raw.id ? raw : { ...raw, agent_id: agent.id, name: agent.name }); setHireTerm('day'); setShowHireModal(true); }}
+              >
+                Hire me
+              </button>
+            </div>
+          )}
         </div>
       </motion.div>
     );
@@ -1427,15 +1529,21 @@ const AgentsView = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {includedAgents.map(a => (
-                    <AgentCard key={a.agent_id || a.id} agent={{
-                      id: a.agent_id || a.id,
-                      name: a.name,
-                      category: a.category || 'automation',
-                      type: a.type || 'management',
-                      status: a.status || 'active',
-                      capabilities: a.capabilities || ['Core capability'],
-                      description: a.description || a.name
-                    }} />
+                    <AgentCard
+                      key={a.agent_id || a.id}
+                      agent={{
+                        id: a.agent_id || a.id,
+                        name: a.name,
+                        category: a.category || 'automation',
+                        type: a.type || 'management',
+                        status: 'active',
+                        capabilities: a.capabilities || ['Core capability'],
+                        description: a.description || a.name
+                      }}
+                      entitled={true}
+                      source="api"
+                      rawAgent={a}
+                    />
                   ))}
                 </div>
               )}
@@ -1451,25 +1559,21 @@ const AgentsView = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {hireableAgents.map(a => (
-                    <div key={a.agent_id || a.id} className="relative">
-                      <AgentCard agent={{
+                    <AgentCard
+                      key={a.agent_id || a.id}
+                      agent={{
                         id: a.agent_id || a.id,
                         name: a.name,
                         category: a.category || 'automation',
                         type: a.type || 'management',
-                        status: a.status || 'inactive',
+                        status: 'inactive',
                         capabilities: a.capabilities || ['Core capability'],
                         description: a.description || a.name
-                      }} />
-                      <div className="absolute top-3 right-3">
-                        <button
-                          className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700"
-                          onClick={(e) => { e.stopPropagation(); setHireCandidate(a); setHireTerm('day'); setShowHireModal(true); }}
-                        >
-                          Hire me
-                        </button>
-                      </div>
-                    </div>
+                      }}
+                      entitled={false}
+                      source="api"
+                      rawAgent={a}
+                    />
                   ))}
                 </div>
               )}
