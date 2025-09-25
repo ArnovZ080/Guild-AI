@@ -205,6 +205,268 @@ const AgentsView = () => {
     notifications: true
   });
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
+
+  // Canonical capability/description overrides for known agents (shared by cards and modal)
+  const capabilityOverrides = {
+    'Accountability Coach Agent': {
+      purpose: 'Keeps the founder on track with habit design and follow-through; best for daily check-ins and momentum.',
+      capabilities: [
+        'Daily/weekly check-ins',
+        'Nudge scheduling',
+        'Habit loop micro-tasks'
+      ]
+    },
+    'Accounting Agent': {
+      purpose: 'Produces formal financial reports and reconciliations for bookkeeping and CFO workflows.',
+      capabilities: [
+        'P&L and balance sheet',
+        'Reconcile & flag anomalies',
+        'Export XLS/PDF reports'
+      ]
+    },
+    'Ad Performance Optimizer Agent': {
+      purpose: 'Automates paid-ad performance tuning across platforms for better ROAS.',
+      capabilities: [
+        'ROAS analysis',
+        'A/B test variants',
+        'Reallocate budgets'
+      ]
+    },
+    'Affiliate Partnerships Agent': {
+      purpose: 'Builds and runs affiliate/partner programs to scale distribution.',
+      capabilities: [
+        'Prospect onboarding',
+        'Offer packaging',
+        'Commission tracking'
+      ]
+    },
+    'Agent Evaluator': {
+      purpose: 'Scores outputs across agents and enforces quality thresholds (Judge/QA layer).',
+      capabilities: [
+        'Apply rubrics',
+        'Revision requests',
+        'Aggregate metrics'
+      ]
+    },
+    'Judge Agent': {
+      purpose: 'Generates rubrics and enforces quality thresholds across outputs.',
+      capabilities: [
+        'Task rubrics',
+        'Score & revise',
+        'Log evaluator trends'
+      ]
+    },
+    'Automation Agent': {
+      purpose: 'Orchestrates API-based automations and routine task flows.',
+      capabilities: [
+        'API triggers/actions',
+        'Data sync mapping',
+        'Retry scheduling'
+      ]
+    },
+    'Automation Bridge Agent': {
+      purpose: 'Connects disparate automation islands, ensuring cross-system reliability.',
+      capabilities: [
+        'Dependency graphs',
+        'Cross-tool handoffs',
+        'Health monitoring'
+      ]
+    },
+    'Board Advisor Agent': {
+      purpose: 'Provides board-level briefings, risk assessments and strategic recommendations.',
+      capabilities: [
+        'Executive summaries',
+        'Scenario analysis',
+        'Board briefings'
+      ]
+    },
+    'Bookkeeping Agent': {
+      purpose: 'Handles transaction ingestion, categorization and month-end closes.',
+      capabilities: [
+        'Bank feed ingest',
+        'Receipt matching',
+        'Month-end close'
+      ]
+    },
+    'Brand Strategist Agent': {
+      purpose: 'Designs brand narrative, tone and identity guidelines.',
+      capabilities: [
+        'Voice & messaging',
+        'Brand audits',
+        'Creative guidelines'
+      ]
+    },
+    'Business Intelligence Agent': {
+      purpose: 'Central KPI hub and anomaly detection across business systems.',
+      capabilities: [
+        'KPI dashboards',
+        'Anomaly alerts',
+        'Plain-language insights'
+      ]
+    },
+    'Business Strategist Agent': {
+      purpose: 'Develops long-term plans, OKRs and strategic prioritization.',
+      capabilities: [
+        'Roadmaps & OKRs',
+        'Trade-off analysis',
+        'Milestone planning'
+      ]
+    },
+    'Business Strategist': {
+      purpose: 'Strategy assistant variant (quick strategic guidance).',
+      capabilities: [
+        'Rapid frameworks',
+        'Quick SWOT/Porter',
+        'Next-step options'
+      ]
+    },
+    'Calendar Harmony Agent': {
+      purpose: 'Optimizes user calendar for focus, balance and throughput.',
+      capabilities: [
+        'Timeboxing blocks',
+        'Auto-schedule tasks',
+        'Rebalance overload'
+      ]
+    },
+    'Celebration Narrator Agent': {
+      purpose: 'Produces the micro-celebration narratives and communications.',
+      capabilities: [
+        'Milestone narratives',
+        'Celebratory assets',
+        'Recognition scheduling'
+      ]
+    },
+    'Chief Of Staff Agent': {
+      purpose: 'Cross-agent coordinator for priorities, resource allocation and status alignment.',
+      capabilities: [
+        'Weekly plans',
+        'Delegation matrix',
+        'Dependency tracking'
+      ]
+    },
+    'Churn Predictor Agent': {
+      purpose: 'Predicts churn risk and triggers retention plays.',
+      capabilities: [
+        'Risk scoring',
+        'Retention playbooks',
+        'Effectiveness monitoring'
+      ]
+    },
+    'Community Connector Agent': {
+      purpose: 'Builds and grows user communities and external engagement.',
+      capabilities: [
+        'Programs & loops',
+        'Events & advocacy',
+        'Community health'
+      ]
+    },
+    'Community Manager Agent': {
+      purpose: 'Operates community channels day-to-day (posting, replies, moderation).',
+      capabilities: [
+        'Schedule posts',
+        'Triage & respond',
+        'Engagement reports'
+      ]
+    },
+    'Competitive Intelligence Agent': {
+      purpose: 'Monitors competitors and provides actionable briefs.',
+      capabilities: [
+        'Competitive tracking',
+        'Landscape briefs',
+        'Countermeasure recs'
+      ]
+    },
+    'Compliance Agent': {
+      purpose: 'Ensures outputs and processes comply with policies/regulations.',
+      capabilities: [
+        'Compliance checks',
+        'Remediation plans',
+        'Audit checklists'
+      ]
+    },
+    'Connector Agent': {
+      purpose: 'Manages OAuth/API connectors and health-checks for external services.',
+      capabilities: [
+        'API auth & tokens',
+        'Connectivity tests',
+        'Unified status/errors'
+      ]
+    },
+    'Content Intelligence Agent': {
+      purpose: 'Measures content performance and prescribes improvements.',
+      capabilities: [
+        'Content KPIs',
+        'Opportunity surfacing',
+        'Cadence recommendations'
+      ]
+    },
+    'Content Repurposer Agent': {
+      purpose: 'Converts existing content into alternate formats tailored for platforms.',
+      capabilities: [
+        'Summarize/adapt',
+        'Platform reformat',
+        'Variant generation'
+      ]
+    },
+    'Content Strategist': {
+      purpose: 'Plans editorial calendars and content themes aligned to goals.',
+      capabilities: [
+        'Calendars & briefs',
+        'Funnel mapping',
+        'Production allocation'
+      ]
+    },
+    'Contract Analyzer Agent': {
+      purpose: 'Parses contracts and extracts risk/obligations.',
+      capabilities: [
+        'Clause extraction',
+        'Risk flagging',
+        'Redline suggestions'
+      ]
+    },
+    'Copywriter Agent': {
+      purpose: 'High-impact short-form copywriter for ads and CTAs.',
+      capabilities: [
+        'Ad headlines',
+        'Email CTAs',
+        'Platform copy'
+      ]
+    },
+    'Copywriter': {
+      purpose: 'General writing assistant for broader copy needs.',
+      capabilities: [
+        'Draft/edit content',
+        'Brand tone adjust',
+        'A/B variants'
+      ]
+    },
+    'CRM Agent': {
+      purpose: 'Manages CRM hygiene, segments and pipelines.',
+      capabilities: [
+        'Enrich & dedupe',
+        'Pipeline health',
+        'Segmentation sync'
+      ]
+    },
+    'CRM Automation Agent': {
+      purpose: 'Automates CRM workflows and routing logic.',
+      capabilities: [
+        'Triggers & routing',
+        'Auto-assign leads',
+        'Cross-tool sync'
+      ]
+    },
+    'Customer Intelligence Agent': {
+      purpose: '360° view of customers; journey mapping and health scoring.',
+      capabilities: [
+        'Unified profiles',
+        'Journey mapping',
+        'Retention plays'
+      ]
+    }
+  };
+
+  const getOverrideForAgent = (name) => capabilityOverrides[name] || null;
   const { triggerCelebration } = useCelebrations();
 
   // Rich demo workflows used as a visual fallback in the Agent Theater
@@ -1261,19 +1523,19 @@ const AgentsView = () => {
           </div>
         </div>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{agent.description}</p>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{(getOverrideForAgent(agent.name)?.purpose) || agent.description}</p>
 
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-gray-700">Capabilities:</h4>
           <div className="flex flex-wrap gap-1">
-            {agent.capabilities.slice(0, 3).map(capability => (
+            {(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).slice(0, 3).map(capability => (
               <span key={capability} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                 {capability}
               </span>
             ))}
-            {agent.capabilities.length > 3 && (
+            {(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).length > 3 && (
               <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                +{agent.capabilities.length - 3} more
+                +{(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).length - 3} more
               </span>
             )}
           </div>
@@ -1921,7 +2183,7 @@ const AgentsView = () => {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">AI Workforce</h1>
-            <p className="text-gray-600 mt-2">Manage and monitor your 52 AI agents</p>
+            <p className="text-gray-600 mt-2">Manage and monitor your {Array.isArray(mergedApiAgents) ? mergedApiAgents.length : allAgents.length} AI agents</p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-right">
