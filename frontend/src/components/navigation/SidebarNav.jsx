@@ -49,7 +49,7 @@ const navigationItems = [
     description: 'Manage your AI agents'
   },
   {
-    id: 'growth',
+    id: 'content-dashboard',
     label: 'Content Dashboard',
     icon: TrendingUp,
     category: 'primary',

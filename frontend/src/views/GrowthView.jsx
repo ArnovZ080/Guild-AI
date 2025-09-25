@@ -7,6 +7,7 @@ import {
   Filter, Search, RefreshCw, Download, Eye, Settings
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import ContentDashboard from '../components/dashboard/ContentDashboard.jsx';
 
 // Mock growth recommendations data
 const mockRecommendations = [

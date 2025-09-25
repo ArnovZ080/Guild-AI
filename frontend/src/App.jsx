@@ -21,6 +21,7 @@ import OnboardingView from './views/OnboardingView.jsx';
 import ConnectorsView from './views/ConnectorsView.jsx';
 import GrowthView from './views/GrowthView.jsx';
 import AchievementsView from './views/AchievementsView.jsx';
+import ContentDashboard from './components/dashboard/ContentDashboard.jsx';
 import './App.css';
 import './index.css';
 
@@ -125,6 +126,11 @@ function App() {
               <Route path="/growth" element={
                 <DashboardLayout>
                   <GrowthView />
+                </DashboardLayout>
+              } />
+              <Route path="/content-dashboard" element={
+                <DashboardLayout>
+                  <ContentDashboard />
                 </DashboardLayout>
               } />
               <Route path="/settings" element={
