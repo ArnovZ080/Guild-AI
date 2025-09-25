@@ -1450,8 +1450,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Agent Detail Modal */}
-      {!showWorkflowDetails && <AgentDetailModal />}
+      {/* Agent Detail Modal disabled per requirements */}
+      {/* <AgentDetailModal /> */}
       <WorkflowDetailsModal />
 
       {/* Configure Agent Modal */}
