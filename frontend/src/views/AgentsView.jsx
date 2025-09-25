@@ -445,7 +445,7 @@ const AgentsView = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
-      onClick={() => { setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
+      // Card clicks no longer open details; use explicit buttons below
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
