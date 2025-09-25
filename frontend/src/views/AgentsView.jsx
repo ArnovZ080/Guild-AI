@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ConversationalUI from '../components/agents/ConversationalUI.jsx';
+import { ConversationalInterface } from '../components/agents/ConversationalUI.jsx';
 import { repoAgentIds } from '../data/repoAgentIds.js';
 import { agentMeta } from '../data/agentMeta.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -2383,7 +2383,11 @@ const AgentsView = () => {
               <button className="text-gray-500 hover:text-gray-700" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>×</button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <ConversationalUI agentName={chatAgent.name} agentId={chatAgent.id} minimal={true} />
+              <ConversationalInterface 
+                messages={[]}
+                onSendMessage={(m) => console.log('Send to agent', chatAgent.id, m)}
+                activeAgentId={chatAgent.id}
+              />
             </div>
           </div>
         </div>
