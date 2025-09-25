@@ -75,6 +75,11 @@ const ContentDashboard = () => {
   const { getActionAnalysis, executing: actionExecuting, error: actionError } = useActionAnalysis();
   const { executeWorkflow, executing: workflowExecuting, error: workflowError } = useWorkflowExecution();
 
+  // Debug state changes
+  useEffect(() => {
+    console.log('selectedContentItem changed:', selectedContentItem);
+  }, [selectedContentItem]);
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
     { id: 'calendar', label: 'Content Calendar', icon: Calendar },
@@ -195,8 +200,6 @@ const ContentDashboard = () => {
     campaigns: campaigns
   };
 
-  // Debug state
-  console.log('ContentDashboard render - selectedInsight:', selectedInsight, 'selectedAction:', selectedAction);
 
   return (
     <>
@@ -429,10 +432,7 @@ const ContentDashboard = () => {
       )}
 
       {/* Content Details Modal */}
-      {(() => {
-        console.log('Checking selectedContentItem:', selectedContentItem);
-        return selectedContentItem;
-      })() && (
+      {selectedContentItem && (
         <ContentDetailsModal
           content={selectedContentItem}
           onClose={() => setSelectedContentItem(null)}
@@ -820,10 +820,7 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
 
 // Content Details Modal for Top Performing Content
 const ContentDetailsModal = ({ content, onClose, onReplicate, isOrchestrating }) => {
-  console.log('ContentDetailsModal rendering with content:', content);
-  
   if (!content) {
-    console.log('No content provided to modal');
     return null;
   }
 
@@ -1296,10 +1293,7 @@ const ContentDashboardSkeleton = () => (
 
 // Insight Details Modal Component
 const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrating }) => {
-  console.log('InsightDetailsModal rendering with insight:', insight);
-  
   if (!insight) {
-    console.log('No insight provided to modal');
     return null;
   }
   
@@ -1452,10 +1446,7 @@ const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrati
 
 // Action Details Modal Component
 const ActionDetailsModal = ({ action, onClose, onExecuteAction, isOrchestrating }) => {
-  console.log('ActionDetailsModal rendering with action:', action);
-  
   if (!action) {
-    console.log('No action provided to modal');
     return null;
   }
   
