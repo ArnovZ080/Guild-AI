@@ -988,6 +988,18 @@ const AgentsView = () => {
   const tier = subscriptionInfo?.tier || null;
   const isEnterprise = (tier || '').toLowerCase() === 'enterprise';
 
+  // Tier-based hiring rates
+  const getTierRates = (t) => {
+    const key = (t || '').toLowerCase();
+    if (key === 'starter') return { monthly: 12, daily: 1.5 };
+    if (key === 'growth') return { monthly: 11, daily: 1.25 };
+    if (key === 'professional') return { monthly: 10, daily: 1.0 };
+    // Enterprise: generally all agents included; fallback to professional rates if hire needed
+    if (key === 'enterprise') return { monthly: 0, daily: 0 };
+    // Default fallback
+    return { monthly: 12, daily: 1.5 };
+  };
+
   // Helper: entitlement check for an API agent
   const isApiAgentEntitled = (a) => {
     const hired = Boolean(a?.hired_until && new Date(a.hired_until) > new Date());
@@ -997,30 +1009,44 @@ const AgentsView = () => {
   // Merge API agents with Base Pack inclusion for non-Enterprise
   const mergedApiAgents = Array.isArray(apiAgents) ? (() => {
     const byName = new Map(apiAgents.map(a => [a.name, a]));
-    if (!isEnterprise) {
-      basePackAgentNames.forEach(name => {
-        if (!byName.has(name)) {
-          byName.set(name, {
-            id: `base-${name}`,
-            agent_id: `base-${name}`,
-            name,
-            category: 'automation',
-            type: 'management',
-            description: name,
-            capabilities: ['Core capability'],
-            included_in_subscription: true,
-            hired_until: null,
-            daily_rate_usd: 0,
-            monthly_rate_usd: 0
-          });
-        } else {
-          const existing = byName.get(name);
-          byName.set(name, { ...existing, included_in_subscription: true });
-        }
-      });
-    }
+    // Always ensure Base Pack is present and marked included, regardless of tier
+    basePackAgentNames.forEach(name => {
+      if (!byName.has(name)) {
+        byName.set(name, {
+          id: `base-${name}`,
+          agent_id: `base-${name}`,
+          name,
+          category: 'automation',
+          type: 'management',
+          description: name,
+          capabilities: ['Core capability'],
+          included_in_subscription: true,
+          hired_until: null,
+          daily_rate_usd: 0,
+          monthly_rate_usd: 0
+        });
+      } else {
+        const existing = byName.get(name);
+        byName.set(name, { ...existing, included_in_subscription: true });
+      }
+    });
     return Array.from(byName.values());
-  })() : null;
+  })() : (() => {
+    // API unavailable: fabricate a minimal list from Base Pack so UI still shows included block
+    return basePackAgentNames.map(name => ({
+      id: `base-${name}`,
+      agent_id: `base-${name}`,
+      name,
+      category: 'automation',
+      type: 'management',
+      description: name,
+      capabilities: ['Core capability'],
+      included_in_subscription: true,
+      hired_until: null,
+      daily_rate_usd: 0,
+      monthly_rate_usd: 0
+    }));
+  })();
 
   // Filter agents based on search and filters
   const filteredAgents = allAgents.filter(agent => {
@@ -1040,6 +1066,15 @@ const AgentsView = () => {
   const hireableAgents = Array.isArray(mergedApiAgents)
     ? mergedApiAgents.filter(a => !isApiAgentEntitled(a))
     : [];
+
+  // Sort: Base Pack first within included section, then others by name
+  const basePackOrder = new Map(basePackAgentNames.map((n, i) => [n, i]));
+  const includedAgentsSorted = includedAgents.slice().sort((a, b) => {
+    const ai = basePackOrder.has(a.name) ? basePackOrder.get(a.name) : Number.MAX_SAFE_INTEGER;
+    const bi = basePackOrder.has(b.name) ? basePackOrder.get(b.name) : Number.MAX_SAFE_INTEGER;
+    if (ai !== bi) return ai - bi;
+    return (a.name || '').localeCompare(b.name || '');
+  });
 
   // Get category styling
   const getCategoryStyle = (category) => {
@@ -1519,7 +1554,7 @@ const AgentsView = () => {
 
       {/* Agent Grid - Workforce */}
       {activeTab === 'workforce' && (
-        Array.isArray(apiAgents) && (includedAgents.length + hireableAgents.length > 0) ? (
+        Array.isArray(mergedApiAgents) && (includedAgents.length + hireableAgents.length > 0) ? (
           <div className="space-y-8">
             {/* Included section */}
             <div>
@@ -1528,7 +1563,7 @@ const AgentsView = () => {
                 <div className="text-sm text-gray-500">No included agents yet.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {includedAgents.map(a => (
+                  {includedAgentsSorted.map(a => (
                     <AgentCard
                       key={a.agent_id || a.id}
                       agent={{
@@ -1763,20 +1798,24 @@ const AgentsView = () => {
               <div className="space-y-4">
                 <div className="text-sm text-gray-700">Choose a term:</div>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
-                    className={`p-3 border rounded ${hireTerm==='day'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
-                    onClick={() => setHireTerm('day')}
-                  >
-                    <div className="text-sm font-semibold">Per Day</div>
-                    <div className="text-xs text-gray-600">${hireCandidate.daily_rate_usd ?? 29}/day</div>
-                  </button>
-                  <button
-                    className={`p-3 border rounded ${hireTerm==='month'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
-                    onClick={() => setHireTerm('month')}
-                  >
-                    <div className="text-sm font-semibold">30 Days</div>
-                    <div className="text-xs text-gray-600">${hireCandidate.monthly_rate_usd ?? 199}/30d</div>
-                  </button>
+                  {(() => { const rates = getTierRates(tier); return (
+                  <>
+                    <button
+                      className={`p-3 border rounded ${hireTerm==='day'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
+                      onClick={() => setHireTerm('day')}
+                    >
+                      <div className="text-sm font-semibold">Per Day</div>
+                      <div className="text-xs text-gray-600">${rates.daily}/day</div>
+                    </button>
+                    <button
+                      className={`p-3 border rounded ${hireTerm==='month'?'border-emerald-600 bg-emerald-50':'border-gray-300'}`}
+                      onClick={() => setHireTerm('month')}
+                    >
+                      <div className="text-sm font-semibold">30 Days</div>
+                      <div className="text-xs text-gray-600">${rates.monthly}/30d</div>
+                    </button>
+                  </>
+                  ); })()}
                 </div>
                 <div className="text-xs text-gray-500">You can use this agent in workflows, tasks, and @mentions while hired.</div>
               </div>
