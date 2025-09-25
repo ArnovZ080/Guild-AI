@@ -417,6 +417,9 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
     data.schedule?.days || { mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }
   );
   const [scheduleDateTime, setScheduleDateTime] = useState<string>(data.schedule?.datetime || '');
+  // Backward-compat aliases to avoid ReferenceError in cached bundles
+  const showSchedule = scheduleOpen;
+  const setShowSchedule = setScheduleOpen;
   const [conditionBranches, setConditionBranches] = useState<{ label: string; nl: string }[]>(
     data.category === 'condition' || data.category === 'split'
       ? data.branches || [
