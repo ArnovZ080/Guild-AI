@@ -1485,6 +1485,14 @@ const AgentsView = () => {
           'Aggregate evaluation metrics over time'
         ]
       },
+      'Judge Agent': {
+        purpose: 'Generates rubrics and enforces quality thresholds across outputs.',
+        capabilities: [
+          'Create task-specific rubrics and grading rules',
+          'Score deliverables and trigger revisions',
+          'Log evaluator outputs and trends'
+        ]
+      },
       'Automation Agent': {
         purpose: 'Orchestrates API-based automations and routine task flows.',
         capabilities: [
@@ -1812,8 +1820,8 @@ const AgentsView = () => {
                           <button
                             key={a.name}
                             className="px-2 py-1 bg-white border rounded text-xs text-gray-700 hover:bg-gray-100"
-                            onClick={() => { setPreviewArtifact(a); setShowArtifactModal(true); }}
-                            title={a.url ? 'Preview artifact' : 'No preview available'}
+                            onClick={() => { setPreviewArtifact({ ...a, url: a.url || a.preview_url || (a.content ? undefined : undefined) }); setShowArtifactModal(true); }}
+                            title={'Preview artifact'}
                           >
                             {a.name}
                           </button>
