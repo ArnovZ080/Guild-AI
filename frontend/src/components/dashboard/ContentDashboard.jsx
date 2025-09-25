@@ -339,6 +339,14 @@ const ContentDashboard = () => {
 const ContentOverviewTab = ({ contentAnalysis }) => {
   const metrics = contentAnalysis?.content_metrics || {};
   
+  // Helper function to determine color based on target comparison
+  const getTargetColor = (current, target, isLowerBetter = false) => {
+    if (current === undefined || target === undefined) return 'text-gray-600';
+    
+    const isAboveTarget = isLowerBetter ? current < target : current > target;
+    return isAboveTarget ? 'text-green-600' : 'text-red-600';
+  };
+  
   return (
     <div className="space-y-6">
       {/* Key Content Metrics */}
@@ -367,7 +375,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.content_output?.blogs_per_month?.current || 8}
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.content_output?.blogs_per_month?.current || 8,
+                  metrics.content_output?.blogs_per_month?.target || 12
+                )}`}>
                   Target: {metrics.content_output?.blogs_per_month?.target || 12}
                 </span>
               </div>
@@ -378,7 +389,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.content_output?.videos_per_week?.current || 5}
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.content_output?.videos_per_week?.current || 5,
+                  metrics.content_output?.videos_per_week?.target || 8
+                )}`}>
                   Target: {metrics.content_output?.videos_per_week?.target || 8}
                 </span>
               </div>
@@ -399,7 +413,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.engagement_metrics?.engagement_rate?.current || 4.8}%
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.engagement_metrics?.engagement_rate?.current || 4.8,
+                  metrics.engagement_metrics?.engagement_rate?.target || 5.0
+                )}`}>
                   Target: {metrics.engagement_metrics?.engagement_rate?.target || 5.0}%
                 </span>
               </div>
@@ -410,7 +427,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.engagement_metrics?.click_through_rate?.current || 2.3}%
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.engagement_metrics?.click_through_rate?.current || 2.3,
+                  metrics.engagement_metrics?.click_through_rate?.target || 2.5
+                )}`}>
                   Target: {metrics.engagement_metrics?.click_through_rate?.target || 2.5}%
                 </span>
               </div>
@@ -421,7 +441,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.engagement_metrics?.conversion_rate?.current || 3.2}%
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.engagement_metrics?.conversion_rate?.current || 3.2,
+                  metrics.engagement_metrics?.conversion_rate?.target || 3.5
+                )}`}>
                   Target: {metrics.engagement_metrics?.conversion_rate?.target || 3.5}%
                 </span>
               </div>
@@ -442,7 +465,11 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   ${metrics.performance_metrics?.cost_per_lead?.current || 28.50}
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.performance_metrics?.cost_per_lead?.current || 28.50,
+                  metrics.performance_metrics?.cost_per_lead?.target || 25.00,
+                  true // Lower is better for cost per lead
+                )}`}>
                   Target: ${metrics.performance_metrics?.cost_per_lead?.target || 25.00}
                 </span>
               </div>
@@ -453,7 +480,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.performance_metrics?.return_on_ad_spend?.current || 3.8}x
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.performance_metrics?.return_on_ad_spend?.current || 3.8,
+                  metrics.performance_metrics?.return_on_ad_spend?.target || 4.0
+                )}`}>
                   Target: {metrics.performance_metrics?.return_on_ad_spend?.target || 4.0}x
                 </span>
               </div>
@@ -464,7 +494,10 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <span className="font-semibold text-gray-900">
                   {metrics.engagement_metrics?.follower_growth?.current || 12.5}%
                 </span>
-                <span className="text-green-600 text-sm ml-2">
+                <span className={`text-sm ml-2 ${getTargetColor(
+                  metrics.engagement_metrics?.follower_growth?.current || 12.5,
+                  metrics.engagement_metrics?.follower_growth?.target || 15.0
+                )}`}>
                   Target: {metrics.engagement_metrics?.follower_growth?.target || 15.0}%
                 </span>
               </div>
