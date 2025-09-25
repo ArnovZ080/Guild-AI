@@ -1246,12 +1246,12 @@ const AgentsView = () => {
             <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="">
+            <div className="flex items-center justify-between mb-4 px-1">
               <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows</h2>
               {wfLoading && <span className="text-sm text-gray-500">Refreshing…</span>}
             </div>
-            {wfError && <div className="text-sm text-red-600 mb-3">{wfError}</div>}
+            {wfError && <div className="text-sm text-red-600 mb-3 px-1">{wfError}</div>}
             {(() => {
               // Show exactly what the API returns (1..n). Only use demo when none.
               const listToShow = (Array.isArray(workflows) && workflows.length > 0) ? workflows : demoWorkflows;
