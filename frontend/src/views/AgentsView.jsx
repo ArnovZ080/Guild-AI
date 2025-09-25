@@ -204,6 +204,70 @@ const AgentsView = () => {
   });
   const { triggerCelebration } = useCelebrations();
 
+  // Rich demo workflows used as a visual fallback in the Agent Theater
+  const demoWorkflows = [
+    {
+      id: 'demo_wf_1',
+      name: 'Customer Onboarding Automation',
+      description: 'Automatically onboard new customers with Autonomous personalized welcome sequence',
+      status: 'running',
+      type: 'autonomous',
+      progress: 75,
+      current_step: 'Sending welcome email sequence',
+      agents: ['Customer Success Agent', 'Email Marketing Agent', 'Personalization Agent'],
+      integrations: ['Zapier', 'Gmail', 'HubSpot'],
+      metrics: { customersProcessed: 234, successRate: 94 },
+      triggers: ['New customer signup', 'Payment confirmation'],
+      actions: [
+        { step: 'Send welcome email', status: 'completed' },
+        { step: 'Create customer profile', status: 'completed' },
+        { step: 'Schedule onboarding call', status: 'in-progress' },
+        { step: 'Send product tutorial', status: 'pending' }
+      ],
+      businessGoal: 'Reduce onboarding time by 60%'
+    },
+    {
+      id: 'demo_wf_2',
+      name: 'Lead Qualification & Nurturing',
+      description: 'Automatically qualify and nurture leads based on behavior and engagement',
+      status: 'running',
+      type: 'autonomous',
+      progress: 68,
+      current_step: 'Analyzing lead behavior patterns',
+      agents: ['Lead Personalization Agent', 'Sales Agent', 'Analytics Agent'],
+      integrations: ['HubSpot', 'LinkedIn', 'Gmail', 'WhatsApp'],
+      metrics: { leadsProcessed: 1247, successRate: 78 },
+      triggers: ['Website visit', 'Form submission', 'Email engagement'],
+      actions: [
+        { step: 'Score lead quality', status: 'completed' },
+        { step: 'Personalize outreach', status: 'completed' },
+        { step: 'Schedule follow-up', status: 'in-progress' },
+        { step: 'Update CRM', status: 'pending' }
+      ],
+      businessGoal: 'Increase lead conversion by 40%'
+    },
+    {
+      id: 'demo_wf_3',
+      name: 'Content Distribution & Optimization',
+      description: 'Automatically distribute content across platforms and optimize for engagement',
+      status: 'running',
+      type: 'autonomous',
+      progress: 82,
+      current_step: 'Optimizing social media posts',
+      agents: ['Content Strategist Agent', 'Social Media Agent', 'SEO Agent'],
+      integrations: ['Facebook', 'Instagram', 'LinkedIn', 'Gmail', 'WhatsApp'],
+      metrics: { postsScheduled: 156, successRate: 8.3 },
+      triggers: ['New content published', 'Performance threshold met'],
+      actions: [
+        { step: 'Schedule social posts', status: 'completed' },
+        { step: 'Optimize for SEO', status: 'completed' },
+        { step: 'A/B test variations', status: 'in-progress' },
+        { step: 'Analyze performance', status: 'pending' }
+      ],
+      businessGoal: 'Increase content reach by 50%'
+    }
+  ];
+
   useEffect(() => {
     async function fetchAvailableAgents() {
       if (!API) { setApiAgents(null); return; }
@@ -224,6 +288,16 @@ const AgentsView = () => {
     }
     fetchAvailableAgents();
   }, [API]);
+
+  // Default-select first workflow when entering theater tab or when workflows load
+  useEffect(() => {
+    if (activeTab !== 'theater') return;
+    const list = Array.isArray(workflows) && workflows.length > 0 ? workflows : demoWorkflows;
+    if (!selectedWorkflow && list.length > 0) {
+      const first = list[0];
+      setSelectedWorkflow(first);
+    }
+  }, [activeTab, workflows]);
 
   // Load workflows with polling fallback
   useEffect(() => {
@@ -343,6 +417,36 @@ const AgentsView = () => {
     return icons[integration] || Link;
   };
 
+  // Build a rich display workflow by merging sparse API data with demo defaults
+  // Normalize to expected schema and record provenance for missing fields
+  const buildDisplayWorkflow = (wf, index) => {
+    const demo = demoWorkflows[index % demoWorkflows.length];
+    const provenance = {};
+    const pick = (value, fallback, key) => {
+      const chosen = value !== undefined && value !== null && (typeof value !== 'object' || Object.keys(value).length>0) ? value : fallback;
+      provenance[key] = (chosen === value) ? 'live' : 'fallback';
+      return chosen;
+    };
+    const id = pick(wf.workflow_id || wf.id, demo.id, 'id');
+    const name = pick(wf.name || wf.results?.campaign?.name, demo.name, 'name');
+    const description = pick(wf.description, demo.description, 'description');
+    const status = pick(wf.status, demo.status, 'status');
+    const type = pick(wf.type, demo.type || 'autonomous', 'type');
+    const progress = pick(typeof wf.progress === 'number' ? wf.progress : wf.results?.progress, demo.progress, 'progress');
+    const current_step = pick(wf.current_step || wf.currentStep || wf.results?.current_step, demo.current_step, 'current_step');
+    const agents = pick(wf.agents || wf.agents_involved || wf.results?.agents, demo.agents, 'agents');
+    const integrations = pick(wf.integrations || wf.results?.integrations, demo.integrations, 'integrations');
+    const metrics = pick(wf.metrics || wf.results?.metrics, demo.metrics, 'metrics');
+    const triggers = pick(wf.triggers || wf.results?.triggers, demo.triggers, 'triggers');
+    const actions = pick(wf.actions || wf.results?.actions, demo.actions, 'actions');
+    const businessGoal = pick(wf.businessGoal || wf.results?.businessGoal, demo.businessGoal, 'businessGoal');
+    const metadata = pick(wf.metadata, {}, 'metadata');
+    const cost = pick(wf.cost, undefined, 'cost');
+    const estimatedCost = pick(wf.estimatedCost, undefined, 'estimatedCost');
+    const evaluator = pick(wf.evaluator || wf.judge, undefined, 'evaluator');
+    return { id, name, description, status, type, progress, current_step, agents, integrations, metrics, triggers, actions, businessGoal, metadata, cost, estimatedCost, evaluator, _provenance: provenance };
+  };
+
   const handleDeploy = async (workflow) => {
     const wfId = workflow.workflow_id || workflow.id;
     if (!wfId) return;
@@ -355,14 +459,14 @@ const AgentsView = () => {
     }
   };
 
-  const WorkflowCard = ({ workflow }) => (
+  const WorkflowCard = ({ workflow, isSelected }) => (
     <motion.div
-      className="bg-white rounded-lg shadow-lg p-6 border hover:shadow-xl transition-shadow cursor-pointer"
+      className={`bg-white rounded-lg p-6 transition-shadow cursor-pointer ${isSelected ? 'border-4 border-blue-600 ring-4 ring-blue-200 ring-offset-2 shadow-2xl' : 'border hover:shadow-xl'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.02 }}
-      onClick={() => { setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
+      // Card clicks no longer open details; use explicit buttons below
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -569,19 +673,247 @@ const AgentsView = () => {
       <div className="mt-4 flex gap-2">
         <button
           className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
-          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
+          onClick={(e) => { e.stopPropagation(); setSelectedAgent(null); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
         >
           Details
         </button>
         <button
           className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
-          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow({ id: workflow.workflow_id || workflow.id, name: workflow.name || workflow.results?.campaign?.name }); }}
+          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow(workflow); }}
         >
           View in Theater
         </button>
       </div>
     </motion.div>
   );
+
+  // Workflow Details Modal (full transparency)
+  const WorkflowDetailsModal = () => {
+    if (!showWorkflowDetails || !selectedWorkflow) return null;
+    const wf = selectedWorkflow;
+    const upcoming = Array.isArray(wf.actions) ? wf.actions.filter(a => a.status !== 'completed') : [];
+    const completed = Array.isArray(wf.actions) ? wf.actions.filter(a => a.status === 'completed') : [];
+    const comms = Array.isArray(wf.communications) ? wf.communications : [];
+    const outputs = Array.isArray(wf.outputs) ? wf.outputs : [];
+    const evaluator = wf.evaluator || wf.judge || {};
+    const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
+    const meta = wf.metadata || {};
+    const [tab, setTab] = useState('metadata');
+
+    // When API is configured, attempt to hydrate with real workflow details
+    useEffect(() => {
+      const base = (import.meta && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) || '';
+      const wfId = wf.workflow_id || wf.id;
+      if (!base || !wfId) return;
+      let cancelled = false;
+      (async () => {
+        try {
+          const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+          const res = await fetch(`${base}/agents/workflows/${wfId}`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!cancelled && data) {
+            // Merge live details, preserving our normalized structure
+            const merged = buildDisplayWorkflow({ ...(selectedWorkflow || {}), ...(data || {}) }, 0);
+            setSelectedWorkflow(merged);
+          }
+        } catch {}
+      })();
+      return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showWorkflowDetails]);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowWorkflowDetails(false)}>
+        <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto" onClick={(e)=>e.stopPropagation()}>
+          <div className="p-6 space-y-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{wf.name}</h2>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getWfStatusStyle(wf.status)}`}>{wf.status}</span>
+                  <span className="text-xs text-gray-500 capitalize">{wf.type}</span>
+                  
+                </div>
+              </div>
+              <button onClick={()=>setShowWorkflowDetails(false)} className="text-gray-400 hover:text-gray-600">×</button>
+            </div>
+
+            {typeof wf.progress === 'number' && (
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>Progress</span>
+                  <span>{wf.progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} />
+                </div>
+              </div>
+            )}
+
+            {wf.current_step && (
+              <div className="bg-blue-50 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Target className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium text-blue-900">Current Step</span>
+                </div>
+                <p className="text-sm text-blue-800">{wf.current_step}</p>
+              </div>
+            )}
+
+            {/* Tabs */}
+            <div className="bg-white border rounded-lg p-2">
+              <div className="flex flex-wrap gap-2">
+                {['metadata','flow','tasks','content','costs','evaluator','audit'].map(k => (
+                  <button key={k} onClick={()=>setTab(k)} className={`px-3 py-1.5 text-sm rounded ${tab===k?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>{k.charAt(0).toUpperCase()+k.slice(1)}</button>
+                ))}
+              </div>
+              {selectedWorkflow?._provenance && (
+                <div className="mt-2 text-xs text-gray-500">
+                  <span className="mr-2">Legend:</span>
+                  <span className="inline-block px-1.5 py-0.5 mr-1 rounded bg-emerald-50 text-emerald-700">live</span>
+                  <span className="inline-block px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">fallback</span>
+                </div>
+              )}
+            </div>
+
+            {tab==='metadata' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Workflow Metadata {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.metadata==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.metadata}</span>}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-gray-600">Workflow ID:</span> <span className="font-medium">{wf.id}</span></div>
+                      <div><span className="text-gray-600">Type:</span> <span className="font-medium capitalize">{wf.type}</span></div>
+                      <div><span className="text-gray-600">Date Created:</span> <span className="font-medium">{meta.created_at || '-'}</span></div>
+                      <div><span className="text-gray-600">Last Run:</span> <span className="font-medium">{meta.last_run || '-'}</span></div>
+                      <div><span className="text-gray-600">Next Run:</span> <span className="font-medium">{meta.next_run || '-'}</span></div>
+                      <div><span className="text-gray-600">Trigger:</span> <span className="font-medium capitalize">{wf.trigger || meta.trigger || '-'}</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Agents Involved {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.agents==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.agents}</span>}</h3>
+                    <div className="flex flex-wrap gap-1">{(wf.agents||[]).map((a,i)=>(<span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>))}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tab==='flow' && (
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Process Flow</h3>
+                <div className="text-sm text-gray-600 mb-3">Parallel vs sequential steps, color-coded by status.</div>
+                <div className="border rounded-lg p-6 text-center text-sm text-gray-500">Flow graph visualization placeholder</div>
+              </div>
+            )}
+
+            {tab==='tasks' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Execution Timeline {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.actions==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.actions}</span>}</h3>
+                    <div className="space-y-2">
+                      {(wf.actions||[]).map((a, i)=> (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <div className="truncate pr-2">
+                            <span className="font-medium text-gray-800">{a.step}</span>
+                            {a.agent && <span className="text-xs text-gray-500"> • {a.agent}</span>}
+                          </div>
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${a.status==='completed'?'bg-green-100 text-green-700':a.status==='in-progress'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{a.status || 'pending'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Agents Involved</h3>
+                    <div className="flex flex-wrap gap-1">{(wf.agents||[]).map((a,i)=>(<span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>))}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tab==='content' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Content Artifacts {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.outputs==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.outputs}</span>}</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                    {(outputs || []).map((o, i) => (
+                      <li key={i}>{typeof o === 'string' ? o : (o.title || o.name || JSON.stringify(o))}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Communications Log {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.communications==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.communications}</span>}</h3>
+                  <div className="space-y-3">
+                    {(comms || []).map((c, i) => (
+                      <div key={i} className="border rounded p-3 text-sm">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-gray-800">{c.channel || 'Message'}</span>
+                          <span className="text-xs text-gray-500">{c.timestamp || ''}</span>
+                        </div>
+                        <div className="text-gray-700">
+                          {c.recipient && (
+                            <div className="text-xs text-gray-500">To: {c.recipient}</div>
+                          )}
+                          <div className="text-sm whitespace-pre-wrap">{c.summary || c.content || ''}</div>
+                          <div className="text-xs text-gray-500 mt-1">Status: {c.status || 'sent'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {tab==='costs' && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Cost Tracking {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.metrics==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.metrics}</span>}</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Estimated Cost</div><div className="font-semibold">{wf.estimatedCost ? `$${Number(wf.estimatedCost).toFixed(2)}` : '-'}</div></div>
+                  <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Actual Cost</div><div className="font-semibold">{cost ? (typeof cost==='string'?cost:`$${Number(cost).toFixed(2)}`): '-'}</div></div>
+                  <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Cost-to-Value</div><div className="font-semibold">{wf.costToValue || '-'}</div></div>
+                </div>
+                {Array.isArray(wf.actions)&&wf.actions.length>0 && (
+                  <div className="mt-4"><div className="text-sm font-medium mb-2">Breakdown by Step</div><div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">{wf.actions.map((a,i)=>(<div key={i} className="border rounded p-2 flex items-center justify-between"><span className="truncate pr-2">{a.step}</span><span className="font-semibold">{a.cost ? `$${Number(a.cost).toFixed(2)}` : '-'}</span></div>))}</div></div>
+                )}
+              </div>
+            )}
+
+            {tab==='evaluator' && (
+              <div className="bg-white border rounded-lg p-4"><h3 className="text-lg font-semibold mb-3">Evaluator Feedback</h3><div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm"><div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Score</div><div className="font-semibold">{evaluator.score !== undefined ? evaluator.score : '-'}</div></div><div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Confidence</div><div className="font-semibold">{evaluator.confidence || '-'}</div></div><div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Compared to Baseline</div><div className="font-semibold">{evaluator.baseline || '-'}</div></div></div>{evaluator.notes && (<div className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">{evaluator.notes}</div>)}</div>
+            )}
+
+            {tab==='audit' && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Audit & Compliance</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-gray-500">Version:</span> <span className="font-medium">{meta.version || '-'}</span></div>
+                  <div><span className="text-gray-500">Approvals:</span> <span className="font-medium">{meta.approvals || '-'}</span></div>
+                  <div className="md:col-span-2"><span className="text-gray-500">Data Sources:</span> <span className="font-medium">{Array.isArray(meta.data_sources)?meta.data_sources.join(', '):'-'}</span></div>
+                </div>
+                <div className="mt-3">
+                  <div className="text-sm font-medium mb-2">Workflow Log</div>
+                  <div className="space-y-2 text-xs">
+                    {(meta.log||[]).map((e,i)=> (
+                      <div key={i} className="border rounded p-2 flex items-center justify-between">
+                        <span className="truncate pr-2">{e.message || JSON.stringify(e)}</span>
+                        <span className="text-gray-500">{e.timestamp || ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Handler functions
   const handleActivateAgent = (agent) => {
@@ -1179,35 +1511,43 @@ const AgentsView = () => {
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
-            <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} />
+            <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} selectedWorkflow={selectedWorkflow || null} />
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="">
+            <div className="flex items-center justify-between mb-4 px-1">
               <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows</h2>
               {wfLoading && <span className="text-sm text-gray-500">Refreshing…</span>}
             </div>
-            {wfError && <div className="text-sm text-red-600 mb-3">{wfError}</div>}
-            {(!workflows || workflows.length === 0) ? (
-              <div className="text-sm text-gray-500">No workflows yet.</div>
-            ) : (
+            {wfError && <div className="text-sm text-red-600 mb-3 px-1">{wfError}</div>}
+            {(() => {
+              // Show exactly what the API returns (1..n). Only use demo when none.
+              const baseList = (Array.isArray(workflows) && workflows.length > 0) ? workflows : demoWorkflows;
+              const listToShow = baseList.map((wf, idx) => buildDisplayWorkflow(wf, idx));
+              return (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
-                  {workflows.map(wf => (
-                    <WorkflowCard key={wf.workflow_id || wf.id} workflow={wf} />
+                  {listToShow.map(wf => (
+                    <WorkflowCard
+                      key={wf.workflow_id || wf.id}
+                      workflow={wf}
+                      isSelected={Boolean(selectedWorkflow && (selectedWorkflow.workflow_id || selectedWorkflow.id) === (wf.workflow_id || wf.id))}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}
 
-      {/* Agent Detail Modal */}
-      <AgentDetailModal />
+      {/* Agent Detail Modal disabled per requirements */}
+      {/* <AgentDetailModal /> */}
+      <WorkflowDetailsModal />
 
-      {/* Configure Agent Modal */}
-      {showConfigureModal && selectedAgent && (
+      {/* Configure Agent Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && showConfigureModal && selectedAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -1307,8 +1647,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Hire Agent Modal */}
-      {showHireModal && hireCandidate && (
+      {/* Hire Agent Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && showHireModal && hireCandidate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
@@ -1372,8 +1712,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Assign Task Modal */}
-      {assignAgent && (
+      {/* Assign Task Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && assignAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
@@ -1414,8 +1754,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* View Activity Modal */}
-      {showActivityModal && selectedAgent && (
+      {/* View Activity Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && showActivityModal && selectedAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
