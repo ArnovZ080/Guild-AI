@@ -2187,11 +2187,11 @@ const AgentsView = () => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">{filteredAgents.filter(a => a.status === 'active').length}</div>
+              <div className="text-2xl font-bold text-green-600">{Array.isArray(mergedApiAgents) ? includedAgents.length : filteredAgents.filter(a => a.status === 'active').length}</div>
               <div className="text-sm text-gray-500">Active Agents</div>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-gray-600">{allAgents.length}</div>
+              <div className="text-2xl font-bold text-gray-600">{Array.isArray(mergedApiAgents) ? mergedApiAgents.length : allAgents.length}</div>
               <div className="text-sm text-gray-500">Total Agents</div>
             </div>
           </div>
@@ -2247,7 +2247,7 @@ const AgentsView = () => {
           </div>
 
           <div className="text-sm text-gray-600">
-            {filteredAgents.length} of {allAgents.length} agents
+            {Array.isArray(mergedApiAgents) ? `${mergedApiAgents.length} of ${mergedApiAgents.length} agents` : `${filteredAgents.length} of ${allAgents.length} agents`}
           </div>
         </div>
       </div>
