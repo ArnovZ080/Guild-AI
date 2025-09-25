@@ -405,7 +405,7 @@ const WORKFLOW_PRIMITIVES: Array<{ id: string; name: string; icon: any; descript
 ];
 
 // Enhanced Node Component
-const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
+const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected: boolean }) => {
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [nlInput, setNlInput] = useState('');
@@ -419,6 +419,7 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
   );
 
   const nodeType = ENHANCED_NODE_TYPES[data.category as keyof typeof ENHANCED_NODE_TYPES];
+  const rf = useReactFlow();
   
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -504,6 +505,15 @@ const EnhancedNode = ({ data, selected }: { data: any; selected: boolean }) => {
         selected ? 'border-blue-500 shadow-xl' : 'hover:border-gray-300'
       } ${getStatusColor(data.status)} relative`}
     >
+      {/* Remove Node (top-left X) */}
+      <button
+        className="absolute -top-2 -left-2 w-6 h-6 flex items-center justify-center rounded-full bg-red-500 text-white text-xs shadow hover:bg-red-600"
+        onClick={() => rf.deleteElements({ nodes: [{ id }] })}
+        aria-label="Remove node"
+        title="Remove node"
+      >
+        ✕
+      </button>
       {/* Node Handles */}
       <Handle type="target" position={Position.Left} className="w-2 h-2 bg-blue-500" />
       {/* Source handles: single for most, multiple labeled for condition/split */}
@@ -826,7 +836,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
   const [workflowName, setWorkflowName] = useState('My Enhanced Workflow');
   const [workflowDescription, setWorkflowDescription] = useState('');
-  const [workflowMode, setWorkflowMode] = useState<WorkflowMode>('hybrid');
+  const [workflowMode, setWorkflowMode] = useState<WorkflowMode>('ai');
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
@@ -1178,7 +1188,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
         <div className="bg-white shadow-md rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Workflow className="w-8 h-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">Enhanced Workflow Builder</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Workflow builder</h1>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600">Name</label>
