@@ -337,7 +337,7 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <ContentOverviewTab contentAnalysis={contentData.content_analysis} onOpenInsight={setSelectedInsight} onOpenAction={setSelectedAction} />
+            <ContentOverviewTab contentAnalysis={contentData.content_analysis} onOpenInsight={setSelectedInsight} onOpenAction={setSelectedAction} onOpenContent={setSelectedContentItem} />
           </motion.div>
         )}
 
@@ -480,7 +480,7 @@ const ContentDashboard = () => {
 };
 
 // Content Overview Tab Component
-const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) => {
+const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction, onOpenContent }) => {
   const metrics = contentAnalysis?.content_metrics || {};
   
   // Helper function to determine color based on target comparison
@@ -802,7 +802,7 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
                         id: content.content_id || `content_${index}`
                       };
                       console.log('Setting selectedContentItem:', contentItem);
-                      setSelectedContentItem(contentItem);
+                      onOpenContent(contentItem);
                     }}
                     className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
                   >
