@@ -1650,7 +1650,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             </div>
           </div>
         </div>, document.body)
-      )}
+      }
 
       {/* Custom Industry Configuration Modal */}
       {showCustomIndustryConfig && (
