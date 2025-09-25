@@ -1265,33 +1265,42 @@ const AgentsView = () => {
               )}
             </button>
           )}
-          <button 
-            className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
-            onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
-            title="Details"
-          >
-            Details
-          </button>
           {showFullActions && (
-            <div className="grid grid-cols-2 gap-2 col-span-2">
+            <>
               <button 
-                className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
-                onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
-                title="Assign Task"
+                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+                title="Details"
               >
-                Assign
+                Details
               </button>
-              <button 
-                className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
-                onClick={(e) => { e.stopPropagation(); setChatAgent(agent); setShowChatModal(true); }}
-                title="Chat"
-              >
-                Chat
-              </button>
-            </div>
+              <div className="grid grid-cols-2 gap-2 col-span-2">
+                <button 
+                  className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
+                  title="Assign Task"
+                >
+                  Assign
+                </button>
+                <button 
+                  className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setChatAgent(agent); setShowChatModal(true); }}
+                  title="Chat"
+                >
+                  Chat
+                </button>
+              </div>
+            </>
           )}
           {showHireOnly && (
-            <div className="col-span-2 flex justify-end">
+            <div className="grid grid-cols-2 gap-2 col-span-2">
+              <button 
+                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+                onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+                title="Details"
+              >
+                Details
+              </button>
               <button
                 className="px-3 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700"
                 onClick={(e) => { e.stopPropagation(); const raw = rawAgent || {}; setHireCandidate(raw.id ? raw : { ...raw, agent_id: agent.id, name: agent.name }); setHireTerm('day'); setShowHireModal(true); }}
