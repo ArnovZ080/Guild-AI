@@ -987,6 +987,8 @@ const AgentsView = () => {
     const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
     const meta = wf.metadata || {};
     const [tab, setTab] = useState('metadata');
+    const [showArtifactModal, setShowArtifactModal] = useState(false);
+    const [previewArtifact, setPreviewArtifact] = useState(null);
 
     // When API is configured, attempt to hydrate with real workflow details
     useEffect(() => {
