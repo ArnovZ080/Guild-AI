@@ -936,6 +936,39 @@ const AgentsView = () => {
             
           </div>
         </div>
+      {showArtifactModal && previewArtifact && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4" onClick={() => { setShowArtifactModal(false); setPreviewArtifact(null); }}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">{previewArtifact.name}</h3>
+              <div className="flex items-center gap-2">
+                {previewArtifact.url && (
+                  <a
+                    href={previewArtifact.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Download
+                  </a>
+                )}
+                <button className="text-gray-500 hover:text-gray-700" onClick={() => { setShowArtifactModal(false); setPreviewArtifact(null); }}>×</button>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 h-[70vh] overflow-auto">
+              {previewArtifact.url ? (
+                <iframe src={previewArtifact.url} title={previewArtifact.name} className="w-full h-full rounded border" />
+              ) : (
+                <div className="text-sm text-gray-600">No preview available. {previewArtifact.content ? 'Showing inline content below.' : 'Please download to view.'}
+                  {previewArtifact.content && (
+                    <pre className="mt-3 p-3 bg-white border rounded overflow-auto whitespace-pre-wrap text-xs text-gray-800">{previewArtifact.content}</pre>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   };
@@ -1390,6 +1423,8 @@ const AgentsView = () => {
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
     const [modalActive, setModalActive] = useState(selectedAgent.status === 'active');
+    const [showArtifactModal, setShowArtifactModal] = useState(false);
+    const [previewArtifact, setPreviewArtifact] = useState(null);
     // Suggested integrations by category (display purpose only)
     const suggestedIntegrationsByCategory = {
       marketing: ['Buffer', 'Hootsuite', 'Gmail', 'LinkedIn'],
@@ -1419,7 +1454,12 @@ const AgentsView = () => {
       automation: ['Workflow.json', 'Integration Map.png'],
       orchestration: ['Runbook.md', 'Workflow Plan.md']
     };
-    const artifacts = artifactsByCategory[selectedAgent.category] || ['Summary Report.pdf'];
+    // Prefer real artifacts from API if present on the raw agent; fallback to mocks
+    const rawArtifacts = Array.isArray(selectedAgent._raw?.artifacts) ? selectedAgent._raw.artifacts : null;
+    // Normalize to objects: { name, url?, mime? }
+    const normalizedArtifacts = rawArtifacts
+      ? rawArtifacts.map(a => (typeof a === 'string' ? { name: a } : a))
+      : (artifactsByCategory[selectedAgent.category] || ['Summary Report.pdf']).map(n => ({ name: n }));
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1513,11 +1553,18 @@ const AgentsView = () => {
                     <div className="bg-gray-50 rounded-lg p-4">
                       <h3 className="text-lg font-semibold mb-3">Artifacts</h3>
                       <div className="flex flex-wrap gap-2">
-                        {artifacts.map(name => (
-                          <span key={name} className="px-2 py-1 bg-white border rounded text-xs text-gray-700">{name}</span>
+                        {normalizedArtifacts.map(a => (
+                          <button
+                            key={a.name}
+                            className="px-2 py-1 bg-white border rounded text-xs text-gray-700 hover:bg-gray-100"
+                            onClick={() => { setPreviewArtifact(a); setShowArtifactModal(true); }}
+                            title={a.url ? 'Preview artifact' : 'No preview available'}
+                          >
+                            {a.name}
+                          </button>
                         ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">Artifacts this agent produced previously.</p>
+                      <p className="text-xs text-gray-500 mt-2">Click an artifact to preview or download.</p>
                     </div>
                   </>
                 ) : (
