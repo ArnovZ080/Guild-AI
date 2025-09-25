@@ -687,6 +687,7 @@ const AgentsView = () => {
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getWfStatusStyle(wf.status)}`}>{wf.status}</span>
                   <span className="text-xs text-gray-500 capitalize">{wf.type}</span>
+                  <span className="text-[10px] text-gray-400 ml-2">Workflow Details v2</span>
                 </div>
               </div>
               <button onClick={()=>setShowWorkflowDetails(false)} className="text-gray-400 hover:text-gray-600">×</button>
