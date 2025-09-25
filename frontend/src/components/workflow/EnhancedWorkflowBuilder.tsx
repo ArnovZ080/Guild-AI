@@ -411,7 +411,7 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
   const [nlInput, setNlInput] = useState('');
   const [agentDropdownOpen, setAgentDropdownOpen] = useState(false);
   const [agentSearch, setAgentSearch] = useState('');
-  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleTime, setScheduleTime] = useState<string>(data.schedule?.time || '09:00');
   const [scheduleDays, setScheduleDays] = useState<Record<string, boolean>>(
     data.schedule?.days || { mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }
@@ -561,7 +561,7 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
         <div className="flex items-center gap-1">
           {getStatusIcon(data.status)}
           <button
-            onClick={() => setShowSchedule(true)}
+            onClick={() => setScheduleOpen(true)}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             title="Schedule"
             aria-label="Schedule"
@@ -1594,13 +1594,13 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       )}
 
       {/* Scheduling Modal */}
-      {showSchedule && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={() => setShowSchedule(false)}>
+      {scheduleOpen && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={() => setScheduleOpen(false)}>
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-lg font-bold">Schedule {data.label}</h3>
               <button
-                onClick={() => setShowSchedule(false)}
+                onClick={() => setScheduleOpen(false)}
                 className="text-gray-500 hover:text-gray-700"
                 aria-label="Close"
               >
@@ -1639,12 +1639,12 @@ const EnhancedWorkflowBuilder: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
-              <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100" onClick={() => setShowSchedule(false)}>Close</button>
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100" onClick={() => setScheduleOpen(false)}>Close</button>
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 onClick={() => {
                   rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, schedule: { time: scheduleTime, days: scheduleDays, datetime: scheduleDateTime } } } : n));
-                  setShowSchedule(false);
+                  setScheduleOpen(false);
                 }}
               >
                 Save schedule
