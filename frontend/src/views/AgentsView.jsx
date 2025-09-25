@@ -658,13 +658,173 @@ const AgentsView = () => {
         </button>
         <button
           className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
-          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow({ id: workflow.workflow_id || workflow.id, name: workflow.name || workflow.results?.campaign?.name }); }}
+          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow(workflow); }}
         >
           View in Theater
         </button>
       </div>
     </motion.div>
   );
+
+  // Workflow Details Modal (full transparency)
+  const WorkflowDetailsModal = () => {
+    if (!showWorkflowDetails || !selectedWorkflow) return null;
+    const wf = selectedWorkflow;
+    const upcoming = Array.isArray(wf.actions) ? wf.actions.filter(a => a.status !== 'completed') : [];
+    const completed = Array.isArray(wf.actions) ? wf.actions.filter(a => a.status === 'completed') : [];
+    const comms = Array.isArray(wf.communications) ? wf.communications : [];
+    const outputs = Array.isArray(wf.outputs) ? wf.outputs : [];
+    const evaluator = wf.evaluator || wf.judge || {};
+    const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowWorkflowDetails(false)}>
+        <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto" onClick={(e)=>e.stopPropagation()}>
+          <div className="p-6 space-y-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{wf.name}</h2>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getWfStatusStyle(wf.status)}`}>{wf.status}</span>
+                  <span className="text-xs text-gray-500 capitalize">{wf.type}</span>
+                </div>
+              </div>
+              <button onClick={()=>setShowWorkflowDetails(false)} className="text-gray-400 hover:text-gray-600">×</button>
+            </div>
+
+            {typeof wf.progress === 'number' && (
+              <div>
+                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <span>Progress</span>
+                  <span>{wf.progress}%</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${wf.progress}%` }} />
+                </div>
+              </div>
+            )}
+
+            {wf.current_step && (
+              <div className="bg-blue-50 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <Target className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-medium text-blue-900">Current Step</span>
+                </div>
+                <p className="text-sm text-blue-800">{wf.current_step}</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                {Array.isArray(outputs) && outputs.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Outputs</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
+                      {outputs.map((o, i)=> (
+                        <li key={i}>{typeof o === 'string' ? o : (o.title || o.name || JSON.stringify(o))}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {Array.isArray(comms) && comms.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Communications</h3>
+                    <div className="space-y-3">
+                      {comms.map((c, i)=> (
+                        <div key={i} className="border rounded p-3 text-sm">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-gray-800">{c.channel || 'Message'}</span>
+                            <span className="text-xs text-gray-500">{c.timestamp || ''}</span>
+                          </div>
+                          <div className="text-gray-700 whitespace-pre-wrap">{c.summary || c.content || ''}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Array.isArray(wf.actions) && wf.actions.length > 0 && (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Execution Timeline</h3>
+                    <div className="space-y-2">
+                      {wf.actions.map((a, i)=> (
+                        <div key={i} className="flex items-center justify-between text-sm">
+                          <div className="truncate pr-2">
+                            <span className="font-medium text-gray-800">{a.step}</span>
+                            {a.agent && <span className="text-xs text-gray-500"> • {a.agent}</span>}
+                          </div>
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${a.status==='completed'?'bg-green-100 text-green-700':a.status==='in-progress'?'bg-blue-100 text-blue-700':'bg-gray-100 text-gray-700'}`}>{a.status || 'pending'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Agents Involved</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {(wf.agents || []).map((a,i)=>(
+                      <span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {(wf.metrics || cost) && (
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Metrics & Cost</h3>
+                    <div className="grid grid-cols-2 gap-3 text-center">
+                      {wf.metrics?.customersProcessed !== undefined && (
+                        <div className="p-2 bg-gray-50 rounded">
+                          <div className="text-lg font-bold">{wf.metrics.customersProcessed}</div>
+                          <div className="text-xs text-gray-500">Processed</div>
+                        </div>
+                      )}
+                      {wf.metrics?.successRate !== undefined && (
+                        <div className="p-2 bg-gray-50 rounded">
+                          <div className="text-lg font-bold">{wf.metrics.successRate}%</div>
+                          <div className="text-xs text-gray-500">Success Rate</div>
+                        </div>
+                      )}
+                      {cost !== undefined && (
+                        <div className="p-2 bg-gray-50 rounded col-span-2">
+                          <div className="text-sm font-semibold">Estimated Cost</div>
+                          <div className="text-xs text-gray-600">{typeof cost === 'string' ? cost : `$${Number(cost).toFixed(2)}`}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(evaluator?.score || evaluator?.rubric) && (
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Evaluator Results</h3>
+                    {evaluator?.score !== undefined && (
+                      <div className="text-sm mb-2">Score: <span className="font-semibold">{evaluator.score}</span></div>
+                    )}
+                    {evaluator?.rubric && (
+                      <div className="text-xs text-gray-700 whitespace-pre-wrap">{evaluator.rubric}</div>
+                    )}
+                  </div>
+                )}
+
+                {upcoming.length > 0 && (
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-2">Up Next</h3>
+                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
+                      {upcoming.map((a,i)=> (<li key={i}>{a.step}</li>))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Handler functions
   const handleActivateAgent = (agent) => {
@@ -1262,7 +1422,7 @@ const AgentsView = () => {
         <div className="space-y-6">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
-            <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} />
+            <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} selectedWorkflow={selectedWorkflow || null} />
           </div>
 
           <div className="">
@@ -1291,6 +1451,7 @@ const AgentsView = () => {
 
       {/* Agent Detail Modal */}
       <AgentDetailModal />
+      <WorkflowDetailsModal />
 
       {/* Configure Agent Modal */}
       {showConfigureModal && selectedAgent && (
