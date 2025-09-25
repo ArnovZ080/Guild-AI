@@ -1799,8 +1799,10 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Agent Detail Modal disabled per requirements */}
-      {/* <AgentDetailModal /> */}
+      {/* Agent Detail Modal (Workforce tab only) */}
+      {activeTab === 'workforce' && !showWorkflowDetails && (
+        <AgentDetailModal />
+      )}
       <WorkflowDetailsModal />
 
       {/* Configure Agent Modal (disabled while workflow details open) */}
