@@ -1766,11 +1766,11 @@ const AgentsView = () => {
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-3">Capabilities</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <div className="space-y-2">
                     {(override?.capabilities || selectedAgent.capabilities).map(capability => (
-                      <div key={capability} className="flex items-center space-x-2">
-                        <CheckCircle className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">{capability}</span>
+                      <div key={capability} className="flex items-start gap-2">
+                        <CheckCircle className="w-4 h-4 shrink-0 text-green-500" />
+                        <span className="text-gray-700 leading-tight">{capability}</span>
                       </div>
                     ))}
                   </div>
