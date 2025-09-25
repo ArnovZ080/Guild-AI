@@ -281,6 +281,7 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
       })}
 
       {/* Collaboration lines between agents */}
+      {/* Collaboration lines beneath avatars (centered) */}
       <svg className="absolute inset-0 pointer-events-none z-0" style={{ width: '100%', height: '100%' }}>
         {activeTasks.map((task) => {
           const fromAgent = agents.find(a => a.id === task.from);
@@ -289,10 +290,10 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
           return (
             <line
               key={`line-${task.id}`}
-              x1={`calc(${fromAgent.position.x}% + 12px)`}
-              y1={`calc(${fromAgent.position.y}% + 12px)`}
-              x2={`calc(${toAgent.position.x}% + 12px)`}
-              y2={`calc(${toAgent.position.y}% + 12px)`}
+              x1={`calc(${fromAgent.position.x}% + 24px)`}
+              y1={`calc(${fromAgent.position.y}% + 24px)`}
+              x2={`calc(${toAgent.position.x}% + 24px)`}
+              y2={`calc(${toAgent.position.y}% + 24px)`}
               stroke="rgba(59, 130, 246, 0.35)"
               strokeWidth="2"
               strokeDasharray="4,4"
@@ -309,8 +310,8 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
           <motion.div
             key={task.id}
             className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg"
-            initial={{ left: `calc(${fromAgent.position.x}% + 12px)`, top: `calc(${fromAgent.position.y}% + 12px)` }}
-            animate={{ left: `calc(${toAgent.position.x}% + 12px)`, top: `calc(${toAgent.position.y}% + 12px)` }}
+            initial={{ left: `calc(${fromAgent.position.x}% + 24px)`, top: `calc(${fromAgent.position.y}% + 24px)` }}
+            animate={{ left: `calc(${toAgent.position.x}% + 24px)`, top: `calc(${toAgent.position.y}% + 24px)` }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
         );

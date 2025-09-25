@@ -665,7 +665,7 @@ const AgentsView = () => {
           className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
           onClick={(e) => { e.stopPropagation(); setSelectedAgent(null); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
         >
-          Details (v2)
+          Details
         </button>
         <button
           className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
@@ -688,7 +688,7 @@ const AgentsView = () => {
     const evaluator = wf.evaluator || wf.judge || {};
     const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
     const meta = wf.metadata || {};
-    const [tab, setTab] = useState('tasks');
+    const [tab, setTab] = useState('metadata');
 
     // When API is configured, attempt to hydrate with real workflow details
     useEffect(() => {
@@ -723,7 +723,7 @@ const AgentsView = () => {
                 <div className="flex items-center gap-2 mt-2">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getWfStatusStyle(wf.status)}`}>{wf.status}</span>
                   <span className="text-xs text-gray-500 capitalize">{wf.type}</span>
-                  <span className="text-[10px] text-gray-400 ml-2">Workflow Details v2</span>
+                  
                 </div>
               </div>
               <button onClick={()=>setShowWorkflowDetails(false)} className="text-gray-400 hover:text-gray-600">×</button>
@@ -1506,7 +1506,7 @@ const AgentsView = () => {
 
           <div className="">
             <div className="flex items-center justify-between mb-4 px-1">
-              <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows (v2)</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows</h2>
               {wfLoading && <span className="text-sm text-gray-500">Refreshing…</span>}
             </div>
             {wfError && <div className="text-sm text-red-600 mb-3 px-1">{wfError}</div>}
