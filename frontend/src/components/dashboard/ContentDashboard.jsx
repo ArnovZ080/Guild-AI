@@ -429,7 +429,10 @@ const ContentDashboard = () => {
       )}
 
       {/* Content Details Modal */}
-      {selectedContentItem && (
+      {(() => {
+        console.log('Checking selectedContentItem:', selectedContentItem);
+        return selectedContentItem;
+      })() && (
         <ContentDetailsModal
           content={selectedContentItem}
           onClose={() => setSelectedContentItem(null)}
@@ -792,11 +795,14 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
                   </div>
                   <button
                     onClick={() => {
+                      console.log('Content Details clicked:', content);
                       // Open content details modal with this content item
-                      setSelectedContentItem({
+                      const contentItem = {
                         ...content,
                         id: content.content_id || `content_${index}`
-                      });
+                      };
+                      console.log('Setting selectedContentItem:', contentItem);
+                      setSelectedContentItem(contentItem);
                     }}
                     className="px-3 py-1 text-xs font-medium text-blue-600 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
                   >
@@ -814,7 +820,12 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
 
 // Content Details Modal for Top Performing Content
 const ContentDetailsModal = ({ content, onClose, onReplicate, isOrchestrating }) => {
-  if (!content) return null;
+  console.log('ContentDetailsModal rendering with content:', content);
+  
+  if (!content) {
+    console.log('No content provided to modal');
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
