@@ -596,24 +596,34 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
           {data.category === 'agent' && (
             <div className="mt-2">
               <div className="text-xs font-medium text-gray-700 mb-1">Assign Agent</div>
-              <select
-                className="w-full border rounded px-2 py-1 text-xs"
-                value={data.assignedAgentId || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, assignedAgentId: value } } : n));
-                }}
-              >
-                <option value="">Select an agent...</option>
-                {(data.availableAgents || [
-                  { id: 'research_agent', name: 'Research Agent' },
-                  { id: 'marketing_agent', name: 'Marketing Agent' },
-                  { id: 'sales_agent', name: 'Sales Agent' },
-                  { id: 'operations_agent', name: 'Operations Agent' },
-                ]).map((a: any) => (
-                  <option key={a.id} value={a.id}>{a.name}</option>
-                ))}
-              </select>
+              <div className="border rounded">
+                <div className="px-2 py-1 border-b">
+                  <input
+                    type="text"
+                    className="w-full text-xs outline-none"
+                    placeholder="Search agents..."
+                    onChange={(e) => {
+                      const q = e.target.value.toLowerCase();
+                      const filtered = (availableAgents || data.availableAgents || []).filter((a: any) => a.name.toLowerCase().includes(q));
+                      rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, _agentSearchQuery: q, _agentFiltered: filtered } } : n));
+                    }}
+                  />
+                </div>
+                <select
+                  className="w-full px-2 py-1 text-xs"
+                  value={data.assignedAgentId || ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, assignedAgentId: value } } : n));
+                  }}
+                  size={Math.min(8, (data._agentFiltered || data.availableAgents || availableAgents || []).length || 4)}
+                >
+                  <option value="">Select an agent...</option>
+                  {((data._agentFiltered && data._agentFiltered.length ? data._agentFiltered : (data.availableAgents || availableAgents || [])) as any[]).map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           )}
         </div>
@@ -962,49 +972,31 @@ const EnhancedWorkflowBuilder: React.FC = () => {
 
   useEffect(() => {
     async function fetchActivatedAgents() {
-      // Strictly Activated agents only; robust fallbacks
-      const fallbackEmpty: Array<{ id: string; name: string }> = [];
+      // Strictly Activated agents mirror Workforce entitlement logic
+      const empty: Array<{ id: string; name: string }> = [];
       try {
-        if (!API) { setAvailableAgents(fallbackEmpty); return; }
+        if (!API) { setAvailableAgents(empty); return; }
         const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-
-        // Try dedicated activated endpoints (first successful wins)
-        const endpoints = [
-          `${API}/agents/activated`,
-          `${API}/workforce/activated`,
-          `${API}/agents/active`,
-        ];
-        let activated: any[] | null = null;
-        for (const url of endpoints) {
-          try {
-            const res = await fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
-            if (res.ok) { activated = await res.json(); break; }
-          } catch {}
-        }
-
-        // Fall back: intersect available with localStorage activated ids
-        if (!activated) {
-          let available: any[] = [];
-          try {
-            const resAvail = await fetch(`${API}/agents/available`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
-            if (resAvail.ok) available = await resAvail.json();
-          } catch {}
-          const activatedIds = (() => {
-            try { return JSON.parse(localStorage.getItem('activated_agents') || '[]'); } catch { return []; }
-          })();
-          const setIds = new Set(Array.isArray(activatedIds) ? activatedIds : []);
-          const filtered = Array.isArray(available) ? available.filter((a: any) => setIds.has(a.agent_id || a.id) || (a.activated === true) || (["online","working","busy"].includes(a.status))) : [];
-          activated = filtered;
-        }
-
-        const mapped = Array.isArray(activated) ? activated.map((a: any) => ({ id: a.agent_id || a.id, name: a.name })) : [];
+        const res = await fetch(`${API}/agents/available`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+        if (!res.ok) { setAvailableAgents(empty); return; }
+        const data = await res.json();
+        const entitled = Array.isArray(data)
+          ? data.filter((a: any) => Boolean(a?.included_in_subscription) || Boolean(a?.hired_until && new Date(a.hired_until) > new Date()))
+          : [];
+        const mapped = entitled.map((a: any) => ({ id: a.agent_id || a.id, name: a.name }));
         setAvailableAgents(mapped);
       } catch {
-        setAvailableAgents(fallbackEmpty);
+        setAvailableAgents(empty);
       }
     }
     fetchActivatedAgents();
   }, [API]);
+
+  // Keep agent nodes' availableAgents in sync with latest activated list
+  useEffect(() => {
+    if (!availableAgents || !availableAgents.length) return;
+    setNodes((nds) => nds.map((n) => n.data?.category === 'agent' ? { ...n, data: { ...n.data, availableAgents } } : n));
+  }, [availableAgents, setNodes]);
 
   // Compute contextual suggestions for Hybrid mode NL configuration
   const computeContextualSuggestions = useCallback((category: string, nodesCtx: Node[], wfName: string, wfDesc: string) => {
