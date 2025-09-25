@@ -592,6 +592,30 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
           >
             Configure with natural language
           </button>
+          {/* Agent assignment dropdown visible on node (Hybrid and other modes) */}
+          {data.category === 'agent' && (
+            <div className="mt-2">
+              <div className="text-xs font-medium text-gray-700 mb-1">Assign Agent</div>
+              <select
+                className="w-full border rounded px-2 py-1 text-xs"
+                value={data.assignedAgentId || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, assignedAgentId: value } } : n));
+                }}
+              >
+                <option value="">Select an agent...</option>
+                {(data.availableAgents || [
+                  { id: 'research_agent', name: 'Research Agent' },
+                  { id: 'marketing_agent', name: 'Marketing Agent' },
+                  { id: 'sales_agent', name: 'Sales Agent' },
+                  { id: 'operations_agent', name: 'Operations Agent' },
+                ]).map((a: any) => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       )}
 
