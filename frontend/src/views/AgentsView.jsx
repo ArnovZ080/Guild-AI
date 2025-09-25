@@ -654,7 +654,7 @@ const AgentsView = () => {
           className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
           onClick={(e) => { e.stopPropagation(); setSelectedAgent(null); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
         >
-          Details
+          Details (v2)
         </button>
         <button
           className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
