@@ -1280,7 +1280,7 @@ const AgentsView = () => {
                   onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
                   title="Assign Task"
                 >
-                  Assign
+                Assign Task
                 </button>
                 <button 
                   className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
