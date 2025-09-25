@@ -1454,8 +1454,8 @@ const AgentsView = () => {
       {/* <AgentDetailModal /> */}
       <WorkflowDetailsModal />
 
-      {/* Configure Agent Modal */}
-      {showConfigureModal && selectedAgent && (
+      {/* Configure Agent Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && showConfigureModal && selectedAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
@@ -1555,8 +1555,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Hire Agent Modal */}
-      {showHireModal && hireCandidate && (
+      {/* Hire Agent Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && showHireModal && hireCandidate && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
@@ -1620,8 +1620,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* Assign Task Modal */}
-      {assignAgent && (
+      {/* Assign Task Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && assignAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
@@ -1662,8 +1662,8 @@ const AgentsView = () => {
         </div>
       )}
 
-      {/* View Activity Modal */}
-      {showActivityModal && selectedAgent && (
+      {/* View Activity Modal (disabled while workflow details open) */}
+      {!showWorkflowDetails && showActivityModal && selectedAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
