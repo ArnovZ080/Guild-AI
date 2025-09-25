@@ -3,6 +3,99 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+// WebSocket Service for Real-time Updates
+class ContentIntelligenceWebSocket {
+  constructor() {
+    this.ws = null;
+    this.listeners = new Map();
+    this.reconnectAttempts = 0;
+    this.maxReconnectAttempts = 5;
+    this.reconnectDelay = 1000;
+  }
+
+  connect() {
+    try {
+      const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws/content-intelligence';
+      this.ws = new WebSocket(wsUrl);
+      
+      this.ws.onopen = () => {
+        console.log('Content Intelligence WebSocket connected');
+        this.reconnectAttempts = 0;
+      };
+      
+      this.ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          this.notifyListeners(data.type, data.payload);
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
+        }
+      };
+      
+      this.ws.onclose = () => {
+        console.log('Content Intelligence WebSocket disconnected');
+        this.handleReconnect();
+      };
+      
+      this.ws.onerror = (error) => {
+        console.error('Content Intelligence WebSocket error:', error);
+      };
+    } catch (error) {
+      console.error('Failed to connect to Content Intelligence WebSocket:', error);
+    }
+  }
+
+  handleReconnect() {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      setTimeout(() => {
+        console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+        this.connect();
+      }, this.reconnectDelay * this.reconnectAttempts);
+    }
+  }
+
+  subscribe(eventType, callback) {
+    if (!this.listeners.has(eventType)) {
+      this.listeners.set(eventType, new Set());
+    }
+    this.listeners.get(eventType).add(callback);
+    
+    // Connect if not already connected
+    if (!this.ws || this.ws.readyState === WebSocket.CLOSED) {
+      this.connect();
+    }
+  }
+
+  unsubscribe(eventType, callback) {
+    if (this.listeners.has(eventType)) {
+      this.listeners.get(eventType).delete(callback);
+    }
+  }
+
+  notifyListeners(eventType, payload) {
+    if (this.listeners.has(eventType)) {
+      this.listeners.get(eventType).forEach(callback => {
+        try {
+          callback(payload);
+        } catch (error) {
+          console.error('Error in WebSocket listener:', error);
+        }
+      });
+    }
+  }
+
+  disconnect() {
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
+    }
+  }
+}
+
+// Global WebSocket instance
+const contentIntelligenceWS = new ContentIntelligenceWebSocket();
+
 // API Service Extensions for Content Intelligence
 export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   // Get comprehensive content analysis
@@ -715,6 +808,143 @@ export const useContentActions = () => {
   }, []);
 
   return { executeAction, createContent, scheduleContent, executing, error };
+};
+
+// Real-time hooks with WebSocket integration
+export const useRealtimeContentAnalysis = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getContentAnalysis();
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch content analysis:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+    
+    // Subscribe to real-time updates
+    const handleUpdate = (payload) => {
+      setData(prevData => ({
+        ...prevData,
+        ...payload,
+        last_updated: new Date().toISOString()
+      }));
+    };
+
+    contentIntelligenceWS.subscribe('content_analysis_update', handleUpdate);
+    
+    return () => {
+      contentIntelligenceWS.unsubscribe('content_analysis_update', handleUpdate);
+    };
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+};
+
+export const useRealtimeContentPerformance = (platform = 'all', period = '7d') => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getContentPerformance(platform, period);
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch content performance:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [platform, period]);
+
+  useEffect(() => {
+    fetchData();
+    
+    // Subscribe to real-time updates
+    const handleUpdate = (payload) => {
+      setData(prevData => ({
+        ...prevData,
+        ...payload,
+        last_updated: new Date().toISOString()
+      }));
+    };
+
+    contentIntelligenceWS.subscribe('content_performance_update', handleUpdate);
+    
+    return () => {
+      contentIntelligenceWS.unsubscribe('content_performance_update', handleUpdate);
+    };
+  }, [fetchData]);
+
+  return { data, loading, error, refetch: fetchData };
+};
+
+export const useRealtimeActiveCampaigns = () => {
+  const [campaigns, setCampaigns] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchCampaigns = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getActiveCampaigns();
+      setCampaigns(result?.data?.campaigns || []);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch active campaigns:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+    
+    // Subscribe to real-time updates
+    const handleUpdate = (payload) => {
+      setCampaigns(prevCampaigns => {
+        if (payload.action === 'add') {
+          return [...prevCampaigns, payload.campaign];
+        } else if (payload.action === 'update') {
+          return prevCampaigns.map(campaign => 
+            campaign.id === payload.campaign.id ? payload.campaign : campaign
+          );
+        } else if (payload.action === 'delete') {
+          return prevCampaigns.filter(campaign => campaign.id !== payload.campaignId);
+        }
+        return prevCampaigns;
+      });
+    };
+
+    contentIntelligenceWS.subscribe('campaigns_update', handleUpdate);
+    
+    return () => {
+      contentIntelligenceWS.unsubscribe('campaigns_update', handleUpdate);
+    };
+  }, [fetchCampaigns]);
+
+  return { campaigns, loading, error, refetch: fetchCampaigns };
 };
 
 // Utility helpers (optional exports if needed elsewhere)

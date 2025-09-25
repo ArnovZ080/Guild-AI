@@ -38,7 +38,10 @@ import {
   useActiveCampaigns, 
   useEmailPerformance, 
   useCreativeAssets,
-  useContentActions 
+  useContentActions,
+  useRealtimeContentAnalysis,
+  useRealtimeContentPerformance,
+  useRealtimeActiveCampaigns
 } from '../../services/contentIntelligenceApi';
 
 const ContentDashboard = () => {
@@ -46,11 +49,11 @@ const ContentDashboard = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [expandedContent, setExpandedContent] = useState(new Set());
 
-  // API hooks
-  const { analysis, loading: analysisLoading, error: analysisError } = useContentAnalysis();
-  const { calendar, loading: calendarLoading } = useContentCalendar(selectedTimeframe);
-  const { performance, loading: performanceLoading } = useContentPerformance('all', selectedTimeframe);
-  const { campaigns, loading: campaignsLoading } = useActiveCampaigns();
+  // API hooks with real-time updates
+  const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();
+  const { data: calendar, loading: calendarLoading } = useContentCalendar(selectedTimeframe);
+  const { data: performance, loading: performanceLoading } = useRealtimeContentPerformance('all', selectedTimeframe);
+  const { campaigns, loading: campaignsLoading } = useRealtimeActiveCampaigns();
   const { emailData, loading: emailLoading } = useEmailPerformance(selectedTimeframe);
   const { assets, loading: assetsLoading } = useCreativeAssets();
   const { executeAction, createContent, scheduleContent, executing } = useContentActions();
@@ -125,19 +128,19 @@ const ContentDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       {/* Content Health Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-lg shadow-lg p-6"
+        className="bg-white rounded-lg shadow-lg p-4 md:p-6"
       >
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 space-y-4 md:space-y-0">
           <div className="flex items-center">
-            <PenTool className="w-8 h-8 text-purple-600 mr-3" />
+            <PenTool className="w-6 h-6 md:w-8 md:h-8 text-purple-600 mr-3" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Content Dashboard</h1>
-              <p className="text-gray-600">Content & Marketing Director oversight and insights</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900">Content Dashboard</h1>
+              <p className="text-sm md:text-base text-gray-600">Content & Marketing Director oversight and insights</p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
@@ -226,7 +229,7 @@ const ContentDashboard = () => {
       </motion.div>
 
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-lg p-4">
+      <div className="bg-white rounded-lg shadow-lg p-2 md:p-4">
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -234,14 +237,14 @@ const ContentDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap ${
+                className={`flex items-center space-x-1 md:space-x-2 px-2 md:px-4 py-2 rounded-md transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'bg-white text-purple-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 <Icon className="w-4 h-4" />
-                <span className="text-sm font-medium">{tab.label}</span>
+                <span className="text-xs md:text-sm font-medium hidden sm:inline">{tab.label}</span>
               </button>
             );
           })}
