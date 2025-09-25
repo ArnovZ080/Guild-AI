@@ -411,6 +411,12 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
   const [nlInput, setNlInput] = useState('');
   const [agentDropdownOpen, setAgentDropdownOpen] = useState(false);
   const [agentSearch, setAgentSearch] = useState('');
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleTime, setScheduleTime] = useState<string>(data.schedule?.time || '09:00');
+  const [scheduleDays, setScheduleDays] = useState<Record<string, boolean>>(
+    data.schedule?.days || { mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false }
+  );
+  const [scheduleDateTime, setScheduleDateTime] = useState<string>(data.schedule?.datetime || '');
   const [conditionBranches, setConditionBranches] = useState<{ label: string; nl: string }[]>(
     data.category === 'condition' || data.category === 'split'
       ? data.branches || [
@@ -554,6 +560,14 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
         
         <div className="flex items-center gap-1">
           {getStatusIcon(data.status)}
+          <button
+            onClick={() => setShowSchedule(true)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            title="Schedule"
+            aria-label="Schedule"
+          >
+            <Clock className="w-3 h-3" />
+          </button>
           <button
             onClick={() => setShowDetails(!showDetails)}
             className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -1003,8 +1017,34 @@ const EnhancedWorkflowBuilder: React.FC = () => {
         const entitled = Array.isArray(data)
           ? data.filter((a: any) => Boolean(a?.included_in_subscription) || Boolean(a?.hired_until && new Date(a.hired_until) > new Date()))
           : [];
+        // Default included agents (always present per subscription)
+        const defaultIncluded = [
+          // Judge Layer
+          { id: 'judge_agent', name: 'Judge Agent' },
+          { id: 'agent_evaluator', name: 'Agent Evaluator' },
+          // Orchestration Layer
+          { id: 'orchestrator_agent', name: 'Orchestrator Agent' },
+          { id: 'automation_agent', name: 'Automation Agent' },
+          { id: 'connector_agent', name: 'Connector Agent' },
+          // Business Intelligence Layer
+          { id: 'business_intelligence_agent', name: 'Business Intelligence Agent' },
+          { id: 'financial_intelligence_agent', name: 'Financial Intelligence Agent' },
+          { id: 'customer_intelligence_agent', name: 'Customer Intelligence Agent' },
+          // Execution Layer
+          { id: 'content_intelligence_agent', name: 'Content Intelligence Agent' },
+          { id: 'automation_bridge_agent', name: 'Automation Bridge Agent' },
+          // Operations Layer
+          { id: 'onboarding_agent', name: 'Onboarding Agent' },
+          { id: 'calendar_harmony_agent', name: 'Calendar Harmony Agent' },
+          // Optional
+          { id: 'security_agent', name: 'Security Agent' },
+          { id: 'wellbeing_agent', name: 'Wellbeing / Workload Agent' },
+        ];
         const mapped = entitled.map((a: any) => ({ id: a.agent_id || a.id, name: a.name }));
-        setAvailableAgents(mapped);
+        // Merge and de-duplicate by id
+        const byId = new Map<string, { id: string; name: string }>();
+        [...defaultIncluded, ...mapped].forEach(a => byId.set(a.id, a));
+        setAvailableAgents(Array.from(byId.values()));
       } catch {
         setAvailableAgents(empty);
       }
@@ -1549,6 +1589,67 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Scheduling Modal */}
+      {showSchedule && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={() => setShowSchedule(false)}>
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-lg font-bold">Schedule {data.label}</h3>
+              <button
+                onClick={() => setShowSchedule(false)}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Specific time of day</div>
+                <input
+                  type="time"
+                  className="w-full border rounded px-2 py-1"
+                  value={scheduleTime}
+                  onChange={(e) => setScheduleTime(e.target.value)}
+                />
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Days of week</div>
+                <div className="grid grid-cols-7 gap-2 text-xs">
+                  {['mon','tue','wed','thu','fri','sat','sun'].map((d) => (
+                    <label key={d} className="flex items-center gap-1">
+                      <input type="checkbox" checked={Boolean(scheduleDays[d])} onChange={(e) => setScheduleDays({ ...scheduleDays, [d]: e.target.checked })} />
+                      <span className="capitalize">{d}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-1">Or run at specific date & time</div>
+                <input
+                  type="datetime-local"
+                  className="w-full border rounded px-2 py-1"
+                  value={scheduleDateTime}
+                  onChange={(e) => setScheduleDateTime(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100" onClick={() => setShowSchedule(false)}>Close</button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                onClick={() => {
+                  rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, schedule: { time: scheduleTime, days: scheduleDays, datetime: scheduleDateTime } } } : n));
+                  setShowSchedule(false);
+                }}
+              >
+                Save schedule
+              </button>
+            </div>
+          </div>
+        </div>, document.body)
       )}
 
       {/* Custom Industry Configuration Modal */}
