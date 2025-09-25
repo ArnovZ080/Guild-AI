@@ -127,9 +127,11 @@ const ContentDashboard = () => {
       await executeAction('repeat_strategy', {
         insight_id: insight.id,
         strategy_type: insight.type,
-        target_improvement: insight.target_improvement,
+        workflow_steps: insight.workflow_steps,
         agents_involved: insight.agents_involved,
-        content_attribution: insight.content_attribution
+        content_attribution: insight.content_attribution,
+        platform_data: contentData.content_analysis,
+        performance_data: contentData.performance_metrics
       });
       
       // Show success message
@@ -150,7 +152,10 @@ const ContentDashboard = () => {
         action_type: action.type,
         target_metrics: action.target_metrics,
         agents_involved: action.agents_involved,
-        workflow_steps: action.workflow_steps
+        workflow_steps: action.workflow_steps,
+        content_analysis: action.content_analysis,
+        platform_data: contentData.content_analysis,
+        performance_data: contentData.performance_metrics
       });
       
       // Show success message
@@ -596,117 +601,34 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
                   <p className="text-gray-700">{insight}</p>
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     console.log('Insight Details clicked:', insight);
                     
-                    // Create specific analysis based on the insight content
-                    let insightData = {
-                      id: `insight_${index}`,
-                      text: insight,
-                      type: 'performance_insight',
-                      analysis: '',
-                      agents_involved: [],
-                      content_attribution: [],
-                      kpis: [],
-                      workflow_steps: [],
-                      learning_notes: ''
-                    };
-
-                    // Instagram Reels insight
-                    if (insight.includes('Instagram Reels') && insight.includes('3x more engagement')) {
-                      insightData = {
+                    try {
+                      // Fetch detailed analysis from Content Intelligence Agent
+                      const insightAnalysis = await executeAction('get_insight_analysis', {
+                        insight_text: insight,
+                        insight_index: index,
+                        platform_data: contentData.content_analysis,
+                        performance_data: contentData.performance_metrics
+                      });
+                      
+                      onOpenInsight(insightAnalysis);
+                    } catch (error) {
+                      console.error('Failed to fetch insight analysis:', error);
+                      // Fallback to basic insight data
+                      onOpenInsight({
                         id: `insight_${index}`,
                         text: insight,
-                        type: 'instagram_reels_performance',
-                        analysis: 'The Content Intelligence Agent analyzed 47 Instagram posts over the past 30 days and discovered that Reels content consistently outperformed static posts by 300%. This analysis was based on engagement rate, reach, and algorithm favorability metrics.',
-                        agents_involved: [
-                          { name: 'Content Intelligence Agent', role: 'Analyzed performance data and identified the 3x engagement pattern' },
-                          { name: 'Social Media Agent', role: 'Monitored Instagram algorithm changes and content performance' },
-                          { name: 'Analytics Agent', role: 'Processed engagement metrics and reach data' }
-                        ],
-                        content_attribution: [
-                          { platform: 'Instagram', content_type: 'Reels', performance: '+300% engagement', posts_analyzed: 23, avg_engagement: '8.5%' },
-                          { platform: 'Instagram', content_type: 'Static Posts', performance: 'Baseline', posts_analyzed: 24, avg_engagement: '2.8%' }
-                        ],
-                        kpis: [
-                          { metric: 'Reels Engagement Rate', current: '8.5%', static_posts: '2.8%', improvement: '+204%' },
-                          { metric: 'Reels Reach', current: '15,200', static_posts: '8,400', improvement: '+81%' },
-                          { metric: 'Algorithm Favorability', current: 'High', static_posts: 'Medium', improvement: '+67%' }
-                        ],
-                        workflow_steps: [
-                          'Content Intelligence Agent analyzed 30-day performance data',
-                          'Identified Reels vs Static Posts engagement patterns',
-                          'Cross-referenced with Instagram algorithm updates',
-                          'Validated findings with historical performance data',
-                          'Generated actionable insight for content strategy'
-                        ],
-                        learning_notes: 'Instagram\'s algorithm heavily favors Reels content, especially short-form videos under 30 seconds. The platform is pushing Reels to compete with TikTok, making them more likely to appear in feeds and explore pages.'
-                      };
+                        type: 'performance_insight',
+                        analysis: 'Analysis in progress...',
+                        agents_involved: [],
+                        content_attribution: [],
+                        kpis: [],
+                        workflow_steps: [],
+                        learning_notes: ''
+                      });
                     }
-                    // LinkedIn Articles insight
-                    else if (insight.includes('LinkedIn articles') && insight.includes('highest quality leads')) {
-                      insightData = {
-                        id: `insight_${index}`,
-                        text: insight,
-                        type: 'linkedin_articles_performance',
-                        analysis: 'The Lead Intelligence Agent tracked lead quality from different content types and found that LinkedIn articles generate 150% higher quality leads compared to other content formats. This is due to LinkedIn\'s professional audience and longer-form content engagement.',
-                        agents_involved: [
-                          { name: 'Lead Intelligence Agent', role: 'Tracked lead quality and conversion rates from different content types' },
-                          { name: 'Content Intelligence Agent', role: 'Analyzed LinkedIn article performance metrics' },
-                          { name: 'CRM Agent', role: 'Monitored lead scoring and qualification data' }
-                        ],
-                        content_attribution: [
-                          { platform: 'LinkedIn', content_type: 'Articles', performance: '+150% lead quality', articles_analyzed: 12, avg_lead_score: '8.2/10' },
-                          { platform: 'LinkedIn', content_type: 'Posts', performance: 'Baseline', posts_analyzed: 35, avg_lead_score: '3.3/10' }
-                        ],
-                        kpis: [
-                          { metric: 'Lead Quality Score', current: '8.2/10', other_content: '3.3/10', improvement: '+148%' },
-                          { metric: 'Conversion Rate', current: '12.5%', other_content: '4.8%', improvement: '+160%' },
-                          { metric: 'Time to Qualification', current: '3.2 days', other_content: '7.8 days', improvement: '+59% faster' }
-                        ],
-                        workflow_steps: [
-                          'Lead Intelligence Agent tracked lead quality scores',
-                          'Analyzed conversion rates by content type',
-                          'Monitored time from lead to qualified prospect',
-                          'Cross-referenced with LinkedIn engagement data',
-                          'Generated insight for content strategy optimization'
-                        ],
-                        learning_notes: 'LinkedIn articles allow for deeper thought leadership and demonstrate expertise, which attracts higher-quality prospects who are more likely to convert. The professional audience on LinkedIn values detailed, educational content.'
-                      };
-                    }
-                    // Email campaigns insight
-                    else if (insight.includes('Email campaigns') && insight.includes('45% open rate')) {
-                      insightData = {
-                        id: `insight_${index}`,
-                        text: insight,
-                        type: 'email_performance',
-                        analysis: 'The Email Intelligence Agent analyzed email performance across all campaigns and found a 45% open rate, which is 12% above the industry average of 33%. This success is attributed to personalized subject lines and optimal send times.',
-                        agents_involved: [
-                          { name: 'Email Intelligence Agent', role: 'Analyzed email performance and open rates' },
-                          { name: 'Personalization Agent', role: 'Optimized subject lines and content personalization' },
-                          { name: 'Timing Agent', role: 'Determined optimal send times for maximum engagement' }
-                        ],
-                        content_attribution: [
-                          { platform: 'Email', content_type: 'Newsletter', performance: '45% open rate', campaigns_analyzed: 8, industry_avg: '33%' },
-                          { platform: 'Email', content_type: 'Promotional', performance: '38% open rate', campaigns_analyzed: 12, industry_avg: '28%' }
-                        ],
-                        kpis: [
-                          { metric: 'Open Rate', current: '45%', industry_avg: '33%', improvement: '+36%' },
-                          { metric: 'Click-Through Rate', current: '8.2%', industry_avg: '5.1%', improvement: '+61%' },
-                          { metric: 'Unsubscribe Rate', current: '0.8%', industry_avg: '2.1%', improvement: '+62% lower' }
-                        ],
-                        workflow_steps: [
-                          'Email Intelligence Agent analyzed campaign performance',
-                          'Personalization Agent optimized subject lines',
-                          'Timing Agent determined optimal send times',
-                          'A/B tested different email formats',
-                          'Generated insights for email strategy improvement'
-                        ],
-                        learning_notes: 'Personalized subject lines and optimal send times (Tuesday-Thursday, 10-11 AM) significantly improve email performance. Segmenting your audience and using dynamic content also increases engagement rates.'
-                      };
-                    }
-
-                    onOpenInsight(insightData);
                   }}
                   className="ml-3 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
                 >
@@ -733,96 +655,35 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
                   <p className="text-red-700 font-medium">{action}</p>
                 </div>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     console.log('Action Details clicked:', action);
                     
-                    // Create specific analysis based on the action content
-                    let actionData = {
-                      id: `action_${index}`,
-                      text: action,
-                      type: 'improvement_action',
-                      analysis: '',
-                      target_metrics: [],
-                      agents_involved: [],
-                      content_analysis: [],
-                      workflow_steps: [],
-                      learning_notes: ''
-                    };
-
-                    // Instagram Reels strategy action
-                    if (action.includes('Increase Reels content to 70% of Instagram strategy')) {
-                      actionData = {
+                    try {
+                      // Fetch detailed analysis from Content Intelligence Agent
+                      const actionAnalysis = await executeAction('get_action_analysis', {
+                        action_text: action,
+                        action_index: index,
+                        platform_data: contentData.content_analysis,
+                        performance_data: contentData.performance_metrics,
+                        current_metrics: contentData.content_analysis?.content_metrics
+                      });
+                      
+                      onOpenAction(actionAnalysis);
+                    } catch (error) {
+                      console.error('Failed to fetch action analysis:', error);
+                      // Fallback to basic action data
+                      onOpenAction({
                         id: `action_${index}`,
                         text: action,
-                        type: 'instagram_reels_strategy',
-                        analysis: 'The Content Intelligence Agent identified that your current Instagram content mix is only 30% Reels, but Reels are generating 3x more engagement than static posts. The agent recommends increasing Reels to 70% of your Instagram strategy to maximize engagement and reach.',
-                        target_metrics: [
-                          { metric: 'Reels Content Ratio', current: '30%', target: '70%', gap: '40%', impact: 'High engagement potential' },
-                          { metric: 'Overall Engagement Rate', current: '4.8%', target: '6.5%', gap: '1.7%', impact: 'Expected 35% increase' },
-                          { metric: 'Reach per Post', current: '8,400', target: '15,200', gap: '6,800', impact: '81% reach improvement' }
-                        ],
-                        agents_involved: [
-                          { name: 'Orchestrator Agent', role: 'Coordinates the entire Reels strategy workflow' },
-                          { name: 'Strategy Agent', role: 'Develops the 70% Reels content strategy and calendar' },
-                          { name: 'Content Creator Agent', role: 'Creates Reels content following best practices' },
-                          { name: 'Social Media Agent', role: 'Optimizes Reels for Instagram algorithm' },
-                          { name: 'Analytics Agent', role: 'Monitors performance and adjusts strategy' }
-                        ],
-                        content_analysis: [
-                          { platform: 'Instagram', issue: 'Current content mix: 70% static posts, 30% Reels', impact: 'Missing 3x engagement opportunity', data_points: '47 posts analyzed over 30 days' },
-                          { platform: 'Instagram', issue: 'Static posts average 2.8% engagement', impact: 'Below platform potential', comparison: 'Reels average 8.5% engagement' },
-                          { platform: 'Instagram', issue: 'Algorithm favorability for Reels', impact: 'Higher reach and visibility', evidence: 'Reels get 67% more algorithm boost' }
-                        ],
-                        workflow_steps: [
-                          'Orchestrator Agent receives Reels strategy command',
-                          'Strategy Agent analyzes current content performance data',
-                          'Content Creator Agent develops Reels content calendar (70% Reels, 30% static)',
-                          'Social Media Agent optimizes Reels for Instagram algorithm',
-                          'Content Creator Agent produces Reels following best practices',
-                          'Analytics Agent monitors performance and provides feedback',
-                          'Strategy Agent adjusts content mix based on results'
-                        ],
-                        learning_notes: 'Instagram Reels are prioritized by the algorithm because Instagram is competing with TikTok. Reels under 30 seconds perform best, use trending audio, and include captions. Post Reels when your audience is most active (usually 6-9 PM).'
-                      };
+                        type: 'improvement_action',
+                        analysis: 'Analysis in progress...',
+                        target_metrics: [],
+                        agents_involved: [],
+                        content_analysis: [],
+                        workflow_steps: [],
+                        learning_notes: ''
+                      });
                     }
-                    // LinkedIn optimization action
-                    else if (action.includes('Optimize LinkedIn article headlines for better reach')) {
-                      actionData = {
-                        id: `action_${index}`,
-                        text: action,
-                        type: 'linkedin_headline_optimization',
-                        analysis: 'The Content Intelligence Agent found that LinkedIn articles with optimized headlines generate 150% more reach than generic headlines. Your current headlines are not leveraging LinkedIn\'s algorithm preferences for engaging, curiosity-driven titles.',
-                        target_metrics: [
-                          { metric: 'Article Reach', current: '8,500', target: '21,250', gap: '12,750', impact: '150% reach increase' },
-                          { metric: 'Click-Through Rate', current: '3.2%', target: '6.8%', gap: '3.6%', impact: '112% CTR improvement' },
-                          { metric: 'Lead Generation', current: '12 leads', target: '28 leads', gap: '16 leads', impact: '133% more qualified leads' }
-                        ],
-                        agents_involved: [
-                          { name: 'Orchestrator Agent', role: 'Coordinates LinkedIn headline optimization workflow' },
-                          { name: 'Content Intelligence Agent', role: 'Analyzes headline performance patterns' },
-                          { name: 'SEO Agent', role: 'Optimizes headlines for LinkedIn algorithm' },
-                          { name: 'A/B Testing Agent', role: 'Tests different headline variations' },
-                          { name: 'Analytics Agent', role: 'Tracks headline performance metrics' }
-                        ],
-                        content_analysis: [
-                          { platform: 'LinkedIn', issue: 'Generic headlines like "Business Update" or "Thoughts on..."', impact: 'Low engagement and reach', data_points: '12 articles analyzed' },
-                          { platform: 'LinkedIn', issue: 'Missing curiosity-driven elements', impact: 'Reduced click-through rates', comparison: 'Optimized headlines get 2.1x more clicks' },
-                          { platform: 'LinkedIn', issue: 'Not leveraging LinkedIn algorithm preferences', impact: 'Lower visibility in feeds', evidence: 'Algorithm favors engaging, specific headlines' }
-                        ],
-                        workflow_steps: [
-                          'Orchestrator Agent receives headline optimization command',
-                          'Content Intelligence Agent analyzes current headline performance',
-                          'SEO Agent researches LinkedIn algorithm preferences',
-                          'Content Intelligence Agent generates optimized headline variations',
-                          'A/B Testing Agent tests different headline formats',
-                          'Content Creator Agent implements winning headlines',
-                          'Analytics Agent monitors reach and engagement improvements'
-                        ],
-                        learning_notes: 'LinkedIn headlines should be specific, create curiosity, and include numbers or data points. Use power words like "How", "Why", "The Secret", or "5 Ways". Include your target audience and make it benefit-focused.'
-                      };
-                    }
-
-                    onOpenAction(actionData);
                   }}
                   className="ml-3 px-3 py-1 text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
                 >
@@ -1324,7 +1185,7 @@ const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrati
             {/* Learning Notes */}
             {insight.learning_notes && (
               <div className="bg-yellow-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 mb-2">Learning Platform - Key Insights</h3>
+                <h3 className="font-semibold text-yellow-800 mb-2">Useful Tips</h3>
                 <p className="text-yellow-700 text-sm">{insight.learning_notes}</p>
               </div>
             )}
@@ -1480,7 +1341,7 @@ const ActionDetailsModal = ({ action, onClose, onExecuteAction, isOrchestrating 
             {/* Learning Notes */}
             {action.learning_notes && (
               <div className="bg-yellow-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 mb-2">Learning Platform - Key Insights</h3>
+                <h3 className="font-semibold text-yellow-800 mb-2">Useful Tips</h3>
                 <p className="text-yellow-700 text-sm">{action.learning_notes}</p>
               </div>
             )}
