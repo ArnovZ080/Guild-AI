@@ -1355,6 +1355,36 @@ const AgentsView = () => {
     if (!selectedAgent) return null;
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
+    // Suggested integrations by category (display purpose only)
+    const suggestedIntegrationsByCategory = {
+      marketing: ['Buffer', 'Hootsuite', 'Gmail', 'LinkedIn'],
+      content: ['Google Analytics', 'Gmail', 'Slack'],
+      research: ['Google Analytics', 'CRM'],
+      financial: ['QuickBooks', 'Excel'],
+      orchestration: ['N8N', 'Zapier', 'Make.com'],
+      automation: ['Zapier', 'Make.com', 'N8N'],
+      customer: ['HubSpot', 'CRM', 'Slack'],
+      analytics: ['Google Analytics', 'Excel'],
+      communication: ['Gmail', 'Slack', 'WhatsApp'],
+      technical: ['GitHub', 'Slack'],
+      executive: ['Google Analytics', 'CRM'],
+      evaluation: ['Google Analytics'],
+      operations: ['Calendar', 'Gmail']
+    };
+    const suggested = suggestedIntegrationsByCategory[selectedAgent.category] || ['Gmail', 'Slack'];
+    const activity = getAgentActivityData(selectedAgent).slice(0, 4);
+    // Lightweight artifacts mock based on category
+    const artifactsByCategory = {
+      content: ['Blog Post Draft.md', 'Social Graphics.zip', 'Newsletter.eml'],
+      research: ['Market Analysis.pdf', 'Lead Enrichment.csv'],
+      financial: ['P&L.xlsx', 'Cashflow.pdf'],
+      marketing: ['Ad Variations.docx', 'Landing A/B Report.pdf'],
+      analytics: ['KPI Dashboard.png', 'Weekly Metrics.csv'],
+      customer: ['Segment Report.csv', 'Churn Signals.pdf'],
+      automation: ['Workflow.json', 'Integration Map.png'],
+      orchestration: ['Runbook.md', 'Workflow Plan.md']
+    };
+    const artifacts = artifactsByCategory[selectedAgent.category] || ['Summary Report.pdf'];
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1406,6 +1436,51 @@ const AgentsView = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Connections</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {suggested.map((integration) => {
+                      const Icon = getIntegrationIcon(integration);
+                      return (
+                        <div key={integration} className="flex items-center space-x-1 px-2 py-1 bg-white border rounded-full">
+                          <Icon className="w-3 h-3 text-gray-600" />
+                          <span className="text-xs text-gray-700">{integration}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Suggested integrations based on this agent's category.</p>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Recent Activity</h3>
+                  <div className="space-y-3">
+                    {activity.map(item => (
+                      <div key={item.id} className="border rounded p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-900">{item.action}</span>
+                          <span className={`px-2 py-0.5 text-[10px] rounded-full ${
+                            item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            item.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                          }`}>{item.status}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 mb-1">{item.timestamp}</div>
+                        <div className="text-sm text-gray-700">{item.details}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Artifacts</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {artifacts.map(name => (
+                      <span key={name} className="px-2 py-1 bg-white border rounded text-xs text-gray-700">{name}</span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Artifacts this agent commonly produces.</p>
                 </div>
               </div>
 
