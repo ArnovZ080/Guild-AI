@@ -845,13 +845,7 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                     'Describe the behavior...'
                   }
                 />
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => setIsConfiguring(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
-                  >
-                    Close
-                  </button>
+                <div className="flex justify-end">
                   <button
                     onClick={saveNaturalLanguageConfig}
                     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
@@ -862,7 +856,7 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                 </div>
               </div>
               {/* Right: Tips / Recommendations */}
-              <div className="col-span-1">
+              <div className="col-span-1 flex flex-col">
                 <div className="p-3 border rounded-md bg-gray-50">
                   <div className="text-sm font-medium text-gray-700 mb-2">Suggestions</div>
                   {data.category === 'trigger' && (
@@ -916,6 +910,14 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                       ))}
                     </div>
                   </div>
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <button
+                    onClick={() => setIsConfiguring(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
