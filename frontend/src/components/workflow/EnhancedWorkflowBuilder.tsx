@@ -409,6 +409,8 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
   const [isConfiguring, setIsConfiguring] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [nlInput, setNlInput] = useState('');
+  const [agentDropdownOpen, setAgentDropdownOpen] = useState(false);
+  const [agentSearch, setAgentSearch] = useState('');
   const [conditionBranches, setConditionBranches] = useState<{ label: string; nl: string }[]>(
     data.category === 'condition' || data.category === 'split'
       ? data.branches || [
@@ -594,36 +596,54 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
           </button>
           {/* Agent assignment dropdown visible on node (Hybrid and other modes) */}
           {data.category === 'agent' && (
-            <div className="mt-2">
+            <div className="mt-2 relative">
               <div className="text-xs font-medium text-gray-700 mb-1">Assign Agent</div>
-              <div className="border rounded">
-                <div className="px-2 py-1 border-b">
-                  <input
-                    type="text"
-                    className="w-full text-xs outline-none"
-                    placeholder="Search agents..."
-                    onChange={(e) => {
-                      const q = e.target.value.toLowerCase();
-                      const filtered = (availableAgents || data.availableAgents || []).filter((a: any) => a.name.toLowerCase().includes(q));
-                      rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, _agentSearchQuery: q, _agentFiltered: filtered } } : n));
-                    }}
-                  />
+              <button
+                type="button"
+                className="w-full flex items-center justify-between px-3 py-2 border rounded text-xs bg-white hover:bg-gray-50"
+                onClick={() => setAgentDropdownOpen(!agentDropdownOpen)}
+                aria-haspopup="listbox"
+                aria-expanded={agentDropdownOpen}
+              >
+                <span className="truncate">{data.assignedAgentId ? ((data.availableAgents || availableAgents || []).find((a: any) => a.id === data.assignedAgentId)?.name || 'Choose your agent') : 'Choose your agent'}</span>
+                <svg className="w-3 h-3 ml-2 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z" clipRule="evenodd"/></svg>
+              </button>
+              {agentDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full border rounded bg-white shadow-lg">
+                  <div className="p-2 border-b">
+                    <input
+                      type="text"
+                      className="w-full text-xs border rounded px-2 py-1"
+                      placeholder="Search agents..."
+                      value={agentSearch}
+                      onChange={(e) => setAgentSearch(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-auto">
+                    {(((data.availableAgents || availableAgents || []) as any[])
+                      .filter((a: any) => !agentSearch.trim() || a.name.toLowerCase().includes(agentSearch.toLowerCase())))
+                      .map((a: any) => (
+                        <div
+                          key={a.id}
+                          role="option"
+                          className={`px-3 py-2 text-xs cursor-pointer hover:bg-gray-100 ${data.assignedAgentId === a.id ? 'bg-gray-50' : ''}`}
+                          onClick={() => {
+                            rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, assignedAgentId: a.id } } : n));
+                            setAgentDropdownOpen(false);
+                          }}
+                        >
+                          {a.name}
+                        </div>
+                      ))}
+                    {(((data.availableAgents || availableAgents || []) as any[])
+                      .filter((a: any) => !agentSearch.trim() || a.name.toLowerCase().includes(agentSearch.toLowerCase()))
+                      .length === 0) && (
+                        <div className="px-3 py-2 text-xs text-gray-500">No agents found</div>
+                    )}
+                  </div>
                 </div>
-                <select
-                  className="w-full px-2 py-1 text-xs"
-                  value={data.assignedAgentId || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, assignedAgentId: value } } : n));
-                  }}
-                  size={Math.min(8, (data._agentFiltered || data.availableAgents || availableAgents || []).length || 4)}
-                >
-                  <option value="">Select an agent...</option>
-                  {((data._agentFiltered && data._agentFiltered.length ? data._agentFiltered : (data.availableAgents || availableAgents || [])) as any[]).map((a: any) => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
-                  ))}
-                </select>
-              </div>
+              )}
             </div>
           )}
         </div>
