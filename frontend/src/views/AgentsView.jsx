@@ -289,6 +289,16 @@ const AgentsView = () => {
     fetchAvailableAgents();
   }, [API]);
 
+  // Default-select first workflow when entering theater tab or when workflows load
+  useEffect(() => {
+    if (activeTab !== 'theater') return;
+    const list = Array.isArray(workflows) && workflows.length > 0 ? workflows : demoWorkflows;
+    if (!selectedWorkflow && list.length > 0) {
+      const first = list[0];
+      setSelectedWorkflow(first);
+    }
+  }, [activeTab, workflows]);
+
   // Load workflows with polling fallback
   useEffect(() => {
     let timer;
@@ -449,9 +459,9 @@ const AgentsView = () => {
     }
   };
 
-  const WorkflowCard = ({ workflow }) => (
+  const WorkflowCard = ({ workflow, isSelected }) => (
     <motion.div
-      className="bg-white rounded-lg shadow-lg p-6 border hover:shadow-xl transition-shadow cursor-pointer"
+      className={`bg-white rounded-lg p-6 transition-shadow cursor-pointer ${isSelected ? 'border-2 border-blue-600 shadow-xl' : 'border hover:shadow-xl'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -1518,9 +1528,11 @@ const AgentsView = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
                   {listToShow.map(wf => (
-                    <div key={wf.workflow_id || wf.id} className={`${(selectedWorkflow && (selectedWorkflow.workflow_id||selectedWorkflow.id)===(wf.workflow_id||wf.id)) ? 'ring-2 ring-blue-500 rounded-lg' : ''}`}>
-                      <WorkflowCard workflow={wf} />
-                    </div>
+                    <WorkflowCard
+                      key={wf.workflow_id || wf.id}
+                      workflow={wf}
+                      isSelected={Boolean(selectedWorkflow && (selectedWorkflow.workflow_id || selectedWorkflow.id) === (wf.workflow_id || wf.id))}
+                    />
                   ))}
                 </AnimatePresence>
               </div>
