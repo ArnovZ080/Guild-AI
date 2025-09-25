@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface Agent {
@@ -21,6 +21,8 @@ interface Task {
 }
 
 export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | null }> = ({ selectedWorkflowName }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [agents, setAgents] = useState<Agent[]>([
     {
       id: 'research-1',
@@ -202,8 +204,18 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
     return { baseCredits, estimatedCost };
   };
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const el = containerRef.current;
+    const update = () => setViewport({ width: el.clientWidth, height: el.clientHeight });
+    update();
+    const ro = new (window as any).ResizeObserver(update);
+    ro.observe(el);
+    return () => { try { ro.disconnect(); } catch {} };
+  }, []);
+
   return (
-    <div className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
+    <div ref={containerRef} className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
       {selectedWorkflowName && (
         <div className="absolute top-2 left-2 z-20 px-2 py-1 text-xs rounded bg-blue-600 text-white shadow">{selectedWorkflowName}</div>
       )}
@@ -287,13 +299,17 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
           const fromAgent = agents.find(a => a.id === task.from);
           const toAgent = agents.find(a => a.id === task.to);
           if (!fromAgent || !toAgent) return null;
+          const fromX = (fromAgent.position.x / 100) * viewport.width + 24;
+          const fromY = (fromAgent.position.y / 100) * viewport.height + 24;
+          const toX = (toAgent.position.x / 100) * viewport.width + 24;
+          const toY = (toAgent.position.y / 100) * viewport.height + 24;
           return (
             <line
               key={`line-${task.id}`}
-              x1={`calc(${fromAgent.position.x}% + 24px)`}
-              y1={`calc(${fromAgent.position.y}% + 24px)`}
-              x2={`calc(${toAgent.position.x}% + 24px)`}
-              y2={`calc(${toAgent.position.y}% + 24px)`}
+              x1={fromX}
+              y1={fromY}
+              x2={toX}
+              y2={toY}
               stroke="rgba(59, 130, 246, 0.35)"
               strokeWidth="2"
               strokeDasharray="4,4"
@@ -310,8 +326,8 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
           <motion.div
             key={task.id}
             className="absolute w-2 h-2 rounded-full bg-yellow-400 shadow-lg"
-            initial={{ left: `calc(${fromAgent.position.x}% + 24px)`, top: `calc(${fromAgent.position.y}% + 24px)` }}
-            animate={{ left: `calc(${toAgent.position.x}% + 24px)`, top: `calc(${toAgent.position.y}% + 24px)` }}
+            initial={{ left: ((fromAgent.position.x / 100) * viewport.width + 24), top: ((fromAgent.position.y / 100) * viewport.height + 24) }}
+            animate={{ left: ((toAgent.position.x / 100) * viewport.width + 24), top: ((toAgent.position.y / 100) * viewport.height + 24) }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />
         );
