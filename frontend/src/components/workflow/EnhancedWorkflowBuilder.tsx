@@ -1534,14 +1534,10 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-800">Workflow builder</h1>
           </div>
           <div className="flex items-center gap-2">
+            <button onClick={saveWorkflow} className="px-3 py-2 border rounded bg-white hover:bg-gray-50 text-sm" disabled={saving}>{saving ? 'Saving…' : 'Save workflow'}</button>
+            <button onClick={activateWorkflow} className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm" disabled={activating}>{activating ? 'Activating…' : 'Activate'}</button>
             <label className="text-sm text-gray-600">Name</label>
-            <input
-              type="text"
-              className="p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500"
-              value={workflowName}
-              onChange={(e) => setWorkflowName(e.target.value)}
-              placeholder="Workflow Name"
-            />
+            <input type="text" className="p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500" value={workflowName} onChange={(e) => setWorkflowName(e.target.value)} placeholder="Workflow Name" />
           </div>
         </div>
       </div>
@@ -1706,6 +1702,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                   onNodesChange={onNodesChange}
                   onEdgesChange={onEdgesChange}
                   onConnect={onConnect}
+                  onEdgeDoubleClick={(_, edge) => setEdges((eds) => eds.filter((e) => e.id !== edge.id))}
                   onInit={setReactFlowInstance}
                   onDrop={onDrop}
                   onDragOver={onDragOver}
