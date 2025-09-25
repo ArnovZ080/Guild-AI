@@ -1518,7 +1518,9 @@ const AgentsView = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
                   {listToShow.map(wf => (
-                    <WorkflowCard key={wf.workflow_id || wf.id} workflow={wf} />
+                    <div key={wf.workflow_id || wf.id} className={`${(selectedWorkflow && (selectedWorkflow.workflow_id||selectedWorkflow.id)===(wf.workflow_id||wf.id)) ? 'ring-2 ring-blue-500 rounded-lg' : ''}`}>
+                      <WorkflowCard workflow={wf} />
+                    </div>
                   ))}
                 </AnimatePresence>
               </div>

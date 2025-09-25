@@ -20,7 +20,7 @@ interface Task {
   progress: number;
 }
 
-export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | null }> = ({ selectedWorkflowName }) => {
+export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | null, selectedWorkflow?: any | null }> = ({ selectedWorkflowName, selectedWorkflow }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const [agents, setAgents] = useState<Agent[]>([
@@ -213,6 +213,59 @@ export const AgentActivityTheater: React.FC<{ selectedWorkflowName?: string | nu
     ro.observe(el);
     return () => { try { ro.disconnect(); } catch {} };
   }, []);
+
+  // Rebuild scene from selected workflow (agents, lanes, and handoffs)
+  useEffect(() => {
+    if (!selectedWorkflow) return;
+    const wfAgents: string[] = (selectedWorkflow.agents || selectedWorkflow.agents_involved || []).map((a: any) => String(a));
+    if (!wfAgents.length) return;
+    const laneCenter: Record<string, {x:number;y:number}> = {
+      research: { x: 16, y: 25 },
+      marketing: { x: 50, y: 20 },
+      sales: { x: 84, y: 30 },
+      operations: { x: 25, y: 75 },
+      content: { x: 75, y: 75 },
+      support: { x: 50, y: 75 }
+    };
+    const inferType = (name: string): Agent['type'] => {
+      const n = name.toLowerCase();
+      if (n.includes('research')) return 'research';
+      if (n.includes('marketing') || n.includes('email')) return 'marketing';
+      if (n.includes('sales')) return 'sales';
+      if (n.includes('support') || n.includes('ops') || n.includes('operation')) return 'support';
+      if (n.includes('content') || n.includes('writer') || n.includes('seo')) return 'content';
+      return 'research';
+    };
+    const builtAgents: Agent[] = wfAgents.map((n, idx) => {
+      const type = inferType(n);
+      const center = laneCenter[type] || { x: 50, y: 50 };
+      const jitterX = ((idx % 3) - 1) * 6; // -6,0,6
+      const jitterY = Math.floor(idx/3) * 6;
+      return {
+        id: `${type}-${idx}`,
+        name: n,
+        type,
+        status: 'working',
+        currentTask: 'Executing workflow step',
+        position: { x: Math.max(5, Math.min(95, center.x + jitterX)), y: Math.max(10, Math.min(90, center.y + jitterY)) },
+        progress: Math.random()*0.6 + 0.3
+      };
+    });
+    setAgents(builtAgents);
+
+    const steps: any[] = Array.isArray(selectedWorkflow.actions) ? selectedWorkflow.actions : [];
+    const edges: Task[] = [];
+    for (let i=0; i<steps.length-1; i++) {
+      const fromName = String(steps[i].agent || '');
+      const toName = String(steps[i+1].agent || '');
+      const from = builtAgents.find(a=>a.name===fromName)?.id;
+      const to = builtAgents.find(a=>a.name===toName)?.id;
+      if (from && to && from!==to) {
+        edges.push({ id: `wf-${i}`, from, to, type: 'data', progress: 0.5 });
+      }
+    }
+    setActiveTasks(edges.length ? edges : []);
+  }, [selectedWorkflow]);
 
   return (
     <div ref={containerRef} className="relative w-full h-96 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border overflow-visible">
