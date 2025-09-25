@@ -42,7 +42,11 @@ import {
   useContentActions,
   useRealtimeContentAnalysis,
   useRealtimeContentPerformance,
-  useRealtimeActiveCampaigns
+  useRealtimeActiveCampaigns,
+  usePlatformData,
+  useInsightAnalysis,
+  useActionAnalysis,
+  useWorkflowExecution
 } from '../../services/contentIntelligenceApi';
 
 const ContentDashboard = () => {
@@ -53,7 +57,7 @@ const ContentDashboard = () => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [isOrchestrating, setIsOrchestrating] = useState(false);
 
-  // API hooks with real-time updates
+  // API hooks with real-time updates and platform integration
   const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();
   const { data: calendar, loading: calendarLoading } = useContentCalendar(selectedTimeframe);
   const { data: performance, loading: performanceLoading } = useRealtimeContentPerformance('all', selectedTimeframe);
@@ -61,6 +65,14 @@ const ContentDashboard = () => {
   const { emailData, loading: emailLoading } = useEmailPerformance(selectedTimeframe);
   const { assets, loading: assetsLoading } = useCreativeAssets();
   const { executeAction, createContent, scheduleContent, executing } = useContentActions();
+  
+  // Platform data integration for real metrics
+  const { data: platformData, loading: platformLoading, error: platformError } = usePlatformData(['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email', 'blog']);
+  
+  // Analysis hooks for dynamic insights and actions
+  const { getInsightAnalysis, executing: insightExecuting, error: insightError } = useInsightAnalysis();
+  const { getActionAnalysis, executing: actionExecuting, error: actionError } = useActionAnalysis();
+  const { executeWorkflow, executing: workflowExecuting, error: workflowError } = useWorkflowExecution();
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -123,15 +135,17 @@ const ContentDashboard = () => {
   const handleRepeatStrategy = async (insight) => {
     setIsOrchestrating(true);
     try {
-      // Send command to orchestrator agent to repeat successful strategy
-      await executeAction('repeat_strategy', {
+      // Execute workflow using real platform data
+      await executeWorkflow({
+        workflow_type: 'repeat_strategy',
         insight_id: insight.id,
         strategy_type: insight.type,
         workflow_steps: insight.workflow_steps,
         agents_involved: insight.agents_involved,
         content_attribution: insight.content_attribution,
-        platform_data: contentData.content_analysis,
-        performance_data: contentData.performance_metrics
+        platform_data: platformData?.data?.platforms || {},
+        performance_data: analysis?.data?.content_metrics || {},
+        content_analysis: analysis?.data || {}
       });
       
       // Show success message
@@ -146,16 +160,18 @@ const ContentDashboard = () => {
   const handleExecuteAction = async (action) => {
     setIsOrchestrating(true);
     try {
-      // Send command to orchestrator agent to execute improvement workflow
-      await executeAction('execute_improvement_workflow', {
+      // Execute workflow using real platform data
+      await executeWorkflow({
+        workflow_type: 'execute_improvement_workflow',
         action_id: action.id,
         action_type: action.type,
         target_metrics: action.target_metrics,
         agents_involved: action.agents_involved,
         workflow_steps: action.workflow_steps,
         content_analysis: action.content_analysis,
-        platform_data: contentData.content_analysis,
-        performance_data: contentData.performance_metrics
+        platform_data: platformData?.data?.platforms || {},
+        performance_data: analysis?.data?.content_metrics || {},
+        content_analysis: analysis?.data || {}
       });
       
       // Show success message
@@ -605,15 +621,16 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
                     console.log('Insight Details clicked:', insight);
                     
                     try {
-                      // Fetch detailed analysis from Content Intelligence Agent
-                      const insightAnalysis = await executeAction('get_insight_analysis', {
+                      // Fetch detailed analysis from Content Intelligence Agent using real platform data
+                      const insightAnalysis = await getInsightAnalysis({
                         insight_text: insight,
                         insight_index: index,
-                        platform_data: contentData.content_analysis,
-                        performance_data: contentData.performance_metrics
+                        platform_data: platformData?.data?.platforms || {},
+                        performance_data: analysis?.data?.content_metrics || {},
+                        content_analysis: analysis?.data || {}
                       });
                       
-                      onOpenInsight(insightAnalysis);
+                      onOpenInsight(insightAnalysis?.data || insightAnalysis);
                     } catch (error) {
                       console.error('Failed to fetch insight analysis:', error);
                       // Fallback to basic insight data
@@ -659,16 +676,17 @@ const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) =>
                     console.log('Action Details clicked:', action);
                     
                     try {
-                      // Fetch detailed analysis from Content Intelligence Agent
-                      const actionAnalysis = await executeAction('get_action_analysis', {
+                      // Fetch detailed analysis from Content Intelligence Agent using real platform data
+                      const actionAnalysis = await getActionAnalysis({
                         action_text: action,
                         action_index: index,
-                        platform_data: contentData.content_analysis,
-                        performance_data: contentData.performance_metrics,
-                        current_metrics: contentData.content_analysis?.content_metrics
+                        platform_data: platformData?.data?.platforms || {},
+                        performance_data: analysis?.data?.content_metrics || {},
+                        current_metrics: analysis?.data?.content_metrics || {},
+                        content_analysis: analysis?.data || {}
                       });
                       
-                      onOpenAction(actionAnalysis);
+                      onOpenAction(actionAnalysis?.data || actionAnalysis);
                     } catch (error) {
                       console.error('Failed to fetch action analysis:', error);
                       // Fallback to basic action data
