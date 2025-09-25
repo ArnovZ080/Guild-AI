@@ -404,6 +404,46 @@ const WORKFLOW_PRIMITIVES: Array<{ id: string; name: string; icon: any; descript
   { id: 'merge', name: 'Merge', icon: GitBranch, description: 'Join multiple paths', baseCredits: 0 },
 ];
 
+// Context-agnostic suggestions for NL configure to avoid undefined references in production bundles
+function computeContextualSuggestionsSafe(category: string): string[] {
+  switch (category) {
+    case 'trigger':
+      return [
+        'When I receive an email containing "pricing"',
+        'On form submission from /contact',
+        'Every weekday at 09:00',
+        'When webhook "lead.created" is received',
+      ];
+    case 'action':
+      return [
+        'Filter emails between spam and useful',
+        'Send Slack notification to #sales',
+        'Create contact in CRM with extracted fields',
+        'Append row to Google Sheet "Leads"',
+      ];
+    case 'condition':
+    case 'split':
+      return [
+        'If subject contains "free" then spam else continue',
+        'If score > 0.8 then proceed else review',
+        'If customer is VIP then fast-track else normal',
+      ];
+    case 'agent':
+      return [
+        'Summarize the email then reply professionally',
+        'Draft friendly follow-up email with next steps',
+        'Delegate to Research Agent if info missing',
+      ];
+    case 'email':
+      return [
+        'Send an email enriched with customer information',
+        'Draft a follow-up email if no response in 3 days',
+      ];
+    default:
+      return ['Perform the intended step succinctly'];
+  }
+}
+
 // Enhanced Node Component
 const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected: boolean }) => {
   const [isConfiguring, setIsConfiguring] = useState(false);
@@ -898,11 +938,11 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                     <div className="text-xs text-gray-600">Describe what this step should do in one or two sentences.</div>
                   )}
 
-                  {/* Quick Presets (context-aware) */}
+                  {/* Quick Presets (context-aware or safe fallback) */}
                   <div className="mt-3">
                     <div className="text-xs font-medium text-gray-700 mb-1">Quick presets</div>
                     <div className="flex flex-wrap gap-2">
-                      {computeContextualSuggestions(data.category, nodes as any, workflowName, workflowDescription).map((preset, idx) => (
+                      {computeContextualSuggestionsSafe(data.category).map((preset, idx) => (
                         <button
                           key={idx}
                           className="px-2 py-1 text-xs border rounded-full hover:bg-gray-100"
