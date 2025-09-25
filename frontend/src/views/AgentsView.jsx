@@ -676,6 +676,8 @@ const AgentsView = () => {
     const outputs = Array.isArray(wf.outputs) ? wf.outputs : [];
     const evaluator = wf.evaluator || wf.judge || {};
     const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
+    const meta = wf.metadata || {};
+    const [tab, setTab] = useState('tasks');
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowWorkflowDetails(false)}>
@@ -715,41 +717,54 @@ const AgentsView = () => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                {Array.isArray(outputs) && outputs.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Outputs</h3>
-                    <ul className="list-disc pl-5 space-y-1 text-gray-700 text-sm">
-                      {outputs.map((o, i)=> (
-                        <li key={i}>{typeof o === 'string' ? o : (o.title || o.name || JSON.stringify(o))}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+            {/* Tabs */}
+            <div className="bg-white border rounded-lg p-2">
+              <div className="flex flex-wrap gap-2">
+                {['metadata','flow','tasks','content','costs','evaluator','audit'].map(k => (
+                  <button key={k} onClick={()=>setTab(k)} className={`px-3 py-1.5 text-sm rounded ${tab===k?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>{k.charAt(0).toUpperCase()+k.slice(1)}</button>
+                ))}
+              </div>
+            </div>
 
-                {Array.isArray(comms) && comms.length > 0 && (
+            {tab==='metadata' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Communications</h3>
-                    <div className="space-y-3">
-                      {comms.map((c, i)=> (
-                        <div key={i} className="border rounded p-3 text-sm">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-gray-800">{c.channel || 'Message'}</span>
-                            <span className="text-xs text-gray-500">{c.timestamp || ''}</span>
-                          </div>
-                          <div className="text-gray-700 whitespace-pre-wrap">{c.summary || c.content || ''}</div>
-                        </div>
-                      ))}
+                    <h3 className="text-lg font-semibold mb-3">Workflow Metadata</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-gray-600">Workflow ID:</span> <span className="font-medium">{wf.id}</span></div>
+                      <div><span className="text-gray-600">Type:</span> <span className="font-medium capitalize">{wf.type}</span></div>
+                      <div><span className="text-gray-600">Date Created:</span> <span className="font-medium">{meta.created_at || '-'}</span></div>
+                      <div><span className="text-gray-600">Last Run:</span> <span className="font-medium">{meta.last_run || '-'}</span></div>
+                      <div><span className="text-gray-600">Next Run:</span> <span className="font-medium">{meta.next_run || '-'}</span></div>
+                      <div><span className="text-gray-600">Trigger:</span> <span className="font-medium capitalize">{wf.trigger || meta.trigger || '-'}</span></div>
                     </div>
                   </div>
-                )}
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Agents Involved</h3>
+                    <div className="flex flex-wrap gap-1">{(wf.agents||[]).map((a,i)=>(<span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>))}</div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                {Array.isArray(wf.actions) && wf.actions.length > 0 && (
+            {tab==='flow' && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Process Flow</h3>
+                <div className="text-sm text-gray-600 mb-3">Parallel vs sequential steps, color-coded by status.</div>
+                <div className="border rounded-lg p-6 text-center text-sm text-gray-500">Flow graph visualization placeholder</div>
+              </div>
+            )}
+
+            {tab==='tasks' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-3">Execution Timeline</h3>
                     <div className="space-y-2">
-                      {wf.actions.map((a, i)=> (
+                      {(wf.actions||[]).map((a, i)=> (
                         <div key={i} className="flex items-center justify-between text-sm">
                           <div className="truncate pr-2">
                             <span className="font-medium text-gray-800">{a.step}</span>
@@ -760,67 +775,89 @@ const AgentsView = () => {
                       ))}
                     </div>
                   </div>
-                )}
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-white border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-3">Agents Involved</h3>
+                    <div className="flex flex-wrap gap-1">{(wf.agents||[]).map((a,i)=>(<span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>))}</div>
+                  </div>
+                </div>
               </div>
+            )}
 
-              <div className="space-y-6">
+            {tab==='content' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white border rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Agents Involved</h3>
-                  <div className="flex flex-wrap gap-1">
-                    {(wf.agents || []).map((a,i)=>(
-                      <span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>
+                  <h3 className="text-lg font-semibold mb-3">Content Artifacts</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                    {(outputs || []).map((o, i) => (
+                      <li key={i}>{typeof o === 'string' ? o : (o.title || o.name || JSON.stringify(o))}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Communications Log</h3>
+                  <div className="space-y-3">
+                    {(comms || []).map((c, i) => (
+                      <div key={i} className="border rounded p-3 text-sm">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-gray-800">{c.channel || 'Message'}</span>
+                          <span className="text-xs text-gray-500">{c.timestamp || ''}</span>
+                        </div>
+                        <div className="text-gray-700">
+                          {c.recipient && (
+                            <div className="text-xs text-gray-500">To: {c.recipient}</div>
+                          )}
+                          <div className="text-sm whitespace-pre-wrap">{c.summary || c.content || ''}</div>
+                          <div className="text-xs text-gray-500 mt-1">Status: {c.status || 'sent'}</div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
 
-                {(wf.metrics || cost) && (
-                  <div className="bg-white border rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Metrics & Cost</h3>
-                    <div className="grid grid-cols-2 gap-3 text-center">
-                      {wf.metrics?.customersProcessed !== undefined && (
-                        <div className="p-2 bg-gray-50 rounded">
-                          <div className="text-lg font-bold">{wf.metrics.customersProcessed}</div>
-                          <div className="text-xs text-gray-500">Processed</div>
-                        </div>
-                      )}
-                      {wf.metrics?.successRate !== undefined && (
-                        <div className="p-2 bg-gray-50 rounded">
-                          <div className="text-lg font-bold">{wf.metrics.successRate}%</div>
-                          <div className="text-xs text-gray-500">Success Rate</div>
-                        </div>
-                      )}
-                      {cost !== undefined && (
-                        <div className="p-2 bg-gray-50 rounded col-span-2">
-                          <div className="text-sm font-semibold">Estimated Cost</div>
-                          <div className="text-xs text-gray-600">{typeof cost === 'string' ? cost : `$${Number(cost).toFixed(2)}`}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {(evaluator?.score || evaluator?.rubric) && (
-                  <div className="bg-white border rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Evaluator Results</h3>
-                    {evaluator?.score !== undefined && (
-                      <div className="text-sm mb-2">Score: <span className="font-semibold">{evaluator.score}</span></div>
-                    )}
-                    {evaluator?.rubric && (
-                      <div className="text-xs text-gray-700 whitespace-pre-wrap">{evaluator.rubric}</div>
-                    )}
-                  </div>
-                )}
-
-                {upcoming.length > 0 && (
-                  <div className="bg-white border rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-2">Up Next</h3>
-                    <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-                      {upcoming.map((a,i)=> (<li key={i}>{a.step}</li>))}
-                    </ul>
-                  </div>
+            {tab==='costs' && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Cost Tracking</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Estimated Cost</div><div className="font-semibold">{wf.estimatedCost ? `$${Number(wf.estimatedCost).toFixed(2)}` : '-'}</div></div>
+                  <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Actual Cost</div><div className="font-semibold">{cost ? (typeof cost==='string'?cost:`$${Number(cost).toFixed(2)}`): '-'}</div></div>
+                  <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Cost-to-Value</div><div className="font-semibold">{wf.costToValue || '-'}</div></div>
+                </div>
+                {Array.isArray(wf.actions)&&wf.actions.length>0 && (
+                  <div className="mt-4"><div className="text-sm font-medium mb-2">Breakdown by Step</div><div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">{wf.actions.map((a,i)=>(<div key={i} className="border rounded p-2 flex items-center justify-between"><span className="truncate pr-2">{a.step}</span><span className="font-semibold">{a.cost ? `$${Number(a.cost).toFixed(2)}` : '-'}</span></div>))}</div></div>
                 )}
               </div>
-            </div>
+            )}
+
+            {tab==='evaluator' && (
+              <div className="bg-white border rounded-lg p-4"><h3 className="text-lg font-semibold mb-3">Evaluator Feedback</h3><div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm"><div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Score</div><div className="font-semibold">{evaluator.score !== undefined ? evaluator.score : '-'}</div></div><div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Confidence</div><div className="font-semibold">{evaluator.confidence || '-'}</div></div><div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Compared to Baseline</div><div className="font-semibold">{evaluator.baseline || '-'}</div></div></div>{evaluator.notes && (<div className="mt-3 text-sm text-gray-700 whitespace-pre-wrap">{evaluator.notes}</div>)}</div>
+            )}
+
+            {tab==='audit' && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Audit & Compliance</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div><span className="text-gray-500">Version:</span> <span className="font-medium">{meta.version || '-'}</span></div>
+                  <div><span className="text-gray-500">Approvals:</span> <span className="font-medium">{meta.approvals || '-'}</span></div>
+                  <div className="md:col-span-2"><span className="text-gray-500">Data Sources:</span> <span className="font-medium">{Array.isArray(meta.data_sources)?meta.data_sources.join(', '):'-'}</span></div>
+                </div>
+                <div className="mt-3">
+                  <div className="text-sm font-medium mb-2">Workflow Log</div>
+                  <div className="space-y-2 text-xs">
+                    {(meta.log||[]).map((e,i)=> (
+                      <div key={i} className="border rounded p-2 flex items-center justify-between">
+                        <span className="truncate pr-2">{e.message || JSON.stringify(e)}</span>
+                        <span className="text-gray-500">{e.timestamp || ''}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
           </div>
         </div>
       </div>
