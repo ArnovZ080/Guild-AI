@@ -857,31 +857,11 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                     <div className="text-xs text-gray-600">Describe what this step should do in one or two sentences.</div>
                   )}
 
-                  {/* Quick Presets */}
+                  {/* Quick Presets (context-aware) */}
                   <div className="mt-3">
                     <div className="text-xs font-medium text-gray-700 mb-1">Quick presets</div>
                     <div className="flex flex-wrap gap-2">
-                      {(data.category === 'trigger' ? [
-                        'When I receive an email containing "pricing"',
-                        'On form submission from /contact',
-                        'Every weekday at 09:00',
-                        'When webhook "lead.created" is received',
-                      ] : data.category === 'action' ? [
-                        'Filter emails between spam and useful',
-                        'Send Slack notification to #sales',
-                        'Create contact in CRM with extracted fields',
-                        'Append row to Google Sheet "Leads"',
-                      ] : (data.category === 'condition' || data.category === 'split') ? [
-                        'If subject contains "free" then spam else continue',
-                        'If score > 0.8 then proceed else review',
-                        'If customer is VIP then fast-track else normal',
-                      ] : data.category === 'agent' ? [
-                        'Summarize the email then reply professionally',
-                        'Draft friendly follow-up email with next steps',
-                        'Delegate to Research Agent if info missing',
-                      ] : [
-                        'Perform the intended step succinctly',
-                      ]).map((preset, idx) => (
+                      {computeContextualSuggestions(data.category, nodes as any, workflowName, workflowDescription).map((preset, idx) => (
                         <button
                           key={idx}
                           className="px-2 py-1 text-xs border rounded-full hover:bg-gray-100"
@@ -981,32 +961,82 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   }
 
   useEffect(() => {
-    async function fetchAgents() {
-      const fallback = [
-        { id: 'research_agent', name: 'Research Agent' },
-        { id: 'marketing_agent', name: 'Marketing Agent' },
-        { id: 'sales_agent', name: 'Sales Agent' },
-        { id: 'operations_agent', name: 'Operations Agent' },
-      ];
+    async function fetchActivatedAgents() {
+      // Strictly Activated agents only; robust fallbacks
+      const fallbackEmpty: Array<{ id: string; name: string }> = [];
       try {
-        if (!API) { setAvailableAgents(fallback); return; }
+        if (!API) { setAvailableAgents(fallbackEmpty); return; }
         const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-        const res = await fetch(`${API}/agents/available`, {
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-        });
-        if (!res.ok) { setAvailableAgents(fallback); return; }
-        const data = await res.json();
-        const entitled = Array.isArray(data)
-          ? data.filter((a: any) => a.included_in_subscription || (a.hired_until && new Date(a.hired_until) > new Date()))
-          : [];
-        const mapped = entitled.map((a: any) => ({ id: a.agent_id || a.id, name: a.name }));
-        setAvailableAgents(mapped.length ? mapped : fallback);
-      } catch (e) {
-        setAvailableAgents(fallback);
+
+        // Try dedicated activated endpoints (first successful wins)
+        const endpoints = [
+          `${API}/agents/activated`,
+          `${API}/workforce/activated`,
+          `${API}/agents/active`,
+        ];
+        let activated: any[] | null = null;
+        for (const url of endpoints) {
+          try {
+            const res = await fetch(url, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+            if (res.ok) { activated = await res.json(); break; }
+          } catch {}
+        }
+
+        // Fall back: intersect available with localStorage activated ids
+        if (!activated) {
+          let available: any[] = [];
+          try {
+            const resAvail = await fetch(`${API}/agents/available`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+            if (resAvail.ok) available = await resAvail.json();
+          } catch {}
+          const activatedIds = (() => {
+            try { return JSON.parse(localStorage.getItem('activated_agents') || '[]'); } catch { return []; }
+          })();
+          const setIds = new Set(Array.isArray(activatedIds) ? activatedIds : []);
+          const filtered = Array.isArray(available) ? available.filter((a: any) => setIds.has(a.agent_id || a.id) || (a.activated === true) || (["online","working","busy"].includes(a.status))) : [];
+          activated = filtered;
+        }
+
+        const mapped = Array.isArray(activated) ? activated.map((a: any) => ({ id: a.agent_id || a.id, name: a.name })) : [];
+        setAvailableAgents(mapped);
+      } catch {
+        setAvailableAgents(fallbackEmpty);
       }
     }
-    fetchAgents();
+    fetchActivatedAgents();
   }, [API]);
+
+  // Compute contextual suggestions for Hybrid mode NL configuration
+  const computeContextualSuggestions = useCallback((category: string, nodesCtx: Node[], wfName: string, wfDesc: string) => {
+    const titles: string[] = [wfName, wfDesc].filter(Boolean);
+    const hasEmail = nodesCtx.some(n => n.data?.category === 'email' || /email/i.test(n.data?.label || ''));
+    const hasAgent = nodesCtx.some(n => n.data?.category === 'agent');
+    const hasTrigger = nodesCtx.some(n => n.data?.category === 'trigger');
+    const hasAnalytics = nodesCtx.some(n => n.data?.category === 'analytics');
+
+    const base: string[] = [];
+    if (category === 'agent') {
+      base.push('Take ownership of this step and report outcome');
+      if (hasEmail) base.push('Summarize email and propose reply in our brand tone');
+      if (hasAnalytics) base.push('Produce a brief analytics summary for stakeholders');
+    } else if (category === 'action') {
+      base.push('Transform and enrich data for the next step');
+      if (hasAgent) base.push('Prepare structured input for the assigned agent');
+      if (hasEmail) base.push('Compose an email draft with extracted entities');
+    } else if (category === 'trigger') {
+      base.push('Start when new lead is captured');
+      base.push('Run every weekday at 09:00');
+    } else if (category === 'condition' || category === 'split') {
+      base.push('If score > 0.8 then proceed else review');
+      base.push('If customer is VIP then fast-track else normal');
+    } else if (category === 'email') {
+      base.push('Send an email enriched with customer information');
+      base.push('Draft a follow-up email if no response in 3 days');
+    }
+    if (titles.length) base.unshift(`Achieve: ${titles[0]}`);
+    if (hasTrigger && category === 'action') base.push('Only run when trigger payload matches criteria');
+    return Array.from(new Set(base)).slice(0, 8);
+  }, []);
 
   const onConnect = useCallback((params: Connection | Edge) => {
     setEdges((eds) => {
