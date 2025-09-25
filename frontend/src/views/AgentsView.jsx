@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ConversationalInterface } from '../components/agents/ConversationalUI.jsx';
+import { ConversationalInterface, QuickActions } from '../components/agents/ConversationalUI.jsx';
 import { repoAgentIds } from '../data/repoAgentIds.js';
 import { agentMeta } from '../data/agentMeta.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -2389,6 +2389,10 @@ const AgentsView = () => {
                 activeAgentId={chatAgent.id}
               />
             </div>
+            <QuickActions 
+              actions={(getOverrideForAgent(chatAgent.name)?.capabilities || chatAgent.capabilities || []).slice(0, 6).map((cap, i) => ({ label: `Ask about: ${cap}` }))}
+              onActionSelect={(a) => console.log('Suggested ask →', a.label)}
+            />
           </div>
         </div>
       )}
