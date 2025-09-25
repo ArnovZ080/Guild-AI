@@ -603,43 +603,116 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
         </div>
       )}
 
-      {/* Expanded Details */}
-      {showDetails && (
-        <div className="border-t pt-2 mt-2">
-          <div className="text-xs text-gray-600 space-y-2">
-            <div><strong>Type:</strong> {data.category}</div>
-            {data.industry && <div><strong>Industry:</strong> {data.industry}</div>}
-            <div><strong>Status:</strong> {data.status}</div>
-            {data.category === 'agent' && (
-              <div className="space-y-1">
-                <div className="font-medium text-gray-700">Assign Agent</div>
-                <select
-                  className="w-full border rounded px-2 py-1"
-                  value={data.assignedAgentId || ''}
-                  onChange={(e) => {
-                    data.assignedAgentId = e.target.value;
-                  }}
-                >
-                  <option value="">Select an agent...</option>
-                  {(data.availableAgents || [
-                    { id: 'research_agent', name: 'Research Agent' },
-                    { id: 'marketing_agent', name: 'Marketing Agent' },
-                    { id: 'sales_agent', name: 'Sales Agent' },
-                    { id: 'operations_agent', name: 'Operations Agent' },
-                  ]).map((a: any) => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
-                  ))}
-                </select>
+      {/* Detailed Info Modal (Gear) */}
+      {showDetails && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-bold">{data.label} — Detailed configuration</h3>
+                <p className="text-xs text-gray-500 capitalize">Type: {data.category}</p>
               </div>
-            )}
-            {data.config && Object.keys(data.config).length > 0 && (
-              <div><strong>Config:</strong> {Object.keys(data.config).length} settings</div>
-            )}
-          </div>
-        </div>
-      )}
+              <button
+                onClick={() => setShowDetails(false)}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
 
-      {/* Configuration Modal - landscape, static size with close (portal to body) */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Left: Overview & Cost */}
+              <div className="col-span-1 space-y-3">
+                <div className="p-3 border rounded-md bg-gray-50">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Overview</div>
+                  <div className="text-xs text-gray-700 space-y-1">
+                    <div><strong>Status:</strong> {data.status || 'pending'}</div>
+                    {data.industry && <div><strong>Industry:</strong> {data.industry}</div>}
+                    {data.naturalLanguageDescription && (
+                      <div>
+                        <div className="font-medium">Instruction:</div>
+                        <div className="italic text-gray-600">"{data.naturalLanguageDescription}"</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-3 border rounded-md bg-gray-50">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Cost breakdown</div>
+                  <div className="text-xs text-gray-700 space-y-1">
+                    <div><strong>Estimated credits:</strong> {data.estimatedCredits ?? 0}</div>
+                    <div><strong>Estimated cost:</strong> ${ (data.estimatedCost ?? 0).toFixed(2) }</div>
+                  </div>
+                </div>
+
+                {data.category === 'agent' && (
+                  <div className="p-3 border rounded-md bg-gray-50">
+                    <div className="text-sm font-medium text-gray-700 mb-2">Assigned agent</div>
+                    <select
+                      className="w-full border rounded px-2 py-1 text-sm"
+                      value={data.assignedAgentId || ''}
+                      onChange={(e) => { data.assignedAgentId = e.target.value; }}
+                    >
+                      <option value="">Select an agent...</option>
+                      {(data.availableAgents || [
+                        { id: 'research_agent', name: 'Research Agent' },
+                        { id: 'marketing_agent', name: 'Marketing Agent' },
+                        { id: 'sales_agent', name: 'Sales Agent' },
+                        { id: 'operations_agent', name: 'Operations Agent' },
+                      ]).map((a: any) => (
+                        <option key={a.id} value={a.id}>{a.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {/* Middle: Configuration JSON */}
+              <div className="col-span-1">
+                <div className="p-3 border rounded-md bg-white">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Configuration</div>
+                  <pre className="text-xs bg-gray-100 p-2 rounded overflow-auto" style={{ maxHeight: '300px' }}>
+{JSON.stringify(data.config || {}, null, 2)}
+                  </pre>
+                </div>
+              </div>
+
+              {/* Right: Node specifics */}
+              <div className="col-span-1 space-y-3">
+                {(data.category === 'condition' || data.category === 'split') && (
+                  <div className="p-3 border rounded-md bg-white">
+                    <div className="text-sm font-medium text-gray-700 mb-2">Branches</div>
+                    <ul className="text-xs text-gray-700 list-disc pl-4 space-y-1">
+                      {((data.branches && Array.isArray(data.branches)) ? data.branches : []).map((b: any, idx: number) => (
+                        <li key={idx}><strong>{b.label || `branch_${idx+1}`}:</strong> {b.nl || '—'}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="p-3 border rounded-md bg-white">
+                  <div className="text-sm font-medium text-gray-700 mb-2">Learn more</div>
+                  <div className="text-xs text-gray-600">
+                    This view exposes all parameters the AI configures for this node so you can learn how it works under the hood.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                onClick={() => setShowDetails(false)}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>, document.body)
+      }
+
+      {/* Configuration Modal - two-column layout (portal to body) */}
       {isConfiguring && createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]">
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl mx-4">
@@ -653,8 +726,8 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                 ✕
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              {/* Left: Branches / Advanced */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Left: Branches (if any) + Primary NL input */}
               <div className="col-span-1">
                 {(data.category === 'condition' || data.category === 'split') && (
                   <div className="mb-4">
@@ -690,10 +763,6 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                     </button>
                   </div>
                 )}
-              </div>
-
-              {/* Middle: Primary NL input */}
-              <div className="col-span-1">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Describe this step</label>
                 <textarea
                   className="w-full p-3 border border-gray-300 rounded-md mb-4"
