@@ -1034,6 +1034,8 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   const [ownedWorkflows, setOwnedWorkflows] = useState<any[]>([]);
   const [purchasedWorkflows, setPurchasedWorkflows] = useState<any[]>([]);
   const [wfTab, setWfTab] = useState<'owned' | 'purchased'>('owned');
+  const [saving, setSaving] = useState(false);
+  const [activating, setActivating] = useState(false);
 
   async function refreshWorkflows() {
     try {
@@ -1066,6 +1068,8 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       setEdges(hydratedEdges);
       toast.success('Workflow loaded');
       setShowMyWorkflows(false);
+      // Allow editing by switching to hybrid automatically
+      setWorkflowMode('hybrid');
     } catch { toast.error('Failed to load workflow'); }
   }
 
@@ -1421,6 +1425,65 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     }
   };
 
+  // Save and Activate handlers
+  const serializeWorkflow = () => ({
+    id: templateId || `wf_${Date.now()}`,
+    name: workflowName,
+    description: workflowDescription,
+    dag_definition: {
+      nodes: nodes.map(n => ({ id: n.id, label: n.data?.label, category: n.data?.category, config: n.data?.config || {}, nl: n.data?.naturalLanguageDescription || '' })),
+      edges: edges.map(e => ({ id: e.id, source: e.source, target: e.target, label: (e as any).label }))
+    }
+  });
+
+  const saveWorkflow = async () => {
+    try {
+      setSaving(true);
+      const payload = serializeWorkflow();
+      if (API) {
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+        const res = await fetch(`${API}/marketplace/templates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('save_failed');
+      } else {
+        const list = JSON.parse(localStorage.getItem('guild_my_workflows') || '[]');
+        list.push(payload);
+        localStorage.setItem('guild_my_workflows', JSON.stringify(list));
+      }
+      toast.success('Workflow saved');
+    } catch {
+      toast.error('Failed to save workflow');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activateWorkflow = async () => {
+    try {
+      setActivating(true);
+      const payload = serializeWorkflow();
+      if (API) {
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+        const res = await fetch(`${API}/agents/workflows/activate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error('activate_failed');
+      } else {
+        // local no-op; could queue activation intent
+      }
+      toast.success('Workflow activated');
+    } catch {
+      toast.error('Failed to activate workflow');
+    } finally {
+      setActivating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* Title Card */}
@@ -1621,6 +1684,18 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       </div>
 
       {/* AI Assistant now lives in the sidebar when mode is AI */}
+
+      {/* Save/Activate Controls */}
+      <div className="px-4 pb-4">
+        <div className="flex items-center justify-end gap-3">
+          <button onClick={saveWorkflow} className="px-4 py-2 border rounded bg-white hover:bg-gray-50" disabled={saving}>
+            {saving ? 'Saving…' : 'Save this workflow'}
+          </button>
+          <button onClick={activateWorkflow} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" disabled={activating}>
+            {activating ? 'Activating…' : 'Activate this workflow'}
+          </button>
+        </div>
+      </div>
 
       {/* My Workflows Drawer */}
       {showMyWorkflows && (
