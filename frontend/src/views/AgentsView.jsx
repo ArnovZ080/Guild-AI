@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ConversationalUI from '../components/agents/ConversationalUI.jsx';
 import { repoAgentIds } from '../data/repoAgentIds.js';
 import { agentMeta } from '../data/agentMeta.js';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -1684,7 +1685,7 @@ const AgentsView = () => {
     if (!selectedAgent) return null;
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
-    const [modalActive, setModalActive] = useState(selectedAgent.status === 'active');
+    // Start/Pause control removed from Details modal per requirements
     const [showArtifactModal, setShowArtifactModal] = useState(false);
     const [previewArtifact, setPreviewArtifact] = useState(null);
     // Suggested integrations by category (display purpose only)
@@ -2127,23 +2128,7 @@ const AgentsView = () => {
                 </div>
 
               <div className="space-y-3">
-                  {selectedAgent._entitled && (
-                    <button 
-                      onClick={() => {
-                        setModalActive(prev => !prev);
-                        triggerCelebration(CelebrationType.TASK_COMPLETE, {
-                          message: `${selectedAgent.name} ${modalActive ? 'paused' : 'started'}!`,
-                          intensity: 'normal'
-                        });
-                        // reflect status locally so badges update
-                        setSelectedAgent(prev => prev ? { ...prev, status: modalActive ? 'inactive' : 'active' } : prev);
-                      }}
-                      className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${modalActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
-                    >
-                      {modalActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      <span>{modalActive ? 'Pause' : 'Start'}</span>
-                    </button>
-                  )}
+                  {/* Start/Pause intentionally omitted in modal */}
                   <button 
                     onClick={() => handleConfigureAgent(selectedAgent)}
                     className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -2385,6 +2370,23 @@ const AgentsView = () => {
       {/* Agent Detail Modal (Workforce tab only) */}
       {activeTab === 'workforce' && !showWorkflowDetails && (
         <AgentDetailModal />
+      )}
+      {/* Chat Modal */}
+      {activeTab === 'workforce' && showChatModal && chatAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <div>
+                <div className="text-sm text-gray-500">Chatting with</div>
+                <div className="text-lg font-semibold text-gray-900">{chatAgent.name}</div>
+              </div>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>×</button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <ConversationalUI agentName={chatAgent.name} agentId={chatAgent.id} minimal={true} />
+            </div>
+          </div>
+        </div>
       )}
       <WorkflowDetailsModal />
 
