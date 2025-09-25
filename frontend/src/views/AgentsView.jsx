@@ -408,22 +408,33 @@ const AgentsView = () => {
   };
 
   // Build a rich display workflow by merging sparse API data with demo defaults
+  // Normalize to expected schema and record provenance for missing fields
   const buildDisplayWorkflow = (wf, index) => {
     const demo = demoWorkflows[index % demoWorkflows.length];
-    const id = wf.workflow_id || wf.id || demo.id;
-    const name = wf.name || wf.results?.campaign?.name || demo.name;
-    const description = wf.description || demo.description;
-    const status = wf.status || demo.status;
-    const type = wf.type || demo.type || 'autonomous';
-    const progress = typeof wf.progress === 'number' ? wf.progress : (typeof wf.results?.progress === 'number' ? wf.results.progress : demo.progress);
-    const current_step = wf.current_step || wf.currentStep || wf.results?.current_step || demo.current_step;
-    const agents = (wf.agents || wf.agents_involved || wf.results?.agents) || demo.agents;
-    const integrations = wf.integrations || wf.results?.integrations || demo.integrations;
-    const metrics = wf.metrics || wf.results?.metrics || demo.metrics;
-    const triggers = wf.triggers || wf.results?.triggers || demo.triggers;
-    const actions = wf.actions || wf.results?.actions || demo.actions;
-    const businessGoal = wf.businessGoal || wf.results?.businessGoal || demo.businessGoal;
-    return { id, name, description, status, type, progress, current_step, agents, integrations, metrics, triggers, actions, businessGoal };
+    const provenance = {};
+    const pick = (value, fallback, key) => {
+      const chosen = value !== undefined && value !== null && (typeof value !== 'object' || Object.keys(value).length>0) ? value : fallback;
+      provenance[key] = (chosen === value) ? 'live' : 'fallback';
+      return chosen;
+    };
+    const id = pick(wf.workflow_id || wf.id, demo.id, 'id');
+    const name = pick(wf.name || wf.results?.campaign?.name, demo.name, 'name');
+    const description = pick(wf.description, demo.description, 'description');
+    const status = pick(wf.status, demo.status, 'status');
+    const type = pick(wf.type, demo.type || 'autonomous', 'type');
+    const progress = pick(typeof wf.progress === 'number' ? wf.progress : wf.results?.progress, demo.progress, 'progress');
+    const current_step = pick(wf.current_step || wf.currentStep || wf.results?.current_step, demo.current_step, 'current_step');
+    const agents = pick(wf.agents || wf.agents_involved || wf.results?.agents, demo.agents, 'agents');
+    const integrations = pick(wf.integrations || wf.results?.integrations, demo.integrations, 'integrations');
+    const metrics = pick(wf.metrics || wf.results?.metrics, demo.metrics, 'metrics');
+    const triggers = pick(wf.triggers || wf.results?.triggers, demo.triggers, 'triggers');
+    const actions = pick(wf.actions || wf.results?.actions, demo.actions, 'actions');
+    const businessGoal = pick(wf.businessGoal || wf.results?.businessGoal, demo.businessGoal, 'businessGoal');
+    const metadata = pick(wf.metadata, {}, 'metadata');
+    const cost = pick(wf.cost, undefined, 'cost');
+    const estimatedCost = pick(wf.estimatedCost, undefined, 'estimatedCost');
+    const evaluator = pick(wf.evaluator || wf.judge, undefined, 'evaluator');
+    return { id, name, description, status, type, progress, current_step, agents, integrations, metrics, triggers, actions, businessGoal, metadata, cost, estimatedCost, evaluator, _provenance: provenance };
   };
 
   const handleDeploy = async (workflow) => {
@@ -679,6 +690,29 @@ const AgentsView = () => {
     const meta = wf.metadata || {};
     const [tab, setTab] = useState('tasks');
 
+    // When API is configured, attempt to hydrate with real workflow details
+    useEffect(() => {
+      const base = (import.meta && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) || '';
+      const wfId = wf.workflow_id || wf.id;
+      if (!base || !wfId) return;
+      let cancelled = false;
+      (async () => {
+        try {
+          const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+          const res = await fetch(`${base}/agents/workflows/${wfId}`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+          if (!res.ok) return;
+          const data = await res.json();
+          if (!cancelled && data) {
+            // Merge live details, preserving our normalized structure
+            const merged = buildDisplayWorkflow({ ...(selectedWorkflow || {}), ...(data || {}) }, 0);
+            setSelectedWorkflow(merged);
+          }
+        } catch {}
+      })();
+      return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [showWorkflowDetails]);
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowWorkflowDetails(false)}>
         <div className="bg-white rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto" onClick={(e)=>e.stopPropagation()}>
@@ -724,13 +758,20 @@ const AgentsView = () => {
                   <button key={k} onClick={()=>setTab(k)} className={`px-3 py-1.5 text-sm rounded ${tab===k?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>{k.charAt(0).toUpperCase()+k.slice(1)}</button>
                 ))}
               </div>
+              {selectedWorkflow?._provenance && (
+                <div className="mt-2 text-xs text-gray-500">
+                  <span className="mr-2">Legend:</span>
+                  <span className="inline-block px-1.5 py-0.5 mr-1 rounded bg-emerald-50 text-emerald-700">live</span>
+                  <span className="inline-block px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">fallback</span>
+                </div>
+              )}
             </div>
 
             {tab==='metadata' && (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Workflow Metadata</h3>
+                    <h3 className="text-lg font-semibold mb-3">Workflow Metadata {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.metadata==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.metadata}</span>}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                       <div><span className="text-gray-600">Workflow ID:</span> <span className="font-medium">{wf.id}</span></div>
                       <div><span className="text-gray-600">Type:</span> <span className="font-medium capitalize">{wf.type}</span></div>
@@ -743,7 +784,7 @@ const AgentsView = () => {
                 </div>
                 <div className="space-y-6">
                   <div className="bg-white border rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Agents Involved</h3>
+                    <h3 className="text-lg font-semibold mb-3">Agents Involved {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.agents==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.agents}</span>}</h3>
                     <div className="flex flex-wrap gap-1">{(wf.agents||[]).map((a,i)=>(<span key={`${a}-${i}`} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{a}</span>))}</div>
                   </div>
                 </div>
@@ -751,8 +792,8 @@ const AgentsView = () => {
             )}
 
             {tab==='flow' && (
-              <div className="bg-white border rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Process Flow</h3>
+                <div className="bg-white border rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-3">Process Flow</h3>
                 <div className="text-sm text-gray-600 mb-3">Parallel vs sequential steps, color-coded by status.</div>
                 <div className="border rounded-lg p-6 text-center text-sm text-gray-500">Flow graph visualization placeholder</div>
               </div>
@@ -762,7 +803,7 @@ const AgentsView = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                   <div className="bg-gray-50 rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-3">Execution Timeline</h3>
+                    <h3 className="text-lg font-semibold mb-3">Execution Timeline {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.actions==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.actions}</span>}</h3>
                     <div className="space-y-2">
                       {(wf.actions||[]).map((a, i)=> (
                         <div key={i} className="flex items-center justify-between text-sm">
@@ -788,7 +829,7 @@ const AgentsView = () => {
             {tab==='content' && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="bg-white border rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Content Artifacts</h3>
+                  <h3 className="text-lg font-semibold mb-3">Content Artifacts {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.outputs==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.outputs}</span>}</h3>
                   <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
                     {(outputs || []).map((o, i) => (
                       <li key={i}>{typeof o === 'string' ? o : (o.title || o.name || JSON.stringify(o))}</li>
@@ -796,7 +837,7 @@ const AgentsView = () => {
                   </ul>
                 </div>
                 <div className="bg-white border rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Communications Log</h3>
+                  <h3 className="text-lg font-semibold mb-3">Communications Log {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.communications==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.communications}</span>}</h3>
                   <div className="space-y-3">
                     {(comms || []).map((c, i) => (
                       <div key={i} className="border rounded p-3 text-sm">
@@ -820,7 +861,7 @@ const AgentsView = () => {
 
             {tab==='costs' && (
               <div className="bg-white border rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3">Cost Tracking</h3>
+                <h3 className="text-lg font-semibold mb-3">Cost Tracking {selectedWorkflow?._provenance && <span className={`ml-2 text-xs px-1.5 py-0.5 rounded ${selectedWorkflow._provenance.metrics==='live'?'bg-emerald-50 text-emerald-700':'bg-amber-50 text-amber-700'}`}>{selectedWorkflow._provenance.metrics}</span>}</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                   <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Estimated Cost</div><div className="font-semibold">{wf.estimatedCost ? `$${Number(wf.estimatedCost).toFixed(2)}` : '-'}</div></div>
                   <div className="p-3 bg-gray-50 rounded"><div className="text-xs text-gray-500">Actual Cost</div><div className="font-semibold">{cost ? (typeof cost==='string'?cost:`$${Number(cost).toFixed(2)}`): '-'}</div></div>
