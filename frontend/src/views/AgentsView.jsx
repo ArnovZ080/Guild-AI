@@ -652,7 +652,7 @@ const AgentsView = () => {
       <div className="mt-4 flex gap-2">
         <button
           className="px-3 py-1.5 text-sm bg-blue-100 text-blue-800 rounded hover:bg-blue-200"
-          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
+          onClick={(e) => { e.stopPropagation(); setSelectedAgent(null); setSelectedWorkflow(workflow); setShowWorkflowDetails(true); }}
         >
           Details
         </button>
@@ -1451,7 +1451,7 @@ const AgentsView = () => {
       )}
 
       {/* Agent Detail Modal */}
-      <AgentDetailModal />
+      {!showWorkflowDetails && <AgentDetailModal />}
       <WorkflowDetailsModal />
 
       {/* Configure Agent Modal */}
