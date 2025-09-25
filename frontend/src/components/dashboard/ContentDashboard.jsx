@@ -312,7 +312,7 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <ContentOverviewTab contentAnalysis={contentData.content_analysis} />
+            <ContentOverviewTab contentAnalysis={contentData.content_analysis} onOpenInsight={setSelectedInsight} onOpenAction={setSelectedAction} />
           </motion.div>
         )}
 
@@ -411,7 +411,7 @@ const ContentDashboard = () => {
 };
 
 // Content Overview Tab Component
-const ContentOverviewTab = ({ contentAnalysis }) => {
+const ContentOverviewTab = ({ contentAnalysis, onOpenInsight, onOpenAction }) => {
   const metrics = contentAnalysis?.content_metrics || {};
   
   // Helper function to determine color based on target comparison
@@ -598,7 +598,7 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <button
                   onClick={() => {
                     console.log('Insight Details clicked:', insight);
-                    setSelectedInsight({
+                    onOpenInsight({
                       id: `insight_${index}`,
                       text: insight,
                       type: 'performance_insight',
@@ -641,7 +641,7 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
                 <button
                   onClick={() => {
                     console.log('Action Details clicked:', action);
-                    setSelectedAction({
+                    onOpenAction({
                       id: `action_${index}`,
                       text: action,
                       type: 'improvement_action',
