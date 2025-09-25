@@ -1442,6 +1442,261 @@ const AgentsView = () => {
       operations: ['Calendar', 'Gmail']
     };
     const suggested = suggestedIntegrationsByCategory[selectedAgent.category] || ['Gmail', 'Slack'];
+
+    // Overrides for purpose and core capabilities keyed by canonical agent id/name
+    const capabilityOverrides = {
+      'Accountability Coach Agent': {
+        purpose: 'Keeps the founder on track with habit design and follow-through; best for daily check-ins and momentum.',
+        capabilities: [
+          'Daily/weekly check-ins and progress summaries',
+          'Nudge scheduling and reminder sequences',
+          'Break large goals into micro-tasks and habit loops'
+        ]
+      },
+      'Accounting Agent': {
+        purpose: 'Produces formal financial reports and reconciliations for bookkeeping and CFO workflows.',
+        capabilities: [
+          'Generate P&L, balance sheet, cashflow statements',
+          'Reconcile transactions and flag anomalies',
+          'Export professionally formatted spreadsheets/PDFs'
+        ]
+      },
+      'Ad Performance Optimizer Agent': {
+        purpose: 'Automates paid-ad performance tuning across platforms for better ROAS.',
+        capabilities: [
+          'Analyze ROAS and recommend budget/bid changes',
+          'Create and evaluate A/B test variants',
+          'Reallocate spend to top-performing creatives/channels'
+        ]
+      },
+      'Affiliate Partnerships Agent': {
+        purpose: 'Builds and runs affiliate/partner programs to scale distribution.',
+        capabilities: [
+          'Prospect and onboard affiliates',
+          'Package offers, track commissions and performance',
+          'Monitor channel KPIs and optimize partner incentives'
+        ]
+      },
+      'Agent Evaluator': {
+        purpose: 'Scores outputs across agents and enforces quality thresholds (Judge/QA layer).',
+        capabilities: [
+          'Apply rubrics and produce pass/fail scores',
+          'Provide revision requests and improvement suggestions',
+          'Aggregate evaluation metrics over time'
+        ]
+      },
+      'Automation Agent': {
+        purpose: 'Orchestrates API-based automations and routine task flows.',
+        capabilities: [
+          'Build triggers/actions for API orchestration',
+          'Map data flows and syncs between services',
+          'Schedule and retry failed automations'
+        ]
+      },
+      'Automation Bridge Agent': {
+        purpose: 'Connects disparate automation islands, ensuring cross-system reliability.',
+        capabilities: [
+          'Manage dependency graphs and retries',
+          'Orchestrate cross-tool data handoffs',
+          'Monitor health and provide remediation steps'
+        ]
+      },
+      'Board Advisor Agent': {
+        purpose: 'Provides board-level briefings, risk assessments and strategic recommendations.',
+        capabilities: [
+          'Summarize performance for executive reviews',
+          'Scenario analysis and risk framing',
+          'Produce board-ready briefings and action items'
+        ]
+      },
+      'Bookkeeping Agent': {
+        purpose: 'Handles transaction ingestion, categorization and month-end closes.',
+        capabilities: [
+          'Bank feed ingestion and categorization',
+          'Receipt matching and reconciliation',
+          'Close month workflows and generate ledger exports'
+        ]
+      },
+      'Brand Strategist Agent': {
+        purpose: 'Designs brand narrative, tone and identity guidelines.',
+        capabilities: [
+          'Create voice & messaging frameworks',
+          'Audit existing content for brand fit',
+          'Generate actionable creative guidelines for assets'
+        ]
+      },
+      'Business Intelligence Agent': {
+        purpose: 'Central KPI hub and anomaly detection across business systems.',
+        capabilities: [
+          'Aggregate KPIs, cohorts and dashboards',
+          'Detect anomalies and send alerts',
+          'Provide plain-language insights and recommended actions'
+        ]
+      },
+      'Business Strategist Agent': {
+        purpose: 'Develops long-term plans, OKRs and strategic prioritization.',
+        capabilities: [
+          'Build roadmap and strategic options',
+          'Perform trade-off and impact analysis',
+          'Output prioritized initiatives and milestone plans'
+        ]
+      },
+      'Business Strategist': {
+        purpose: 'Strategy assistant variant (quick strategic guidance).',
+        capabilities: [
+          'Rapid strategy notes and frameworks',
+          'Generate quick SWOT/Porter-like analyses',
+          'Provide options and next-step recommendations'
+        ]
+      },
+      'Calendar Harmony Agent': {
+        purpose: 'Optimizes user calendar for focus, balance and throughput.',
+        capabilities: [
+          'Suggest timeboxing and focus blocks',
+          'Auto-schedule agent tasks and meetings',
+          'Detect overload and rebalance calendar'
+        ]
+      },
+      'Celebration Narrator Agent': {
+        purpose: 'Produces the micro-celebration narratives and communications.',
+        capabilities: [
+          'Generate milestone narratives and announcements',
+          'Create celebratory assets/messages',
+          'Schedule recognition items in UI/community channels'
+        ]
+      },
+      'Chief Of Staff Agent': {
+        purpose: 'Cross-agent coordinator for priorities, resource allocation and status alignment.',
+        capabilities: [
+          'Create weekly plans and delegation matrices',
+          'Reconcile competing priorities across agents',
+          'Track cross-agent dependencies and progress'
+        ]
+      },
+      'Churn Predictor Agent': {
+        purpose: 'Predicts churn risk and triggers retention plays.',
+        capabilities: [
+          'Compute churn risk scores and segments',
+          'Recommend retention playbooks and outreach sequences',
+          'Monitor effectiveness of interventions'
+        ]
+      },
+      'Community Connector Agent': {
+        purpose: 'Builds and grows user communities and external engagement.',
+        capabilities: [
+          'Design community programs and engagement loops',
+          'Run event & advocacy campaigns',
+          'Moderate & measure community health'
+        ]
+      },
+      'Community Manager Agent': {
+        purpose: 'Operates community channels day-to-day (posting, replies, moderation).',
+        capabilities: [
+          'Schedule and post community content',
+          'Triage and respond to member questions',
+          'Generate engagement reports and sentiment summaries'
+        ]
+      },
+      'Competitive Intelligence Agent': {
+        purpose: 'Monitors competitors and provides actionable briefs.',
+        capabilities: [
+          'Track competitor product/marketing moves',
+          'Produce competitive landscape and alerts',
+          'Recommend countermeasures or differentiation plays'
+        ]
+      },
+      'Compliance Agent': {
+        purpose: 'Ensures outputs and processes comply with policies/regulations.',
+        capabilities: [
+          'Run compliance checks and produce audit trails',
+          'Suggest remediation plans for non-compliance',
+          'Maintain regulatory mappings and checklists'
+        ]
+      },
+      'Connector Agent': {
+        purpose: 'Manages OAuth/API connectors and health-checks for external services.',
+        capabilities: [
+          'Authenticate/connect to services and renew tokens',
+          'Test connectivity and log failures',
+          'Provide unified API status & error translations'
+        ]
+      },
+      'Content Intelligence Agent': {
+        purpose: 'Measures content performance and prescribes improvements.',
+        capabilities: [
+          'Track content KPIs (CTR, engagement, conversions)',
+          'Surface topic/format opportunities',
+          'Recommend cadence and repurposing strategies'
+        ]
+      },
+      'Content Repurposer Agent': {
+        purpose: 'Converts existing content into alternate formats tailored for platforms.',
+        capabilities: [
+          'Summarize and convert long-form to posts/scripts',
+          'Reformat for platform constraints',
+          'Generate multiple format-ready variants'
+        ]
+      },
+      'Content Strategist': {
+        purpose: 'Plans editorial calendars and content themes aligned to goals.',
+        capabilities: [
+          'Create multi-channel calendars and briefs',
+          'Map content to funnels and KPIs',
+          'Allocate agent tasks for content production'
+        ]
+      },
+      'Contract Analyzer Agent': {
+        purpose: 'Parses contracts and extracts risk/obligations.',
+        capabilities: [
+          'Clause extraction and summarization',
+          'Flag risky terms and obligations',
+          'Produce redline suggestions and plain-language summaries'
+        ]
+      },
+      'Copywriter Agent': {
+        purpose: 'High-impact short-form copywriter for ads and CTAs.',
+        capabilities: [
+          'Produce ad headlines and variants',
+          'Generate email subject lines and CTAs',
+          'Create platform-optimized copy versions'
+        ]
+      },
+      'Copywriter': {
+        purpose: 'General writing assistant for broader copy needs.',
+        capabilities: [
+          'Draft long-form and short-form content',
+          'Edit to brand voice and tone',
+          'Produce multiple variants for A/B testing'
+        ]
+      },
+      'CRM Agent': {
+        purpose: 'Manages CRM hygiene, segments and pipelines.',
+        capabilities: [
+          'Enrich records and dedupe entries',
+          'Manage deal stages and pipeline health',
+          'Run segmentation and sync with other systems'
+        ]
+      },
+      'CRM Automation Agent': {
+        purpose: 'Automates CRM workflows and routing logic.',
+        capabilities: [
+          'Build triggers and routing rules',
+          'Auto-assign leads and create follow-up tasks',
+          'Sync CRM events across tools'
+        ]
+      },
+      'Customer Intelligence Agent': {
+        purpose: '360° view of customers; journey mapping and health scoring.',
+        capabilities: [
+          'Build unified customer profiles and LTV calculations',
+          'Map journeys and identify friction points',
+          'Suggest retention/expansion plays'
+        ]
+      }
+      // Additional overrides can be appended as needed
+    };
+
+    const override = capabilityOverrides[selectedAgent.name];
     const activity = getAgentActivityData(selectedAgent).slice(0, 4);
     // Lightweight artifacts mock based on category
     const artifactsByCategory = {
@@ -1498,13 +1753,13 @@ const AgentsView = () => {
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-3">Description</h3>
-                  <p className="text-gray-700">{selectedAgent.description}</p>
+                  <p className="text-gray-700">{override?.purpose || selectedAgent.description}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-3">Capabilities</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                    {selectedAgent.capabilities.map(capability => (
+                    {(override?.capabilities || selectedAgent.capabilities).map(capability => (
                       <div key={capability} className="flex items-center space-x-2">
                         <CheckCircle className="w-4 h-4 text-green-500" />
                         <span className="text-gray-700">{capability}</span>
