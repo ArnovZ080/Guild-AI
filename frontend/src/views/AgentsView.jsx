@@ -1389,6 +1389,7 @@ const AgentsView = () => {
     if (!selectedAgent) return null;
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
+    const [modalActive, setModalActive] = useState(selectedAgent.status === 'active');
     // Suggested integrations by category (display purpose only)
     const suggestedIntegrationsByCategory = {
       marketing: ['Buffer', 'Hootsuite', 'Gmail', 'LinkedIn'],
@@ -1553,14 +1554,24 @@ const AgentsView = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <button 
-                    onClick={() => handleActivateAgent(selectedAgent)}
-                    className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
-                  >
-                    <Play className="w-4 h-4" />
-                    <span>Activate Agent</span>
-                  </button>
+              <div className="space-y-3">
+                  {selectedAgent._entitled && (
+                    <button 
+                      onClick={() => {
+                        setModalActive(prev => !prev);
+                        triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                          message: `${selectedAgent.name} ${modalActive ? 'paused' : 'started'}!`,
+                          intensity: 'normal'
+                        });
+                        // reflect status locally so badges update
+                        setSelectedAgent(prev => prev ? { ...prev, status: modalActive ? 'inactive' : 'active' } : prev);
+                      }}
+                      className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${modalActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+                    >
+                      {modalActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      <span>{modalActive ? 'Pause' : 'Start'}</span>
+                    </button>
+                  )}
                   <button 
                     onClick={() => handleConfigureAgent(selectedAgent)}
                     className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
