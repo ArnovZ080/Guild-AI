@@ -1032,8 +1032,9 @@ const AgentsView = () => {
     });
     return Array.from(byName.values());
   })() : (() => {
-    // API unavailable: fabricate a minimal list from Base Pack so UI still shows included block
-    return basePackAgentNames.map(name => ({
+    // API unavailable: show Base Pack as included and all other local agents as hireable
+    const rates = getTierRates(tier);
+    const baseIncluded = basePackAgentNames.map(name => ({
       id: `base-${name}`,
       agent_id: `base-${name}`,
       name,
@@ -1044,8 +1045,28 @@ const AgentsView = () => {
       included_in_subscription: true,
       hired_until: null,
       daily_rate_usd: 0,
-      monthly_rate_usd: 0
+      monthly_rate_usd: 0,
+      can_hire_daily: false,
+      can_hire_monthly: false
     }));
+    const otherLocal = allAgents
+      .filter(a => !basePackAgentNames.includes(a.name))
+      .map(a => ({
+        id: a.id,
+        agent_id: a.id,
+        name: a.name,
+        category: a.category,
+        type: a.type,
+        description: a.description,
+        capabilities: a.capabilities,
+        included_in_subscription: false,
+        hired_until: null,
+        daily_rate_usd: rates.daily,
+        monthly_rate_usd: rates.monthly,
+        can_hire_daily: true,
+        can_hire_monthly: true
+      }));
+    return [...baseIncluded, ...otherLocal];
   })();
 
   // Filter agents based on search and filters
