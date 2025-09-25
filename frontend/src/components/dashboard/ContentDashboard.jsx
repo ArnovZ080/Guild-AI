@@ -27,7 +27,8 @@ import {
   ArrowDownRight,
   Activity,
   Settings,
-  Plus
+  Plus,
+  X
 } from 'lucide-react';
 
 // Import API hooks
@@ -48,6 +49,9 @@ const ContentDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d');
   const [expandedContent, setExpandedContent] = useState(new Set());
+  const [selectedInsight, setSelectedInsight] = useState(null);
+  const [selectedAction, setSelectedAction] = useState(null);
+  const [isOrchestrating, setIsOrchestrating] = useState(false);
 
   // API hooks with real-time updates
   const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();
@@ -113,6 +117,48 @@ const ContentDashboard = () => {
       await executeAction(`campaign_${action}`, { campaign_id: campaignId });
     } catch (error) {
       console.error('Campaign action failed:', error);
+    }
+  };
+
+  const handleRepeatStrategy = async (insight) => {
+    setIsOrchestrating(true);
+    try {
+      // Send command to orchestrator agent to repeat successful strategy
+      await executeAction('repeat_strategy', {
+        insight_id: insight.id,
+        strategy_type: insight.type,
+        target_improvement: insight.target_improvement,
+        agents_involved: insight.agents_involved,
+        content_attribution: insight.content_attribution
+      });
+      
+      // Show success message
+      console.log('Strategy repeat initiated successfully');
+    } catch (error) {
+      console.error('Failed to repeat strategy:', error);
+    } finally {
+      setIsOrchestrating(false);
+    }
+  };
+
+  const handleExecuteAction = async (action) => {
+    setIsOrchestrating(true);
+    try {
+      // Send command to orchestrator agent to execute improvement workflow
+      await executeAction('execute_improvement_workflow', {
+        action_id: action.id,
+        action_type: action.type,
+        target_metrics: action.target_metrics,
+        agents_involved: action.agents_involved,
+        workflow_steps: action.workflow_steps
+      });
+      
+      // Show success message
+      console.log('Improvement workflow initiated successfully');
+    } catch (error) {
+      console.error('Failed to execute improvement workflow:', error);
+    } finally {
+      setIsOrchestrating(false);
     }
   };
 
@@ -331,6 +377,26 @@ const ContentDashboard = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Insight Details Modal */}
+      {selectedInsight && (
+        <InsightDetailsModal
+          insight={selectedInsight}
+          onClose={() => setSelectedInsight(null)}
+          onRepeatStrategy={handleRepeatStrategy}
+          isOrchestrating={isOrchestrating}
+        />
+      )}
+
+      {/* Action Details Modal */}
+      {selectedAction && (
+        <ActionDetailsModal
+          action={selectedAction}
+          onClose={() => setSelectedAction(null)}
+          onExecuteAction={handleExecuteAction}
+          isOrchestrating={isOrchestrating}
+        />
+      )}
     </div>
   );
 };
@@ -515,9 +581,31 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
           </h3>
           <div className="space-y-3">
             {contentAnalysis.key_insights.map((insight, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <p className="text-gray-700">{insight}</p>
+              <div key={index} className="flex items-start justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-start space-x-3 flex-1">
+                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-gray-700">{insight}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedInsight({
+                    id: `insight_${index}`,
+                    text: insight,
+                    type: 'performance_insight',
+                    target_improvement: '15-25%',
+                    agents_involved: ['Content Intelligence Agent', 'Strategy Agent', 'Content Creator Agent'],
+                    content_attribution: [
+                      { platform: 'Instagram', content_type: 'Reels', performance: '+300% engagement' },
+                      { platform: 'LinkedIn', content_type: 'Articles', performance: '+150% lead quality' }
+                    ],
+                    kpis: [
+                      { metric: 'Engagement Rate', current: '8.5%', target: '5.0%', improvement: '+70%' },
+                      { metric: 'Lead Quality', current: 'High', target: 'Medium', improvement: '+200%' }
+                    ]
+                  })}
+                  className="ml-3 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
+                >
+                  Details
+                </button>
               </div>
             ))}
           </div>
@@ -533,9 +621,37 @@ const ContentOverviewTab = ({ contentAnalysis }) => {
           </h3>
           <div className="space-y-3">
             {contentAnalysis.immediate_actions.map((action, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                <Clock className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-red-700 font-medium">{action}</p>
+              <div key={index} className="flex items-start justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-start space-x-3 flex-1">
+                  <Clock className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-700 font-medium">{action}</p>
+                </div>
+                <button
+                  onClick={() => setSelectedAction({
+                    id: `action_${index}`,
+                    text: action,
+                    type: 'improvement_action',
+                    target_metrics: [
+                      { metric: 'Instagram Reels Content', current: '30%', target: '70%', gap: '40%' },
+                      { metric: 'Engagement Rate', current: '4.8%', target: '5.0%', gap: '0.2%' }
+                    ],
+                    agents_involved: ['Orchestrator Agent', 'Strategy Agent', 'Content Creator Agent', 'Social Media Agent'],
+                    content_analysis: [
+                      { platform: 'Instagram', issue: 'Low Reels content ratio', impact: 'Reduced engagement' },
+                      { platform: 'LinkedIn', issue: 'Article headlines not optimized', impact: 'Lower reach' }
+                    ],
+                    workflow_steps: [
+                      'Analyze current content mix',
+                      'Develop Reels-focused strategy',
+                      'Create content calendar',
+                      'Execute content creation',
+                      'Monitor performance'
+                    ]
+                  })}
+                  className="ml-3 px-3 py-1 text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
+                >
+                  Details
+                </button>
               </div>
             ))}
           </div>
@@ -913,5 +1029,254 @@ const ContentDashboardSkeleton = () => (
     </div>
   </div>
 );
+
+// Insight Details Modal Component
+const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrating }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <CheckCircle className="w-6 h-6 text-green-500 mr-3" />
+              Strategy Insight Details
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Insight Summary */}
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-2">Insight Summary</h3>
+              <p className="text-green-700">{insight.text}</p>
+            </div>
+
+            {/* KPIs and Performance */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-3">Key Performance Indicators</h3>
+                <div className="space-y-2">
+                  {insight.kpis?.map((kpi, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">{kpi.metric}</span>
+                      <div className="text-right">
+                        <span className="font-medium text-gray-900">{kpi.current}</span>
+                        <span className="text-xs text-gray-500 ml-2">Target: {kpi.target}</span>
+                        <span className="text-xs text-green-600 ml-2">({kpi.improvement})</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-3">Agents Involved</h3>
+                <div className="space-y-2">
+                  {insight.agents_involved?.map((agent, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-gray-700">{agent}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Content Attribution */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-3">Content Attribution</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {insight.content_attribution?.map((content, index) => (
+                  <div key={index} className="bg-white p-3 rounded border">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="font-medium text-gray-900 capitalize">{content.platform}</span>
+                        <span className="text-gray-600 ml-2 capitalize">{content.content_type}</span>
+                      </div>
+                      <span className="text-green-600 font-medium">{content.performance}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Target Improvement */}
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-yellow-800 mb-2">Target Improvement</h3>
+              <p className="text-yellow-700">Expected improvement: {insight.target_improvement}</p>
+            </div>
+
+            {/* Action Button */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => onRepeatStrategy(insight)}
+                disabled={isOrchestrating}
+                className="px-6 py-2 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors flex items-center space-x-2"
+              >
+                {isOrchestrating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Orchestrating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    <span>Repeat Strategy</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Action Details Modal Component
+const ActionDetailsModal = ({ action, onClose, onExecuteAction, isOrchestrating }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <AlertTriangle className="w-6 h-6 text-red-500 mr-3" />
+              Action Required Details
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Action Summary */}
+            <div className="bg-red-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-red-800 mb-2">Action Required</h3>
+              <p className="text-red-700">{action.text}</p>
+            </div>
+
+            {/* Target Metrics */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-3">Target Metrics & Gaps</h3>
+              <div className="space-y-3">
+                {action.target_metrics?.map((metric, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-white rounded border">
+                    <div>
+                      <span className="font-medium text-gray-900">{metric.metric}</span>
+                      <div className="text-sm text-gray-600">
+                        Current: {metric.current} | Target: {metric.target}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-red-600 font-medium">Gap: {metric.gap}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Agents Involved */}
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-3">Agents Involved in Workflow</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {action.agents_involved?.map((agent, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm text-blue-700">{agent}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Content Analysis */}
+            <div className="bg-yellow-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-yellow-800 mb-3">Content Analysis & Issues</h3>
+              <div className="space-y-2">
+                {action.content_analysis?.map((analysis, index) => (
+                  <div key={index} className="bg-white p-3 rounded border">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-medium text-gray-900 capitalize">{analysis.platform}</span>
+                        <p className="text-sm text-gray-600 mt-1">{analysis.issue}</p>
+                      </div>
+                      <span className="text-red-600 text-sm font-medium">{analysis.impact}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Workflow Steps */}
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-green-800 mb-3">Planned Workflow Steps</h3>
+              <div className="space-y-2">
+                {action.workflow_steps?.map((step, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                      {index + 1}
+                    </div>
+                    <span className="text-green-700">{step}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => onExecuteAction(action)}
+                disabled={isOrchestrating}
+                className="px-6 py-2 bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-md transition-colors flex items-center space-x-2"
+              >
+                {isOrchestrating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Orchestrating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    <span>Execute Action</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
 
 export default ContentDashboard;
