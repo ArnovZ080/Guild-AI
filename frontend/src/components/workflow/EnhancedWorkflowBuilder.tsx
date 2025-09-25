@@ -438,7 +438,7 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
       case 'executing': return <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />;
       case 'completed': return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'error': return <AlertCircle className="w-4 h-4 text-red-500" />;
-      default: return <Clock className="w-4 h-4 text-gray-400" />;
+      default: return null; // Avoid duplicate clock; schedule button shows clock explicitly
     }
   };
 
