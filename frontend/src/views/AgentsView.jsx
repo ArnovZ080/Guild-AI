@@ -1269,7 +1269,7 @@ const AgentsView = () => {
             <>
               <button 
                 className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
-                onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+                onClick={(e) => { e.stopPropagation(); setSelectedAgent({ ...agent, _entitled: true, _hasHistory: true, _raw: rawAgent }); }}
                 title="Details"
               >
                 Details
@@ -1296,7 +1296,11 @@ const AgentsView = () => {
             <div className="grid grid-cols-2 gap-2 col-span-2">
               <button 
                 className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
-                onClick={(e) => { e.stopPropagation(); setSelectedAgent(agent); }}
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  const previouslyHired = Boolean(rawAgent && (rawAgent.last_hired_at || (rawAgent.hired_until && new Date(rawAgent.hired_until) < new Date())));
+                  setSelectedAgent({ ...agent, _entitled: false, _hasHistory: previouslyHired, _raw: rawAgent }); 
+                }}
                 title="Details"
               >
                 Details
@@ -1484,34 +1488,43 @@ const AgentsView = () => {
                   <p className="text-xs text-gray-500 mt-2">Suggested integrations based on this agent's category.</p>
                 </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Recent Activity</h3>
-                  <div className="space-y-3">
-                    {activity.map(item => (
-                      <div key={item.id} className="border rounded p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium text-gray-900">{item.action}</span>
-                          <span className={`px-2 py-0.5 text-[10px] rounded-full ${
-                            item.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            item.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
-                          }`}>{item.status}</span>
-                        </div>
-                        <div className="text-xs text-gray-500 mb-1">{item.timestamp}</div>
-                        <div className="text-sm text-gray-700">{item.details}</div>
+                {(selectedAgent._entitled || selectedAgent._hasHistory) ? (
+                  <>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">Recent Activity</h3>
+                      <div className="space-y-3">
+                        {activity.map(item => (
+                          <div key={item.id} className="border rounded p-3">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-gray-900">{item.action}</span>
+                              <span className={`px-2 py-0.5 text-[10px] rounded-full ${
+                                item.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                item.status === 'in_progress' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'
+                              }`}>{item.status}</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-1">{item.timestamp}</div>
+                            <div className="text-sm text-gray-700">{item.details}</div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
 
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">Artifacts</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {artifacts.map(name => (
-                      <span key={name} className="px-2 py-1 bg-white border rounded text-xs text-gray-700">{name}</span>
-                    ))}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h3 className="text-lg font-semibold mb-3">Artifacts</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {artifacts.map(name => (
+                          <span key={name} className="px-2 py-1 bg-white border rounded text-xs text-gray-700">{name}</span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Artifacts this agent produced previously.</p>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-2">History & Artifacts</h3>
+                    <p className="text-sm text-gray-700">No history yet. Hire this agent to generate work history and artifacts.</p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Artifacts this agent commonly produces.</p>
-                </div>
+                )}
               </div>
 
               {/* Sidebar */}
