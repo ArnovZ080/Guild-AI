@@ -173,7 +173,11 @@ const ContentDashboard = () => {
     campaigns: campaigns
   };
 
+  // Debug state
+  console.log('ContentDashboard render - selectedInsight:', selectedInsight, 'selectedAction:', selectedAction);
+
   return (
+    <>
     <div className="space-y-4 md:space-y-6 p-4 md:p-6">
       {/* Content Health Header */}
       <motion.div
@@ -378,29 +382,31 @@ const ContentDashboard = () => {
         )}
       </AnimatePresence>
 
-      {/* Modals */}
-      <AnimatePresence>
-        {/* Insight Details Modal */}
-        {selectedInsight && (
-          <InsightDetailsModal
-            insight={selectedInsight}
-            onClose={() => setSelectedInsight(null)}
-            onRepeatStrategy={handleRepeatStrategy}
-            isOrchestrating={isOrchestrating}
-          />
-        )}
-
-        {/* Action Details Modal */}
-        {selectedAction && (
-          <ActionDetailsModal
-            action={selectedAction}
-            onClose={() => setSelectedAction(null)}
-            onExecuteAction={handleExecuteAction}
-            isOrchestrating={isOrchestrating}
-          />
-        )}
-      </AnimatePresence>
     </div>
+
+    {/* Modals - Outside main container */}
+    <AnimatePresence>
+      {/* Insight Details Modal */}
+      {selectedInsight && (
+        <InsightDetailsModal
+          insight={selectedInsight}
+          onClose={() => setSelectedInsight(null)}
+          onRepeatStrategy={handleRepeatStrategy}
+          isOrchestrating={isOrchestrating}
+        />
+      )}
+
+      {/* Action Details Modal */}
+      {selectedAction && (
+        <ActionDetailsModal
+          action={selectedAction}
+          onClose={() => setSelectedAction(null)}
+          onExecuteAction={handleExecuteAction}
+          isOrchestrating={isOrchestrating}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 };
 
@@ -1042,8 +1048,14 @@ const ContentDashboardSkeleton = () => (
 // Insight Details Modal Component
 const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrating }) => {
   console.log('InsightDetailsModal rendering with insight:', insight);
+  
+  if (!insight) {
+    console.log('No insight provided to modal');
+    return null;
+  }
+  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -1162,8 +1174,14 @@ const InsightDetailsModal = ({ insight, onClose, onRepeatStrategy, isOrchestrati
 // Action Details Modal Component
 const ActionDetailsModal = ({ action, onClose, onExecuteAction, isOrchestrating }) => {
   console.log('ActionDetailsModal rendering with action:', action);
+  
+  if (!action) {
+    console.log('No action provided to modal');
+    return null;
+  }
+  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
