@@ -1253,7 +1253,8 @@ const AgentsView = () => {
             </div>
             {wfError && <div className="text-sm text-red-600 mb-3">{wfError}</div>}
             {(() => {
-              const listToShow = (Array.isArray(workflows) && workflows.length >= 3) ? workflows : demoWorkflows;
+              // Show exactly what the API returns (1..n). Only use demo when none.
+              const listToShow = (Array.isArray(workflows) && workflows.length > 0) ? workflows : demoWorkflows;
               return (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <AnimatePresence>
