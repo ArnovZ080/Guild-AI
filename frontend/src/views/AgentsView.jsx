@@ -461,7 +461,7 @@ const AgentsView = () => {
 
   const WorkflowCard = ({ workflow, isSelected }) => (
     <motion.div
-      className={`bg-white rounded-lg p-6 transition-shadow cursor-pointer ${isSelected ? 'border-2 border-blue-600 shadow-xl' : 'border hover:shadow-xl'}`}
+      className={`bg-white rounded-lg p-6 transition-shadow cursor-pointer ${isSelected ? 'border-4 border-blue-600 ring-4 ring-blue-200 ring-offset-2 shadow-2xl' : 'border hover:shadow-xl'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
