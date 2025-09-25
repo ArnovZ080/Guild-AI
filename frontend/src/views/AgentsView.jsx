@@ -1428,7 +1428,7 @@ const AgentsView = () => {
 
           <div className="">
             <div className="flex items-center justify-between mb-4 px-1">
-              <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Autonomous Workflows (v2)</h2>
               {wfLoading && <span className="text-sm text-gray-500">Refreshing…</span>}
             </div>
             {wfError && <div className="text-sm text-red-600 mb-3 px-1">{wfError}</div>}
