@@ -564,7 +564,7 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
         <div className="flex items-center gap-1">
           {getStatusIcon(data.status)}
           <button
-            onClick={() => setScheduleOpen(true)}
+            onClick={() => rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, _scheduleOpen: true } } : n))}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             title="Schedule"
             aria-label="Schedule"
@@ -1597,13 +1597,13 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       )}
 
       {/* Scheduling Modal */}
-      {(typeof scheduleOpen !== 'undefined' ? scheduleOpen : false) && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={() => setScheduleOpen(false)}>
+      {Boolean(data._scheduleOpen) && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-[9999]" onClick={() => rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, _scheduleOpen: false } } : n))}>
           <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-lg font-bold">Schedule {data.label}</h3>
               <button
-                onClick={() => setScheduleOpen(false)}
+                onClick={() => rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, _scheduleOpen: false } } : n))}
                 className="text-gray-500 hover:text-gray-700"
                 aria-label="Close"
               >
@@ -1642,12 +1642,11 @@ const EnhancedWorkflowBuilder: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-4">
-              <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100" onClick={() => setScheduleOpen(false)}>Close</button>
+              <button className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100" onClick={() => rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, _scheduleOpen: false } } : n))}>Close</button>
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 onClick={() => {
-                  rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, schedule: { time: scheduleTime, days: scheduleDays, datetime: scheduleDateTime } } } : n));
-                  setScheduleOpen(false);
+                  rf.setNodes((nds) => nds.map((n) => n.id === id ? { ...n, data: { ...n.data, schedule: { time: scheduleTime, days: scheduleDays, datetime: scheduleDateTime }, _scheduleOpen: false } } : n));
                 }}
               >
                 Save schedule
