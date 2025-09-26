@@ -977,7 +977,17 @@ const ContentDetailsModal = ({ content, onClose, onReplicate, isOrchestrating })
             )}
 
             {/* Actions */}
-            <div className="flex justify-end space-x-3">
+            <div className="flex flex-wrap justify-end gap-3">
+              <button
+                onClick={() => {
+                  const copy = { ...content, content_id: `dup_${Date.now()}`, status: 'draft', scheduled_date: new Date().toISOString() };
+                  setLocalCalendar(prev => [copy, ...prev]);
+                }}
+                className="px-3 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 rounded-md transition-colors flex items-center space-x-2"
+              >
+                <Copy className="w-4 h-4" />
+                <span>Duplicate</span>
+              </button>
               <button
                 onClick={onClose}
                 className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
@@ -1134,6 +1144,21 @@ const ContentCalendarTab = ({ calendar }) => {
       setLocalCalendar(calendar.calendar);
     }
   }, [calendar]);
+
+  // Editorial Guidelines (from onboarding)
+  const getEditorialGuidelines = () => {
+    try {
+      const data = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+      const brandVoice = data.brandVoice || data.answers?.[11] || '';
+      const keywords = data.brandKeywords || [];
+      const dos = data.brandDos || [];
+      const donts = data.brandDonts || [];
+      return { brandVoice, keywords, dos, donts };
+    } catch (e) {
+      return { brandVoice: '', keywords: [], dos: [], donts: [] };
+    }
+  };
+  const editorial = getEditorialGuidelines();
 
   // Filter content based on search and filters
   const filteredCalendar = localCalendar.filter(item => {
@@ -1499,6 +1524,35 @@ const ContentCalendarTab = ({ calendar }) => {
                 {filteredCalendar.filter(item => item.ai_generated).length}
               </div>
               <div className="text-sm text-gray-600">AI Generated</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Editorial Guidelines */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Editorial Guidelines</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Brand Voice</div>
+              <div className="text-gray-700 whitespace-pre-line">{editorial.brandVoice || 'No brand voice found. Set during onboarding.'}</div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Keywords</div>
+              <div className="text-gray-700">{Array.isArray(editorial.keywords) && editorial.keywords.length > 0 ? editorial.keywords.join(', ') : '—'}</div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Do’s & Don’ts</div>
+              <div className="text-gray-700">
+                {Array.isArray(editorial.dos) && editorial.dos.length > 0 && (
+                  <div className="mb-1"><span className="font-medium">Do:</span> {editorial.dos.join(', ')}</div>
+                )}
+                {Array.isArray(editorial.donts) && editorial.donts.length > 0 && (
+                  <div><span className="font-medium">Don’t:</span> {editorial.donts.join(', ')}</div>
+                )}
+                {(!editorial.dos || editorial.dos.length === 0) && (!editorial.donts || editorial.donts.length === 0) && '—'}
+              </div>
             </div>
           </div>
         </div>
@@ -2956,7 +3010,9 @@ const EditContentModal = ({ content, onClose, onSave }) => {
     theme: content?.theme || '',
     content_preview: content?.content_preview || '',
     scheduled_date: content?.scheduled_date ? new Date(content.scheduled_date).toISOString().slice(0, 16) : '',
-    priority: content?.priority || 'medium'
+    priority: content?.priority || 'medium',
+    approval_status: content?.approval_status || 'needs_review', // needs_review, approved, changes_requested
+    reviewer_notes: content?.reviewer_notes || ''
   });
 
   const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
@@ -3073,6 +3129,32 @@ const EditContentModal = ({ content, onClose, onSave }) => {
                 placeholder="Describe your content..."
                 required
               />
+            </div>
+
+            {/* Approval Fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Approval Status</label>
+                <select
+                  value={formData.approval_status}
+                  onChange={(e) => setFormData({ ...formData, approval_status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="needs_review">Needs Review</option>
+                  <option value="approved">Approved</option>
+                  <option value="changes_requested">Changes Requested</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Reviewer Notes</label>
+                <textarea
+                  value={formData.reviewer_notes}
+                  onChange={(e) => setFormData({ ...formData, reviewer_notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  rows={3}
+                  placeholder="Add notes for the creator..."
+                />
+              </div>
             </div>
 
             <div>
