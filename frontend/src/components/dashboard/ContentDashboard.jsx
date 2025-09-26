@@ -30,7 +30,55 @@ import {
   Activity,
   Settings,
   Plus,
-  X
+  X,
+  List,
+  Grid3X3,
+  Bell,
+  Search,
+  Filter,
+  Edit,
+  Trash2,
+  Check,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  ArrowUp,
+  ArrowDown,
+  Minus,
+  RefreshCw,
+  Square,
+  RotateCcw,
+  Copy,
+  ExternalLink,
+  Link,
+  Video,
+  FileText,
+  Mic,
+  Headphones,
+  Camera,
+  Smartphone,
+  Monitor,
+  Globe,
+  Send,
+  Star,
+  Bookmark,
+  Tag,
+  Hash,
+  AtSign,
+  Percent,
+  Layers,
+  MoreHorizontal,
+  MoreVertical,
+  ArrowRight,
+  ArrowLeft,
+  Info,
+  HelpCircle,
+  ThumbsUp,
+  ThumbsDown,
+  MessageSquare,
+  Phone
 } from 'lucide-react';
 
 // Import API hooks
@@ -2814,6 +2862,7 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
   const [workflowSteps, setWorkflowSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedContent, setGeneratedContent] = useState([]);
+  const [isRefiningAudience, setIsRefiningAudience] = useState(false);
   const [formData, setFormData] = useState({
     business_objectives: '',
     target_audience: '',
@@ -2827,6 +2876,41 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
     trending_topics: false,
     seasonal_content: false
   });
+
+  // Get stored audience data from onboarding
+  const getStoredAudienceData = () => {
+    try {
+      const onboardingData = localStorage.getItem('guild_onboarding_data');
+      if (onboardingData) {
+        const data = JSON.parse(onboardingData);
+        return {
+          idealClient: data.idealClient || data.answers?.[3] || '',
+          clientAvatar: data.clientAvatar || data.answers?.[4] || '',
+          businessType: data.businessType || data.answers?.[0] || '',
+          brandVoice: data.brandVoice || data.answers?.[11] || '',
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing onboarding data:', error);
+    }
+    return {
+      idealClient: '',
+      clientAvatar: '',
+      businessType: '',
+      brandVoice: ''
+    };
+  };
+
+  // Initialize with stored audience data
+  useEffect(() => {
+    const storedData = getStoredAudienceData();
+    setFormData(prev => ({
+      ...prev,
+      target_audience: storedData.idealClient || storedData.clientAvatar || '',
+      business_objectives: storedData.businessType || '',
+      brand_voice: storedData.brandVoice || ''
+    }));
+  }, []);
 
   const platforms = [
     { id: 'instagram', name: 'Instagram', icon: '📸' },
@@ -3073,14 +3157,37 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
-                    <textarea
-                      value={formData.target_audience}
-                      onChange={(e) => setFormData(prev => ({ ...prev, target_audience: e.target.value }))}
-                      placeholder="e.g., Small business owners, 25-40 years old, interested in productivity..."
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      rows={3}
-                    />
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">Target Audience</label>
+                      <button
+                        type="button"
+                        onClick={() => setIsRefiningAudience(!isRefiningAudience)}
+                        className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                      >
+                        {isRefiningAudience ? 'Use Default' : 'Refine Audience'}
+                      </button>
+                    </div>
+                    {!isRefiningAudience ? (
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="flex items-start space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                          <div>
+                            <p className="text-sm text-gray-700 font-medium">Using Onboarding Data</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {formData.target_audience || 'No audience data found from onboarding'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <textarea
+                        value={formData.target_audience}
+                        onChange={(e) => setFormData(prev => ({ ...prev, target_audience: e.target.value }))}
+                        placeholder="e.g., Small business owners, 25-40 years old, interested in productivity..."
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        rows={3}
+                      />
+                    )}
                   </div>
 
                   <div>
@@ -3289,6 +3396,7 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
 const AISchedulingModal = ({ onClose, onSchedule }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const [isRefiningAudience, setIsRefiningAudience] = useState(false);
   const [formData, setFormData] = useState({
     business_objectives: '',
     target_audience: '',
@@ -3297,6 +3405,40 @@ const AISchedulingModal = ({ onClose, onSchedule }) => {
     timeframe: '30d',
     content_frequency: 'medium'
   });
+
+  // Get stored audience data from onboarding
+  const getStoredAudienceData = () => {
+    try {
+      const onboardingData = localStorage.getItem('guild_onboarding_data');
+      if (onboardingData) {
+        const data = JSON.parse(onboardingData);
+        return {
+          idealClient: data.idealClient || data.answers?.[3] || '', // Question 4: "Who is your ideal client for your product or service?"
+          clientAvatar: data.clientAvatar || data.answers?.[4] || '', // Question 5: "Do you have a specific client avatar?"
+          businessType: data.businessType || data.answers?.[0] || '', // Question 1: "Tell me about your business"
+          brandVoice: data.brandVoice || data.answers?.[11] || '', // Question 12: "Tell me more about your brand"
+        };
+      }
+    } catch (error) {
+      console.error('Error parsing onboarding data:', error);
+    }
+    return {
+      idealClient: '',
+      clientAvatar: '',
+      businessType: '',
+      brandVoice: ''
+    };
+  };
+
+  // Initialize with stored audience data
+  useEffect(() => {
+    const storedData = getStoredAudienceData();
+    setFormData(prev => ({
+      ...prev,
+      target_audience: storedData.idealClient || storedData.clientAvatar || '',
+      business_objectives: storedData.businessType || ''
+    }));
+  }, []);
 
   const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
   const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment', 'trending'];
@@ -3419,16 +3561,37 @@ const AISchedulingModal = ({ onClose, onSchedule }) => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Target Audience
-                  </label>
-                  <textarea
-                    value={formData.target_audience}
-                    onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    rows={3}
-                    placeholder="Describe your target audience..."
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">Target Audience</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsRefiningAudience(!isRefiningAudience)}
+                      className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      {isRefiningAudience ? 'Use Default' : 'Refine Audience'}
+                    </button>
+                  </div>
+                  {!isRefiningAudience ? (
+                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="flex items-start space-x-2">
+                        <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                        <div>
+                          <p className="text-sm text-gray-700 font-medium">Using Onboarding Data</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formData.target_audience || 'No audience data found from onboarding'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <textarea
+                      value={formData.target_audience}
+                      onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      rows={3}
+                      placeholder="Describe your target audience..."
+                    />
+                  )}
                 </div>
 
                 <div>
