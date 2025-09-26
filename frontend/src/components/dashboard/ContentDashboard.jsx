@@ -1063,7 +1063,7 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
 
 // Enhanced Content Calendar Tab Component
 const ContentCalendarTab = ({ calendar }) => {
-  const [viewMode, setViewMode] = useState('month'); // month, week, day
+  const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedContent, setSelectedContent] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -1076,9 +1076,10 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showAISchedulingModal, setShowAISchedulingModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [showAutonomousModal, setShowAutonomousModal] = useState(false);
 
   const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
-  const statuses = ['all', 'scheduled', 'published', 'draft'];
+  const statuses = ['all', 'idea', 'draft', 'review', 'scheduled', 'published', 'archived'];
 
   // Update local calendar when prop changes
   useEffect(() => {
@@ -1233,9 +1234,63 @@ const ContentCalendarTab = ({ calendar }) => {
     }
   };
 
+  // Get upcoming deadlines and reminders
+  const getUpcomingDeadlines = () => {
+    const now = new Date();
+    const deadlines = [];
+
+    // Check for content due for review
+    filteredCalendar.forEach(content => {
+      const scheduledDate = new Date(content.scheduled_date);
+      const daysUntil = Math.ceil((scheduledDate - now) / (1000 * 60 * 60 * 24));
+      
+      if (content.status === 'draft' && daysUntil <= 2 && daysUntil >= 0) {
+        deadlines.push({
+          title: `${content.platform} ${content.content_type} needs review`,
+          description: `"${content.content_preview.substring(0, 50)}..."`,
+          dueDate: scheduledDate.toLocaleDateString(),
+          timeRemaining: daysUntil === 0 ? 'Due today' : `${daysUntil} day${daysUntil === 1 ? '' : 's'} left`,
+          urgency: daysUntil === 0 ? 'high' : 'medium'
+        });
+      }
+      
+      if (content.status === 'review' && daysUntil <= 1 && daysUntil >= 0) {
+        deadlines.push({
+          title: `${content.platform} ${content.content_type} ready to publish`,
+          description: `"${content.content_preview.substring(0, 50)}..."`,
+          dueDate: scheduledDate.toLocaleDateString(),
+          timeRemaining: daysUntil === 0 ? 'Due today' : `${daysUntil} day${daysUntil === 1 ? '' : 's'} left`,
+          urgency: daysUntil === 0 ? 'high' : 'medium'
+        });
+      }
+    });
+
+    // Check for overdue content
+    filteredCalendar.forEach(content => {
+      const scheduledDate = new Date(content.scheduled_date);
+      const daysOverdue = Math.ceil((now - scheduledDate) / (1000 * 60 * 60 * 24));
+      
+      if ((content.status === 'draft' || content.status === 'review') && daysOverdue > 0) {
+        deadlines.push({
+          title: `Overdue: ${content.platform} ${content.content_type}`,
+          description: `"${content.content_preview.substring(0, 50)}..."`,
+          dueDate: scheduledDate.toLocaleDateString(),
+          timeRemaining: `${daysOverdue} day${daysOverdue === 1 ? '' : 's'} overdue`,
+          urgency: 'high'
+        });
+      }
+    });
+
+    return deadlines.sort((a, b) => {
+      if (a.urgency === 'high' && b.urgency !== 'high') return -1;
+      if (b.urgency === 'high' && a.urgency !== 'high') return 1;
+      return 0;
+    });
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-6">
+    <div className="space-y-6">
       {/* Enhanced Header with Controls */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
@@ -1253,7 +1308,9 @@ const ContentCalendarTab = ({ calendar }) => {
               {[
                 { id: 'month', label: 'Month', icon: Calendar },
                 { id: 'week', label: 'Week', icon: Clock },
-                { id: 'day', label: 'Day', icon: Target }
+                { id: 'day', label: 'Day', icon: Target },
+                { id: 'list', label: 'List', icon: List },
+                { id: 'kanban', label: 'Kanban', icon: Grid3X3 }
               ].map(mode => {
                 const Icon = mode.icon;
                 return (
@@ -1317,6 +1374,15 @@ const ContentCalendarTab = ({ calendar }) => {
               Analytics
             </button>
 
+            {/* Autonomous Content Creation Button */}
+            <button 
+              onClick={() => setShowAutonomousModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              Autonomous Content
+            </button>
+
             {/* AI-Powered Scheduling Button */}
             <button 
               onClick={() => setShowAISchedulingModal(true)}
@@ -1331,12 +1397,12 @@ const ContentCalendarTab = ({ calendar }) => {
               onClick={() => setShowCreateModal(true)}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
             >
-              <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
               Create Content
-            </button>
+          </button>
           </div>
         </div>
-
+        
         {/* Filters and Search */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
           {/* Select All Checkbox */}
@@ -1422,20 +1488,66 @@ const ContentCalendarTab = ({ calendar }) => {
           </div>
         </div>
 
+        {/* Upcoming Deadlines & Reminders */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Bell className="w-5 h-5 text-orange-500 mr-2" />
+              Upcoming Deadlines & Reminders
+            </h3>
+            <span className="text-sm text-gray-500">
+              {getUpcomingDeadlines().length} items need attention
+            </span>
+          </div>
+          <div className="space-y-3">
+            {getUpcomingDeadlines().slice(0, 5).map((item, idx) => (
+              <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                item.urgency === 'high' ? 'border-red-500 bg-red-50' :
+                item.urgency === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                'border-blue-500 bg-blue-50'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      item.urgency === 'high' ? 'bg-red-500' :
+                      item.urgency === 'medium' ? 'bg-yellow-500' :
+                      'bg-blue-500'
+                    }`}></div>
+                    <div>
+                      <div className="font-medium text-gray-900">{item.title}</div>
+                      <div className="text-sm text-gray-600">{item.description}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-gray-900">{item.dueDate}</div>
+                    <div className="text-xs text-gray-500">{item.timeRemaining}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {getUpcomingDeadlines().length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No upcoming deadlines or reminders</p>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Calendar View */}
         {viewMode === 'month' && (
           <div className="space-y-4">
             {/* Month Header */}
-            <div className="grid grid-cols-7 gap-2 mb-4">
-              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                <div key={day} className="text-center font-medium text-gray-600 py-2">
-                  {day}
-                </div>
-              ))}
+        <div className="grid grid-cols-7 gap-2 mb-4">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+            <div key={day} className="text-center font-medium text-gray-600 py-2">
+              {day}
             </div>
-            
+          ))}
+        </div>
+        
             {/* Month Grid */}
-            <div className="grid grid-cols-7 gap-2">
+        <div className="grid grid-cols-7 gap-2">
               {viewContent.map((dayData, i) => (
                 <DroppableCalendarDay
                   key={i}
@@ -1523,14 +1635,14 @@ const ContentCalendarTab = ({ calendar }) => {
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         content.status === 'published' ? 'bg-green-100 text-green-800' :
                         content.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
+                      'bg-gray-100 text-gray-800'
+                    }`}>
                         {content.status}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                    </div>
+                  ))}
               
               {viewContent[0]?.content.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
@@ -1542,12 +1654,186 @@ const ContentCalendarTab = ({ calendar }) => {
                   >
                     Schedule Content
                   </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+        )}
+
+        {viewMode === 'list' && (
+          <div className="space-y-4">
+            {/* List Header */}
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-gray-900">All Content</h4>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {filteredCalendar.length} items
+                </span>
+              </div>
+            </div>
+            
+            {/* List Content */}
+            <div className="space-y-3">
+              {filteredCalendar.map((content, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedContent(content)}
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedItems.has(content.content_id)}
+                        onChange={(e) => handleItemSelect(content.content_id, e.target.checked)}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <div className={`w-3 h-3 rounded-full ${
+                        content.platform === 'instagram' ? 'bg-pink-500' :
+                        content.platform === 'linkedin' ? 'bg-blue-500' :
+                        content.platform === 'twitter' ? 'bg-blue-400' :
+                        content.platform === 'facebook' ? 'bg-blue-600' :
+                        content.platform === 'tiktok' ? 'bg-black' :
+                        content.platform === 'youtube' ? 'bg-red-500' :
+                        content.platform === 'email' ? 'bg-green-500' :
+                        'bg-gray-500'
+                      }`}></div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium capitalize">{content.platform}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-600 capitalize">{content.content_type}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-600">{content.theme}</span>
+                          {content.assignee && (
+                            <>
+                              <span className="text-gray-400">•</span>
+                              <span className="text-sm text-blue-600">@{content.assignee}</span>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700 mt-1">{content.content_preview}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        content.status === 'published' ? 'bg-green-100 text-green-800' :
+                        content.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        content.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                        content.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                        content.status === 'idea' ? 'bg-purple-100 text-purple-800' :
+                        content.status === 'archived' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {content.status}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {new Date(content.scheduled_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredCalendar.length === 0 && (
+                <div className="text-center py-12">
+                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No content found</h3>
+                  <p className="text-gray-600 mb-4">Try adjusting your filters or create new content</p>
+                  <button 
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Create Content
+                  </button>
                 </div>
               )}
             </div>
           </div>
         )}
+
+        {viewMode === 'kanban' && (
+          <div className="space-y-4">
+            {/* Kanban Header */}
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-gray-900">Content Pipeline</h4>
+            </div>
+            
+            {/* Kanban Board */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[
+                { id: 'idea', label: 'Ideas', color: 'bg-gray-100', textColor: 'text-gray-700' },
+                { id: 'draft', label: 'Drafts', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
+                { id: 'review', label: 'Review', color: 'bg-blue-100', textColor: 'text-blue-700' },
+                { id: 'scheduled', label: 'Scheduled', color: 'bg-green-100', textColor: 'text-green-700' }
+              ].map(column => {
+                const columnContent = filteredCalendar.filter(item => {
+                  if (column.id === 'idea') return item.status === 'idea';
+                  if (column.id === 'draft') return item.status === 'draft';
+                  if (column.id === 'review') return item.status === 'review';
+                  if (column.id === 'scheduled') return item.status === 'scheduled' || item.status === 'published';
+                  return false;
+                });
+
+                return (
+                  <div key={column.id} className="space-y-3">
+                    <div className={`p-3 rounded-lg ${column.color}`}>
+                      <div className="flex items-center justify-between">
+                        <h5 className={`font-medium ${column.textColor}`}>{column.label}</h5>
+                        <span className={`text-sm ${column.textColor} bg-white bg-opacity-50 px-2 py-1 rounded-full`}>
+                          {columnContent.length}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      {columnContent.map((content, idx) => (
+                        <div 
+                          key={idx} 
+                          onClick={() => setSelectedContent(content)}
+                          className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition-all"
+                        >
+                          <div className="flex items-start space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.has(content.content_id)}
+                              onChange={(e) => handleItemSelect(content.content_id, e.target.checked)}
+                              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  content.platform === 'instagram' ? 'bg-pink-500' :
+                                  content.platform === 'linkedin' ? 'bg-blue-500' :
+                                  content.platform === 'twitter' ? 'bg-blue-400' :
+                                  content.platform === 'facebook' ? 'bg-blue-600' :
+                                  content.platform === 'tiktok' ? 'bg-black' :
+                                  content.platform === 'youtube' ? 'bg-red-500' :
+                                  content.platform === 'email' ? 'bg-green-500' :
+                                  'bg-gray-500'
+                                }`}></div>
+                                <span className="text-sm font-medium capitalize">{content.platform}</span>
+                                <span className="text-xs text-gray-500 capitalize">{content.content_type}</span>
+                              </div>
+                              <p className="text-sm text-gray-700 mb-2 line-clamp-2">{content.content_preview}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">{content.theme}</span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(content.scheduled_date).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
+        )}
+    </div>
 
       {/* Content Details Modal */}
       {selectedContent && (
@@ -1580,6 +1866,19 @@ const ContentCalendarTab = ({ calendar }) => {
           onSave={(contentData) => {
             console.log('Updating content:', contentData);
             setShowEditModal(false);
+          }}
+        />
+      )}
+
+      {/* Autonomous Content Modal */}
+      {showAutonomousModal && (
+        <AutonomousContentModal
+          onClose={() => setShowAutonomousModal(false)}
+          onSchedule={(content) => {
+            console.log('Autonomous content generated:', content);
+            // Add autonomous content to calendar
+            setLocalCalendar(prev => [...prev, ...content]);
+            setShowAutonomousModal(false);
           }}
         />
       )}
@@ -2503,6 +2802,483 @@ const EditContentModal = ({ content, onClose, onSave }) => {
               </button>
             </div>
           </form>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Autonomous Content Creation Modal
+const AutonomousContentModal = ({ onClose, onSchedule }) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [workflowSteps, setWorkflowSteps] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [generatedContent, setGeneratedContent] = useState([]);
+  const [formData, setFormData] = useState({
+    business_objectives: '',
+    target_audience: '',
+    platforms: [],
+    content_themes: [],
+    timeframe: '30d',
+    content_frequency: 'medium',
+    campaign_goals: '',
+    brand_voice: '',
+    competitor_analysis: false,
+    trending_topics: false,
+    seasonal_content: false
+  });
+
+  const platforms = [
+    { id: 'instagram', name: 'Instagram', icon: '📸' },
+    { id: 'linkedin', name: 'LinkedIn', icon: '💼' },
+    { id: 'twitter', name: 'Twitter/X', icon: '🐦' },
+    { id: 'facebook', name: 'Facebook', icon: '📘' },
+    { id: 'tiktok', name: 'TikTok', icon: '🎵' },
+    { id: 'youtube', name: 'YouTube', icon: '📺' },
+    { id: 'pinterest', name: 'Pinterest', icon: '📌' },
+    { id: 'email', name: 'Email', icon: '📧' }
+  ];
+
+  const contentThemes = [
+    'Educational', 'Behind-the-scenes', 'User-generated content', 'Product showcases',
+    'Industry insights', 'Company culture', 'Customer stories', 'How-to guides',
+    'Trending topics', 'Seasonal content', 'Thought leadership', 'Community building'
+  ];
+
+  const workflowStepsData = [
+    {
+      id: 'content_strategist',
+      name: 'Content Strategist Agent',
+      description: 'Analyzing your business objectives and target audience to create a comprehensive content strategy...',
+      icon: '🎯',
+      duration: '2-3 minutes'
+    },
+    {
+      id: 'calendar_agent',
+      name: 'Calendar Agent',
+      description: 'Coordinating with your calendar and events to identify optimal posting times and campaign alignment...',
+      icon: '📅',
+      duration: '1-2 minutes'
+    },
+    {
+      id: 'brand_strategist',
+      name: 'Brand Strategist Agent',
+      description: 'Ensuring all content aligns with your brand voice, guidelines, and messaging framework...',
+      icon: '🎨',
+      duration: '1-2 minutes'
+    },
+    {
+      id: 'content_creation',
+      name: 'Content Creation Team',
+      description: 'Generating high-quality content across all platforms with copy, visuals, and video assets...',
+      icon: '✍️',
+      duration: '5-8 minutes'
+    },
+    {
+      id: 'judge_evaluation',
+      name: 'Judge Agent Evaluation',
+      description: 'Quality control and compliance checking to ensure all content meets standards...',
+      icon: '⚖️',
+      duration: '1-2 minutes'
+    },
+    {
+      id: 'scheduling',
+      name: 'Autonomous Scheduling',
+      description: 'Optimizing posting times and coordinating cross-platform publishing...',
+      icon: '⏰',
+      duration: '1 minute'
+    }
+  ];
+
+  const handleGenerateContent = async () => {
+    setIsGenerating(true);
+    setWorkflowSteps(workflowStepsData);
+    setCurrentStep(0);
+
+    // Simulate autonomous content generation workflow
+    for (let i = 0; i < workflowStepsData.length; i++) {
+      setCurrentStep(i);
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
+    }
+
+    // Generate mock content based on form data
+    const mockContent = generateAutonomousContent(formData);
+    setGeneratedContent(mockContent);
+    setIsGenerating(false);
+  };
+
+  const generateAutonomousContent = (data) => {
+    const content = [];
+    const platforms = data.platforms || ['instagram', 'linkedin', 'twitter'];
+    const themes = data.content_themes || ['Educational', 'Behind-the-scenes'];
+    
+    platforms.forEach(platform => {
+      themes.forEach(theme => {
+        content.push({
+          content_id: `autonomous_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          platform,
+          content_type: getContentTypeForPlatform(platform),
+          theme,
+          content_preview: generateContentPreview(platform, theme, data.business_objectives),
+          scheduled_date: generateOptimalSchedule(platform),
+          status: 'scheduled',
+          priority: 'high',
+          ai_generated: true,
+          autonomous_workflow: true,
+          agent_insights: generateAgentInsights(platform, theme),
+          engagement_estimate: generateEngagementEstimate(platform),
+          brand_compliance_score: 0.95,
+          quality_score: 0.92
+        });
+      });
+    });
+
+    return content;
+  };
+
+  const getContentTypeForPlatform = (platform) => {
+    const types = {
+      instagram: ['post', 'story', 'reel'],
+      linkedin: ['article', 'post'],
+      twitter: ['tweet', 'thread'],
+      facebook: ['post', 'story'],
+      tiktok: ['video'],
+      youtube: ['video', 'short'],
+      pinterest: ['pin'],
+      email: ['newsletter', 'campaign']
+    };
+    return types[platform]?.[Math.floor(Math.random() * types[platform].length)] || 'post';
+  };
+
+  const generateContentPreview = (platform, theme, objectives) => {
+    const previews = {
+      instagram: `📸 ${theme} content: "Transform your ${objectives.toLowerCase()} with our proven strategies. Swipe to see the complete guide! #${theme.toLowerCase().replace(' ', '')}"`,
+      linkedin: `💼 ${theme} insight: "The key to successful ${objectives.toLowerCase()} lies in understanding your audience's pain points. Here's what we've learned..."`,
+      twitter: `🐦 ${theme} tip: "Quick win: ${objectives.toLowerCase()} doesn't have to be complicated. Start with this simple framework..."`,
+      facebook: `📘 ${theme} story: "Behind the scenes of our ${objectives.toLowerCase()} journey. The ups, downs, and lessons learned..."`,
+      tiktok: `🎵 ${theme} trend: "POV: You're trying to ${objectives.toLowerCase()} but everyone's doing it wrong. Here's the right way..."`,
+      youtube: `📺 ${theme} tutorial: "Complete guide to ${objectives.toLowerCase()}. From beginner to expert in 10 minutes."`,
+      pinterest: `📌 ${theme} inspiration: "Visual guide to ${objectives.toLowerCase()}. Pin this for later reference!"`,
+      email: `📧 ${theme} newsletter: "This week's insights on ${objectives.toLowerCase()}. Plus exclusive tips for subscribers."`
+    };
+    return previews[platform] || `Content about ${theme} for ${objectives}`;
+  };
+
+  const generateOptimalSchedule = (platform) => {
+    const now = new Date();
+    const optimalTimes = {
+      instagram: { hour: 11, minute: 0 },
+      linkedin: { hour: 9, minute: 30 },
+      twitter: { hour: 12, minute: 0 },
+      facebook: { hour: 13, minute: 0 },
+      tiktok: { hour: 18, minute: 0 },
+      youtube: { hour: 15, minute: 0 },
+      pinterest: { hour: 20, minute: 0 },
+      email: { hour: 10, minute: 0 }
+    };
+    
+    const time = optimalTimes[platform] || { hour: 12, minute: 0 };
+    const scheduleDate = new Date(now.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000);
+    scheduleDate.setHours(time.hour, time.minute, 0, 0);
+    return scheduleDate.toISOString();
+  };
+
+  const generateAgentInsights = (platform, theme) => {
+    return {
+      content_strategist: `Optimized for ${theme} based on audience analysis and trending topics`,
+      brand_strategist: `Aligned with brand voice and messaging framework`,
+      calendar_agent: `Scheduled for optimal engagement time based on platform analytics`,
+      judge_agent: `Quality score: 92/100 - Excellent brand alignment and engagement potential`
+    };
+  };
+
+  const generateEngagementEstimate = (platform) => {
+    const estimates = {
+      instagram: '2.5K-5K likes, 200-500 comments',
+      linkedin: '500-1.2K reactions, 50-150 comments',
+      twitter: '300-800 retweets, 100-300 likes',
+      facebook: '400-900 reactions, 50-150 shares',
+      tiktok: '5K-15K views, 200-800 likes',
+      youtube: '1K-3K views, 50-200 likes',
+      pinterest: '200-600 saves, 50-150 clicks',
+      email: '25-40% open rate, 3-8% click rate'
+    };
+    return estimates[platform] || 'Moderate engagement expected';
+  };
+
+  const handleScheduleAll = () => {
+    onSchedule(generatedContent);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Zap className="w-6 h-6 text-green-500 mr-3" />
+              Autonomous Content Creation
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {!isGenerating && generatedContent.length === 0 && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">🤖 AI Workforce in Action</h3>
+                <p className="text-gray-700 mb-4">
+                  Our autonomous content creation system will coordinate multiple specialized agents to create, 
+                  optimize, and schedule content across all your platforms. Watch as they work together to deliver 
+                  high-performing content that aligns with your brand and business goals.
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🎯</div>
+                    <div className="text-sm font-medium">Content Strategy</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">🎨</div>
+                    <div className="text-sm font-medium">Brand Alignment</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">✍️</div>
+                    <div className="text-sm font-medium">Content Creation</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl mb-1">⚖️</div>
+                    <div className="text-sm font-medium">Quality Control</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Business Objectives</label>
+                    <textarea
+                      value={formData.business_objectives}
+                      onChange={(e) => setFormData(prev => ({ ...prev, business_objectives: e.target.value }))}
+                      placeholder="e.g., Increase brand awareness, drive sales, build community..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+                    <textarea
+                      value={formData.target_audience}
+                      onChange={(e) => setFormData(prev => ({ ...prev, target_audience: e.target.value }))}
+                      placeholder="e.g., Small business owners, 25-40 years old, interested in productivity..."
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Platforms</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {platforms.map(platform => (
+                        <label key={platform.id} className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.platforms.includes(platform.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData(prev => ({ ...prev, platforms: [...prev.platforms, platform.id] }));
+                              } else {
+                                setFormData(prev => ({ ...prev, platforms: prev.platforms.filter(p => p !== platform.id) }));
+                              }
+                            }}
+                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                          />
+                          <span className="text-sm">{platform.icon} {platform.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Content Themes</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {contentThemes.map(theme => (
+                        <label key={theme} className="flex items-center space-x-2 p-2 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.content_themes.includes(theme)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData(prev => ({ ...prev, content_themes: [...prev.content_themes, theme] }));
+                              } else {
+                                setFormData(prev => ({ ...prev, content_themes: prev.content_themes.filter(t => t !== theme) }));
+                              }
+                            }}
+                            className="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                          />
+                          <span className="text-sm">{theme}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Timeframe</label>
+                    <select
+                      value={formData.timeframe}
+                      onChange={(e) => setFormData(prev => ({ ...prev, timeframe: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="7d">1 Week</option>
+                      <option value="30d">1 Month</option>
+                      <option value="90d">3 Months</option>
+                      <option value="180d">6 Months</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Content Frequency</label>
+                    <select
+                      value={formData.content_frequency}
+                      onChange={(e) => setFormData(prev => ({ ...prev, content_frequency: e.target.value }))}
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      <option value="low">Low (1-2 posts/week)</option>
+                      <option value="medium">Medium (3-5 posts/week)</option>
+                      <option value="high">High (6-10 posts/week)</option>
+                      <option value="aggressive">Aggressive (10+ posts/week)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleGenerateContent}
+                  className="px-6 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-md hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Start Autonomous Creation
+                </button>
+              </div>
+            </div>
+          )}
+
+          {isGenerating && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Workforce in Action</h3>
+                <p className="text-gray-600">Our specialized agents are working together to create your content...</p>
+              </div>
+
+              <div className="space-y-4">
+                {workflowSteps.map((step, index) => (
+                  <div key={step.id} className={`p-4 rounded-lg border-2 transition-all ${
+                    index < currentStep ? 'border-green-200 bg-green-50' :
+                    index === currentStep ? 'border-green-400 bg-green-100' :
+                    'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${
+                        index < currentStep ? 'bg-green-500 text-white' :
+                        index === currentStep ? 'bg-green-600 text-white animate-pulse' :
+                        'bg-gray-300 text-gray-600'
+                      }`}>
+                        {index < currentStep ? '✓' : step.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-gray-900">{step.name}</h4>
+                          <span className="text-sm text-gray-500">{step.duration}</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                        {index === currentStep && (
+                          <div className="mt-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="bg-green-600 h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {generatedContent.length > 0 && (
+            <div className="space-y-6">
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Autonomous Content Generated!</h3>
+                <p className="text-green-700">
+                  Our AI workforce has created {generatedContent.length} pieces of content across {formData.platforms.length} platforms. 
+                  Each piece has been optimized for engagement and brand alignment.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="font-semibold text-gray-900">Generated Content Preview</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {generatedContent.slice(0, 4).map((content, idx) => (
+                    <div key={idx} className="p-4 border border-gray-200 rounded-lg">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className={`w-3 h-3 rounded-full ${
+                          content.platform === 'instagram' ? 'bg-pink-500' :
+                          content.platform === 'linkedin' ? 'bg-blue-500' :
+                          content.platform === 'twitter' ? 'bg-blue-400' :
+                          content.platform === 'facebook' ? 'bg-blue-600' :
+                          content.platform === 'tiktok' ? 'bg-black' :
+                          content.platform === 'youtube' ? 'bg-red-500' :
+                          content.platform === 'email' ? 'bg-green-500' :
+                          'bg-gray-500'
+                        }`}></div>
+                        <span className="font-medium capitalize">{content.platform}</span>
+                        <span className="text-sm text-gray-500 capitalize">{content.content_type}</span>
+                      </div>
+                      <p className="text-sm text-gray-700 mb-2">{content.content_preview}</p>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>{content.theme}</span>
+                        <span>Quality: {Math.round(content.quality_score * 100)}%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleScheduleAll}
+                  className="px-6 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-md hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule All Content
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
