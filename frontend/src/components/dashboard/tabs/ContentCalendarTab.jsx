@@ -405,12 +405,14 @@ const ContentCalendarTab = ({ calendar }) => {
                 const pendingApproval = filteredCalendar.find(item => item.status === 'review');
                 if (pendingApproval) {
                   handleApprovalRequest(pendingApproval);
+                } else {
+                  alert('No content in review status found. Please create content and set it to review status first.');
                 }
               }}
               className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
             >
               <CheckCircle className="w-4 h-4 mr-2" />
-              Review Pending
+              Review Pending ({filteredCalendar.filter(item => item.status === 'review').length})
             </button>
 
             {/* Create Content Button */}

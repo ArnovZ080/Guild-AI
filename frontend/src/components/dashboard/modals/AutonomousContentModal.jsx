@@ -8,6 +8,8 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedContent, setGeneratedContent] = useState([]);
   const [isRefiningAudience, setIsRefiningAudience] = useState(false);
+  const [showApprovalStep, setShowApprovalStep] = useState(false);
+  const [selectedContentForApproval, setSelectedContentForApproval] = useState(null);
   const [formData, setFormData] = useState({
     business_objectives: '',
     target_audience: '',
@@ -106,6 +108,34 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
   const handleScheduleAll = () => {
     onSchedule(generatedContent);
     onClose();
+  };
+
+  const handleApprovalRequest = (content) => {
+    setSelectedContentForApproval(content);
+    setShowApprovalStep(true);
+  };
+
+  const handleApproval = (content, action) => {
+    if (action === 'approve') {
+      // Move to approved status
+      setGeneratedContent(prev => prev.map(c => 
+        c.content_id === content.content_id 
+          ? { ...c, status: 'approved', approved_at: new Date().toISOString() }
+          : c
+      ));
+    } else if (action === 'reject') {
+      // Remove from generated content
+      setGeneratedContent(prev => prev.filter(c => c.content_id !== content.content_id));
+    } else if (action === 'edit') {
+      // Keep in draft status for editing
+      setGeneratedContent(prev => prev.map(c => 
+        c.content_id === content.content_id 
+          ? { ...c, status: 'draft', needs_editing: true }
+          : c
+      ));
+    }
+    setShowApprovalStep(false);
+    setSelectedContentForApproval(null);
   };
 
   return (
@@ -254,12 +284,35 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
                         <div className={`w-3 h-3 rounded-full ${c.platform === 'instagram' ? 'bg-pink-500' : c.platform === 'linkedin' ? 'bg-blue-500' : c.platform === 'twitter' ? 'bg-blue-400' : c.platform === 'facebook' ? 'bg-blue-600' : c.platform === 'tiktok' ? 'bg-black' : c.platform === 'youtube' ? 'bg-red-500' : c.platform === 'email' ? 'bg-green-500' : 'bg-gray-500'}`}></div>
                         <span className="font-medium capitalize">{c.platform}</span>
                         <span className="text-sm text-gray-500 capitalize">{c.content_type}</span>
+                        <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          c.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          c.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {c.status}
+                        </div>
                       </div>
                       <p className="text-sm text-gray-700 mb-2">{c.content_preview}</p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                         <span>{c.theme}</span>
                         <span>Quality: {Math.round((c.quality_score||0.9)*100)}%</span>
                       </div>
+                      {c.status !== 'approved' && (
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleApprovalRequest(c)}
+                            className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                          >
+                            Review & Approve
+                          </button>
+                          <button
+                            onClick={() => handleApproval(c, 'reject')}
+                            className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -275,6 +328,118 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
           )}
         </div>
       </motion.div>
+
+      {/* Approval Step Modal */}
+      {showApprovalStep && selectedContentForApproval && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[10000] p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                  <CheckCircle className="w-6 h-6 text-blue-500 mr-3" />
+                  Review & Approve Content
+                </h2>
+                <button 
+                  onClick={() => setShowApprovalStep(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Content Preview */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className={`w-3 h-3 rounded-full ${
+                      selectedContentForApproval.platform === 'instagram' ? 'bg-pink-500' :
+                      selectedContentForApproval.platform === 'linkedin' ? 'bg-blue-500' :
+                      selectedContentForApproval.platform === 'twitter' ? 'bg-blue-400' :
+                      selectedContentForApproval.platform === 'facebook' ? 'bg-blue-600' :
+                      selectedContentForApproval.platform === 'tiktok' ? 'bg-black' :
+                      selectedContentForApproval.platform === 'youtube' ? 'bg-red-500' :
+                      selectedContentForApproval.platform === 'email' ? 'bg-green-500' :
+                      'bg-gray-500'
+                    }`}></div>
+                    <span className="font-medium capitalize">{selectedContentForApproval.platform}</span>
+                    <span className="text-sm text-gray-500 capitalize">{selectedContentForApproval.content_type}</span>
+                    <span className="text-sm text-gray-500">•</span>
+                    <span className="text-sm text-gray-500">{selectedContentForApproval.theme}</span>
+                  </div>
+                  <div className="text-gray-800 mb-3">{selectedContentForApproval.content_preview}</div>
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <span>Quality Score: {Math.round((selectedContentForApproval.quality_score||0.9)*100)}%</span>
+                    <span>Scheduled: {new Date(selectedContentForApproval.scheduled_date).toLocaleDateString()}</span>
+                  </div>
+                </div>
+
+                {/* AI Recommendation */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                    <Zap className="w-5 h-5 text-blue-500 mr-2" />
+                    AI Recommendation
+                  </h3>
+                  <div className="bg-white p-3 rounded-lg border-l-4 border-blue-500">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">Overall Score: 92/100</span>
+                      <div className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        RECOMMENDED
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      This content aligns well with your brand voice and has high engagement potential. 
+                      The AI suggests approving this content for scheduling.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Approval Actions */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={() => handleApproval(selectedContentForApproval, 'approve')}
+                    className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+                  >
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Approve & Schedule
+                  </button>
+                  <button
+                    onClick={() => handleApproval(selectedContentForApproval, 'edit')}
+                    className="flex-1 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors flex items-center justify-center"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Edit Later
+                  </button>
+                  <button
+                    onClick={() => handleApproval(selectedContentForApproval, 'reject')}
+                    className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Reject
+                  </button>
+                </div>
+
+                <div className="p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-start">
+                    <CheckCircle className="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <div className="text-sm font-medium text-blue-900">Learning Tip</div>
+                      <div className="text-xs text-blue-700 mt-1">
+                        Notice how our AI analyzes content quality, brand alignment, and engagement potential 
+                        to provide recommendations. This helps you make informed decisions about your content.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
