@@ -21,7 +21,7 @@ import {
 const ApprovalModal = ({ content, onClose, onApprove, onReject, onRequestChanges }) => {
   const [approvalAction, setApprovalAction] = useState('');
   const [approvalComment, setApprovalComment] = useState('');
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(true);
 
   if (!content) return null;
 
