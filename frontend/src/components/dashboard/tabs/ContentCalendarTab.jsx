@@ -19,6 +19,7 @@ import CreateContentModal from '../modals/CreateContentModal';
 import EditContentModal from '../modals/EditContentModal';
 import AutonomousContentModal from '../modals/AutonomousContentModal';
 import PerformanceAnalyticsModal from '../modals/PerformanceAnalyticsModal';
+import ApprovalModal from '../modals/ApprovalModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -34,9 +35,11 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showAutonomousModal, setShowAutonomousModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalContent, setApprovalContent] = useState(null);
 
   const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
-  const statuses = ['all', 'idea', 'draft', 'review', 'scheduled', 'published', 'archived'];
+  const statuses = ['all', 'idea', 'draft', 'review', 'pending_approval', 'approved', 'scheduled', 'published', 'archived'];
 
   // Update local calendar when prop changes
   useEffect(() => {
@@ -134,6 +137,69 @@ const ContentCalendarTab = ({ calendar }) => {
   // Handle content click
   const handleContentClick = (content) => {
     setSelectedContent(content);
+  };
+
+  // Handle approval request
+  const handleApprovalRequest = (content) => {
+    setApprovalContent(content);
+    setShowApprovalModal(true);
+  };
+
+  // Handle approval actions
+  const handleApproval = (approvalData) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === approvalData.content_id 
+          ? { 
+              ...item, 
+              status: 'approved',
+              approval_history: [...(item.approval_history || []), approvalData],
+              last_approved: approvalData.timestamp,
+              approved_by: approvalData.user
+            }
+          : item
+      )
+    );
+    setShowApprovalModal(false);
+    setApprovalContent(null);
+  };
+
+  const handleRejection = (approvalData) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === approvalData.content_id 
+          ? { 
+              ...item, 
+              status: 'draft',
+              approval_history: [...(item.approval_history || []), approvalData],
+              last_rejected: approvalData.timestamp,
+              rejected_by: approvalData.user,
+              rejection_reason: approvalData.comment
+            }
+          : item
+      )
+    );
+    setShowApprovalModal(false);
+    setApprovalContent(null);
+  };
+
+  const handleRequestChanges = (approvalData) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === approvalData.content_id 
+          ? { 
+              ...item, 
+              status: 'draft',
+              approval_history: [...(item.approval_history || []), approvalData],
+              last_changes_requested: approvalData.timestamp,
+              changes_requested_by: approvalData.user,
+              changes_requested: approvalData.comment
+            }
+          : item
+      )
+    );
+    setShowApprovalModal(false);
+    setApprovalContent(null);
   };
 
   // Handle item selection for bulk operations
@@ -332,6 +398,20 @@ const ContentCalendarTab = ({ calendar }) => {
 
             
 
+            {/* Request Approval Button */}
+            <button 
+              onClick={() => {
+                const pendingApproval = filteredCalendar.find(item => item.status === 'review');
+                if (pendingApproval) {
+                  handleApprovalRequest(pendingApproval);
+                }
+              }}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Review Pending
+            </button>
+
             {/* Create Content Button */}
             <button 
               onClick={() => setShowCreateModal(true)}
@@ -400,7 +480,7 @@ const ContentCalendarTab = ({ calendar }) => {
             <BarChart3 className="w-5 h-5 text-purple-500 mr-2" />
             Content Performance Insights
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div className="bg-white p-3 rounded-lg">
               <div className="text-2xl font-bold text-purple-600">
                 {filteredCalendar.length}
@@ -424,6 +504,18 @@ const ContentCalendarTab = ({ calendar }) => {
                 {filteredCalendar.filter(item => item.ai_generated).length}
               </div>
               <div className="text-sm text-gray-600">AI Generated</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {filteredCalendar.filter(item => item.status === 'pending_approval').length}
+              </div>
+              <div className="text-sm text-gray-600">Pending Approval</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-emerald-600">
+                {filteredCalendar.filter(item => item.status === 'approved').length}
+              </div>
+              <div className="text-sm text-gray-600">Approved</div>
             </div>
           </div>
         </div>
@@ -630,7 +722,13 @@ const ContentCalendarTab = ({ calendar }) => {
                     <div className="text-right">
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         content.status === 'published' ? 'bg-green-100 text-green-800' :
-                        content.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                        content.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        content.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                        content.status === 'pending_approval' ? 'bg-orange-100 text-orange-800' :
+                        content.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                        content.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                        content.status === 'idea' ? 'bg-purple-100 text-purple-800' :
+                        content.status === 'archived' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
                         {content.status}
@@ -716,6 +814,8 @@ const ContentCalendarTab = ({ calendar }) => {
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         content.status === 'published' ? 'bg-green-100 text-green-800' :
                         content.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        content.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                        content.status === 'pending_approval' ? 'bg-orange-100 text-orange-800' :
                         content.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
                         content.status === 'draft' ? 'bg-gray-100 text-gray-800' :
                         content.status === 'idea' ? 'bg-purple-100 text-purple-800' :
@@ -756,18 +856,20 @@ const ContentCalendarTab = ({ calendar }) => {
             </div>
             
             {/* Kanban Board */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
               {[
                 { id: 'idea', label: 'Ideas', color: 'bg-gray-100', textColor: 'text-gray-700' },
                 { id: 'draft', label: 'Drafts', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
                 { id: 'review', label: 'Review', color: 'bg-blue-100', textColor: 'text-blue-700' },
+                { id: 'pending_approval', label: 'Pending Approval', color: 'bg-orange-100', textColor: 'text-orange-700' },
                 { id: 'scheduled', label: 'Scheduled', color: 'bg-green-100', textColor: 'text-green-700' }
               ].map(column => {
                 const columnContent = filteredCalendar.filter(item => {
                   if (column.id === 'idea') return item.status === 'idea';
                   if (column.id === 'draft') return item.status === 'draft';
                   if (column.id === 'review') return item.status === 'review';
-                  if (column.id === 'scheduled') return item.status === 'scheduled' || item.status === 'published';
+                  if (column.id === 'pending_approval') return item.status === 'pending_approval';
+                  if (column.id === 'scheduled') return item.status === 'scheduled' || item.status === 'published' || item.status === 'approved';
                   return false;
                 });
 
@@ -818,6 +920,18 @@ const ContentCalendarTab = ({ calendar }) => {
                                   {new Date(content.scheduled_date).toLocaleDateString()}
                                 </span>
                               </div>
+                              {/* Approval Button for Review Status */}
+                              {content.status === 'review' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApprovalRequest(content);
+                                  }}
+                                  className="mt-2 w-full px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors"
+                                >
+                                  Request Approval
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -886,6 +1000,20 @@ const ContentCalendarTab = ({ calendar }) => {
         <PerformanceAnalyticsModal
           calendar={localCalendar}
           onClose={() => setShowAnalyticsModal(false)}
+        />
+      )}
+
+      {/* Approval Modal */}
+      {showApprovalModal && approvalContent && (
+        <ApprovalModal
+          content={approvalContent}
+          onClose={() => {
+            setShowApprovalModal(false);
+            setApprovalContent(null);
+          }}
+          onApprove={handleApproval}
+          onReject={handleRejection}
+          onRequestChanges={handleRequestChanges}
         />
       )}
       </div>
