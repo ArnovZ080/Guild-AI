@@ -10,7 +10,8 @@ import {
   Plus, 
   Bell, 
   BarChart3, 
-  Zap 
+  Zap,
+  CheckCircle
 } from 'lucide-react';
 
 import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
