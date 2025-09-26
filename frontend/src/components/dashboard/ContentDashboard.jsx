@@ -1122,7 +1122,6 @@ const ContentCalendarTab = ({ calendar }) => {
   const [localCalendar, setLocalCalendar] = useState(calendar?.calendar || []);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
-  const [showAISchedulingModal, setShowAISchedulingModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showAutonomousModal, setShowAutonomousModal] = useState(false);
 
@@ -1351,32 +1350,7 @@ const ContentCalendarTab = ({ calendar }) => {
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
-            {/* View Mode Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              {[
-                { id: 'month', label: 'Month', icon: Calendar },
-                { id: 'week', label: 'Week', icon: Clock },
-                { id: 'day', label: 'Day', icon: Target },
-                { id: 'list', label: 'List', icon: List },
-                { id: 'kanban', label: 'Kanban', icon: Grid3X3 }
-              ].map(mode => {
-                const Icon = mode.icon;
-                return (
-                  <button
-                    key={mode.id}
-                    onClick={() => setViewMode(mode.id)}
-                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      viewMode === mode.id
-                        ? 'bg-white text-purple-600 shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mr-1" />
-                    {mode.label}
-                  </button>
-                );
-              })}
-            </div>
+            
 
             {/* Bulk Actions */}
             {showBulkActions && (
@@ -1431,14 +1405,7 @@ const ContentCalendarTab = ({ calendar }) => {
               Autonomous Content
             </button>
 
-            {/* AI-Powered Scheduling Button */}
-            <button 
-              onClick={() => setShowAISchedulingModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              AI Schedule
-            </button>
+            
 
             {/* Create Content Button */}
             <button 
@@ -1580,6 +1547,33 @@ const ContentCalendarTab = ({ calendar }) => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* View Mode Toggle (moved above calendar) */}
+        <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+          {[
+            { id: 'month', label: 'Month', icon: Calendar },
+            { id: 'week', label: 'Week', icon: Clock },
+            { id: 'day', label: 'Day', icon: Target },
+            { id: 'list', label: 'List', icon: List },
+            { id: 'kanban', label: 'Kanban', icon: Grid3X3 }
+          ].map(mode => {
+            const Icon = mode.icon;
+            return (
+              <button
+                key={mode.id}
+                onClick={() => setViewMode(mode.id)}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === mode.id
+                    ? 'bg-white text-purple-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Icon className="w-4 h-4 mr-1" />
+                {mode.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Calendar View */}
@@ -1931,18 +1925,7 @@ const ContentCalendarTab = ({ calendar }) => {
         />
       )}
 
-      {/* AI Scheduling Modal */}
-      {showAISchedulingModal && (
-        <AISchedulingModal
-          onClose={() => setShowAISchedulingModal(false)}
-          onSchedule={(suggestions) => {
-            console.log('AI-generated content suggestions:', suggestions);
-            // Add suggestions to calendar
-            setLocalCalendar(prev => [...prev, ...suggestions]);
-            setShowAISchedulingModal(false);
-          }}
-        />
-      )}
+      
 
       {/* Performance Analytics Modal */}
       {showAnalyticsModal && (
@@ -2539,17 +2522,35 @@ const CreateContentModal = ({ onClose, onSave }) => {
     content_type: '',
     theme: '',
     content_preview: '',
+    caption: '',
     scheduled_date: '',
-    priority: 'medium'
+    priority: 'medium',
+    media_file: null,
+    selected_asset: null
   });
 
   const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
   const contentTypes = ['post', 'story', 'reel', 'article', 'tweet', 'video', 'email'];
   const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment'];
 
+  // Asset library
+  const { useCreativeAssets: useCreativeAssetsHook } = require('../../services/contentIntelligenceApi');
+  const { assets: assetsResp } = useCreativeAssetsHook ? useCreativeAssetsHook() : { assets: [] };
+  const libraryAssets = (assetsResp && (assetsResp.items || assetsResp.assets || assetsResp)) || [];
+  const [assetTab, setAssetTab] = useState('upload'); // 'upload' | 'library'
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave(formData);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    setFormData({ ...formData, media_file: file, selected_asset: null });
+  };
+
+  const handleAssetSelect = (asset) => {
+    setFormData({ ...formData, selected_asset: asset, media_file: null });
   };
 
   return (
@@ -2647,6 +2648,52 @@ const CreateContentModal = ({ onClose, onSave }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                Media
+              </label>
+              <div className="flex items-center space-x-2 mb-3">
+                <button
+                  type="button"
+                  onClick={() => setAssetTab('upload')}
+                  className={`px-3 py-1 rounded text-sm ${assetTab === 'upload' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                >Upload</button>
+                <button
+                  type="button"
+                  onClick={() => setAssetTab('library')}
+                  className={`px-3 py-1 rounded text-sm ${assetTab === 'library' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                >Select from Library</button>
+              </div>
+
+              {assetTab === 'upload' ? (
+                <div>
+                  <input type="file" accept="image/*,video/*" onChange={handleFileChange} className="w-full" />
+                  {formData.media_file && (
+                    <p className="mt-2 text-xs text-gray-500">Selected: {formData.media_file.name}</p>
+                  )}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-auto border rounded p-2">
+                  {libraryAssets.length === 0 && (
+                    <div className="col-span-3 text-sm text-gray-500">No assets found. Upload in the Assets tab.</div>
+                  )}
+                  {libraryAssets.map((asset, idx) => (
+                    <button
+                      key={asset.id || idx}
+                      type="button"
+                      onClick={() => handleAssetSelect(asset)}
+                      className={`border rounded p-2 text-left hover:bg-gray-50 ${formData.selected_asset && (formData.selected_asset.id === asset.id) ? 'ring-2 ring-purple-500' : ''}`}
+                    >
+                      <div className="text-sm font-medium truncate">{asset.name || asset.filename || 'Asset'}</div>
+                      {asset.type && (
+                        <div className="text-xs text-gray-500 mt-1">{asset.type}</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Content Preview *
               </label>
               <textarea
@@ -2656,6 +2703,19 @@ const CreateContentModal = ({ onClose, onSave }) => {
                 rows={3}
                 placeholder="Describe your content..."
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Caption / Post Text
+              </label>
+              <textarea
+                value={formData.caption}
+                onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                rows={3}
+                placeholder="Write the caption or post text..."
               />
             </div>
 
