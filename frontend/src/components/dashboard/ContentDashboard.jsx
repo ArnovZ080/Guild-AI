@@ -3,6 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import { 
   PenTool, 
   TrendingUp, 
@@ -959,66 +961,576 @@ const ContentDetailsModal = ({ content, onClose, onReplicate, isOrchestrating })
   );
 };
 
-// Content Calendar Tab Component
-const ContentCalendarTab = ({ calendar }) => {
+// Draggable Content Item Component
+const DraggableContentItem = ({ content, onClick, onSelect, isSelected }) => {
+  const [{ isDragging }, drag] = useDrag({
+    type: 'content',
+    item: { content },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const handleCheckboxChange = (e) => {
+    e.stopPropagation();
+    onSelect(content.content_id, e.target.checked);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-            <Calendar className="w-5 h-5 text-purple-500 mr-2" />
-            Content Calendar
-          </h3>
-          <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
-            <Plus className="w-4 h-4 mr-2" />
-            Schedule Content
-          </button>
+    <div
+      ref={drag}
+      onClick={onClick}
+      className={`text-xs p-1 rounded cursor-move hover:opacity-80 transition-opacity ${
+        isDragging ? 'opacity-50' : ''
+      } ${
+        content.platform === 'instagram' ? 'bg-pink-100 text-pink-800' :
+        content.platform === 'linkedin' ? 'bg-blue-100 text-blue-800' :
+        content.platform === 'twitter' ? 'bg-blue-100 text-blue-800' :
+        content.platform === 'facebook' ? 'bg-blue-100 text-blue-800' :
+        content.platform === 'tiktok' ? 'bg-black text-white' :
+        content.platform === 'youtube' ? 'bg-red-100 text-red-800' :
+        content.platform === 'email' ? 'bg-green-100 text-green-800' :
+        'bg-gray-100 text-gray-800'
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="font-medium capitalize">{content.platform}</div>
+          <div className="text-xs opacity-75">{content.content_type}</div>
         </div>
-        
-        <div className="grid grid-cols-7 gap-2 mb-4">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-            <div key={day} className="text-center font-medium text-gray-600 py-2">
-              {day}
-            </div>
-          ))}
-        </div>
-        
-        <div className="grid grid-cols-7 gap-2">
-          {Array.from({ length: 30 }, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() + i);
-            const dayContent = calendar?.calendar?.filter(item => 
-              new Date(item.scheduled_date).toDateString() === date.toDateString()
-            ) || [];
-            
-            return (
-              <div key={i} className="min-h-[120px] border border-gray-200 rounded-lg p-2">
-                <div className="text-sm font-medium text-gray-900 mb-2">
-                  {date.getDate()}
-                </div>
-                <div className="space-y-1">
-                  {dayContent.slice(0, 3).map((content, idx) => (
-                    <div key={idx} className={`text-xs p-1 rounded ${
-                      content.platform === 'instagram' ? 'bg-pink-100 text-pink-800' :
-                      content.platform === 'linkedin' ? 'bg-blue-100 text-blue-800' :
-                      content.platform === 'twitter' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {content.platform}
-                    </div>
-                  ))}
-                  {dayContent.length > 3 && (
-                    <div className="text-xs text-gray-500">
-                      +{dayContent.length - 3} more
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={handleCheckboxChange}
+          className="w-3 h-3 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+        />
       </div>
     </div>
+  );
+};
+
+// Droppable Calendar Day Component
+const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, onContentSelect, selectedItems }) => {
+  const [{ isOver, canDrop }, drop] = useDrop({
+    accept: 'content',
+    drop: (item) => {
+      const newDate = new Date(date);
+      newDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
+      onContentMove(item.content, newDate);
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+
+  return (
+    <div
+      ref={drop}
+      className={`min-h-[120px] border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors ${
+        isOver && canDrop ? 'bg-purple-50 border-purple-300' : ''
+      }`}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-sm font-medium text-gray-900">
+          {date.getDate()}
+        </div>
+        {content.length > 0 && (
+          <div className="text-xs text-purple-600 font-medium">
+            {content.length}
+          </div>
+        )}
+      </div>
+      <div className="space-y-1">
+        {content.slice(0, 3).map((item, idx) => (
+          <DraggableContentItem
+            key={idx}
+            content={item}
+            onClick={() => onContentClick(item)}
+            onSelect={onContentSelect}
+            isSelected={selectedItems.has(item.content_id)}
+          />
+        ))}
+        {content.length > 3 && (
+          <div className="text-xs text-gray-500">
+            +{content.length - 3} more
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Content Calendar Tab Component
+const ContentCalendarTab = ({ calendar }) => {
+  const [viewMode, setViewMode] = useState('month'); // month, week, day
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [filterPlatform, setFilterPlatform] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [localCalendar, setLocalCalendar] = useState(calendar?.calendar || []);
+  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [showBulkActions, setShowBulkActions] = useState(false);
+
+  const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
+  const statuses = ['all', 'scheduled', 'published', 'draft'];
+
+  // Update local calendar when prop changes
+  useEffect(() => {
+    if (calendar?.calendar) {
+      setLocalCalendar(calendar.calendar);
+    }
+  }, [calendar]);
+
+  // Filter content based on search and filters
+  const filteredCalendar = localCalendar.filter(item => {
+    const matchesPlatform = filterPlatform === 'all' || item.platform === filterPlatform;
+    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+    const matchesSearch = searchQuery === '' || 
+      item.content_preview?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.platform?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.content_type?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesPlatform && matchesStatus && matchesSearch;
+  });
+
+  // Get content for a specific date
+  const getContentForDate = (date) => {
+    return filteredCalendar.filter(item => 
+      new Date(item.scheduled_date).toDateString() === date.toDateString()
+    );
+  };
+
+  // Get content for current view
+  const getViewContent = () => {
+    const content = [];
+    const today = new Date();
+    
+    if (viewMode === 'month') {
+      // Show 30 days from today
+      for (let i = 0; i < 30; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        content.push({
+          date,
+          content: getContentForDate(date)
+        });
+      }
+    } else if (viewMode === 'week') {
+      // Show 7 days from selected date
+      const startDate = new Date(selectedDate);
+      startDate.setDate(selectedDate.getDate() - selectedDate.getDay());
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        content.push({
+          date,
+          content: getContentForDate(date)
+        });
+      }
+    } else if (viewMode === 'day') {
+      // Show single day
+      content.push({
+        date: selectedDate,
+        content: getContentForDate(selectedDate)
+      });
+    }
+    
+    return content;
+  };
+
+  const viewContent = getViewContent();
+
+  // Handle content move via drag and drop
+  const handleContentMove = (content, newDate) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === content.content_id 
+          ? { ...item, scheduled_date: newDate.toISOString() }
+          : item
+      )
+    );
+  };
+
+  // Handle content click
+  const handleContentClick = (content) => {
+    setSelectedContent(content);
+  };
+
+  // Handle item selection for bulk operations
+  const handleItemSelect = (contentId, isSelected) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (isSelected) {
+        newSet.add(contentId);
+      } else {
+        newSet.delete(contentId);
+      }
+      setShowBulkActions(newSet.size > 0);
+      return newSet;
+    });
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedItems.size === filteredCalendar.length) {
+      setSelectedItems(new Set());
+      setShowBulkActions(false);
+    } else {
+      const allIds = new Set(filteredCalendar.map(item => item.content_id));
+      setSelectedItems(allIds);
+      setShowBulkActions(true);
+    }
+  };
+
+  // Handle bulk actions
+  const handleBulkAction = (action) => {
+    const selectedContent = localCalendar.filter(item => selectedItems.has(item.content_id));
+    
+    switch (action) {
+      case 'delete':
+        if (window.confirm(`Are you sure you want to delete ${selectedContent.length} content items?`)) {
+          setLocalCalendar(prev => prev.filter(item => !selectedItems.has(item.content_id)));
+          setSelectedItems(new Set());
+          setShowBulkActions(false);
+        }
+        break;
+      case 'publish':
+        setLocalCalendar(prev => prev.map(item => 
+          selectedItems.has(item.content_id) 
+            ? { ...item, status: 'published' }
+            : item
+        ));
+        setSelectedItems(new Set());
+        setShowBulkActions(false);
+        break;
+      case 'schedule':
+        setLocalCalendar(prev => prev.map(item => 
+          selectedItems.has(item.content_id) 
+            ? { ...item, status: 'scheduled' }
+            : item
+        ));
+        setSelectedItems(new Set());
+        setShowBulkActions(false);
+        break;
+      case 'draft':
+        setLocalCalendar(prev => prev.map(item => 
+          selectedItems.has(item.content_id) 
+            ? { ...item, status: 'draft' }
+            : item
+        ));
+        setSelectedItems(new Set());
+        setShowBulkActions(false);
+        break;
+      default:
+        break;
+    }
+  };
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="space-y-6">
+      {/* Enhanced Header with Controls */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
+          <div className="flex items-center">
+            <Calendar className="w-6 h-6 text-purple-500 mr-3" />
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Content Calendar</h3>
+              <p className="text-sm text-gray-600">Plan and schedule your content across all platforms</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View Mode Toggle */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              {[
+                { id: 'month', label: 'Month', icon: Calendar },
+                { id: 'week', label: 'Week', icon: Clock },
+                { id: 'day', label: 'Day', icon: Target }
+              ].map(mode => {
+                const Icon = mode.icon;
+                return (
+                  <button
+                    key={mode.id}
+                    onClick={() => setViewMode(mode.id)}
+                    className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      viewMode === mode.id
+                        ? 'bg-white text-purple-600 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-1" />
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Bulk Actions */}
+            {showBulkActions && (
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {selectedItems.size} selected
+                </span>
+                <div className="flex space-x-1">
+                  <button
+                    onClick={() => handleBulkAction('publish')}
+                    className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                  >
+                    Publish
+                  </button>
+                  <button
+                    onClick={() => handleBulkAction('schedule')}
+                    className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
+                  >
+                    Schedule
+                  </button>
+                  <button
+                    onClick={() => handleBulkAction('draft')}
+                    className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                  >
+                    Draft
+                  </button>
+                  <button
+                    onClick={() => handleBulkAction('delete')}
+                    className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Create Content Button */}
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Content
+            </button>
+          </div>
+        </div>
+
+        {/* Filters and Search */}
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          {/* Select All Checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              checked={selectedItems.size === filteredCalendar.length && filteredCalendar.length > 0}
+              onChange={handleSelectAll}
+              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+            />
+            <label className="ml-2 text-sm text-gray-700">Select All</label>
+          </div>
+
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Search content..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          {/* Platform Filter */}
+          <select
+            value={filterPlatform}
+            onChange={(e) => setFilterPlatform(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {platforms.map(platform => (
+              <option key={platform} value={platform}>
+                {platform === 'all' ? 'All Platforms' : platform.charAt(0).toUpperCase() + platform.slice(1)}
+              </option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {statuses.map(status => (
+              <option key={status} value={status}>
+                {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Calendar View */}
+        {viewMode === 'month' && (
+          <div className="space-y-4">
+            {/* Month Header */}
+            <div className="grid grid-cols-7 gap-2 mb-4">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                <div key={day} className="text-center font-medium text-gray-600 py-2">
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* Month Grid */}
+            <div className="grid grid-cols-7 gap-2">
+              {viewContent.map((dayData, i) => (
+                <DroppableCalendarDay
+                  key={i}
+                  date={dayData.date}
+                  content={dayData.content}
+                  onContentMove={handleContentMove}
+                  onContentClick={handleContentClick}
+                  onContentSelect={handleItemSelect}
+                  selectedItems={selectedItems}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'week' && (
+          <div className="space-y-4">
+            {/* Week Header */}
+            <div className="grid grid-cols-7 gap-2 mb-4">
+              {viewContent.map((dayData, i) => (
+                <div key={i} className="text-center font-medium text-gray-600 py-2">
+                  {dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  <div className="text-sm text-gray-500">{dayData.date.getDate()}</div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Week Grid */}
+            <div className="grid grid-cols-7 gap-2">
+              {viewContent.map((dayData, i) => (
+                <DroppableCalendarDay
+                  key={i}
+                  date={dayData.date}
+                  content={dayData.content}
+                  onContentMove={handleContentMove}
+                  onContentClick={handleContentClick}
+                  onContentSelect={handleItemSelect}
+                  selectedItems={selectedItems}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'day' && (
+          <div className="space-y-4">
+            {/* Day Header */}
+            <div className="text-center">
+              <h4 className="text-lg font-semibold text-gray-900">
+                {selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </h4>
+            </div>
+            
+            {/* Day Content */}
+            <div className="space-y-3">
+              {viewContent[0]?.content.map((content, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedContent(content)}
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        content.platform === 'instagram' ? 'bg-pink-500' :
+                        content.platform === 'linkedin' ? 'bg-blue-500' :
+                        content.platform === 'twitter' ? 'bg-blue-400' :
+                        content.platform === 'facebook' ? 'bg-blue-600' :
+                        content.platform === 'tiktok' ? 'bg-black' :
+                        content.platform === 'youtube' ? 'bg-red-500' :
+                        content.platform === 'email' ? 'bg-green-500' :
+                        'bg-gray-500'
+                      }`}></div>
+                      <div>
+                        <div className="font-medium capitalize">{content.platform} {content.content_type}</div>
+                        <div className="text-sm text-gray-600">{content.content_preview}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        content.status === 'published' ? 'bg-green-100 text-green-800' :
+                        content.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {content.status}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {viewContent[0]?.content.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No content scheduled for this day</p>
+                  <button 
+                    onClick={() => setShowCreateModal(true)}
+                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Schedule Content
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Content Details Modal */}
+      {selectedContent && (
+        <ContentDetailsModal
+          content={selectedContent}
+          onClose={() => setSelectedContent(null)}
+          onEdit={() => {
+            setSelectedContent(null);
+            setShowEditModal(true);
+          }}
+        />
+      )}
+
+      {/* Create Content Modal */}
+      {showCreateModal && (
+        <CreateContentModal
+          onClose={() => setShowCreateModal(false)}
+          onSave={(contentData) => {
+            console.log('Creating content:', contentData);
+            setShowCreateModal(false);
+          }}
+        />
+      )}
+
+      {/* Edit Content Modal */}
+      {showEditModal && (
+        <EditContentModal
+          content={selectedContent}
+          onClose={() => setShowEditModal(false)}
+          onSave={(contentData) => {
+            console.log('Updating content:', contentData);
+            setShowEditModal(false);
+          }}
+        />
+      )}
+      </div>
+    </DndProvider>
   );
 };
 
@@ -1591,6 +2103,450 @@ const ActionDetailsModal = ({ action, onClose, onExecuteAction, isOrchestrating 
               </button>
             </div>
           </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Content Details Modal for Calendar
+const ContentDetailsModal = ({ content, onClose, onEdit }) => {
+  if (!content) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Calendar className="w-6 h-6 text-purple-500 mr-3" />
+              Content Details
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Content Summary */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800 mb-1 capitalize">
+                    {content.platform} {content.content_type}
+                  </h3>
+                  <p className="text-sm text-gray-600">{content.content_preview}</p>
+                </div>
+                <div className="text-right">
+                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    content.status === 'published' ? 'bg-green-100 text-green-800' :
+                    content.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {content.status}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-4 rounded border">
+                <h3 className="font-semibold text-gray-800 mb-3">Content Information</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Platform:</span>
+                    <span className="font-medium capitalize">{content.platform}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Type:</span>
+                    <span className="font-medium capitalize">{content.content_type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Theme:</span>
+                    <span className="font-medium capitalize">{content.theme}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Priority:</span>
+                    <span className={`font-medium capitalize ${
+                      content.priority === 'high' ? 'text-red-600' :
+                      content.priority === 'medium' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {content.priority}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded border">
+                <h3 className="font-semibold text-gray-800 mb-3">Scheduling</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Scheduled Date:</span>
+                    <span className="font-medium">
+                      {new Date(content.scheduled_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Scheduled Time:</span>
+                    <span className="font-medium">
+                      {new Date(content.scheduled_date).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Engagement Estimate:</span>
+                    <span className="font-medium">{content.engagement_estimate}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={onEdit}
+                className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Edit Content
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Create Content Modal
+const CreateContentModal = ({ onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    platform: '',
+    content_type: '',
+    theme: '',
+    content_preview: '',
+    scheduled_date: '',
+    priority: 'medium'
+  });
+
+  const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
+  const contentTypes = ['post', 'story', 'reel', 'article', 'tweet', 'video', 'email'];
+  const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment'];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Plus className="w-6 h-6 text-purple-500 mr-3" />
+              Create Content
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Platform *
+                </label>
+                <select
+                  value={formData.platform}
+                  onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="">Select Platform</option>
+                  {platforms.map(platform => (
+                    <option key={platform} value={platform}>
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Content Type *
+                </label>
+                <select
+                  value={formData.content_type}
+                  onChange={(e) => setFormData({ ...formData, content_type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="">Select Type</option>
+                  {contentTypes.map(type => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Theme
+                </label>
+                <select
+                  value={formData.theme}
+                  onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Select Theme</option>
+                  {themes.map(theme => (
+                    <option key={theme} value={theme}>
+                      {theme.replace('_', ' ').charAt(0).toUpperCase() + theme.replace('_', ' ').slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Priority
+                </label>
+                <select
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Content Preview *
+              </label>
+              <textarea
+                value={formData.content_preview}
+                onChange={(e) => setFormData({ ...formData, content_preview: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                rows={3}
+                placeholder="Describe your content..."
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Scheduled Date & Time *
+              </label>
+              <input
+                type="datetime-local"
+                value={formData.scheduled_date}
+                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-md transition-colors"
+              >
+                Create Content
+              </button>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Edit Content Modal
+const EditContentModal = ({ content, onClose, onSave }) => {
+  const [formData, setFormData] = useState({
+    platform: content?.platform || '',
+    content_type: content?.content_type || '',
+    theme: content?.theme || '',
+    content_preview: content?.content_preview || '',
+    scheduled_date: content?.scheduled_date ? new Date(content.scheduled_date).toISOString().slice(0, 16) : '',
+    priority: content?.priority || 'medium'
+  });
+
+  const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
+  const contentTypes = ['post', 'story', 'reel', 'article', 'tweet', 'video', 'email'];
+  const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment'];
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Settings className="w-6 h-6 text-blue-500 mr-3" />
+              Edit Content
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Platform *
+                </label>
+                <select
+                  value={formData.platform}
+                  onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="">Select Platform</option>
+                  {platforms.map(platform => (
+                    <option key={platform} value={platform}>
+                      {platform.charAt(0).toUpperCase() + platform.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Content Type *
+                </label>
+                <select
+                  value={formData.content_type}
+                  onChange={(e) => setFormData({ ...formData, content_type: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="">Select Type</option>
+                  {contentTypes.map(type => (
+                    <option key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Theme
+                </label>
+                <select
+                  value={formData.theme}
+                  onChange={(e) => setFormData({ ...formData, theme: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="">Select Theme</option>
+                  {themes.map(theme => (
+                    <option key={theme} value={theme}>
+                      {theme.replace('_', ' ').charAt(0).toUpperCase() + theme.replace('_', ' ').slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Priority
+                </label>
+                <select
+                  value={formData.priority}
+                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Content Preview *
+              </label>
+              <textarea
+                value={formData.content_preview}
+                onChange={(e) => setFormData({ ...formData, content_preview: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                rows={3}
+                placeholder="Describe your content..."
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Scheduled Date & Time *
+              </label>
+              <input
+                type="datetime-local"
+                value={formData.scheduled_date}
+                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Update Content
+              </button>
+            </div>
+          </form>
         </div>
       </motion.div>
     </div>
