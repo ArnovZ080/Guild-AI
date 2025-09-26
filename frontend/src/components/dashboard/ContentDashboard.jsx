@@ -2530,8 +2530,59 @@ const CreateContentModal = ({ onClose, onSave }) => {
   });
 
   const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
-  const contentTypes = ['post', 'story', 'reel', 'article', 'tweet', 'video', 'email'];
+  const contentTypes = ['post', 'story', 'reel', 'article', 'tweet', 'thread', 'video', 'short', 'pin', 'email'];
   const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment'];
+
+  // Platform-specific rules
+  const platformAllowedTypes = {
+    instagram: ['post', 'story', 'reel'],
+    facebook: ['post', 'story', 'video'],
+    twitter: ['tweet', 'thread'],
+    linkedin: ['post', 'article'],
+    tiktok: ['video'],
+    youtube: ['video', 'short'],
+    pinterest: ['pin'],
+    email: ['email']
+  };
+
+  const getCaptionMax = (platform, type) => {
+    if (!platform) return 10000;
+    switch (platform) {
+      case 'instagram':
+        return 2200;
+      case 'twitter':
+        return type === 'thread' ? 2800 : 280; // simple heuristic
+      case 'linkedin':
+        return 3000;
+      case 'tiktok':
+        return 2200;
+      case 'youtube':
+        return 5000; // description length can be longer; use conservative
+      case 'facebook':
+        return 63206;
+      case 'pinterest':
+        return 500;
+      case 'email':
+        return 100000;
+      default:
+        return 10000;
+    }
+  };
+
+  const getMediaHints = (platform, type) => {
+    if (!platform) return 'Select a platform to see media guidance.';
+    const map = {
+      instagram: 'Images 1:1/4:5/16:9; Reels: vertical video, up to 90s; Max caption 2200.',
+      facebook: 'Image or video; longer captions allowed (up to ~63k).',
+      twitter: 'Images or short video; tweets up to 280 chars (threads supported).',
+      linkedin: 'Post (image/video) up to ~3k chars; Articles support long-form.',
+      tiktok: 'Vertical video recommended; captions up to ~2200.',
+      youtube: 'Video required; Shorts are vertical under 60s; descriptions long.',
+      pinterest: 'Pins require an image or video; title/description concise.',
+      email: 'Upload images embedded; rich text allowed; no hard caption limit.'
+    };
+    return map[platform] || '';
+  };
 
   // Asset library
   // Use already imported hook directly (avoid require in browser env)
@@ -2542,6 +2593,12 @@ const CreateContentModal = ({ onClose, onSave }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validatePlatformMedia(formData)) return;
+    // Caption limit validation
+    const maxCap = getCaptionMax(formData.platform, formData.content_type);
+    if (formData.caption && formData.caption.length > maxCap) {
+      alert(`Caption exceeds max length for ${formData.platform} (${formData.caption.length}/${maxCap}).`);
+      return;
+    }
     onSave(formData);
   };
 
@@ -2642,11 +2699,16 @@ const CreateContentModal = ({ onClose, onSave }) => {
                   required
                 >
                   <option value="">Select Type</option>
-                  {contentTypes.map(type => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
+                  {contentTypes.map(type => {
+                    const allowed = platformAllowedTypes[formData.platform] || contentTypes;
+                    const disabled = formData.platform ? !allowed.includes(type) : false;
+                    return (
+                      <option key={type} value={type} disabled={disabled}>
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                        {disabled ? ' (not supported)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -2716,6 +2778,7 @@ const CreateContentModal = ({ onClose, onSave }) => {
                       )}
                     </div>
                   )}
+                  <p className="mt-2 text-xs text-gray-500">{getMediaHints(formData.platform, formData.content_type)}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-auto border rounded p-2">
@@ -2763,11 +2826,16 @@ const CreateContentModal = ({ onClose, onSave }) => {
               </label>
               <textarea
                 value={formData.caption}
-                onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
+                onChange={(e) => {
+                  const max = getCaptionMax(formData.platform, formData.content_type);
+                  const val = e.target.value.length > max ? e.target.value.slice(0, max) : e.target.value;
+                  setFormData({ ...formData, caption: val });
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 rows={3}
                 placeholder="Write the caption or post text..."
               />
+              <div className="mt-1 text-xs text-gray-500">{(formData.caption || '').length}/{getCaptionMax(formData.platform, formData.content_type)} characters</div>
             </div>
 
             <div>
