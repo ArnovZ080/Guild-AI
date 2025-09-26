@@ -11,9 +11,7 @@ import {
   Bell, 
   BarChart3, 
   Zap,
-  CheckCircle,
-  Edit,
-  Trash2
+  CheckCircle
 } from 'lucide-react';
 
 import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
@@ -23,7 +21,6 @@ import EditContentModal from '../modals/EditContentModal';
 import AutonomousContentModal from '../modals/AutonomousContentModal';
 import PerformanceAnalyticsModal from '../modals/PerformanceAnalyticsModal';
 import ApprovalModal from '../modals/ApprovalModal';
-import CampaignModal from '../modals/CampaignModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -41,10 +38,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showAutonomousModal, setShowAutonomousModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalContent, setApprovalContent] = useState(null);
-  const [showCampaignModal, setShowCampaignModal] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState(null);
-  const [campaigns, setCampaigns] = useState([]);
   const [campaignView, setCampaignView] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
 
   const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
   const statuses = ['all', 'idea', 'draft', 'review', 'pending_approval', 'approved', 'scheduled', 'published', 'archived'];
@@ -210,39 +205,19 @@ const ContentCalendarTab = ({ calendar }) => {
     setApprovalContent(null);
   };
 
-  // Campaign management functions
-  const handleCreateCampaign = () => {
-    setSelectedCampaign(null);
-    setShowCampaignModal(true);
-  };
-
-  const handleEditCampaign = (campaign) => {
-    setSelectedCampaign(campaign);
-    setShowCampaignModal(true);
-  };
-
-  const handleSaveCampaign = (campaignData) => {
-    if (selectedCampaign) {
-      // Update existing campaign
-      setCampaigns(prev => prev.map(c => c.id === campaignData.id ? campaignData : c));
-    } else {
-      // Create new campaign
-      setCampaigns(prev => [...prev, campaignData]);
-    }
-    setShowCampaignModal(false);
-    setSelectedCampaign(null);
-  };
-
-  const handleDeleteCampaign = (campaignId) => {
-    if (window.confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
-      setCampaigns(prev => prev.filter(c => c.id !== campaignId));
-      setShowCampaignModal(false);
-      setSelectedCampaign(null);
-    }
-  };
-
+  // Campaign syncing functions
   const handleCampaignView = () => {
     setCampaignView(!campaignView);
+  };
+
+  // Sync campaigns from Campaign Tab (this would be called when campaigns are updated)
+  const syncCampaigns = (campaignData) => {
+    setCampaigns(campaignData);
+  };
+
+  // Get content associated with campaigns
+  const getCampaignContent = (campaignId) => {
+    return localCalendar.filter(content => content.campaign_id === campaignId);
   };
 
   // Handle item selection for bulk operations
@@ -457,21 +432,13 @@ const ContentCalendarTab = ({ calendar }) => {
               Review Pending ({filteredCalendar.filter(item => item.status === 'review').length})
             </button>
 
-            {/* Campaign Management Buttons */}
+            {/* Campaign View Button */}
             <button 
               onClick={handleCampaignView}
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
             >
               <Target className="w-4 h-4 mr-2" />
-              {campaignView ? 'Hide Campaigns' : 'Show Campaigns'}
-            </button>
-
-            <button 
-              onClick={handleCreateCampaign}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Campaign
+              {campaignView ? 'Hide Campaigns' : 'View Campaigns'}
             </button>
 
             {/* Create Content Button */}
@@ -663,53 +630,37 @@ const ContentCalendarTab = ({ calendar }) => {
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Target className="w-5 h-5 text-indigo-500 mr-2" />
-                Campaign Management
+                Campaign Overview
               </h3>
-              <button 
-                onClick={handleCreateCampaign}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Campaign
-              </button>
+              <div className="text-sm text-gray-600">
+                Campaigns managed in Campaign Tab
+              </div>
             </div>
             
             {campaigns.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns yet</h3>
-                <p className="text-gray-600 mb-4">Create your first campaign to organize and track your content</p>
-                <button 
-                  onClick={handleCreateCampaign}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Create Campaign
-                </button>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns synced</h3>
+                <p className="text-gray-600 mb-4">Campaigns created in the Campaign Tab will appear here</p>
+                <div className="text-sm text-gray-500">
+                  Go to the Campaign Tab to create and manage campaigns
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {campaigns.map((campaign, idx) => (
-                  <div key={campaign.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900 mb-1">{campaign.name}</h4>
-                        <p className="text-sm text-gray-600 line-clamp-2">{campaign.description}</p>
+                {campaigns.map((campaign, idx) => {
+                  const campaignContent = getCampaignContent(campaign.id);
+                  return (
+                    <div key={campaign.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-900 mb-1">{campaign.name}</h4>
+                          <p className="text-sm text-gray-600 line-clamp-2">{campaign.description}</p>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {campaignContent.length} scheduled
+                        </div>
                       </div>
-                      <div className="flex space-x-1">
-                        <button
-                          onClick={() => handleEditCampaign(campaign)}
-                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCampaign(campaign.id)}
-                          className="p-1 text-gray-400 hover:text-red-600 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
                     
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
@@ -1192,19 +1143,6 @@ const ContentCalendarTab = ({ calendar }) => {
         />
       )}
 
-      {/* Campaign Modal */}
-      {showCampaignModal && (
-        <CampaignModal
-          campaign={selectedCampaign}
-          onClose={() => {
-            setShowCampaignModal(false);
-            setSelectedCampaign(null);
-          }}
-          onSave={handleSaveCampaign}
-          onDelete={handleDeleteCampaign}
-          isEdit={!!selectedCampaign}
-        />
-      )}
       </div>
     </DndProvider>
   );
