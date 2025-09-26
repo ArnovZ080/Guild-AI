@@ -1074,6 +1074,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [localCalendar, setLocalCalendar] = useState(calendar?.calendar || []);
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showAISchedulingModal, setShowAISchedulingModal] = useState(false);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
 
   const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
   const statuses = ['all', 'scheduled', 'published', 'draft'];
@@ -1306,6 +1308,24 @@ const ContentCalendarTab = ({ calendar }) => {
               </div>
             )}
 
+            {/* Performance Analytics Button */}
+            <button 
+              onClick={() => setShowAnalyticsModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analytics
+            </button>
+
+            {/* AI-Powered Scheduling Button */}
+            <button 
+              onClick={() => setShowAISchedulingModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              AI Schedule
+            </button>
+
             {/* Create Content Button */}
             <button 
               onClick={() => setShowCreateModal(true)}
@@ -1366,6 +1386,40 @@ const ContentCalendarTab = ({ calendar }) => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Performance Analytics Summary */}
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <BarChart3 className="w-5 h-5 text-purple-500 mr-2" />
+            Content Performance Insights
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">
+                {filteredCalendar.length}
+              </div>
+              <div className="text-sm text-gray-600">Total Scheduled</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {filteredCalendar.filter(item => item.status === 'published').length}
+              </div>
+              <div className="text-sm text-gray-600">Published</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">
+                {filteredCalendar.filter(item => item.status === 'scheduled').length}
+              </div>
+              <div className="text-sm text-gray-600">Scheduled</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {filteredCalendar.filter(item => item.ai_generated).length}
+              </div>
+              <div className="text-sm text-gray-600">AI Generated</div>
+            </div>
+          </div>
         </div>
 
         {/* Calendar View */}
@@ -1527,6 +1581,27 @@ const ContentCalendarTab = ({ calendar }) => {
             console.log('Updating content:', contentData);
             setShowEditModal(false);
           }}
+        />
+      )}
+
+      {/* AI Scheduling Modal */}
+      {showAISchedulingModal && (
+        <AISchedulingModal
+          onClose={() => setShowAISchedulingModal(false)}
+          onSchedule={(suggestions) => {
+            console.log('AI-generated content suggestions:', suggestions);
+            // Add suggestions to calendar
+            setLocalCalendar(prev => [...prev, ...suggestions]);
+            setShowAISchedulingModal(false);
+          }}
+        />
+      )}
+
+      {/* Performance Analytics Modal */}
+      {showAnalyticsModal && (
+        <PerformanceAnalyticsModal
+          calendar={localCalendar}
+          onClose={() => setShowAnalyticsModal(false)}
         />
       )}
       </div>
@@ -2547,6 +2622,532 @@ const EditContentModal = ({ content, onClose, onSave }) => {
               </button>
             </div>
           </form>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// AI Scheduling Modal Component
+const AISchedulingModal = ({ onClose, onSchedule }) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [formData, setFormData] = useState({
+    business_objectives: '',
+    target_audience: '',
+    platforms: [],
+    content_themes: [],
+    timeframe: '30d',
+    content_frequency: 'medium'
+  });
+
+  const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
+  const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment', 'trending'];
+
+  const handleGenerateSuggestions = async () => {
+    setIsGenerating(true);
+    try {
+      // Simulate AI content generation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Generate mock suggestions based on form data
+      const mockSuggestions = generateMockSuggestions(formData);
+      setSuggestions(mockSuggestions);
+    } catch (error) {
+      console.error('Failed to generate suggestions:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const generateMockSuggestions = (data) => {
+    const suggestions = [];
+    const days = data.timeframe === '7d' ? 7 : data.timeframe === '30d' ? 30 : 90;
+    
+    for (let i = 0; i < days; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      
+      // Generate 1-3 content pieces per day based on frequency
+      const numContent = data.content_frequency === 'low' ? 1 : 
+                        data.content_frequency === 'medium' ? 2 : 3;
+      
+      for (let j = 0; j < numContent; j++) {
+        const platform = data.platforms[Math.floor(Math.random() * data.platforms.length)] || 'instagram';
+        const theme = data.content_themes[Math.floor(Math.random() * data.content_themes.length)] || 'educational';
+        
+        suggestions.push({
+          content_id: `ai_suggestion_${i}_${j}`,
+          platform: platform,
+          content_type: getContentTypeForPlatform(platform),
+          theme: theme,
+          content_preview: generateContentPreview(theme, platform),
+          scheduled_date: date.toISOString(),
+          status: 'scheduled',
+          priority: Math.random() > 0.7 ? 'high' : 'medium',
+          engagement_estimate: Math.floor(Math.random() * 1000) + 100,
+          ai_generated: true
+        });
+      }
+    }
+    
+    return suggestions;
+  };
+
+  const getContentTypeForPlatform = (platform) => {
+    const types = {
+      instagram: ['post', 'story', 'reel'],
+      linkedin: ['article', 'post'],
+      twitter: ['tweet', 'thread'],
+      facebook: ['post', 'video'],
+      tiktok: ['video'],
+      youtube: ['video'],
+      email: ['newsletter', 'promotional']
+    };
+    const platformTypes = types[platform] || ['post'];
+    return platformTypes[Math.floor(Math.random() * platformTypes.length)];
+  };
+
+  const generateContentPreview = (theme, platform) => {
+    const previews = {
+      educational: `Educational content about industry insights for ${platform}`,
+      promotional: `Promotional content showcasing our latest product on ${platform}`,
+      behind_scenes: `Behind-the-scenes look at our team and process for ${platform}`,
+      user_generated: `User-generated content featuring customer stories on ${platform}`,
+      entertainment: `Entertaining content to engage our audience on ${platform}`,
+      trending: `Trending topic discussion tailored for ${platform}`
+    };
+    return previews[theme] || `Content for ${platform}`;
+  };
+
+  const handleSchedule = () => {
+    onSchedule(suggestions);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <Zap className="w-6 h-6 text-purple-500 mr-3" />
+              AI-Powered Content Scheduling
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Configuration Form */}
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4">Content Strategy Configuration</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Business Objectives
+                  </label>
+                  <textarea
+                    value={formData.business_objectives}
+                    onChange={(e) => setFormData({ ...formData, business_objectives: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Describe your business objectives..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Target Audience
+                  </label>
+                  <textarea
+                    value={formData.target_audience}
+                    onChange={(e) => setFormData({ ...formData, target_audience: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    rows={3}
+                    placeholder="Describe your target audience..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Platforms
+                  </label>
+                  <div className="space-y-2">
+                    {platforms.map(platform => (
+                      <label key={platform} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.platforms.includes(platform)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({ ...formData, platforms: [...formData.platforms, platform] });
+                            } else {
+                              setFormData({ ...formData, platforms: formData.platforms.filter(p => p !== platform) });
+                            }
+                          }}
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 capitalize">{platform}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Themes
+                  </label>
+                  <div className="space-y-2">
+                    {themes.map(theme => (
+                      <label key={theme} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={formData.content_themes.includes(theme)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({ ...formData, content_themes: [...formData.content_themes, theme] });
+                            } else {
+                              setFormData({ ...formData, content_themes: formData.content_themes.filter(t => t !== theme) });
+                            }
+                          }}
+                          className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 capitalize">{theme.replace('_', ' ')}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Timeframe
+                  </label>
+                  <select
+                    value={formData.timeframe}
+                    onChange={(e) => setFormData({ ...formData, timeframe: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="7d">7 Days</option>
+                    <option value="30d">30 Days</option>
+                    <option value="90d">90 Days</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Content Frequency
+                  </label>
+                  <select
+                    value={formData.content_frequency}
+                    onChange={(e) => setFormData({ ...formData, content_frequency: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  >
+                    <option value="low">Low (1 post/day)</option>
+                    <option value="medium">Medium (2 posts/day)</option>
+                    <option value="high">High (3+ posts/day)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Generate Button */}
+            <div className="text-center">
+              <button
+                onClick={handleGenerateSuggestions}
+                disabled={isGenerating || formData.platforms.length === 0 || formData.content_themes.length === 0}
+                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center mx-auto"
+              >
+                {isGenerating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Generating AI Suggestions...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Generate AI Content Suggestions
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Generated Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="bg-white border rounded-lg p-4">
+                <h3 className="font-semibold text-gray-800 mb-4">
+                  Generated Content Suggestions ({suggestions.length} items)
+                </h3>
+                <div className="max-h-60 overflow-y-auto space-y-2">
+                  {suggestions.slice(0, 10).map((suggestion, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-3 h-3 rounded-full ${
+                          suggestion.platform === 'instagram' ? 'bg-pink-500' :
+                          suggestion.platform === 'linkedin' ? 'bg-blue-500' :
+                          suggestion.platform === 'twitter' ? 'bg-blue-400' :
+                          suggestion.platform === 'facebook' ? 'bg-blue-600' :
+                          suggestion.platform === 'tiktok' ? 'bg-black' :
+                          suggestion.platform === 'youtube' ? 'bg-red-500' :
+                          suggestion.platform === 'email' ? 'bg-green-500' :
+                          'bg-gray-500'
+                        }`}></div>
+                        <div>
+                          <div className="font-medium capitalize text-sm">
+                            {suggestion.platform} {suggestion.content_type}
+                          </div>
+                          <div className="text-xs text-gray-600">{suggestion.content_preview}</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(suggestion.scheduled_date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                  {suggestions.length > 10 && (
+                    <div className="text-center text-sm text-gray-500">
+                      ... and {suggestions.length - 10} more suggestions
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Cancel
+              </button>
+              {suggestions.length > 0 && (
+                <button
+                  onClick={handleSchedule}
+                  className="px-6 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-md transition-colors"
+                >
+                  Schedule All Suggestions
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+// Performance Analytics Modal Component
+const PerformanceAnalyticsModal = ({ calendar, onClose }) => {
+  // Calculate analytics from calendar data
+  const analytics = {
+    totalContent: calendar.length,
+    publishedContent: calendar.filter(item => item.status === 'published').length,
+    scheduledContent: calendar.filter(item => item.status === 'scheduled').length,
+    draftContent: calendar.filter(item => item.status === 'draft').length,
+    aiGenerated: calendar.filter(item => item.ai_generated).length,
+    platformDistribution: calculatePlatformDistribution(calendar),
+    themeDistribution: calculateThemeDistribution(calendar),
+    weeklyDistribution: calculateWeeklyDistribution(calendar),
+    engagementEstimates: calculateEngagementEstimates(calendar)
+  };
+
+  function calculatePlatformDistribution(calendar) {
+    const distribution = {};
+    calendar.forEach(item => {
+      distribution[item.platform] = (distribution[item.platform] || 0) + 1;
+    });
+    return distribution;
+  }
+
+  function calculateThemeDistribution(calendar) {
+    const distribution = {};
+    calendar.forEach(item => {
+      if (item.theme) {
+        distribution[item.theme] = (distribution[item.theme] || 0) + 1;
+      }
+    });
+    return distribution;
+  }
+
+  function calculateWeeklyDistribution(calendar) {
+    const distribution = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 }; // Sunday to Saturday
+    calendar.forEach(item => {
+      const dayOfWeek = new Date(item.scheduled_date).getDay();
+      distribution[dayOfWeek]++;
+    });
+    return distribution;
+  }
+
+  function calculateEngagementEstimates(calendar) {
+    const estimates = calendar
+      .filter(item => item.engagement_estimate)
+      .map(item => item.engagement_estimate);
+    
+    if (estimates.length === 0) return { average: 0, total: 0, max: 0, min: 0 };
+    
+    return {
+      average: Math.round(estimates.reduce((sum, est) => sum + est, 0) / estimates.length),
+      total: estimates.reduce((sum, est) => sum + est, 0),
+      max: Math.max(...estimates),
+      min: Math.min(...estimates)
+    };
+  }
+
+  const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto"
+      >
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <BarChart3 className="w-6 h-6 text-blue-500 mr-3" />
+              Content Performance Analytics
+            </h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            {/* Overview Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{analytics.totalContent}</div>
+                <div className="text-sm text-blue-700">Total Content</div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{analytics.publishedContent}</div>
+                <div className="text-sm text-green-700">Published</div>
+              </div>
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <div className="text-2xl font-bold text-yellow-600">{analytics.scheduledContent}</div>
+                <div className="text-sm text-yellow-700">Scheduled</div>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{analytics.aiGenerated}</div>
+                <div className="text-sm text-purple-700">AI Generated</div>
+              </div>
+            </div>
+
+            {/* Platform Distribution */}
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-4">Platform Distribution</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(analytics.platformDistribution).map(([platform, count]) => (
+                  <div key={platform} className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{count}</div>
+                    <div className="text-sm text-gray-600 capitalize">{platform}</div>
+                    <div className="text-xs text-gray-500">
+                      {Math.round((count / analytics.totalContent) * 100)}%
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Theme Distribution */}
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-4">Content Theme Distribution</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(analytics.themeDistribution).map(([theme, count]) => (
+                  <div key={theme} className="text-center">
+                    <div className="text-xl font-bold text-gray-900">{count}</div>
+                    <div className="text-sm text-gray-600 capitalize">{theme.replace('_', ' ')}</div>
+                    <div className="text-xs text-gray-500">
+                      {Math.round((count / analytics.totalContent) * 100)}%
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Weekly Distribution */}
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-4">Weekly Content Distribution</h3>
+              <div className="grid grid-cols-7 gap-2">
+                {weekDays.map((day, index) => (
+                  <div key={day} className="text-center">
+                    <div className="text-lg font-bold text-gray-900">
+                      {analytics.weeklyDistribution[index]}
+                    </div>
+                    <div className="text-xs text-gray-600">{day.slice(0, 3)}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Engagement Estimates */}
+            <div className="bg-white border rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-4">Engagement Estimates</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{analytics.engagementEstimates.average}</div>
+                  <div className="text-sm text-gray-600">Average</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{analytics.engagementEstimates.total}</div>
+                  <div className="text-sm text-gray-600">Total</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{analytics.engagementEstimates.max}</div>
+                  <div className="text-sm text-gray-600">Max</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">{analytics.engagementEstimates.min}</div>
+                  <div className="text-sm text-gray-600">Min</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendations */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-4">AI Recommendations</h3>
+              <div className="space-y-2">
+                {analytics.platformDistribution.instagram > analytics.platformDistribution.linkedin * 2 && (
+                  <div className="text-sm text-purple-700">
+                    💡 Consider increasing LinkedIn content - Instagram is over-represented
+                  </div>
+                )}
+                {analytics.weeklyDistribution[0] > analytics.weeklyDistribution[1] && (
+                  <div className="text-sm text-purple-700">
+                    💡 Sunday has more content than Monday - consider rebalancing for better weekday engagement
+                  </div>
+                )}
+                {analytics.aiGenerated < analytics.totalContent * 0.3 && (
+                  <div className="text-sm text-purple-700">
+                    💡 Only {Math.round((analytics.aiGenerated / analytics.totalContent) * 100)}% of content is AI-generated - consider using AI scheduling for more efficiency
+                  </div>
+                )}
+                {analytics.engagementEstimates.average < 500 && (
+                  <div className="text-sm text-purple-700">
+                    💡 Average engagement estimate is low - consider optimizing content themes and platforms
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
     </div>
