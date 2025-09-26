@@ -12,7 +12,6 @@ import {
   BarChart3, 
   Zap,
   CheckCircle,
-  Target,
   Edit,
   Trash2
 } from 'lucide-react';
