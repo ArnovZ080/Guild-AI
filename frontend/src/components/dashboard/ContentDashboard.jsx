@@ -3003,7 +3003,8 @@ const CreateContentModal = ({ onClose, onSave }) => {
 };
 
 // Edit Content Modal
-const EditContentModal = ({ content, onClose, onSave }) => {
+// Import EditContentModal from modals directory
+import EditContentModal from './modals/EditContentModal';
   const [formData, setFormData] = useState({
     platform: content?.platform || '',
     content_type: content?.content_type || '',
