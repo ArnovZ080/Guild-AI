@@ -966,6 +966,25 @@ const ContentCalendarTab = ({ calendar }) => {
           onClose={() => setShowCreateModal(false)}
           onSave={(contentData) => {
             console.log('Creating content:', contentData);
+            
+            // Create new content item
+            const newContent = {
+              content_id: `manual_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+              platform: contentData.platform,
+              content_type: contentData.content_type,
+              theme: contentData.theme,
+              content_preview: contentData.content_preview,
+              caption: contentData.caption,
+              scheduled_date: contentData.scheduled_date,
+              status: 'review', // Set to review status for testing approval
+              priority: contentData.priority,
+              assignee: 'You',
+              ai_generated: false,
+              created_at: new Date().toISOString()
+            };
+            
+            // Add to local calendar
+            setLocalCalendar(prev => [...prev, newContent]);
             setShowCreateModal(false);
           }}
         />

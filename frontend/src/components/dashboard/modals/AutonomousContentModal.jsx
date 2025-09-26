@@ -117,12 +117,20 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
 
   const handleApproval = (content, action) => {
     if (action === 'approve') {
-      // Move to approved status
+      // Move to approved status and schedule immediately
+      const approvedContent = { 
+        ...content, 
+        status: 'approved', 
+        approved_at: new Date().toISOString() 
+      };
+      
+      // Update the generated content
       setGeneratedContent(prev => prev.map(c => 
-        c.content_id === content.content_id 
-          ? { ...c, status: 'approved', approved_at: new Date().toISOString() }
-          : c
+        c.content_id === content.content_id ? approvedContent : c
       ));
+      
+      // Schedule the approved content immediately
+      onSchedule([approvedContent]);
     } else if (action === 'reject') {
       // Remove from generated content
       setGeneratedContent(prev => prev.filter(c => c.content_id !== content.content_id));
