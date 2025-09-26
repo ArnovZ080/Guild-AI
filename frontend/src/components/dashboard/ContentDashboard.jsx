@@ -2534,13 +2534,14 @@ const CreateContentModal = ({ onClose, onSave }) => {
   const themes = ['educational', 'promotional', 'behind_scenes', 'user_generated', 'entertainment'];
 
   // Asset library
-  const { useCreativeAssets: useCreativeAssetsHook } = require('../../services/contentIntelligenceApi');
-  const { assets: assetsResp } = useCreativeAssetsHook ? useCreativeAssetsHook() : { assets: [] };
+  // Use already imported hook directly (avoid require in browser env)
+  const { assets: assetsResp } = useCreativeAssets ? useCreativeAssets() : { assets: [] };
   const libraryAssets = (assetsResp && (assetsResp.items || assetsResp.assets || assetsResp)) || [];
   const [assetTab, setAssetTab] = useState('upload'); // 'upload' | 'library'
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!validatePlatformMedia(formData)) return;
     onSave(formData);
   };
 
@@ -2551,6 +2552,43 @@ const CreateContentModal = ({ onClose, onSave }) => {
 
   const handleAssetSelect = (asset) => {
     setFormData({ ...formData, selected_asset: asset, media_file: null });
+  };
+
+  const getSelectedMediaInfo = () => {
+    const name = formData.media_file?.name || formData.selected_asset?.name || formData.selected_asset?.filename || '';
+    const type = formData.media_file?.type || formData.selected_asset?.type || '';
+    return { name, type };
+  };
+
+  const validatePlatformMedia = (data) => {
+    const errs = [];
+    const { platform, content_type } = data;
+    const { name, type } = getSelectedMediaInfo();
+    const isVideo = type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(name);
+    const isImage = type.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/i.test(name);
+
+    if (!platform) errs.push('Select a platform.');
+    if (!content_type) errs.push('Select a content type.');
+
+    // Basic platform/content validations
+    if (platform === 'instagram' && content_type === 'reel' && !isVideo) {
+      errs.push('Instagram Reels require a video file.');
+    }
+    if (platform === 'youtube' && content_type !== 'video') {
+      errs.push('YouTube posts must be of type "video".');
+    }
+    if ((platform === 'instagram' || platform === 'facebook' || platform === 'pinterest') && content_type === 'post' && !(isImage || isVideo)) {
+      errs.push('This post requires an image or video.');
+    }
+    if (platform === 'email' && content_type !== 'email') {
+      errs.push('Email platform requires content type "email".');
+    }
+
+    if (errs.length) {
+      alert(errs.join('\n'));
+      return false;
+    }
+    return true;
   };
 
   return (
@@ -2666,8 +2704,17 @@ const CreateContentModal = ({ onClose, onSave }) => {
               {assetTab === 'upload' ? (
                 <div>
                   <input type="file" accept="image/*,video/*" onChange={handleFileChange} className="w-full" />
-                  {formData.media_file && (
-                    <p className="mt-2 text-xs text-gray-500">Selected: {formData.media_file.name}</p>
+                  {(formData.media_file || formData.selected_asset) && (
+                    <div className="mt-2 text-xs text-gray-700">
+                      <div className="mb-1">Selected: {formData.media_file?.name || formData.selected_asset?.name || formData.selected_asset?.filename}</div>
+                      {/* Preview */}
+                      {formData.media_file && formData.media_file.type.startsWith('image/') && (
+                        <img className="max-h-32 rounded border" alt="preview" src={URL.createObjectURL(formData.media_file)} />
+                      )}
+                      {formData.media_file && formData.media_file.type.startsWith('video/') && (
+                        <video className="max-h-40 rounded border" src={URL.createObjectURL(formData.media_file)} controls />
+                      )}
+                    </div>
                   )}
                 </div>
               ) : (
@@ -2685,6 +2732,10 @@ const CreateContentModal = ({ onClose, onSave }) => {
                       <div className="text-sm font-medium truncate">{asset.name || asset.filename || 'Asset'}</div>
                       {asset.type && (
                         <div className="text-xs text-gray-500 mt-1">{asset.type}</div>
+                      )}
+                      {/* Library preview thumbnail if available */}
+                      {asset.thumbnail_url && (
+                        <img src={asset.thumbnail_url} alt="thumb" className="mt-2 max-h-24 rounded border" />
                       )}
                     </button>
                   ))}
