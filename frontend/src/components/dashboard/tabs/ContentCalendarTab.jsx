@@ -13,82 +13,12 @@ import {
   Zap 
 } from 'lucide-react';
 
-// TODO: Extract these helper components and modals
-// For now, we'll use placeholder components
-const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, onContentSelect, selectedItems }) => (
-  <div className="min-h-[120px] p-2 border border-gray-200 rounded-lg bg-gray-50">
-    <div className="text-sm font-medium text-gray-600 mb-2">{date.getDate()}</div>
-    <div className="space-y-1">
-      {content.map((item, idx) => (
-        <div key={idx} className="text-xs bg-white p-1 rounded border">
-          {item.platform} - {item.content_type}
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-const ContentDetailsModal = ({ content, onClose, onEdit }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 max-w-md">
-      <h3 className="text-lg font-semibold mb-4">Content Details</h3>
-      <p className="text-sm text-gray-600 mb-4">{content?.content_preview}</p>
-      <div className="flex space-x-2">
-        <button onClick={onEdit} className="px-4 py-2 bg-blue-600 text-white rounded">Edit</button>
-        <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded">Close</button>
-      </div>
-    </div>
-  </div>
-);
-
-const CreateContentModal = ({ onClose, onSave }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 max-w-md">
-      <h3 className="text-lg font-semibold mb-4">Create Content</h3>
-      <p className="text-sm text-gray-600 mb-4">Content creation form would go here</p>
-      <div className="flex space-x-2">
-        <button onClick={() => onSave({})} className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
-        <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded">Cancel</button>
-      </div>
-    </div>
-  </div>
-);
-
-const EditContentModal = ({ content, onClose, onSave }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 max-w-md">
-      <h3 className="text-lg font-semibold mb-4">Edit Content</h3>
-      <p className="text-sm text-gray-600 mb-4">Content editing form would go here</p>
-      <div className="flex space-x-2">
-        <button onClick={() => onSave({})} className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
-        <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded">Cancel</button>
-      </div>
-    </div>
-  </div>
-);
-
-const AutonomousContentModal = ({ onClose, onSchedule }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 max-w-md">
-      <h3 className="text-lg font-semibold mb-4">Autonomous Content</h3>
-      <p className="text-sm text-gray-600 mb-4">Autonomous content generation would go here</p>
-      <div className="flex space-x-2">
-        <button onClick={() => onSchedule([])} className="px-4 py-2 bg-green-600 text-white rounded">Schedule</button>
-        <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded">Cancel</button>
-      </div>
-    </div>
-  </div>
-);
-
-const PerformanceAnalyticsModal = ({ calendar, onClose }) => (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 max-w-2xl">
-      <h3 className="text-lg font-semibold mb-4">Performance Analytics</h3>
-      <p className="text-sm text-gray-600 mb-4">Analytics dashboard would go here</p>
-      <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded">Close</button>
-    </div>
-  </div>
-);
+import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
+import ContentDetailsModal from '../modals/ContentDetailsModal';
+import CreateContentModal from '../modals/CreateContentModal';
+import EditContentModal from '../modals/EditContentModal';
+import AutonomousContentModal from '../modals/AutonomousContentModal';
+import PerformanceAnalyticsModal from '../modals/PerformanceAnalyticsModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
