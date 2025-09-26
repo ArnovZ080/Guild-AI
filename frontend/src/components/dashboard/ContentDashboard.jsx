@@ -2526,7 +2526,9 @@ const CreateContentModal = ({ onClose, onSave }) => {
     scheduled_date: '',
     priority: 'medium',
     media_file: null,
-    selected_asset: null
+    selected_asset: null,
+    media_meta: { durationSec: null, width: null, height: null, sizeBytes: null },
+    scheduled_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   });
 
   const platforms = ['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
@@ -2604,7 +2606,40 @@ const CreateContentModal = ({ onClose, onSave }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-    setFormData({ ...formData, media_file: file, selected_asset: null });
+    if (!file) {
+      setFormData({ ...formData, media_file: null, selected_asset: null, media_meta: { durationSec: null, width: null, height: null, sizeBytes: null } });
+      return;
+    }
+    const sizeBytes = file.size || null;
+    // Collect basic meta, then image/video specifics
+    if (file.type && file.type.startsWith('image/')) {
+      const img = new Image();
+      img.onload = () => {
+        setFormData(prev => ({
+          ...prev,
+          media_file: file,
+          selected_asset: null,
+          media_meta: { durationSec: null, width: img.width, height: img.height, sizeBytes }
+        }));
+      };
+      img.src = URL.createObjectURL(file);
+    } else if (file.type && file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        const durationSec = video.duration ? Math.round(video.duration) : null;
+        setFormData(prev => ({
+          ...prev,
+          media_file: file,
+          selected_asset: null,
+          media_meta: { durationSec, width: null, height: null, sizeBytes }
+        }));
+        URL.revokeObjectURL(video.src);
+      };
+      video.src = URL.createObjectURL(file);
+    } else {
+      setFormData(prev => ({ ...prev, media_file: file, selected_asset: null, media_meta: { durationSec: null, width: null, height: null, sizeBytes } }));
+    }
   };
 
   const handleAssetSelect = (asset) => {
@@ -2623,6 +2658,7 @@ const CreateContentModal = ({ onClose, onSave }) => {
     const { name, type } = getSelectedMediaInfo();
     const isVideo = type.startsWith('video/') || /\.(mp4|mov|webm)$/i.test(name);
     const isImage = type.startsWith('image/') || /\.(png|jpe?g|gif|webp)$/i.test(name);
+    const { durationSec, width, height, sizeBytes } = data.media_meta || {};
 
     if (!platform) errs.push('Select a platform.');
     if (!content_type) errs.push('Select a content type.');
@@ -2639,6 +2675,27 @@ const CreateContentModal = ({ onClose, onSave }) => {
     }
     if (platform === 'email' && content_type !== 'email') {
       errs.push('Email platform requires content type "email".');
+    }
+
+    // Size limits (rough guidance)
+    if (sizeBytes && sizeBytes > 100 * 1024 * 1024) {
+      errs.push('Media file is larger than 100MB, consider compressing.');
+    }
+    // Duration limits
+    if (platform === 'instagram' && content_type === 'reel' && durationSec && durationSec > 90) {
+      errs.push('Instagram Reels should be 90 seconds or less.');
+    }
+    if (platform === 'youtube' && content_type === 'short' && durationSec && durationSec > 60) {
+      errs.push('YouTube Shorts must be 60 seconds or less.');
+    }
+
+    // Aspect ratio hints (non-blocking) for images
+    if (isImage && width && height && platform === 'instagram' && content_type === 'post') {
+      const ratio = width / height;
+      if (ratio < 0.7 || ratio > 1.91) {
+        // 4:5=0.8, 1:1=1.0, 16:9=1.78
+        console.warn('Instagram prefers 4:5, 1:1 or 16:9 aspect ratios.');
+      }
     }
 
     if (errs.length) {
@@ -2769,6 +2826,13 @@ const CreateContentModal = ({ onClose, onSave }) => {
                   {(formData.media_file || formData.selected_asset) && (
                     <div className="mt-2 text-xs text-gray-700">
                       <div className="mb-1">Selected: {formData.media_file?.name || formData.selected_asset?.name || formData.selected_asset?.filename}</div>
+                      {formData.media_meta && (
+                        <div className="mb-1 text-gray-500">
+                          {formData.media_meta.durationSec != null && (<span>Duration: {formData.media_meta.durationSec}s </span>)}
+                          {formData.media_meta.width && formData.media_meta.height && (<span> | {formData.media_meta.width}x{formData.media_meta.height}</span>)}
+                          {formData.media_meta.sizeBytes && (<span> | {(formData.media_meta.sizeBytes/1024/1024).toFixed(1)}MB</span>)}
+                        </div>
+                      )}
                       {/* Preview */}
                       {formData.media_file && formData.media_file.type.startsWith('image/') && (
                         <img className="max-h-32 rounded border" alt="preview" src={URL.createObjectURL(formData.media_file)} />
@@ -2842,13 +2906,24 @@ const CreateContentModal = ({ onClose, onSave }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Scheduled Date & Time *
               </label>
-              <input
-                type="datetime-local"
-                value={formData.scheduled_date}
-                onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                required
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <input
+                  type="datetime-local"
+                  value={formData.scheduled_date}
+                  onChange={(e) => setFormData({ ...formData, scheduled_date: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                />
+                <select
+                  value={formData.scheduled_timezone}
+                  onChange={(e) => setFormData({ ...formData, scheduled_timezone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  {['UTC','Africa/Johannesburg','America/New_York','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Australia/Sydney'].map(tz => (
+                    <option key={tz} value={tz}>{tz}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="flex justify-end space-x-3">
