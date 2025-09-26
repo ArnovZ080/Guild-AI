@@ -224,10 +224,9 @@ const ContentDashboard = () => {
         target_metrics: action.target_metrics,
         agents_involved: action.agents_involved,
         workflow_steps: action.workflow_steps,
-        content_analysis: action.content_analysis,
+        content_analysis: action.content_analysis || analysis?.data || {},
         platform_data: platformData?.data?.platforms || {},
-        performance_data: analysis?.data?.content_metrics || {},
-        content_analysis: analysis?.data || {}
+        performance_data: analysis?.data?.content_metrics || {}
       });
       
       // Show success message
