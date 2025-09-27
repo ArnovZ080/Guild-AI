@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Zap, X, CheckCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { Zap, X, CheckCircle, Calendar as CalendarIcon, Upload, Image, Video, Palette } from 'lucide-react';
 
 const AutonomousContentModal = ({ onClose, onSchedule }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -10,6 +10,9 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
   const [isRefiningAudience, setIsRefiningAudience] = useState(false);
   const [showApprovalStep, setShowApprovalStep] = useState(false);
   const [selectedContentForApproval, setSelectedContentForApproval] = useState(null);
+  const [assetTab, setAssetTab] = useState('upload');
+  const [selectedAssets, setSelectedAssets] = useState([]);
+  const [isGeneratingAsset, setIsGeneratingAsset] = useState(false);
   const [formData, setFormData] = useState({
     business_objectives: '',
     target_audience: '',
@@ -50,6 +53,64 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
     { id: 'email', name: 'Email', icon: '📧' }
   ];
 
+  // Mock library assets (in real app, this would come from Assets tab)
+  const libraryAssets = [
+    { id: '1', name: 'Brand Logo', type: 'image/png', filename: 'logo.png', thumbnail_url: '/api/placeholder/100/100' },
+    { id: '2', name: 'Product Shot', type: 'image/jpeg', filename: 'product.jpg', thumbnail_url: '/api/placeholder/100/100' },
+    { id: '3', name: 'Team Photo', type: 'image/jpeg', filename: 'team.jpg', thumbnail_url: '/api/placeholder/100/100' },
+    { id: '4', name: 'Intro Video', type: 'video/mp4', filename: 'intro.mp4', thumbnail_url: '/api/placeholder/100/100' }
+  ];
+
+  // Asset handling functions
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newAssets = files.map(file => ({
+      id: `upload_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+      name: file.name,
+      type: file.type,
+      filename: file.name,
+      file: file,
+      isUpload: true
+    }));
+    setSelectedAssets(prev => [...prev, ...newAssets]);
+  };
+
+  const handleLibraryAssetSelect = (asset) => {
+    if (!selectedAssets.find(a => a.id === asset.id)) {
+      setSelectedAssets(prev => [...prev, asset]);
+    }
+  };
+
+  const handleAssetRemove = (assetId) => {
+    setSelectedAssets(prev => prev.filter(asset => asset.id !== assetId));
+  };
+
+  const handleCreateAsset = async (assetType) => {
+    setIsGeneratingAsset(true);
+    
+    try {
+      // Simulate AI agent call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const newAsset = {
+        id: `generated_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+        name: `AI Generated ${assetType}`,
+        type: assetType === 'image' ? 'image/png' : 'video/mp4',
+        filename: `ai_${assetType}_${Date.now()}.${assetType === 'image' ? 'png' : 'mp4'}`,
+        thumbnail_url: '/api/placeholder/100/100',
+        isGenerated: true,
+        generatedBy: assetType === 'image' ? 'image_generation_agent' : 'video_editor_agent'
+      };
+      
+      setSelectedAssets(prev => [...prev, newAsset]);
+    } catch (error) {
+      console.error('Asset generation failed:', error);
+      alert('Failed to generate asset. Please try again.');
+    } finally {
+      setIsGeneratingAsset(false);
+    }
+  };
+
   const contentThemes = [
     'Educational','Behind-the-scenes','User-generated content','Product showcases','Industry insights','Company culture','Customer stories','How-to guides','Trending topics','Seasonal content','Thought leadership','Community building'
   ];
@@ -82,6 +143,10 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
     const themes = data.content_themes.length ? data.content_themes : ['Educational','Behind-the-scenes'];
     platforms.forEach(platform => {
       themes.forEach(theme => {
+        // Assign assets to content (distribute selected assets across content pieces)
+        const assetIndex = content.length % selectedAssets.length;
+        const assignedAsset = selectedAssets.length > 0 ? selectedAssets[assetIndex] : null;
+        
         content.push({
           content_id: `autonomous_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
           platform,
@@ -92,7 +157,9 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
           status: 'scheduled',
           priority: 'high',
           ai_generated: true,
-          quality_score: 0.92
+          quality_score: 0.92,
+          assets: assignedAsset ? [assignedAsset] : [],
+          has_visual_content: !!assignedAsset
         });
       });
     });
@@ -239,6 +306,150 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
                     </select>
                   </div>
                 </div>
+
+                {/* Asset Selection Section */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">Visual Assets</label>
+                  <div className="space-y-4">
+                    {/* Asset Tab Buttons */}
+                    <div className="flex items-center space-x-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setAssetTab('upload')} 
+                        className={`px-3 py-1 rounded text-sm flex items-center ${assetTab === 'upload' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      >
+                        <Upload className="w-4 h-4 mr-1" />
+                        Upload
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setAssetTab('library')} 
+                        className={`px-3 py-1 rounded text-sm flex items-center ${assetTab === 'library' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      >
+                        <Image className="w-4 h-4 mr-1" />
+                        Library
+                      </button>
+                      <button 
+                        type="button" 
+                        onClick={() => setAssetTab('create')} 
+                        className={`px-3 py-1 rounded text-sm flex items-center ${assetTab === 'create' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                      >
+                        <Palette className="w-4 h-4 mr-1" />
+                        Create
+                      </button>
+                    </div>
+
+                    {/* Asset Tab Content */}
+                    {assetTab === 'upload' && (
+                      <div>
+                        <input 
+                          type="file" 
+                          accept="image/*,video/*" 
+                          multiple
+                          onChange={handleFileUpload} 
+                          className="w-full p-2 border border-gray-300 rounded-lg text-sm" 
+                        />
+                        <p className="mt-1 text-xs text-gray-500">Upload images or videos for your content</p>
+                      </div>
+                    )}
+
+                    {assetTab === 'library' && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-48 overflow-auto border rounded p-2">
+                        {libraryAssets.length === 0 ? (
+                          <div className="col-span-3 text-sm text-gray-500 text-center py-4">No assets found. Upload in the Assets tab.</div>
+                        ) : (
+                          libraryAssets.map((asset) => (
+                            <button
+                              key={asset.id}
+                              type="button"
+                              onClick={() => handleLibraryAssetSelect(asset)}
+                              className={`border rounded p-2 text-left hover:bg-gray-50 transition-colors ${
+                                selectedAssets.find(a => a.id === asset.id) ? 'ring-2 ring-purple-500 bg-purple-50' : ''
+                              }`}
+                            >
+                              <div className="text-sm font-medium truncate">{asset.name}</div>
+                              <div className="text-xs text-gray-500 mt-1">{asset.type}</div>
+                              <div className="mt-2 h-16 bg-gray-100 rounded flex items-center justify-center">
+                                <Image className="w-6 h-6 text-gray-400" />
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+
+                    {assetTab === 'create' && (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <button
+                            type="button"
+                            onClick={() => handleCreateAsset('image')}
+                            disabled={isGeneratingAsset}
+                            className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <Image className="w-5 h-5 text-blue-500" />
+                              <span className="text-sm font-medium">Generate Image</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">AI creates custom visuals</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleCreateAsset('video')}
+                            disabled={isGeneratingAsset}
+                            className="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <Video className="w-5 h-5 text-red-500" />
+                              <span className="text-sm font-medium">Generate Video</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">AI creates custom videos</p>
+                          </button>
+                        </div>
+                        {isGeneratingAsset && (
+                          <div className="text-center py-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mx-auto mb-1"></div>
+                            <p className="text-xs text-gray-500">AI agents are creating your asset...</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Selected Assets Display */}
+                    {selectedAssets.length > 0 && (
+                      <div className="border-t pt-3">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Selected Assets ({selectedAssets.length})</div>
+                        <div className="space-y-2">
+                          {selectedAssets.map((asset) => (
+                            <div key={asset.id} className="flex items-center justify-between p-2 bg-white border rounded-lg">
+                              <div className="flex items-center space-x-2">
+                                <Image className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm font-medium">{asset.name}</span>
+                                {asset.isGenerated && (
+                                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                    AI Generated
+                                  </span>
+                                )}
+                                {asset.isUpload && (
+                                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                    Uploaded
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleAssetRemove(asset.id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end space-x-3">
@@ -299,6 +510,12 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
                         }`}>
                           {c.status}
                         </div>
+                        {c.has_visual_content && (
+                          <div className="flex items-center space-x-1 text-xs text-blue-600">
+                            <Image className="w-3 h-3" />
+                            <span>Has Assets</span>
+                          </div>
+                        )}
                       </div>
                       <p className="text-sm text-gray-700 mb-2">{c.content_preview}</p>
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
