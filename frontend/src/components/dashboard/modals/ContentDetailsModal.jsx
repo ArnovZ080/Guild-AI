@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
@@ -14,6 +14,8 @@ const ContentDetailsModal = ({
   onDelete,
   onDraft
 }) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+  
   if (!content) return null;
 
   const handleAction = (action) => {
@@ -31,7 +33,12 @@ const ContentDetailsModal = ({
         if (onDelete) onDelete(content);
         break;
       case 'draft':
+        setIsProcessing(true);
         if (onDraft) onDraft(content);
+        // Show success feedback
+        setTimeout(() => {
+          setIsProcessing(false);
+        }, 1500);
         break;
       case 'repurpose':
         if (onRepurpose) onRepurpose(content);
@@ -224,10 +231,24 @@ const ContentDetailsModal = ({
               </button>
               <button
                 onClick={() => handleAction('draft')}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center"
+                disabled={isProcessing}
+                className={`px-4 py-2 rounded-lg transition-colors flex items-center ${
+                  isProcessing 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-gray-600 text-white hover:bg-gray-700'
+                } disabled:opacity-75`}
               >
-                <Clock className="w-4 h-4 mr-2" />
-                Draft
+                {isProcessing ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Moved to Draft
+                  </>
+                ) : (
+                  <>
+                    <Clock className="w-4 h-4 mr-2" />
+                    Draft
+                  </>
+                )}
               </button>
               <button
                 onClick={() => handleAction('edit')}

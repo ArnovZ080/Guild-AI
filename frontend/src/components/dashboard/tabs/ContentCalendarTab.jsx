@@ -1329,7 +1329,12 @@ const ContentCalendarTab = ({ calendar }) => {
                   : item
               )
             );
-            setSelectedContent(null);
+            // Update the selected content to show the change
+            setSelectedContent(prev => prev ? { ...prev, status: 'draft' } : null);
+            // Close modal after a brief delay to show the change
+            setTimeout(() => {
+              setSelectedContent(null);
+            }, 1000);
           }}
           onDelete={(content) => {
             // Remove content from calendar
