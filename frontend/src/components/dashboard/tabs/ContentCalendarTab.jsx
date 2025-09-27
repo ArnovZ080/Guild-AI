@@ -13,7 +13,9 @@ import {
   Zap,
   CheckCircle,
   GitBranch,
-  Edit
+  Edit,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
@@ -118,13 +120,29 @@ const ContentCalendarTab = ({ calendar }) => {
     const today = new Date();
     
     if (viewMode === 'month') {
-      // Show 30 days from today
-      for (let i = 0; i < 30; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() + i);
+      // Show proper calendar month view
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      
+      // Get first day of month and last day of month
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      
+      // Get first Monday of the week containing the first day (or show previous month's days)
+      const startDate = new Date(firstDay);
+      startDate.setDate(firstDay.getDate() - firstDay.getDay());
+      
+      // Get last Sunday of the week containing the last day (or show next month's days)
+      const endDate = new Date(lastDay);
+      endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+      
+      // Generate all days in the calendar grid
+      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
         content.push({
-          date,
-          content: getContentForDate(date)
+          date: new Date(date),
+          content: getContentForDate(date),
+          isCurrentMonth: date.getMonth() === month,
+          isToday: date.toDateString() === today.toDateString()
         });
       }
     } else if (viewMode === 'week') {
@@ -230,6 +248,34 @@ const ContentCalendarTab = ({ calendar }) => {
     );
     setShowApprovalModal(false);
     setApprovalContent(null);
+  };
+
+  // Calendar navigation functions
+  const goToPreviousMonth = () => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  const goToNextMonth = () => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + 1);
+      return newDate;
+    });
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  const getMonthYearDisplay = () => {
+    return selectedDate.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
 
   // Version control functions
@@ -815,6 +861,37 @@ const ContentCalendarTab = ({ calendar }) => {
         {/* Calendar View */}
         {viewMode === 'month' && (
           <div className="space-y-4">
+            {/* Calendar Navigation Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  {getMonthYearDisplay()}
+                </h2>
+                <button
+                  onClick={goToToday}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                >
+                  Today
+                </button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={goToPreviousMonth}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <button
+                  onClick={goToNextMonth}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Next Month"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+            </div>
+
             {/* Month Header */}
         <div className="grid grid-cols-7 gap-2 mb-4">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
@@ -835,6 +912,8 @@ const ContentCalendarTab = ({ calendar }) => {
                   onContentClick={handleContentClick}
                   onContentSelect={handleItemSelect}
                   selectedItems={selectedItems}
+                  isCurrentMonth={dayData.isCurrentMonth}
+                  isToday={dayData.isToday}
                 />
               ))}
             </div>
