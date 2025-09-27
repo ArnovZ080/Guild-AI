@@ -38,8 +38,10 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showAutonomousModal, setShowAutonomousModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalContent, setApprovalContent] = useState(null);
-  const [campaignView, setCampaignView] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
+  const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
+  const [showDeadlines, setShowDeadlines] = useState(false);
+  const [showCampaignOverview, setShowCampaignOverview] = useState(false);
 
   const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
   const statuses = ['all', 'idea', 'draft', 'review', 'pending_approval', 'approved', 'scheduled', 'published', 'archived'];
@@ -206,9 +208,6 @@ const ContentCalendarTab = ({ calendar }) => {
   };
 
   // Campaign syncing functions
-  const handleCampaignView = () => {
-    setCampaignView(!campaignView);
-  };
 
   // Sync campaigns from Campaign Tab (this would be called when campaigns are updated)
   const syncCampaigns = (campaignData) => {
@@ -432,14 +431,6 @@ const ContentCalendarTab = ({ calendar }) => {
               Review Pending ({filteredCalendar.filter(item => item.status === 'review').length})
             </button>
 
-            {/* Campaign View Button */}
-            <button 
-              onClick={handleCampaignView}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
-            >
-              <Target className="w-4 h-4 mr-2" />
-              {campaignView ? 'Hide Campaigns' : 'View Campaigns'}
-            </button>
 
             {/* Create Content Button */}
             <button 
@@ -553,29 +544,37 @@ const ContentCalendarTab = ({ calendar }) => {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Editorial Guidelines</h3>
+            <button 
+              onClick={() => setShowEditorialGuidelines(!showEditorialGuidelines)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+            >
+              {showEditorialGuidelines ? 'Hide Guidelines' : 'View Guidelines'}
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <div className="font-medium text-gray-800 mb-1">Brand Voice</div>
-              <div className="text-gray-700 whitespace-pre-line">{editorial.brandVoice || 'No brand voice found. Set during onboarding.'}</div>
-            </div>
-            <div>
-              <div className="font-medium text-gray-800 mb-1">Keywords</div>
-              <div className="text-gray-700">{Array.isArray(editorial.keywords) && editorial.keywords.length > 0 ? editorial.keywords.join(', ') : '—'}</div>
-            </div>
-            <div>
-              <div className="font-medium text-gray-800 mb-1">Do's & Don'ts</div>
-              <div className="text-gray-700">
-                {Array.isArray(editorial.dos) && editorial.dos.length > 0 && (
-                  <div className="mb-1"><span className="font-medium">Do:</span> {editorial.dos.join(', ')}</div>
-                )}
-                {Array.isArray(editorial.donts) && editorial.donts.length > 0 && (
-                  <div><span className="font-medium">Don't:</span> {editorial.donts.join(', ')}</div>
-                )}
-                {(!editorial.dos || editorial.dos.length === 0) && (!editorial.donts || editorial.donts.length === 0) && '—'}
+          {showEditorialGuidelines && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <div className="font-medium text-gray-800 mb-1">Brand Voice</div>
+                <div className="text-gray-700 whitespace-pre-line">{editorial.brandVoice || 'No brand voice found. Set during onboarding.'}</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-800 mb-1">Keywords</div>
+                <div className="text-gray-700">{Array.isArray(editorial.keywords) && editorial.keywords.length > 0 ? editorial.keywords.join(', ') : '—'}</div>
+              </div>
+              <div>
+                <div className="font-medium text-gray-800 mb-1">Do's & Don'ts</div>
+                <div className="text-gray-700">
+                  {Array.isArray(editorial.dos) && editorial.dos.length > 0 && (
+                    <div className="mb-1"><span className="font-medium">Do:</span> {editorial.dos.join(', ')}</div>
+                  )}
+                  {Array.isArray(editorial.donts) && editorial.donts.length > 0 && (
+                    <div><span className="font-medium">Don't:</span> {editorial.donts.join(', ')}</div>
+                  )}
+                  {(!editorial.dos || editorial.dos.length === 0) && (!editorial.donts || editorial.donts.length === 0) && '—'}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Upcoming Deadlines & Reminders */}
@@ -585,57 +584,72 @@ const ContentCalendarTab = ({ calendar }) => {
               <Bell className="w-5 h-5 text-orange-500 mr-2" />
               Upcoming Deadlines & Reminders
             </h3>
-            <span className="text-sm text-gray-500">
-              {getUpcomingDeadlines().length} items need attention
-            </span>
+            <button 
+              onClick={() => setShowDeadlines(!showDeadlines)}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center text-sm"
+            >
+              {showDeadlines ? 'Hide Deadlines' : 'View Deadlines'}
+            </button>
           </div>
-          <div className="space-y-3">
-            {getUpcomingDeadlines().slice(0, 5).map((item, idx) => (
-              <div key={idx} className={`p-3 rounded-lg border-l-4 ${
-                item.urgency === 'high' ? 'border-red-500 bg-red-50' :
-                item.urgency === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                'border-blue-500 bg-blue-50'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      item.urgency === 'high' ? 'bg-red-500' :
-                      item.urgency === 'medium' ? 'bg-yellow-500' :
-                      'bg-blue-500'
-                    }`}></div>
-                    <div>
-                      <div className="font-medium text-gray-900">{item.title}</div>
-                      <div className="text-sm text-gray-600">{item.description}</div>
+          {showDeadlines && (
+            <div className="space-y-3">
+              <div className="text-sm text-gray-500 mb-4">
+                {getUpcomingDeadlines().length} items need attention
+              </div>
+              {getUpcomingDeadlines().slice(0, 5).map((item, idx) => (
+                <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                  item.urgency === 'high' ? 'border-red-500 bg-red-50' :
+                  item.urgency === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                  'border-blue-500 bg-blue-50'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-2 h-2 rounded-full ${
+                        item.urgency === 'high' ? 'bg-red-500' :
+                        item.urgency === 'medium' ? 'bg-yellow-500' :
+                        'bg-blue-500'
+                      }`}></div>
+                      <div>
+                        <div className="font-medium text-gray-900">{item.title}</div>
+                        <div className="text-sm text-gray-600">{item.description}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-900">{item.dueDate}</div>
+                      <div className="text-xs text-gray-500">{item.timeRemaining}</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium text-gray-900">{item.dueDate}</div>
-                    <div className="text-xs text-gray-500">{item.timeRemaining}</div>
-                  </div>
                 </div>
-              </div>
-            ))}
-            {getUpcomingDeadlines().length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                <p>No upcoming deadlines or reminders</p>
-              </div>
-            )}
-          </div>
+              ))}
+              {getUpcomingDeadlines().length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                  <p>No upcoming deadlines or reminders</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Campaign View */}
-        {campaignView && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Target className="w-5 h-5 text-indigo-500 mr-2" />
-                Campaign Overview
-              </h3>
-              <div className="text-sm text-gray-600">
+        {/* Campaign Overview */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Target className="w-5 h-5 text-indigo-500 mr-2" />
+              Campaign Overview
+            </h3>
+            <button 
+              onClick={() => setShowCampaignOverview(!showCampaignOverview)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center text-sm"
+            >
+              {showCampaignOverview ? 'Hide Campaigns' : 'View Campaigns'}
+            </button>
+          </div>
+          {showCampaignOverview && (
+            <div>
+              <div className="text-sm text-gray-600 mb-4">
                 Campaigns managed in Campaign Tab
               </div>
-            </div>
             
             {campaigns.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -700,8 +714,9 @@ const ContentCalendarTab = ({ calendar }) => {
                 })}
               </div>
             )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
 
         {/* View Mode Toggle (moved above calendar) */}
         <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
