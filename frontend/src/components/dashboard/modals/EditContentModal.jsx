@@ -21,7 +21,44 @@ const EditContentModal = ({ content, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Create version history entry
+    const versionEntry = {
+      id: `version_${Date.now()}`,
+      version: `${parseFloat(content?.version || '1.0') + 0.1}`,
+      timestamp: new Date().toISOString(),
+      author: 'You',
+      changes: getChangesFromFormData(),
+      status: 'modified',
+      content_snapshot: {
+        content_preview: content?.content_preview || '',
+        platform: content?.platform || '',
+        content_type: content?.content_type || '',
+        theme: content?.theme || '',
+        caption: content?.caption || '',
+        scheduled_date: content?.scheduled_date || '',
+        priority: content?.priority || ''
+      }
+    };
+
+    const updatedFormData = {
+      ...formData,
+      version_history: [...(content?.version_history || []), versionEntry]
+    };
+
+    onSave(updatedFormData);
+  };
+
+  const getChangesFromFormData = () => {
+    const changes = [];
+    if (formData.content_preview !== content?.content_preview) changes.push('Updated content preview');
+    if (formData.platform !== content?.platform) changes.push(`Changed platform to ${formData.platform}`);
+    if (formData.content_type !== content?.content_type) changes.push(`Changed type to ${formData.content_type}`);
+    if (formData.theme !== content?.theme) changes.push(`Changed theme to ${formData.theme}`);
+    if (formData.priority !== content?.priority) changes.push(`Changed priority to ${formData.priority}`);
+    if (formData.scheduled_date !== content?.scheduled_date) changes.push('Updated scheduled date');
+    if (formData.scheduled_timezone !== content?.scheduled_timezone) changes.push(`Changed timezone to ${formData.scheduled_timezone}`);
+    return changes.length > 0 ? changes : ['Minor updates'];
   };
 
   return (

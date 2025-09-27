@@ -11,7 +11,9 @@ import {
   Bell, 
   BarChart3, 
   Zap,
-  CheckCircle
+  CheckCircle,
+  GitBranch,
+  Edit
 } from 'lucide-react';
 
 import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
@@ -21,6 +23,7 @@ import EditContentModal from '../modals/EditContentModal';
 import AutonomousContentModal from '../modals/AutonomousContentModal';
 import PerformanceAnalyticsModal from '../modals/PerformanceAnalyticsModal';
 import ApprovalModal from '../modals/ApprovalModal';
+import VersionHistoryModal from '../modals/VersionHistoryModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -38,6 +41,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showAutonomousModal, setShowAutonomousModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalContent, setApprovalContent] = useState(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
+  const [versionContent, setVersionContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -225,6 +230,37 @@ const ContentCalendarTab = ({ calendar }) => {
     );
     setShowApprovalModal(false);
     setApprovalContent(null);
+  };
+
+  // Version control functions
+  const handleVersionHistory = (content) => {
+    setVersionContent(content);
+    setShowVersionModal(true);
+  };
+
+  const handleRestoreVersion = (version) => {
+    if (versionContent) {
+      // Update the content with the restored version data
+      const updatedContent = {
+        ...versionContent,
+        ...version.content_snapshot,
+        version_history: [...(versionContent.version_history || []), {
+          id: `restore_${Date.now()}`,
+          version: `${parseFloat(version.version) + 0.1}`,
+          timestamp: new Date().toISOString(),
+          author: 'You',
+          changes: [`Restored from version ${version.version}`],
+          status: 'restored',
+          restored_from: version.id
+        }]
+      };
+
+      setLocalCalendar(prev => 
+        prev.map(item => 
+          item.content_id === versionContent.content_id ? updatedContent : item
+        )
+      );
+    }
   };
 
   // Campaign syncing functions
@@ -981,6 +1017,29 @@ const ContentCalendarTab = ({ calendar }) => {
                       <div className="text-sm text-gray-600">
                         {formatDateWithTimezone(content.scheduled_date, content.scheduled_timezone)}
                       </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVersionHistory(content);
+                          }}
+                          className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                          title="Version History"
+                        >
+                          <GitBranch className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedContent(content);
+                            setShowEditModal(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1188,6 +1247,18 @@ const ContentCalendarTab = ({ calendar }) => {
           onApprove={handleApproval}
           onReject={handleRejection}
           onRequestChanges={handleRequestChanges}
+        />
+      )}
+
+      {/* Version History Modal */}
+      {showVersionModal && versionContent && (
+        <VersionHistoryModal
+          content={versionContent}
+          onClose={() => {
+            setShowVersionModal(false);
+            setVersionContent(null);
+          }}
+          onRestoreVersion={handleRestoreVersion}
         />
       )}
 

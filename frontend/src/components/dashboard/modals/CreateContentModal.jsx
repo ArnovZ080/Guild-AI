@@ -75,7 +75,32 @@ const CreateContentModal = ({ onClose, onSave }) => {
       alert(`Caption exceeds max length for ${formData.platform} (${formData.caption.length}/${maxCap}).`);
       return;
     }
-    onSave(formData);
+
+    // Create initial version history entry
+    const versionEntry = {
+      id: `version_${Date.now()}`,
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      author: 'You',
+      changes: ['Initial creation'],
+      status: 'created',
+      content_snapshot: {
+        content_preview: formData.content_preview,
+        platform: formData.platform,
+        content_type: formData.content_type,
+        theme: formData.theme,
+        caption: formData.caption,
+        scheduled_date: formData.scheduled_date,
+        priority: formData.priority
+      }
+    };
+
+    const formDataWithVersion = {
+      ...formData,
+      version_history: [versionEntry]
+    };
+
+    onSave(formDataWithVersion);
   };
 
   const handleFileChange = (e) => {
