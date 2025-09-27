@@ -17,6 +17,8 @@ import {
   Target,
   Zap
 } from 'lucide-react';
+import ConfidenceScore from '../shared/ConfidenceScore';
+import AIRecommendations from '../shared/AIRecommendations';
 
 const ApprovalModal = ({ content, onClose, onApprove, onReject, onRequestChanges }) => {
   const [approvalAction, setApprovalAction] = useState('');
@@ -195,67 +197,12 @@ const ApprovalModal = ({ content, onClose, onApprove, onReject, onRequestChanges
           </div>
 
           {/* AI Recommendation */}
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center mb-3">
-              <Zap className="w-5 h-5 text-blue-500 mr-2" />
-              <h3 className="text-lg font-semibold text-gray-900">AI Recommendation</h3>
-              <button
-                onClick={() => setShowDetails(!showDetails)}
-                className="ml-auto text-sm text-blue-600 hover:text-blue-800 flex items-center"
-              >
-                <Info className="w-4 h-4 mr-1" />
-                {showDetails ? 'Hide Details' : 'Show Details'}
-              </button>
-            </div>
-            
-            <div className={`transition-all duration-300 ${showDetails ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">Overall Score: {recommendation.confidence}/100</span>
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    recommendation.recommendation === 'approve' ? 'bg-green-100 text-green-800' :
-                    recommendation.recommendation === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {recommendation.recommendation === 'approve' ? 'RECOMMENDED' : 
-                     recommendation.recommendation === 'review' ? 'NEEDS REVIEW' : 'NOT RECOMMENDED'}
-                  </div>
-                </div>
-                <p className="text-sm text-gray-700 mb-4">{recommendation.reasoning}</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {recommendation.factors.map((factor, idx) => {
-                  const Icon = factor.icon;
-                  return (
-                    <div key={idx} className="bg-white p-3 rounded-lg border">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center">
-                          <Icon className={`w-4 h-4 mr-2 ${factor.color}`} />
-                          <span className="font-medium text-gray-800">{factor.factor}</span>
-                        </div>
-                        <span className="font-bold text-gray-900">{factor.score}/100</span>
-                      </div>
-                      <p className="text-xs text-gray-600">{factor.explanation}</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-4 p-3 bg-white rounded-lg border-l-4 border-blue-500">
-              <div className="flex items-start">
-                <Info className="w-4 h-4 text-blue-500 mr-2 mt-0.5 flex-shrink-0" />
-                <div>
-                  <div className="text-sm font-medium text-gray-900">Why this recommendation?</div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    Our AI analyzes your content against your brand guidelines, audience engagement patterns, 
-                    and optimal posting times to provide this recommendation. This helps ensure your content 
-                    performs well and maintains brand consistency.
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="mb-6">
+            <AIRecommendations 
+              content={content} 
+              showDetails={true} 
+              defaultExpanded={true}
+            />
           </div>
 
           {/* Approval History */}

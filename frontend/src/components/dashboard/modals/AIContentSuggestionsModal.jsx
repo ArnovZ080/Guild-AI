@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Sparkles, TrendingUp, Calendar, Target, Users, Hash, Clock, Zap } from 'lucide-react';
+import ConfidenceScore from '../shared/ConfidenceScore';
+import AIRecommendations from '../shared/AIRecommendations';
 
 const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -181,18 +183,12 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
     onClose();
   };
 
-  const getConfidenceColor = (score) => {
-    if (score >= 0.9) return 'text-green-600 bg-green-100';
-    if (score >= 0.8) return 'text-yellow-600 bg-yellow-100';
-    return 'text-orange-600 bg-orange-100';
-  };
-
   const getEngagementColor = (prediction) => {
     switch (prediction) {
-      case 'High': return 'text-green-600 bg-green-100';
-      case 'Medium': return 'text-yellow-600 bg-yellow-100';
-      case 'Low': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
+      case 'High': return 'text-green-700 bg-green-100 border-green-200';
+      case 'Medium': return 'text-yellow-700 bg-yellow-100 border-yellow-200';
+      case 'Low': return 'text-red-700 bg-red-100 border-red-200';
+      default: return 'text-gray-700 bg-gray-100 border-gray-200';
     }
   };
 
@@ -319,8 +315,9 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
             </div>
 
             {/* Right Column - Generated Content */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
+            <div className="lg:col-span-2 space-y-6">
+              {/* Generated Suggestions Header */}
+              <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Generated Suggestions</h3>
                 {suggestedContent.length > 0 && (
                   <div className="flex items-center space-x-2">
@@ -343,13 +340,33 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
                 )}
               </div>
 
+              {/* Platform Distribution Summary */}
+              {suggestedContent.length > 0 && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Platform Distribution</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {platforms.filter(p => suggestedContent.some(s => s.platform === p.id)).map(platform => {
+                      const count = suggestedContent.filter(s => s.platform === platform.id).length;
+                      return (
+                        <div key={platform.id} className="flex items-center space-x-1 px-2 py-1 bg-white rounded-md border">
+                          <span>{platform.icon}</span>
+                          <span className="text-sm font-medium">{platform.name}</span>
+                          <span className="text-xs text-gray-500">({count})</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Content Suggestions */}
               {suggestedContent.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                   <p>Configure settings and generate suggestions to see AI-recommended content</p>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div className="space-y-4">
                   {suggestedContent.map((item, idx) => (
                     <div
                       key={item.id}
@@ -371,10 +388,8 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
                           <span className="text-sm text-gray-500 capitalize">{item.content_type}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(item.confidence_score)}`}>
-                            {Math.round(item.confidence_score * 100)}% confidence
-                          </span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getEngagementColor(item.engagement_prediction)}`}>
+                          <ConfidenceScore score={item.confidence_score} size="small" showDetails={false} />
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getEngagementColor(item.engagement_prediction)}`}>
                             {item.engagement_prediction} engagement
                           </span>
                         </div>
@@ -384,13 +399,21 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
                         {item.content_preview}
                       </div>
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
                         <div className="flex items-center space-x-4">
                           <span>📅 {new Date(item.scheduled_date).toLocaleDateString()}</span>
                           <span>🤖 {item.suggested_by.replace('_', ' ')}</span>
                           <span>📊 {item.trending_keywords.slice(0, 2).join(', ')}</span>
                         </div>
                       </div>
+                      
+                      {/* AI Recommendations for this content */}
+                      <AIRecommendations 
+                        content={item} 
+                        showDetails={true} 
+                        defaultExpanded={false}
+                        className="mt-3"
+                      />
                     </div>
                   ))}
                   
