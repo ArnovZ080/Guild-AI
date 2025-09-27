@@ -1284,9 +1284,61 @@ const ContentCalendarTab = ({ calendar }) => {
         <ContentDetailsModal
           content={selectedContent}
           onClose={() => setSelectedContent(null)}
-          onEdit={() => {
-            setSelectedContent(null);
+          onEdit={(content) => {
+            setSelectedContent(content);
             setShowEditModal(true);
+          }}
+          onPublish={(content) => {
+            // Update content status to published
+            setLocalCalendar(prev =>
+              prev.map(item =>
+                item.content_id === content.content_id 
+                  ? { ...item, status: 'published', published_at: new Date().toISOString() }
+                  : item
+              )
+            );
+            setSelectedContent(null);
+          }}
+          onSchedule={(content) => {
+            // Update content status to scheduled
+            setLocalCalendar(prev =>
+              prev.map(item =>
+                item.content_id === content.content_id 
+                  ? { ...item, status: 'scheduled' }
+                  : item
+              )
+            );
+            setSelectedContent(null);
+          }}
+          onDraft={(content) => {
+            // Update content status to draft
+            setLocalCalendar(prev =>
+              prev.map(item =>
+                item.content_id === content.content_id 
+                  ? { ...item, status: 'draft' }
+                  : item
+              )
+            );
+            setSelectedContent(null);
+          }}
+          onDelete={(content) => {
+            // Remove content from calendar
+            setLocalCalendar(prev =>
+              prev.filter(item => item.content_id !== content.content_id)
+            );
+            setSelectedContent(null);
+          }}
+          onReplicate={(content) => {
+            // Replicate content functionality
+            const replicatedContent = {
+              ...content,
+              content_id: `replicated_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+              status: 'draft',
+              scheduled_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              created_at: new Date().toISOString()
+            };
+            setLocalCalendar(prev => [...prev, replicatedContent]);
+            setSelectedContent(null);
           }}
         />
       )}
