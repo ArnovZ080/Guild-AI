@@ -696,7 +696,8 @@ const ContentCalendarTab = ({ calendar }) => {
                       )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
