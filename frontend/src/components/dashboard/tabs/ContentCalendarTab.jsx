@@ -42,6 +42,7 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
   const [showCampaignOverview, setShowCampaignOverview] = useState(false);
+  const [selectedTimezone, setSelectedTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
 
   const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
   const statuses = ['all', 'idea', 'draft', 'review', 'pending_approval', 'approved', 'scheduled', 'published', 'archived'];
@@ -85,6 +86,25 @@ const ContentCalendarTab = ({ calendar }) => {
     return filteredCalendar.filter(item => 
       new Date(item.scheduled_date).toDateString() === date.toDateString()
     );
+  };
+
+  // Helper function to format dates with timezone
+  const formatDateWithTimezone = (dateString, timezone = selectedTimezone) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      return new Date(dateString).toLocaleDateString();
+    }
   };
 
   // Get content for current view
@@ -490,6 +510,17 @@ const ContentCalendarTab = ({ calendar }) => {
               <option key={status} value={status}>
                 {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
               </option>
+            ))}
+          </select>
+
+          {/* Timezone Filter */}
+          <select
+            value={selectedTimezone}
+            onChange={(e) => setSelectedTimezone(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {['UTC','Africa/Johannesburg','America/New_York','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Australia/Sydney'].map(tz => (
+              <option key={tz} value={tz}>{tz}</option>
             ))}
           </select>
         </div>
@@ -948,7 +979,7 @@ const ContentCalendarTab = ({ calendar }) => {
                         {content.status}
                       </div>
                       <div className="text-sm text-gray-600">
-                        {new Date(content.scheduled_date).toLocaleDateString()}
+                        {formatDateWithTimezone(content.scheduled_date, content.scheduled_timezone)}
                       </div>
                     </div>
                   </div>
@@ -1040,7 +1071,7 @@ const ContentCalendarTab = ({ calendar }) => {
                               <div className="flex items-center justify-between">
                                 <span className="text-xs text-gray-500">{content.theme}</span>
                                 <span className="text-xs text-gray-500">
-                                  {new Date(content.scheduled_date).toLocaleDateString()}
+                                  {formatDateWithTimezone(content.scheduled_date, content.scheduled_timezone)}
                                 </span>
                               </div>
                               {/* Approval Button for Review Status */}
@@ -1088,20 +1119,21 @@ const ContentCalendarTab = ({ calendar }) => {
             console.log('Creating content:', contentData);
             
             // Create new content item
-            const newContent = {
-              content_id: `manual_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
-              platform: contentData.platform,
-              content_type: contentData.content_type,
-              theme: contentData.theme,
-              content_preview: contentData.content_preview,
-              caption: contentData.caption,
-              scheduled_date: contentData.scheduled_date,
-              status: 'review', // Set to review status for testing approval
-              priority: contentData.priority,
-              assignee: 'You',
-              ai_generated: false,
-              created_at: new Date().toISOString()
-            };
+        const newContent = {
+          content_id: `manual_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+          platform: contentData.platform,
+          content_type: contentData.content_type,
+          theme: contentData.theme,
+          content_preview: contentData.content_preview,
+          caption: contentData.caption,
+          scheduled_date: contentData.scheduled_date,
+          scheduled_timezone: contentData.scheduled_timezone || 'UTC',
+          status: 'review', // Set to review status for testing approval
+          priority: contentData.priority,
+          assignee: 'You',
+          ai_generated: false,
+          created_at: new Date().toISOString()
+        };
             
             // Add to local calendar
             setLocalCalendar(prev => [...prev, newContent]);

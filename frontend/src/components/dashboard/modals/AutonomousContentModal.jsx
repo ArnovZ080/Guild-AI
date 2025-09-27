@@ -24,7 +24,8 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
     brand_voice: '',
     competitor_analysis: false,
     trending_topics: false,
-    seasonal_content: false
+    seasonal_content: false,
+    scheduled_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
   });
 
   useEffect(() => {
@@ -154,6 +155,7 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
           theme,
           content_preview: `${theme} for ${platform}: ${data.business_objectives || 'objective'}`,
           scheduled_date: new Date(Date.now() + Math.random()*7*24*60*60*1000).toISOString(),
+          scheduled_timezone: data.scheduled_timezone || 'UTC',
           status: 'scheduled',
           priority: 'high',
           ai_generated: true,
@@ -303,6 +305,18 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
                       <option value="medium">Medium (3-5 posts/week)</option>
                       <option value="high">High (6-10 posts/week)</option>
                       <option value="aggressive">Aggressive (10+ posts/week)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+                    <select 
+                      value={formData.scheduled_timezone} 
+                      onChange={(e)=>setFormData(p=>({...p,scheduled_timezone:e.target.value}))} 
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                      {['UTC','Africa/Johannesburg','America/New_York','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Australia/Sydney'].map(tz => (
+                        <option key={tz} value={tz}>{tz}</option>
+                      ))}
                     </select>
                   </div>
                 </div>

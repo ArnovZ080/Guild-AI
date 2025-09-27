@@ -9,6 +9,7 @@ const EditContentModal = ({ content, onClose, onSave }) => {
     theme: content?.theme || '',
     content_preview: content?.content_preview || '',
     scheduled_date: content?.scheduled_date ? new Date(content.scheduled_date).toISOString().slice(0, 16) : '',
+    scheduled_timezone: content?.scheduled_timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     priority: content?.priority || 'medium',
     approval_status: content?.approval_status || 'needs_review',
     reviewer_notes: content?.reviewer_notes || ''
@@ -138,6 +139,18 @@ const EditContentModal = ({ content, onClose, onSave }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline.none focus:ring-2 focus:ring-purple-500"
                   required
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+                <select
+                  value={formData.scheduled_timezone}
+                  onChange={(e) => setFormData({ ...formData, scheduled_timezone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline.none focus:ring-2 focus:ring-purple-500"
+                >
+                  {['UTC','Africa/Johannesburg','America/New_York','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Australia/Sydney'].map(tz => (
+                    <option key={tz} value={tz}>{tz}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
