@@ -15,7 +15,9 @@ import {
   GitBranch,
   Edit,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shuffle,
+  Sparkles
 } from 'lucide-react';
 
 import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
@@ -26,6 +28,8 @@ import AutonomousContentModal from '../modals/AutonomousContentModal';
 import PerformanceAnalyticsModal from '../modals/PerformanceAnalyticsModal';
 import ApprovalModal from '../modals/ApprovalModal';
 import VersionHistoryModal from '../modals/VersionHistoryModal';
+import ContentRepurposeModal from '../modals/ContentRepurposeModal';
+import AIContentSuggestionsModal from '../modals/AIContentSuggestionsModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -45,6 +49,9 @@ const ContentCalendarTab = ({ calendar }) => {
   const [approvalContent, setApprovalContent] = useState(null);
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [versionContent, setVersionContent] = useState(null);
+  const [showRepurposeModal, setShowRepurposeModal] = useState(false);
+  const [repurposeContent, setRepurposeContent] = useState(null);
+  const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -276,6 +283,22 @@ const ContentCalendarTab = ({ calendar }) => {
       month: 'long', 
       year: 'numeric' 
     });
+  };
+
+  // Repurpose functions
+  const handleRepurpose = (content) => {
+    setRepurposeContent(content);
+    setShowRepurposeModal(true);
+  };
+
+  const handleRepurposeSave = (repurposedItems) => {
+    // Add all repurposed items to the calendar
+    setLocalCalendar(prev => [...prev, ...repurposedItems]);
+  };
+
+  const handleAISuggestionsSave = (suggestedItems) => {
+    // Add all suggested items to the calendar
+    setLocalCalendar(prev => [...prev, ...suggestedItems]);
   };
 
   // Version control functions
@@ -513,6 +536,15 @@ const ContentCalendarTab = ({ calendar }) => {
             >
               <Zap className="w-4 h-4 mr-2" />
               Autonomous Content
+            </button>
+
+            {/* AI Content Suggestions Button */}
+            <button 
+              onClick={() => setShowAISuggestionsModal(true)}
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              AI Suggestions
             </button>
 
             
@@ -1100,6 +1132,16 @@ const ContentCalendarTab = ({ calendar }) => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            handleRepurpose(content);
+                          }}
+                          className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                          title="Repurpose Content"
+                        >
+                          <Shuffle className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             handleVersionHistory(content);
                           }}
                           className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
@@ -1338,6 +1380,26 @@ const ContentCalendarTab = ({ calendar }) => {
             setVersionContent(null);
           }}
           onRestoreVersion={handleRestoreVersion}
+        />
+      )}
+
+      {/* Content Repurpose Modal */}
+      {showRepurposeModal && repurposeContent && (
+        <ContentRepurposeModal
+          content={repurposeContent}
+          onClose={() => {
+            setShowRepurposeModal(false);
+            setRepurposeContent(null);
+          }}
+          onSave={handleRepurposeSave}
+        />
+      )}
+
+      {/* AI Content Suggestions Modal */}
+      {showAISuggestionsModal && (
+        <AIContentSuggestionsModal
+          onClose={() => setShowAISuggestionsModal(false)}
+          onSchedule={handleAISuggestionsSave}
         />
       )}
 
