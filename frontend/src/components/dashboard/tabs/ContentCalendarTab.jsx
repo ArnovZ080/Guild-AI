@@ -31,6 +31,7 @@ import VersionHistoryModal from '../modals/VersionHistoryModal';
 import ContentRepurposeModal from '../modals/ContentRepurposeModal';
 import AIContentSuggestionsModal from '../modals/AIContentSuggestionsModal';
 import ScheduleContentModal from '../modals/ScheduleContentModal';
+import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -54,6 +55,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleContent, setScheduleContent] = useState(null);
+  const [showForecastModal, setShowForecastModal] = useState(false);
+  const [forecastContent, setForecastContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -318,6 +321,16 @@ const ContentCalendarTab = ({ calendar }) => {
     setShowScheduleModal(false);
     setScheduleContent(null);
     setSelectedContent(null);
+  };
+
+  const handleForecastContent = (content) => {
+    setForecastContent(content);
+    setShowForecastModal(true);
+  };
+
+  const handleOptimizeContent = (optimizedContent) => {
+    // Add the optimized content to the calendar
+    setLocalCalendar(prev => [...prev, optimizedContent]);
   };
 
   // Version control functions
@@ -1267,6 +1280,7 @@ const ContentCalendarTab = ({ calendar }) => {
             setShowRepurposeModal(true);
             setSelectedContent(null);
           }}
+          onForecast={handleForecastContent}
         />
       )}
 
@@ -1391,6 +1405,18 @@ const ContentCalendarTab = ({ calendar }) => {
             setScheduleContent(null);
           }}
           onSchedule={handleScheduleSave}
+        />
+      )}
+
+      {/* Performance Forecasting Modal */}
+      {showForecastModal && forecastContent && (
+        <PerformanceForecastingModal
+          content={forecastContent}
+          onClose={() => {
+            setShowForecastModal(false);
+            setForecastContent(null);
+          }}
+          onOptimize={handleOptimizeContent}
         />
       )}
 

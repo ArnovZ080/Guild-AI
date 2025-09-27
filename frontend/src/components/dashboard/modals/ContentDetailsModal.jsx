@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock } from 'lucide-react';
+import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3 } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
 
@@ -12,7 +12,8 @@ const ContentDetailsModal = ({
   onSchedule,
   onEdit,
   onDelete,
-  onDraft
+  onDraft,
+  onForecast
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -42,6 +43,9 @@ const ContentDetailsModal = ({
         break;
       case 'repurpose':
         if (onRepurpose) onRepurpose(content);
+        break;
+      case 'forecast':
+        if (onForecast) onForecast(content);
         break;
       default:
         break;
@@ -263,6 +267,13 @@ const ContentDetailsModal = ({
               >
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Repurpose
+              </button>
+              <button
+                onClick={() => handleAction('forecast')}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Forecast
               </button>
             </div>
             <div className="flex items-center space-x-2">
