@@ -30,6 +30,7 @@ import ApprovalModal from '../modals/ApprovalModal';
 import VersionHistoryModal from '../modals/VersionHistoryModal';
 import ContentRepurposeModal from '../modals/ContentRepurposeModal';
 import AIContentSuggestionsModal from '../modals/AIContentSuggestionsModal';
+import ScheduleContentModal from '../modals/ScheduleContentModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -52,6 +53,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [showRepurposeModal, setShowRepurposeModal] = useState(false);
   const [repurposeContent, setRepurposeContent] = useState(null);
   const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleContent, setScheduleContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -299,6 +302,23 @@ const ContentCalendarTab = ({ calendar }) => {
   const handleAISuggestionsSave = (suggestedItems) => {
     // Add all suggested items to the calendar
     setLocalCalendar(prev => [...prev, ...suggestedItems]);
+  };
+
+  const handleScheduleContent = (content) => {
+    setScheduleContent(content);
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleSave = (updatedContent) => {
+    // Update the content in the calendar
+    setLocalCalendar(prev =>
+      prev.map(item =>
+        item.content_id === updatedContent.content_id ? updatedContent : item
+      )
+    );
+    setShowScheduleModal(false);
+    setScheduleContent(null);
+    setSelectedContent(null);
   };
 
   // Version control functions
@@ -1299,17 +1319,7 @@ const ContentCalendarTab = ({ calendar }) => {
             );
             setSelectedContent(null);
           }}
-          onSchedule={(content) => {
-            // Update content status to scheduled
-            setLocalCalendar(prev =>
-              prev.map(item =>
-                item.content_id === content.content_id 
-                  ? { ...item, status: 'scheduled' }
-                  : item
-              )
-            );
-            setSelectedContent(null);
-          }}
+          onSchedule={handleScheduleContent}
           onDraft={(content) => {
             // Update content status to draft
             setLocalCalendar(prev =>
@@ -1328,16 +1338,9 @@ const ContentCalendarTab = ({ calendar }) => {
             );
             setSelectedContent(null);
           }}
-          onReplicate={(content) => {
-            // Replicate content functionality
-            const replicatedContent = {
-              ...content,
-              content_id: `replicated_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
-              status: 'draft',
-              scheduled_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-              created_at: new Date().toISOString()
-            };
-            setLocalCalendar(prev => [...prev, replicatedContent]);
+          onRepurpose={(content) => {
+            setRepurposeContent(content);
+            setShowRepurposeModal(true);
             setSelectedContent(null);
           }}
         />
@@ -1452,6 +1455,18 @@ const ContentCalendarTab = ({ calendar }) => {
         <AIContentSuggestionsModal
           onClose={() => setShowAISuggestionsModal(false)}
           onSchedule={handleAISuggestionsSave}
+        />
+      )}
+
+      {/* Schedule Content Modal */}
+      {showScheduleModal && scheduleContent && (
+        <ScheduleContentModal
+          content={scheduleContent}
+          onClose={() => {
+            setShowScheduleModal(false);
+            setScheduleContent(null);
+          }}
+          onSchedule={handleScheduleSave}
         />
       )}
 
