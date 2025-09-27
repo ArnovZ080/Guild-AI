@@ -43,7 +43,6 @@ const ContentCalendarTab = ({ calendar }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [localCalendar, setLocalCalendar] = useState(calendar?.calendar || []);
   const [selectedItems, setSelectedItems] = useState(new Set());
-  const [showBulkActions, setShowBulkActions] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showAutonomousModal, setShowAutonomousModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
@@ -373,7 +372,6 @@ const ContentCalendarTab = ({ calendar }) => {
       } else {
         newSet.delete(contentId);
       }
-      setShowBulkActions(newSet.size > 0);
       return newSet;
     });
   };
@@ -382,57 +380,12 @@ const ContentCalendarTab = ({ calendar }) => {
   const handleSelectAll = () => {
     if (selectedItems.size === filteredCalendar.length) {
       setSelectedItems(new Set());
-      setShowBulkActions(false);
     } else {
       const allIds = new Set(filteredCalendar.map(item => item.content_id));
       setSelectedItems(allIds);
-      setShowBulkActions(true);
     }
   };
 
-  // Handle bulk actions
-  const handleBulkAction = (action) => {
-    const selectedContent = localCalendar.filter(item => selectedItems.has(item.content_id));
-    
-    switch (action) {
-      case 'delete':
-        if (window.confirm(`Are you sure you want to delete ${selectedContent.length} content items?`)) {
-          setLocalCalendar(prev => prev.filter(item => !selectedItems.has(item.content_id)));
-          setSelectedItems(new Set());
-          setShowBulkActions(false);
-        }
-        break;
-      case 'publish':
-        setLocalCalendar(prev => prev.map(item => 
-          selectedItems.has(item.content_id) 
-            ? { ...item, status: 'published' }
-            : item
-        ));
-        setSelectedItems(new Set());
-        setShowBulkActions(false);
-        break;
-      case 'schedule':
-        setLocalCalendar(prev => prev.map(item => 
-          selectedItems.has(item.content_id) 
-            ? { ...item, status: 'scheduled' }
-            : item
-        ));
-        setSelectedItems(new Set());
-        setShowBulkActions(false);
-        break;
-      case 'draft':
-        setLocalCalendar(prev => prev.map(item => 
-          selectedItems.has(item.content_id) 
-            ? { ...item, status: 'draft' }
-            : item
-        ));
-        setSelectedItems(new Set());
-        setShowBulkActions(false);
-        break;
-      default:
-        break;
-    }
-  };
 
   // Get upcoming deadlines and reminders
   const getUpcomingDeadlines = () => {
@@ -505,40 +458,6 @@ const ContentCalendarTab = ({ calendar }) => {
           <div className="flex flex-wrap items-center gap-3">
             
 
-            {/* Bulk Actions */}
-            {showBulkActions && (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">
-                  {selectedItems.size} selected
-                </span>
-                <div className="flex space-x-1">
-                  <button
-                    onClick={() => handleBulkAction('publish')}
-                    className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-                  >
-                    Publish
-                  </button>
-                  <button
-                    onClick={() => handleBulkAction('schedule')}
-                    className="px-3 py-1 text-xs bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors"
-                  >
-                    Schedule
-                  </button>
-                  <button
-                    onClick={() => handleBulkAction('draft')}
-                    className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
-                  >
-                    Draft
-                  </button>
-                  <button
-                    onClick={() => handleBulkAction('delete')}
-                    className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Performance Analytics Button */}
             <button 
