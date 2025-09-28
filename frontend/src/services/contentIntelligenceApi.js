@@ -173,40 +173,67 @@ export class ContentIntelligenceAPIService {
 
   // Content Intelligence Methods
   async getContentAnalysis() {
-    // First try to get real platform data
-    const platformData = await this.getPlatformData(['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email', 'blog']);
+    // Skip API calls during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockContentAnalysis();
     
-    // Then get comprehensive analysis
-    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getContentAnalysis, {
-      method: 'POST',
-      body: JSON.stringify({ platform_data: platformData })
-    });
-    return result || this.getMockContentAnalysis();
+    // Uncomment when APIs are connected:
+    // const platformData = await this.getPlatformData(['instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email', 'blog']);
+    // const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getContentAnalysis, {
+    //   method: 'POST',
+    //   body: JSON.stringify({ platform_data: platformData })
+    // });
+    // return result || this.getMockContentAnalysis();
   }
 
   async getContentCalendar(period = '30d') {
-    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getContentCalendar}?period=${period}`);
-    return result || this.getMockContentCalendar(period);
+    // Skip API call during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockContentCalendar(period);
+    
+    // Uncomment when APIs are connected:
+    // const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getContentCalendar}?period=${period}`);
+    // return result || this.getMockContentCalendar(period);
   }
 
   async getContentPerformance(platform = 'all', period = '7d') {
-    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getContentPerformance}?platform=${platform}&period=${period}`);
-    return result || this.getMockContentPerformance(platform, period);
+    // Skip API call during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockContentPerformance(platform, period);
+    
+    // Uncomment when APIs are connected:
+    // const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getContentPerformance}?platform=${platform}&period=${period}`);
+    // return result || this.getMockContentPerformance(platform, period);
   }
 
   async getActiveCampaigns() {
-    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getActiveCampaigns);
-    return result || this.getMockActiveCampaigns();
+    // Skip API call during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockActiveCampaigns();
+    
+    // Uncomment when APIs are connected:
+    // const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getActiveCampaigns);
+    // return result || this.getMockActiveCampaigns();
   }
 
   async getEmailPerformance(period = '30d') {
-    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailPerformance}?period=${period}`);
-    return result || this.getMockEmailPerformance(period);
+    // Skip API call during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockEmailPerformance(period);
+    
+    // Uncomment when APIs are connected:
+    // const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailPerformance}?period=${period}`);
+    // return result || this.getMockEmailPerformance(period);
   }
 
   async getCreativeAssets() {
-    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getCreativeAssets);
-    return result || this.getMockCreativeAssets();
+    // Skip API call during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockCreativeAssets();
+    
+    // Uncomment when APIs are connected:
+    // const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getCreativeAssets);
+    // return result || this.getMockCreativeAssets();
   }
 
   async createContent(contentData) {
@@ -239,8 +266,13 @@ export class ContentIntelligenceAPIService {
 
   // New methods for real platform data integration
   async getPlatformData(platforms = ['all']) {
-    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getPlatformData}?platforms=${platforms.join(',')}`);
-    return result || this.getMockPlatformData(platforms);
+    // Skip API call during development - use mock data directly
+    // TODO: Enable API calls when backend is connected
+    return this.getMockPlatformData(platforms);
+    
+    // Uncomment when APIs are connected:
+    // const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getPlatformData}?platforms=${platforms.join(',')}`);
+    // return result || this.getMockPlatformData(platforms);
   }
 
   async getInsightAnalysis(insightData) {

@@ -218,12 +218,15 @@ const ContentDashboard = () => {
         ));
         console.log(`Campaign ${action === 'pause' ? 'paused' : 'resumed'}:`, campaign.name);
       } else if (action === 'analytics') {
+        console.log('Setting showAnalyticsModal to true');
         setShowAnalyticsModal(true);
         console.log('Opening analytics for campaign:', campaign.name);
       } else if (action === 'settings') {
+        console.log('Setting showSettingsModal to true');
         setShowSettingsModal(true);
         console.log('Opening settings for campaign:', campaign.name);
       } else if (action === 'menu') {
+        console.log('Setting showMenuModal to true');
         setShowMenuModal(true);
         console.log('Opening menu for campaign:', campaign.name);
       } else if (action === 'show-in-calendar') {
@@ -864,6 +867,7 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
         )}
 
         {/* Campaign Analytics Modal */}
+        {console.log('Rendering analytics modal:', showAnalyticsModal, selectedCampaign)}
         {showAnalyticsModal && selectedCampaign && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">

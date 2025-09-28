@@ -925,92 +925,6 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
           )}
         </div>
 
-        {/* Campaign Overview */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Target className="w-5 h-5 text-indigo-500 mr-2" />
-              Campaign Overview
-            </h3>
-            <button 
-              onClick={() => setShowCampaignOverview(!showCampaignOverview)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center text-sm"
-            >
-              {showCampaignOverview ? 'Hide Campaigns' : 'View Campaigns'}
-            </button>
-          </div>
-          {showCampaignOverview && (
-            <div>
-              <div className="text-sm text-gray-600 mb-4">
-                Campaigns managed in Campaign Tab
-              </div>
-            
-            {campaigns.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns synced</h3>
-                <p className="text-gray-600 mb-4">Campaigns created in the Campaign Tab will appear here</p>
-                <div className="text-sm text-gray-500">
-                  Go to the Campaign Tab to create and manage campaigns
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {campaigns.map((campaign, idx) => {
-                  const campaignContent = getCampaignContent(campaign.id);
-                  return (
-                    <div key={campaign.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-1">{campaign.name}</h4>
-                          <p className="text-sm text-gray-600 line-clamp-2">{campaign.description}</p>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {campaignContent.length} scheduled
-                        </div>
-                      </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Status</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                          campaign.status === 'planning' ? 'bg-blue-100 text-blue-800' :
-                          campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
-                          campaign.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {campaign.status}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Platforms</span>
-                        <span className="text-gray-900">{campaign.platforms?.length || 0} platforms</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Content</span>
-                        <span className="text-gray-900">{campaign.content?.length || 0} pieces</span>
-                      </div>
-                      
-                      {campaign.start_date && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Duration</span>
-                          <span className="text-gray-900">
-                            {new Date(campaign.start_date).toLocaleDateString()} - {campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'Ongoing'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            )}
-            </div>
-          )}
-        </div>
 
         {/* Optimization Toolbar */}
         {selectedPosts.length > 0 && (
@@ -1104,84 +1018,98 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
         )}
 
         {/* Campaign Overview Section */}
-        {campaigns && campaigns.length > 0 && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <Target className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Campaign Overview</h3>
-                  <p className="text-sm text-gray-600">Active and scheduled campaigns</p>
-                </div>
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Target className="w-5 h-5 text-purple-500 mr-2" />
+              Campaign Overview
+            </h3>
+            <button 
+              onClick={() => setShowCampaignOverview(!showCampaignOverview)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+            >
+              {showCampaignOverview ? 'Hide Campaigns' : 'View Campaigns'}
+            </button>
+          </div>
+          {showCampaignOverview && (
+            <div>
+              <div className="text-sm text-gray-600 mb-4">
+                Campaigns managed in Campaign Tab
               </div>
-              <div className="text-sm text-gray-500">
-                {campaigns.filter(c => c.status === 'active').length} active, {campaigns.filter(c => c.status === 'scheduled').length} scheduled
-              </div>
-            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {campaigns.slice(0, 6).map((campaign) => (
-                <div 
-                  key={campaign.id || campaign.campaign_id}
-                  className={`bg-white rounded-lg p-3 border-2 transition-all duration-200 ${
-                    highlightedCampaign === (campaign.id || campaign.campaign_id)
-                      ? 'border-purple-300 bg-purple-50 shadow-lg' 
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        campaign.status === 'active' ? 'bg-green-500' :
-                        campaign.status === 'paused' ? 'bg-yellow-500' :
-                        campaign.status === 'scheduled' ? 'bg-blue-500' :
-                        'bg-gray-500'
-                      }`}></div>
-                      <span className="text-sm font-medium text-gray-900 truncate">
-                        {campaign.name}
+            {campaigns && campaigns.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns synced</h3>
+                <p className="text-gray-600 mb-4">Campaigns created in the Campaign Tab will appear here</p>
+                <div className="text-sm text-gray-500">
+                  Go to the Campaign Tab to create and manage campaigns
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {campaigns && campaigns.slice(0, 6).map((campaign) => (
+                  <div 
+                    key={campaign.id || campaign.campaign_id}
+                    className={`bg-white rounded-lg p-3 border-2 transition-all duration-200 ${
+                      highlightedCampaign === (campaign.id || campaign.campaign_id)
+                        ? 'border-purple-300 bg-purple-50 shadow-lg' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          campaign.status === 'active' ? 'bg-green-500' :
+                          campaign.status === 'paused' ? 'bg-yellow-500' :
+                          campaign.status === 'scheduled' ? 'bg-blue-500' :
+                          'bg-gray-500'
+                        }`}></div>
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {campaign.name}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                        campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                        campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {campaign.status}
                       </span>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                      campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
-                      campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {campaign.status}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-600 mb-2">
-                    {campaign.platform} • ${campaign.budget}/day
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-gray-500">
-                      {campaign.startDate && new Date(campaign.startDate).toLocaleDateString()}
+                    <div className="text-xs text-gray-600 mb-2">
+                      {campaign.platform} • ${campaign.budget}/day
                     </div>
-                    <button
-                      onClick={() => {
-                        // This would trigger highlighting in the calendar
-                        console.log('Highlight campaign in calendar:', campaign.name);
-                      }}
-                      className="text-xs text-purple-600 hover:text-purple-700 font-medium"
-                    >
-                      Show in Calendar
-                    </button>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        {campaign.startDate && new Date(campaign.startDate).toLocaleDateString()}
+                      </div>
+                      <button
+                        onClick={() => {
+                          // This would trigger highlighting in the calendar
+                          console.log('Highlight campaign in calendar:', campaign.name);
+                        }}
+                        className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                      >
+                        Show in Calendar
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             
-            {campaigns.length > 6 && (
+            {campaigns && campaigns.length > 6 && (
               <div className="text-center mt-3">
                 <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
                   View All Campaigns ({campaigns.length})
                 </button>
               </div>
             )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
 
         {/* View Mode Toggle (moved above calendar) */}
         <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
