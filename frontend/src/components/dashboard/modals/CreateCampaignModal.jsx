@@ -342,7 +342,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
         <div className="flex flex-1">
           {/* Main Content */}
-          <div className="flex-1 p-6 overflow-y-auto min-w-0">
+          <div className={`p-6 overflow-y-auto ${campaignData.agentWorkflow.length > 0 ? 'flex-1 min-w-0' : 'w-full'}`}>
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -607,7 +607,8 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
           </div>
 
           {/* AI Agent Workflow Sidebar */}
-          <div className="w-80 border-l border-gray-200 bg-gray-50 p-4 overflow-y-auto flex-shrink-0">
+          {campaignData.agentWorkflow.length > 0 && (
+            <div className="w-80 border-l border-gray-200 bg-gray-50 p-4 overflow-y-auto flex-shrink-0">
             <div className="flex items-center space-x-2 mb-4">
               <Brain className="w-5 h-5 text-blue-600" />
               <span className="font-semibold text-gray-900">AI Agent Workflow</span>
@@ -661,6 +662,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
               </p>
             </div>
           </div>
+          )}
         </div>
 
         {/* Footer */}

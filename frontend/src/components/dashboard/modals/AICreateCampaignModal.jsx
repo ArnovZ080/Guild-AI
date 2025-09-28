@@ -303,11 +303,11 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
               <div className="space-y-4">
                 {[
-                  { id: 'strategy', name: 'Strategy Agent', description: 'Analyzing your business data and market trends...', icon: '🎯', status: 'completed' },
-                  { id: 'campaign', name: 'Enhanced Campaign Agent', description: 'Configuring platform settings and integrations...', icon: '🚀', status: 'completed' },
-                  { id: 'personalization', name: 'Lead Personalization Agent', description: 'Optimizing audience targeting and messaging...', icon: '🎯', status: 'in_progress' },
-                  { id: 'brand', name: 'Brand Strategist Agent', description: 'Ensuring brand consistency and creative alignment...', icon: '🎨', status: 'pending' },
-                  { id: 'judge', name: 'Judge Agent', description: 'Evaluating campaign quality and compliance...', icon: '⚖️', status: 'pending' }
+                  { id: 'strategy', name: 'Strategy Agent', description: 'Analyzing your business data and market trends...', icon: '🎯', status: 'completed', progress: 100 },
+                  { id: 'campaign', name: 'Enhanced Campaign Agent', description: 'Configuring platform settings and integrations...', icon: '🚀', status: 'completed', progress: 100 },
+                  { id: 'personalization', name: 'Lead Personalization Agent', description: 'Optimizing audience targeting and messaging...', icon: '🎯', status: 'in_progress', progress: 65 },
+                  { id: 'brand', name: 'Brand Strategist Agent', description: 'Ensuring brand consistency and creative alignment...', icon: '🎨', status: 'pending', progress: 0 },
+                  { id: 'judge', name: 'Judge Agent', description: 'Evaluating campaign quality and compliance...', icon: '⚖️', status: 'pending', progress: 0 }
                 ].map((agent, index) => (
                   <div key={agent.id} className="flex items-center space-x-4 p-4 bg-white border border-gray-200 rounded-lg">
                     <div className="flex-shrink-0">
@@ -332,7 +332,15 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                            agent.status === 'in_progress' ? 'In Progress' : 'Pending'}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">{agent.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">{agent.description}</p>
+                      {agent.status === 'in_progress' && (
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${agent.progress}%` }}
+                          ></div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

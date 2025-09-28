@@ -194,6 +194,13 @@ const ContentDashboard = () => {
     }
   };
 
+  const handleCreateCampaign = (campaignData) => {
+    console.log('Creating campaign:', campaignData);
+    // In a real implementation, this would call an API to create the campaign
+    // For now, we'll just log it and the campaign will be added to the list
+    // The actual campaign creation would be handled by the backend
+  };
+
   const handleRepeatStrategy = async (insight) => {
     setIsOrchestrating(true);
     try {
@@ -453,7 +460,7 @@ const ContentDashboard = () => {
             <CampaignsTab 
               campaigns={contentData.campaigns || []} 
               onCampaignAction={handleCampaignAction}
-              onCreateCampaign={handleCampaignAction}
+              onCreateCampaign={handleCreateCampaign}
             />
           </motion.div>
         )}

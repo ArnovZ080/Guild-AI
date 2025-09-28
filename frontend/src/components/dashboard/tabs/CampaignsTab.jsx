@@ -45,7 +45,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const handleCampaignAction = (action, campaign) => {
     console.log('Campaign action:', action, campaign);
     if (onCampaignAction) {
-      onCampaignAction(action, campaign);
+      onCampaignAction(campaign.campaign_id || campaign.id, action);
     }
   };
 
@@ -453,7 +453,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <button
-                    onClick={() => onCampaignAction?.(campaign.campaign_id, campaign.status === 'active' ? 'pause' : 'resume')}
+                    onClick={() => handleCampaignAction(campaign.status === 'active' ? 'pause' : 'resume', campaign)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
                       campaign.status === 'active' 
                         ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' 
@@ -473,14 +473,14 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     )}
                   </button>
                   <button
-                    onClick={() => onCampaignAction?.(campaign.campaign_id, 'details')}
+                    onClick={() => handleCampaignAction('analytics', campaign)}
                     className="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium flex items-center"
                   >
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Analytics
                   </button>
                   <button
-                    onClick={() => onCampaignAction?.(campaign.campaign_id, 'edit')}
+                    onClick={() => handleCampaignAction('settings', campaign)}
                     className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
                   >
                     <Settings className="w-4 h-4 mr-2" />
