@@ -17,7 +17,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Shuffle,
-  Sparkles
+  Sparkles,
+  X,
+  Brain,
+  Activity,
+  TestTube,
+  DollarSign,
+  Calculator
 } from 'lucide-react';
 
 import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
