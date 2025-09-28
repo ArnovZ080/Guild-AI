@@ -43,6 +43,24 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     agentWorkflow: []
   });
 
+  // Load onboarding data on component mount
+  useEffect(() => {
+    try {
+      const onboardingData = localStorage.getItem('guild_onboarding_data');
+      if (onboardingData) {
+        const data = JSON.parse(onboardingData);
+        setCampaignData(prev => ({
+          ...prev,
+          targetAudience: data.idealClient || data.clientAvatar || data.answers?.[3] || '',
+          objective: data.businessType || data.answers?.[0] || '',
+          brandVoice: data.brandVoice || data.answers?.[11] || ''
+        }));
+      }
+    } catch (e) {
+      console.log('No onboarding data found');
+    }
+  }, []);
+
   const [aiInsights, setAiInsights] = useState({
     strategy: null,
     budgetOptimization: null,

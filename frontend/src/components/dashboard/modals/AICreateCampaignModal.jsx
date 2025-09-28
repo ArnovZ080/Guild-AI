@@ -25,6 +25,24 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     platforms: [],
     specificRequirements: ''
   });
+
+  // Load onboarding data on component mount
+  useEffect(() => {
+    try {
+      const onboardingData = localStorage.getItem('guild_onboarding_data');
+      if (onboardingData) {
+        const data = JSON.parse(onboardingData);
+        setCampaignInput(prev => ({
+          ...prev,
+          targetAudience: data.idealClient || data.clientAvatar || data.answers?.[3] || '',
+          businessGoal: data.businessType || data.answers?.[0] || '',
+          brandVoice: data.brandVoice || data.answers?.[11] || ''
+        }));
+      }
+    } catch (e) {
+      console.log('No onboarding data found');
+    }
+  }, []);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCampaign, setGeneratedCampaign] = useState(null);
@@ -44,6 +62,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
   const generateAICampaign = async () => {
     setIsGenerating(true);
+    setStep(2); // Move to step 2 first
     
     // Simulate AI analysis and campaign generation
     setTimeout(() => {
@@ -82,7 +101,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       
       setGeneratedCampaign(campaign);
       setIsGenerating(false);
-      setStep(3);
+      setStep(3); // Move to step 3 after generation is complete
     }, 3000);
   };
 

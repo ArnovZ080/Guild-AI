@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
+import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -534,6 +535,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
         isOpen={showAICreateModal}
         onClose={() => setShowAICreateModal(false)}
         onCreateCampaign={handleCreateCampaign}
+      />
+
+      {/* AI Optimize Campaign Modal */}
+      <AIOptimizeCampaignModal
+        isOpen={showAIOptimizeModal}
+        onClose={() => setShowAIOptimizeModal(false)}
+        campaigns={campaigns}
       />
     </div>
   );
