@@ -113,6 +113,7 @@ const ContentDashboard = () => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [selectedContentItem, setSelectedContentItem] = useState(null);
   const [isOrchestrating, setIsOrchestrating] = useState(false);
+  const [campaigns, setCampaigns] = useState([]);
 
   // API hooks with real-time updates and platform integration
   const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();
@@ -192,14 +193,11 @@ const ContentDashboard = () => {
       // Handle different campaign actions
       if (action === 'pause' || action === 'resume') {
         // Update campaign status in the state
-        setContentData(prev => ({
-          ...prev,
-          campaigns: prev.campaigns?.map(campaign => 
-            campaign.id === campaignId || campaign.campaign_id === campaignId
-              ? { ...campaign, status: action === 'pause' ? 'paused' : 'active' }
-              : campaign
-          ) || []
-        }));
+        setCampaigns(prev => prev.map(campaign => 
+          campaign.id === campaignId || campaign.campaign_id === campaignId
+            ? { ...campaign, status: action === 'pause' ? 'paused' : 'active' }
+            : campaign
+        ));
       } else if (action === 'analytics') {
         // Open analytics modal or navigate to analytics
         console.log('Opening analytics for campaign:', campaignId);
@@ -220,16 +218,13 @@ const ContentDashboard = () => {
 
   const handleCreateCampaign = (campaignData) => {
     console.log('Creating campaign:', campaignData);
-    // Add the new campaign to the contentData state
-    setContentData(prev => ({
-      ...prev,
-      campaigns: [...(prev.campaigns || []), {
-        ...campaignData,
-        id: Date.now().toString(), // Generate a unique ID
-        created_at: new Date().toISOString(),
-        status: 'active'
-      }]
-    }));
+    // Add the new campaign to the campaigns state
+    setCampaigns(prev => [...prev, {
+      ...campaignData,
+      id: Date.now().toString(), // Generate a unique ID
+      created_at: new Date().toISOString(),
+      status: 'active'
+    }]);
   };
 
   const handleRepeatStrategy = async (insight) => {
@@ -489,7 +484,7 @@ const ContentDashboard = () => {
             className="space-y-6"
           >
             <CampaignsTab 
-              campaigns={contentData.campaigns || []} 
+              campaigns={campaigns} 
               onCampaignAction={handleCampaignAction}
               onCreateCampaign={handleCreateCampaign}
             />
