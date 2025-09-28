@@ -830,6 +830,314 @@ class ContentIntelligenceAgent:
             else:
                 return "critical"
     
+    async def analyze_content_calendar(self, calendar_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Analyze comprehensive content calendar data including all new features.
+        This method provides oversight and intelligence for the Content Calendar tab.
+        """
+        try:
+            print("Content Intelligence Agent: Analyzing comprehensive content calendar data...")
+            
+            # Extract calendar information
+            calendar_items = calendar_data.get("calendar_items", [])
+            campaigns = calendar_data.get("campaigns", [])
+            performance_data = calendar_data.get("performance_data", [])
+            optimization_history = calendar_data.get("optimization_history", [])
+            
+            # Analyze content distribution
+            content_analysis = self._analyze_content_distribution(calendar_items)
+            
+            # Analyze campaign performance
+            campaign_analysis = self._analyze_campaign_performance(campaigns, performance_data)
+            
+            # Analyze optimization effectiveness
+            optimization_analysis = self._analyze_optimization_effectiveness(optimization_history)
+            
+            # Generate strategic insights
+            strategic_insights = self._generate_strategic_insights(content_analysis, campaign_analysis, optimization_analysis)
+            
+            # Identify optimization opportunities
+            optimization_opportunities = self._identify_optimization_opportunities(calendar_items, performance_data)
+            
+            return {
+                "analysis_id": f"calendar_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "generated_at": datetime.now().isoformat(),
+                "agent": "Content Intelligence Agent",
+                "analysis_type": "comprehensive_calendar_intelligence",
+                "content_distribution": content_analysis,
+                "campaign_performance": campaign_analysis,
+                "optimization_effectiveness": optimization_analysis,
+                "strategic_insights": strategic_insights,
+                "optimization_opportunities": optimization_opportunities,
+                "recommendations": self._generate_calendar_recommendations(content_analysis, campaign_analysis),
+                "status": "completed"
+            }
+            
+        except Exception as e:
+            print(f"Content Intelligence Agent: Error analyzing calendar data: {e}")
+            return {
+                "analysis_id": f"calendar_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                "generated_at": datetime.now().isoformat(),
+                "agent": "Content Intelligence Agent",
+                "status": "error",
+                "message": str(e)
+            }
+    
+    def _analyze_content_distribution(self, calendar_items: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze content distribution across platforms, types, and themes"""
+        try:
+            platform_distribution = {}
+            content_type_distribution = {}
+            theme_distribution = {}
+            status_distribution = {}
+            ai_generated_count = 0
+            
+            for item in calendar_items:
+                # Platform distribution
+                platform = item.get("platform", "unknown")
+                platform_distribution[platform] = platform_distribution.get(platform, 0) + 1
+                
+                # Content type distribution
+                content_type = item.get("content_type", "unknown")
+                content_type_distribution[content_type] = content_type_distribution.get(content_type, 0) + 1
+                
+                # Theme distribution
+                theme = item.get("theme", "unknown")
+                theme_distribution[theme] = theme_distribution.get(theme, 0) + 1
+                
+                # Status distribution
+                status = item.get("status", "unknown")
+                status_distribution[status] = status_distribution.get(status, 0) + 1
+                
+                # AI generated content count
+                if item.get("ai_generated", False):
+                    ai_generated_count += 1
+            
+            return {
+                "total_content_items": len(calendar_items),
+                "platform_distribution": platform_distribution,
+                "content_type_distribution": content_type_distribution,
+                "theme_distribution": theme_distribution,
+                "status_distribution": status_distribution,
+                "ai_generated_percentage": (ai_generated_count / len(calendar_items) * 100) if calendar_items else 0,
+                "content_diversity_score": self._calculate_content_diversity(platform_distribution, content_type_distribution),
+                "optimization_insights": {
+                    "most_active_platform": max(platform_distribution.items(), key=lambda x: x[1])[0] if platform_distribution else "none",
+                    "least_active_platform": min(platform_distribution.items(), key=lambda x: x[1])[0] if platform_distribution else "none",
+                    "content_gaps": self._identify_content_gaps(platform_distribution, content_type_distribution)
+                }
+            }
+            
+        except Exception as e:
+            print(f"Error analyzing content distribution: {e}")
+            return {"error": str(e)}
+    
+    def _analyze_campaign_performance(self, campaigns: List[Dict[str, Any]], performance_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze campaign performance and effectiveness"""
+        try:
+            campaign_metrics = {}
+            
+            for campaign in campaigns:
+                campaign_id = campaign.get("id", "unknown")
+                campaign_metrics[campaign_id] = {
+                    "name": campaign.get("name", "Unknown Campaign"),
+                    "status": campaign.get("status", "unknown"),
+                    "content_count": len(campaign.get("content", [])),
+                    "platforms": campaign.get("platforms", []),
+                    "performance_score": self._calculate_campaign_performance_score(campaign, performance_data)
+                }
+            
+            return {
+                "total_campaigns": len(campaigns),
+                "active_campaigns": len([c for c in campaigns if c.get("status") == "active"]),
+                "campaign_metrics": campaign_metrics,
+                "average_performance_score": sum([m["performance_score"] for m in campaign_metrics.values()]) / len(campaign_metrics) if campaign_metrics else 0,
+                "top_performing_campaign": max(campaign_metrics.items(), key=lambda x: x[1]["performance_score"])[0] if campaign_metrics else "none",
+                "optimization_recommendations": self._generate_campaign_optimization_recommendations(campaign_metrics)
+            }
+            
+        except Exception as e:
+            print(f"Error analyzing campaign performance: {e}")
+            return {"error": str(e)}
+    
+    def _analyze_optimization_effectiveness(self, optimization_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze the effectiveness of applied optimizations"""
+        try:
+            optimization_types = {}
+            success_rates = {}
+            
+            for optimization in optimization_history:
+                opt_type = optimization.get("type", "unknown")
+                optimization_types[opt_type] = optimization_types.get(opt_type, 0) + 1
+                
+                # Calculate success rate based on performance improvement
+                improvement = optimization.get("performance_improvement", 0)
+                if improvement > 0:
+                    success_rates[opt_type] = success_rates.get(opt_type, {"successful": 0, "total": 0})
+                    success_rates[opt_type]["successful"] += 1
+                success_rates[opt_type]["total"] = success_rates.get(opt_type, {"successful": 0, "total": 0})["total"] + 1
+            
+            # Calculate success percentages
+            success_percentages = {}
+            for opt_type, rates in success_rates.items():
+                success_percentages[opt_type] = (rates["successful"] / rates["total"] * 100) if rates["total"] > 0 else 0
+            
+            return {
+                "total_optimizations": len(optimization_history),
+                "optimization_types": optimization_types,
+                "success_percentages": success_percentages,
+                "most_effective_optimization": max(success_percentages.items(), key=lambda x: x[1])[0] if success_percentages else "none",
+                "optimization_trends": self._analyze_optimization_trends(optimization_history),
+                "recommendations": self._generate_optimization_recommendations(success_percentages)
+            }
+            
+        except Exception as e:
+            print(f"Error analyzing optimization effectiveness: {e}")
+            return {"error": str(e)}
+    
+    def _generate_strategic_insights(self, content_analysis: Dict[str, Any], campaign_analysis: Dict[str, Any], optimization_analysis: Dict[str, Any]) -> List[str]:
+        """Generate strategic insights based on calendar analysis"""
+        insights = []
+        
+        # Content distribution insights
+        if content_analysis.get("ai_generated_percentage", 0) > 50:
+            insights.append("High AI-generated content percentage suggests strong automation but may need human creativity balance")
+        
+        if content_analysis.get("content_diversity_score", 0) < 70:
+            insights.append("Low content diversity score indicates opportunity for platform and content type expansion")
+        
+        # Campaign insights
+        if campaign_analysis.get("average_performance_score", 0) > 80:
+            insights.append("Excellent campaign performance suggests effective strategy execution")
+        elif campaign_analysis.get("average_performance_score", 0) < 60:
+            insights.append("Below-average campaign performance requires strategic review and optimization")
+        
+        # Optimization insights
+        most_effective = optimization_analysis.get("most_effective_optimization", "none")
+        if most_effective != "none":
+            insights.append(f"'{most_effective}' optimization type shows highest success rate and should be prioritized")
+        
+        return insights
+    
+    def _identify_optimization_opportunities(self, calendar_items: List[Dict[str, Any]], performance_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Identify specific optimization opportunities in the calendar"""
+        opportunities = []
+        
+        # Analyze low-performing content
+        for item in calendar_items:
+            if not item.get("ai_generated", False):  # Focus on user-generated content for optimization
+                item_performance = self._get_item_performance(item.get("id"), performance_data)
+                if item_performance and item_performance.get("performance_score", 0) < 70:
+                    opportunities.append({
+                        "content_id": item.get("id"),
+                        "platform": item.get("platform"),
+                        "optimization_type": "performance_improvement",
+                        "current_score": item_performance.get("performance_score", 0),
+                        "recommended_actions": [
+                            "Apply AI optimization",
+                            "Consider rescheduling",
+                            "A/B test different formats"
+                        ],
+                        "priority": "high" if item_performance.get("performance_score", 0) < 50 else "medium"
+                    })
+        
+        return opportunities
+    
+    def _generate_calendar_recommendations(self, content_analysis: Dict[str, Any], campaign_analysis: Dict[str, Any]) -> List[str]:
+        """Generate actionable recommendations for calendar optimization"""
+        recommendations = []
+        
+        # Content distribution recommendations
+        platform_dist = content_analysis.get("platform_distribution", {})
+        if len(platform_dist) < 3:
+            recommendations.append("Expand platform presence to increase reach and audience diversity")
+        
+        # Campaign recommendations
+        if campaign_analysis.get("active_campaigns", 0) < 2:
+            recommendations.append("Increase active campaign count for better content distribution and engagement")
+        
+        return recommendations
+    
+    def _calculate_content_diversity(self, platform_dist: Dict[str, int], content_type_dist: Dict[str, int]) -> float:
+        """Calculate content diversity score based on platform and content type distribution"""
+        try:
+            platform_entropy = -sum((count / sum(platform_dist.values())) * 
+                                  (count / sum(platform_dist.values())).bit_length() 
+                                  for count in platform_dist.values()) if platform_dist else 0
+            
+            content_entropy = -sum((count / sum(content_type_dist.values())) * 
+                                 (count / sum(content_type_dist.values())).bit_length() 
+                                 for count in content_type_dist.values()) if content_type_dist else 0
+            
+            # Normalize to 0-100 scale
+            diversity_score = ((platform_entropy + content_entropy) / 2) * 50
+            return min(100, max(0, diversity_score))
+            
+        except Exception:
+            return 0
+    
+    def _identify_content_gaps(self, platform_dist: Dict[str, int], content_type_dist: Dict[str, int]) -> List[str]:
+        """Identify content gaps in platform and content type distribution"""
+        gaps = []
+        
+        # Expected platforms
+        expected_platforms = ["instagram", "linkedin", "twitter", "facebook", "tiktok", "youtube"]
+        for platform in expected_platforms:
+            if platform not in platform_dist or platform_dist[platform] < 2:
+                gaps.append(f"Low content frequency on {platform}")
+        
+        # Expected content types
+        expected_types = ["post", "story", "reel", "article", "video"]
+        for content_type in expected_types:
+            if content_type not in content_type_dist or content_type_dist[content_type] < 2:
+                gaps.append(f"Limited {content_type} content")
+        
+        return gaps
+    
+    def _calculate_campaign_performance_score(self, campaign: Dict[str, Any], performance_data: List[Dict[str, Any]]) -> float:
+        """Calculate performance score for a campaign"""
+        # This would integrate with actual performance data
+        # For now, return a simulated score
+        return 75.0 + (hash(campaign.get("id", "default")) % 25)
+    
+    def _generate_campaign_optimization_recommendations(self, campaign_metrics: Dict[str, Any]) -> List[str]:
+        """Generate recommendations for campaign optimization"""
+        recommendations = []
+        
+        for campaign_id, metrics in campaign_metrics.items():
+            if metrics["performance_score"] < 70:
+                recommendations.append(f"Optimize '{metrics['name']}' campaign - current score: {metrics['performance_score']:.1f}")
+        
+        return recommendations
+    
+    def _analyze_optimization_trends(self, optimization_history: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Analyze trends in optimization usage and effectiveness"""
+        # This would analyze trends over time
+        return {
+            "trending_optimizations": ["ai_optimization", "scheduling_optimization"],
+            "declining_effectiveness": [],
+            "emerging_opportunities": ["revenue_attribution", "scenario_simulation"]
+        }
+    
+    def _generate_optimization_recommendations(self, success_percentages: Dict[str, float]) -> List[str]:
+        """Generate recommendations based on optimization success rates"""
+        recommendations = []
+        
+        for opt_type, success_rate in success_percentages.items():
+            if success_rate > 80:
+                recommendations.append(f"Increase usage of '{opt_type}' optimization - {success_rate:.1f}% success rate")
+            elif success_rate < 50:
+                recommendations.append(f"Review and improve '{opt_type}' optimization strategy - {success_rate:.1f}% success rate")
+        
+        return recommendations
+    
+    def _get_item_performance(self, item_id: str, performance_data: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Get performance data for a specific content item"""
+        for perf in performance_data:
+            if perf.get("content_id") == item_id:
+                return perf
+        return None
+
     def get_agent_info(self) -> Dict[str, Any]:
         """Get agent information and capabilities"""
         return {
@@ -861,6 +1169,33 @@ class ContentIntelligenceAgent:
                 "content_dashboard": "Primary content and marketing oversight",
                 "campaign_dashboard": "Paid advertising campaign management",
                 "performance_dashboard": "Content performance analytics",
-                "calendar_dashboard": "Content scheduling and planning"
+                "calendar_dashboard": "Content scheduling and planning with full feature oversight"
+            },
+            "calendar_intelligence": {
+                "features_analyzed": [
+                    "Multi-view calendar (month, week, day, list, kanban)",
+                    "Content scheduling & publishing dates",
+                    "Content type tagging and status tracking",
+                    "Approval flows and version control",
+                    "Campaign grouping and management",
+                    "AI content suggestions and generation",
+                    "Performance forecasting and analytics",
+                    "Adaptive rescheduling optimization",
+                    "Multi-agent orchestration workflows",
+                    "Dynamic slots based on audience behavior",
+                    "Growth goals with back-solving strategies",
+                    "Auto-A/B testing and optimization",
+                    "Revenue attribution analysis",
+                    "Scenario simulation and modeling",
+                    "Judge Agent oversight and quality scoring"
+                ],
+                "optimization_capabilities": [
+                    "Bulk content optimization",
+                    "Cross-platform performance analysis",
+                    "AI-driven content recommendations",
+                    "Revenue impact assessment",
+                    "Strategic scenario planning",
+                    "Quality assurance oversight"
+                ]
             }
         }

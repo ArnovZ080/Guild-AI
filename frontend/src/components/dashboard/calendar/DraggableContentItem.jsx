@@ -41,6 +41,8 @@ const DraggableContentItem = ({ content, onClick, onSelect, isSelected }) => {
           type="checkbox"
           checked={isSelected}
           onChange={handleCheckboxChange}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           className="w-3 h-3 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
         />
       </div>
