@@ -107,9 +107,12 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   };
 
   const handleCreateCampaign = () => {
+    console.log('Create campaign clicked, generatedCampaign:', generatedCampaign);
     if (generatedCampaign) {
       onCreateCampaign(generatedCampaign);
       onClose();
+    } else {
+      console.log('No generated campaign found');
     }
   };
 
