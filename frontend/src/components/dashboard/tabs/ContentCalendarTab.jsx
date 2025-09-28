@@ -86,7 +86,6 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
   const [scenarioSimulationContent, setScenarioSimulationContent] = useState(null);
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [showOptimizationToolbar, setShowOptimizationToolbar] = useState(false);
-  const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
   const [showCampaignOverview, setShowCampaignOverview] = useState(false);
