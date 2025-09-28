@@ -35,6 +35,8 @@ import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
 import AdaptiveReschedulingModal from '../modals/AdaptiveReschedulingModal';
 import MultiAgentOrchestrationModal from '../modals/MultiAgentOrchestrationModal';
 import DynamicSlotsModal from '../modals/DynamicSlotsModal';
+import GrowthGoalsModal from '../modals/GrowthGoalsModal';
+import AutoABTestingModal from '../modals/AutoABTestingModal';
 
 const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -66,6 +68,10 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [orchestrationContent, setOrchestrationContent] = useState(null);
   const [showDynamicSlotsModal, setShowDynamicSlotsModal] = useState(false);
   const [dynamicSlotsContent, setDynamicSlotsContent] = useState(null);
+  const [showGrowthGoalsModal, setShowGrowthGoalsModal] = useState(false);
+  const [growthGoalsContent, setGrowthGoalsContent] = useState(null);
+  const [showABTestingModal, setShowABTestingModal] = useState(false);
+  const [abTestingContent, setABTestingContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -385,6 +391,36 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
     
     // Show success feedback
     alert(`Dynamic slots optimization applied! Content rescheduled with ${appliedOptimizations.length} optimization(s) for maximum engagement.`);
+  };
+
+  // Growth Goals handlers
+  const handleGrowthGoalsContent = (content) => {
+    setGrowthGoalsContent(content);
+    setShowGrowthGoalsModal(true);
+  };
+
+  const handleApplyGrowthStrategy = (newContentItems, appliedStrategies) => {
+    setLocalCalendar(prev => [...prev, ...newContentItems]);
+    setShowGrowthGoalsModal(false);
+    setGrowthGoalsContent(null);
+    
+    // Show success feedback
+    alert(`Growth strategy applied! Generated ${newContentItems.length} content items based on ${appliedStrategies.length} selected strategy(ies) for ambitious growth targets.`);
+  };
+
+  // A/B Testing handlers
+  const handleABTestingContent = (content) => {
+    setABTestingContent(content);
+    setShowABTestingModal(true);
+  };
+
+  const handleApplyABTests = (testContentItems, appliedTests) => {
+    setLocalCalendar(prev => [...prev, ...testContentItems]);
+    setShowABTestingModal(false);
+    setABTestingContent(null);
+    
+    // Show success feedback
+    alert(`A/B testing launched! Created ${testContentItems.length} test variants based on ${appliedTests.length} selected test(s) for automated optimization.`);
   };
 
   // Version control functions
@@ -1338,6 +1374,8 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
           onAdaptiveReschedule={handleAdaptiveRescheduleContent}
           onOrchestrate={handleOrchestrateContent}
           onDynamicSlots={handleDynamicSlotsContent}
+          onGrowthGoals={handleGrowthGoalsContent}
+          onABTesting={handleABTestingContent}
         />
       )}
 
@@ -1512,6 +1550,32 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
             setDynamicSlotsContent(null);
           }}
           onApplyDynamicSlots={handleApplyDynamicSlots}
+        />
+      )}
+
+      {/* Growth Goals Modal */}
+      {showGrowthGoalsModal && growthGoalsContent && (
+        <GrowthGoalsModal
+          content={growthGoalsContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowGrowthGoalsModal(false);
+            setGrowthGoalsContent(null);
+          }}
+          onApplyGrowthStrategy={handleApplyGrowthStrategy}
+        />
+      )}
+
+      {/* Auto A/B Testing Modal */}
+      {showABTestingModal && abTestingContent && (
+        <AutoABTestingModal
+          content={abTestingContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowABTestingModal(false);
+            setABTestingContent(null);
+          }}
+          onApplyABTests={handleApplyABTests}
         />
       )}
 

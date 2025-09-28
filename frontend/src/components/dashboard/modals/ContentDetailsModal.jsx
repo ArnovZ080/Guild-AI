@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain, Zap, Activity } from 'lucide-react';
+import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain, Zap, Activity, Target, TestTube } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
 
@@ -16,7 +16,9 @@ const ContentDetailsModal = ({
   onForecast,
   onAdaptiveReschedule,
   onOrchestrate,
-  onDynamicSlots
+  onDynamicSlots,
+  onGrowthGoals,
+  onABTesting
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -61,6 +63,12 @@ const ContentDetailsModal = ({
         break;
       case 'dynamic_slots':
         if (onDynamicSlots) onDynamicSlots(content);
+        break;
+      case 'growth_goals':
+        if (onGrowthGoals) onGrowthGoals(content);
+        break;
+      case 'ab_testing':
+        if (onABTesting) onABTesting(content);
         break;
       default:
         break;
@@ -272,6 +280,20 @@ const ContentDetailsModal = ({
               >
                 <Activity className="w-4 h-4 mr-2" />
                 Dynamic Slots
+              </button>
+              <button
+                onClick={() => handleAction('growth_goals')}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Growth Goals
+              </button>
+              <button
+                onClick={() => handleAction('ab_testing')}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <TestTube className="w-4 h-4 mr-2" />
+                A/B Testing
               </button>
             </div>
           )}
