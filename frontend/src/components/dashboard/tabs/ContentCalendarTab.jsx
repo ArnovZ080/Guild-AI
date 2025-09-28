@@ -34,6 +34,7 @@ import ScheduleContentModal from '../modals/ScheduleContentModal';
 import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
 import AdaptiveReschedulingModal from '../modals/AdaptiveReschedulingModal';
 import MultiAgentOrchestrationModal from '../modals/MultiAgentOrchestrationModal';
+import DynamicSlotsModal from '../modals/DynamicSlotsModal';
 
 const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -63,6 +64,8 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [adaptiveRescheduleContent, setAdaptiveRescheduleContent] = useState(null);
   const [showOrchestrationModal, setShowOrchestrationModal] = useState(false);
   const [orchestrationContent, setOrchestrationContent] = useState(null);
+  const [showDynamicSlotsModal, setShowDynamicSlotsModal] = useState(false);
+  const [dynamicSlotsContent, setDynamicSlotsContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -365,6 +368,25 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
     alert(`Multi-agent orchestration complete! Optimized content added to calendar with ${Math.round(optimizedContent.orchestration_score * 100)}% quality score.`);
   };
 
+  // Dynamic Slots handlers
+  const handleDynamicSlotsContent = (content) => {
+    setDynamicSlotsContent(content);
+    setShowDynamicSlotsModal(true);
+  };
+
+  const handleApplyDynamicSlots = (optimizedContent, appliedOptimizations) => {
+    setLocalCalendar(prev => 
+      prev.map(item => 
+        item.id === optimizedContent.id ? optimizedContent : item
+      )
+    );
+    setShowDynamicSlotsModal(false);
+    setDynamicSlotsContent(null);
+    
+    // Show success feedback
+    alert(`Dynamic slots optimization applied! Content rescheduled with ${appliedOptimizations.length} optimization(s) for maximum engagement.`);
+  };
+
   // Version control functions
   const handleVersionHistory = (content) => {
     setVersionContent(content);
@@ -548,7 +570,7 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
               <CheckCircle className="w-4 h-4 mr-2" />
               Review Pending ({filteredCalendar.filter(item => item.status === 'review').length})
             </button>
-
+            
 
             {/* Create Content Button */}
             <button 
@@ -681,28 +703,28 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
             </button>
           </div>
           {showEditorialGuidelines && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <div className="font-medium text-gray-800 mb-1">Brand Voice</div>
-                <div className="text-gray-700 whitespace-pre-line">{editorial.brandVoice || 'No brand voice found. Set during onboarding.'}</div>
-              </div>
-              <div>
-                <div className="font-medium text-gray-800 mb-1">Keywords</div>
-                <div className="text-gray-700">{Array.isArray(editorial.keywords) && editorial.keywords.length > 0 ? editorial.keywords.join(', ') : '—'}</div>
-              </div>
-              <div>
-                <div className="font-medium text-gray-800 mb-1">Do's & Don'ts</div>
-                <div className="text-gray-700">
-                  {Array.isArray(editorial.dos) && editorial.dos.length > 0 && (
-                    <div className="mb-1"><span className="font-medium">Do:</span> {editorial.dos.join(', ')}</div>
-                  )}
-                  {Array.isArray(editorial.donts) && editorial.donts.length > 0 && (
-                    <div><span className="font-medium">Don't:</span> {editorial.donts.join(', ')}</div>
-                  )}
-                  {(!editorial.dos || editorial.dos.length === 0) && (!editorial.donts || editorial.donts.length === 0) && '—'}
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Brand Voice</div>
+              <div className="text-gray-700 whitespace-pre-line">{editorial.brandVoice || 'No brand voice found. Set during onboarding.'}</div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Keywords</div>
+              <div className="text-gray-700">{Array.isArray(editorial.keywords) && editorial.keywords.length > 0 ? editorial.keywords.join(', ') : '—'}</div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Do's & Don'ts</div>
+              <div className="text-gray-700">
+                {Array.isArray(editorial.dos) && editorial.dos.length > 0 && (
+                  <div className="mb-1"><span className="font-medium">Do:</span> {editorial.dos.join(', ')}</div>
+                )}
+                {Array.isArray(editorial.donts) && editorial.donts.length > 0 && (
+                  <div><span className="font-medium">Don't:</span> {editorial.donts.join(', ')}</div>
+                )}
+                {(!editorial.dos || editorial.dos.length === 0) && (!editorial.donts || editorial.donts.length === 0) && '—'}
               </div>
             </div>
+          </div>
           )}
         </div>
 
@@ -721,42 +743,42 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
             </button>
           </div>
           {showDeadlines && (
-            <div className="space-y-3">
+          <div className="space-y-3">
               <div className="text-sm text-gray-500 mb-4">
                 {getUpcomingDeadlines().length} items need attention
               </div>
-              {getUpcomingDeadlines().slice(0, 5).map((item, idx) => (
-                <div key={idx} className={`p-3 rounded-lg border-l-4 ${
-                  item.urgency === 'high' ? 'border-red-500 bg-red-50' :
-                  item.urgency === 'medium' ? 'border-yellow-500 bg-yellow-50' :
-                  'border-blue-500 bg-blue-50'
-                }`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-2 h-2 rounded-full ${
-                        item.urgency === 'high' ? 'bg-red-500' :
-                        item.urgency === 'medium' ? 'bg-yellow-500' :
-                        'bg-blue-500'
-                      }`}></div>
-                      <div>
-                        <div className="font-medium text-gray-900">{item.title}</div>
-                        <div className="text-sm text-gray-600">{item.description}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">{item.dueDate}</div>
-                      <div className="text-xs text-gray-500">{item.timeRemaining}</div>
+            {getUpcomingDeadlines().slice(0, 5).map((item, idx) => (
+              <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                item.urgency === 'high' ? 'border-red-500 bg-red-50' :
+                item.urgency === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                'border-blue-500 bg-blue-50'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      item.urgency === 'high' ? 'bg-red-500' :
+                      item.urgency === 'medium' ? 'bg-yellow-500' :
+                      'bg-blue-500'
+                    }`}></div>
+                    <div>
+                      <div className="font-medium text-gray-900">{item.title}</div>
+                      <div className="text-sm text-gray-600">{item.description}</div>
                     </div>
                   </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-gray-900">{item.dueDate}</div>
+                    <div className="text-xs text-gray-500">{item.timeRemaining}</div>
+                  </div>
                 </div>
-              ))}
-              {getUpcomingDeadlines().length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                  <p>No upcoming deadlines or reminders</p>
-                </div>
-              )}
-            </div>
+              </div>
+            ))}
+            {getUpcomingDeadlines().length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No upcoming deadlines or reminders</p>
+              </div>
+            )}
+          </div>
           )}
         </div>
 
@@ -1315,6 +1337,7 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
           onForecast={handleForecastContent}
           onAdaptiveReschedule={handleAdaptiveRescheduleContent}
           onOrchestrate={handleOrchestrateContent}
+          onDynamicSlots={handleDynamicSlotsContent}
         />
       )}
 
@@ -1476,6 +1499,19 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
             setOrchestrationContent(null);
           }}
           onApplyOptimizations={handleApplyOrchestration}
+        />
+      )}
+
+      {/* Dynamic Slots Modal */}
+      {showDynamicSlotsModal && dynamicSlotsContent && (
+        <DynamicSlotsModal
+          content={dynamicSlotsContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowDynamicSlotsModal(false);
+            setDynamicSlotsContent(null);
+          }}
+          onApplyDynamicSlots={handleApplyDynamicSlots}
         />
       )}
 

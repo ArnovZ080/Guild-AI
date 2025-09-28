@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain, Zap } from 'lucide-react';
+import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain, Zap, Activity } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
 
@@ -15,7 +15,8 @@ const ContentDetailsModal = ({
   onDraft,
   onForecast,
   onAdaptiveReschedule,
-  onOrchestrate
+  onOrchestrate,
+  onDynamicSlots
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -57,6 +58,9 @@ const ContentDetailsModal = ({
         break;
       case 'orchestrate':
         if (onOrchestrate) onOrchestrate(content);
+        break;
+      case 'dynamic_slots':
+        if (onDynamicSlots) onDynamicSlots(content);
         break;
       default:
         break;
@@ -261,6 +265,13 @@ const ContentDetailsModal = ({
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 Forecast
+              </button>
+              <button
+                onClick={() => handleAction('dynamic_slots')}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                Dynamic Slots
               </button>
             </div>
           )}
