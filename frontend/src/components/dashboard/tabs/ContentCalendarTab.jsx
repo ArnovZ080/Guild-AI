@@ -1047,57 +1047,59 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex items-center space-x-2 overflow-x-auto">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Apply optimization:</span>
-              <button
-                onClick={() => handleBulkOptimization('optimize_schedule')}
-                className="px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <Clock className="w-3 h-3 mr-1" />
-                Optimize Schedule
-              </button>
-              <button
-                onClick={() => handleBulkOptimization('orchestrate')}
-                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <Brain className="w-3 h-3 mr-1" />
-                Orchestrate
-              </button>
-              <button
-                onClick={() => handleBulkOptimization('dynamic_slots')}
-                className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <Activity className="w-3 h-3 mr-1" />
-                Dynamic Slots
-              </button>
-              <button
-                onClick={() => handleBulkOptimization('growth_goals')}
-                className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <Target className="w-3 h-3 mr-1" />
-                Growth Goals
-              </button>
-              <button
-                onClick={() => handleBulkOptimization('ab_testing')}
-                className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <TestTube className="w-3 h-3 mr-1" />
-                A/B Testing
-              </button>
-              <button
-                onClick={() => handleBulkOptimization('revenue_attribution')}
-                className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <DollarSign className="w-3 h-3 mr-1" />
-                Revenue Attribution
-              </button>
-              <button
-                onClick={() => handleBulkOptimization('scenario_simulation')}
-                className="px-3 py-1 bg-violet-600 text-white rounded-md text-sm hover:bg-violet-700 transition-colors flex items-center whitespace-nowrap"
-              >
-                <Calculator className="w-3 h-3 mr-1" />
-                Scenario Simulation
-              </button>
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-gray-700">Apply optimization:</span>
+              <div className="flex items-center space-x-2 overflow-x-auto">
+                <button
+                  onClick={() => handleBulkOptimization('optimize_schedule')}
+                  className="px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Clock className="w-3 h-3 mr-1" />
+                  Optimize Schedule
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('orchestrate')}
+                  className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Brain className="w-3 h-3 mr-1" />
+                  Orchestrate
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('dynamic_slots')}
+                  className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Activity className="w-3 h-3 mr-1" />
+                  Dynamic Slots
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('growth_goals')}
+                  className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Target className="w-3 h-3 mr-1" />
+                  Growth Goals
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('ab_testing')}
+                  className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <TestTube className="w-3 h-3 mr-1" />
+                  A/B Testing
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('revenue_attribution')}
+                  className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <DollarSign className="w-3 h-3 mr-1" />
+                  Revenue Attribution
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('scenario_simulation')}
+                  className="px-3 py-1 bg-violet-600 text-white rounded-md text-sm hover:bg-violet-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Calculator className="w-3 h-3 mr-1" />
+                  Scenario Simulation
+                </button>
+              </div>
             </div>
           </div>
         )}
