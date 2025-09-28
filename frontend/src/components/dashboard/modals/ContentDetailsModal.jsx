@@ -230,8 +230,44 @@ const ContentDetailsModal = ({
         </div>
 
         {/* Action Menu at Bottom */}
-        <div className="border-t p-6">
+        <div className="border-t p-6 space-y-4">
+          {/* Optimization Row - Only for user-generated content */}
+          {!isAIGenerated && (
+            <div className="flex items-center justify-center space-x-2">
+              <button
+                onClick={() => handleAction('repurpose')}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Repurpose
+              </button>
+              <button
+                onClick={() => handleAction('adaptive_reschedule')}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+              >
+                <Brain className="w-4 h-4 mr-2" />
+                Optimize Schedule
+              </button>
+              <button
+                onClick={() => handleAction('orchestrate')}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Orchestrate
+              </button>
+              <button
+                onClick={() => handleAction('forecast')}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Forecast
+              </button>
+            </div>
+          )}
+
+          {/* Main Action Row */}
           <div className="flex items-center justify-between">
+            {/* Left side - Primary actions */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleAction('publish')}
@@ -276,37 +312,9 @@ const ContentDetailsModal = ({
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </button>
-              <button
-                onClick={() => handleAction('repurpose')}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Repurpose
-              </button>
-              {!isAIGenerated && (
-                <button
-                  onClick={() => handleAction('forecast')}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Forecast
-                </button>
-              )}
-              <button
-                onClick={() => handleAction('adaptive_reschedule')}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-              >
-                <Brain className="w-4 h-4 mr-2" />
-                Optimize Schedule
-              </button>
-              <button
-                onClick={() => handleAction('orchestrate')}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Orchestrate
-              </button>
             </div>
+
+            {/* Right side - Secondary actions */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleAction('delete')}

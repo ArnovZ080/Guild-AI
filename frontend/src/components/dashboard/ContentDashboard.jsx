@@ -414,7 +414,17 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <ContentCalendarTab calendar={contentData.content_calendar} />
+            <ContentCalendarTab 
+              calendar={contentData.content_calendar} 
+              hiredAgents={[
+                { id: 'content_strategist', name: 'Content Strategist Agent', status: 'hired' },
+                { id: 'brand_strategist_agent', name: 'Brand Strategist Agent', status: 'hired' },
+                { id: 'content_repurposer_agent', name: 'Content Repurposer Agent', status: 'hired' },
+                { id: 'research_agent', name: 'Research Agent', status: 'hired' },
+                { id: 'seo_agent', name: 'SEO Agent', status: 'hired' },
+                { id: 'judge_agent', name: 'Judge Agent', status: 'hired' }
+              ]}
+            />
           </motion.div>
         )}
 

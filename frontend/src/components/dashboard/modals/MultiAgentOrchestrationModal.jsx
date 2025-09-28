@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { X, Zap, Users, Target, Brain, CheckCircle, Clock, TrendingUp, MessageSquare, Eye, Heart, BarChart3, AlertTriangle, Play, Pause, RotateCcw } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 
-const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }) => {
+const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations, hiredAgents = [] }) => {
   const [orchestrationState, setOrchestrationState] = useState('idle'); // idle, analyzing, orchestrating, completed
   const [currentStep, setCurrentStep] = useState(0);
   const [orchestrationData, setOrchestrationData] = useState(null);
@@ -17,6 +17,58 @@ const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }
       startOrchestration();
     }
   }, [content]);
+
+  // Helper functions for agent mapping
+  const getAgentIcon = (agentId) => {
+    const iconMap = {
+      'content_strategist': <Target className="w-5 h-5" />,
+      'brand_strategist_agent': <Eye className="w-5 h-5" />,
+      'content_repurposer_agent': <Heart className="w-5 h-5" />,
+      'research_agent': <CheckCircle className="w-5 h-5" />,
+      'seo_agent': <TrendingUp className="w-5 h-5" />,
+      'judge_agent': <CheckCircle className="w-5 h-5" />
+    };
+    return iconMap[agentId] || <Brain className="w-5 h-5" />;
+  };
+
+  const getAgentRole = (agentId) => {
+    const roleMap = {
+      'content_strategist': 'Strategic content optimization and planning',
+      'brand_strategist_agent': 'Brand voice and guideline compliance validation',
+      'content_repurposer_agent': 'Content optimization and engagement enhancement',
+      'research_agent': 'Information accuracy and source validation',
+      'seo_agent': 'Search optimization and keyword analysis',
+      'judge_agent': 'Final quality assessment and approval'
+    };
+    return roleMap[agentId] || 'Content optimization and enhancement';
+  };
+
+  const getAgentDuration = (agentId) => {
+    const durationMap = {
+      'content_strategist': 3000,
+      'brand_strategist_agent': 1500,
+      'content_repurposer_agent': 2000,
+      'research_agent': 1800,
+      'seo_agent': 2200,
+      'judge_agent': 2500
+    };
+    return durationMap[agentId] || 2000;
+  };
+
+  const getAgentDependencies = (agentId, availableAgents) => {
+    const dependencyMap = {
+      'content_strategist': [],
+      'brand_strategist_agent': ['content_strategist'],
+      'content_repurposer_agent': ['brand_strategist_agent'],
+      'research_agent': ['content_strategist'],
+      'seo_agent': ['content_repurposer_agent'],
+      'judge_agent': ['brand_strategist_agent', 'content_repurposer_agent', 'research_agent', 'seo_agent']
+    };
+    
+    const dependencies = dependencyMap[agentId] || [];
+    // Only return dependencies that are actually available
+    return dependencies.filter(dep => availableAgents.some(agent => agent.id === dep));
+  };
 
   const startOrchestration = async () => {
     setOrchestrationState('analyzing');
@@ -98,48 +150,28 @@ const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }
   };
 
   const orchestrateOptimization = async (rubric) => {
-    const agents = [
-      {
-        id: 'content_strategist',
-        name: 'Content Strategist Agent',
-        icon: <Target className="w-5 h-5" />,
-        role: 'Strategic content optimization',
-        estimated_duration: 3000,
-        dependencies: []
-      },
-      {
-        id: 'audience_agent',
-        name: 'Audience Intelligence Agent',
-        icon: <Users className="w-5 h-5" />,
-        role: 'Audience targeting and engagement optimization',
-        estimated_duration: 2500,
-        dependencies: ['content_strategist']
-      },
-      {
-        id: 'engagement_agent',
-        name: 'Engagement Optimization Agent',
-        icon: <Heart className="w-5 h-5" />,
-        role: 'Call-to-action and interaction optimization',
-        estimated_duration: 2000,
-        dependencies: ['audience_agent']
-      },
-      {
-        id: 'brand_checker',
-        name: 'Brand Compliance Agent',
-        icon: <Eye className="w-5 h-5" />,
-        role: 'Brand voice and guideline compliance',
-        estimated_duration: 1500,
-        dependencies: ['content_strategist']
-      },
-      {
-        id: 'timing_agent',
-        name: 'Timing Optimization Agent',
-        icon: <Clock className="w-5 h-5" />,
-        role: 'Optimal scheduling and timing analysis',
-        estimated_duration: 1800,
-        dependencies: ['audience_agent']
-      }
-    ];
+    // Filter hired agents that are relevant for content optimization
+    const contentOptimizationAgents = hiredAgents.filter(agent => 
+      agent.status === 'hired' && 
+      ['content_strategist', 'brand_strategist_agent', 'content_repurposer_agent', 'research_agent', 'seo_agent', 'judge_agent'].includes(agent.id)
+    );
+
+    // If no relevant agents are hired, show message and exit
+    if (contentOptimizationAgents.length === 0) {
+      alert('No content optimization agents are currently hired. Please hire relevant agents from the Agent Workforce tab to use orchestration.');
+      setOrchestrationState('idle');
+      return;
+    }
+
+    // Map hired agents to orchestration format
+    const agents = contentOptimizationAgents.map(agent => ({
+      id: agent.id,
+      name: agent.name || agent.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      icon: getAgentIcon(agent.id),
+      role: getAgentRole(agent.id),
+      estimated_duration: getAgentDuration(agent.id),
+      dependencies: getAgentDependencies(agent.id, contentOptimizationAgents)
+    }));
 
     // Initialize agent progress
     const initialProgress = {};
@@ -235,29 +267,23 @@ const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }
         ];
         break;
 
-      case 'audience_agent':
+      case 'brand_strategist_agent':
         results.insights = [
-          "Target demographic shows 40% higher engagement with educational content",
-          "Audience prefers actionable insights over theoretical concepts",
-          "Peak engagement occurs during lunch hours (12-2 PM)"
+          "Content aligns with brand voice guidelines (92% compliance)",
+          "Minor tone adjustments needed for consistency",
+          "All brand elements properly represented"
         ];
         results.optimizations = [
           {
-            type: 'audience_targeting',
-            description: 'Optimize for educational content format preferred by target audience',
-            impact: 'High',
-            confidence: 0.91
-          },
-          {
-            type: 'timing_optimization',
-            description: 'Schedule for 1:30 PM for maximum audience reach',
+            type: 'brand_alignment',
+            description: 'Adjust tone to match brand voice guidelines more closely',
             impact: 'Medium',
-            confidence: 0.85
+            confidence: 0.84
           }
         ];
         break;
 
-      case 'engagement_agent':
+      case 'content_repurposer_agent':
         results.insights = [
           "Current CTA has 23% lower conversion than optimal format",
           "Questions in captions increase comments by 35%",
@@ -279,34 +305,34 @@ const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }
         ];
         break;
 
-      case 'brand_checker':
+      case 'fact_checker':
         results.insights = [
-          "Content aligns well with brand voice guidelines (92% compliance)",
-          "Minor adjustments needed for tone consistency",
-          "All brand elements are properly represented"
+          "All factual claims verified with authoritative sources",
+          "Statistics and data points cross-referenced for accuracy",
+          "No misinformation detected in content"
         ];
         results.optimizations = [
           {
-            type: 'tone_consistency',
-            description: 'Adjust tone to match brand voice guidelines more closely',
-            impact: 'Medium',
-            confidence: 0.84
+            type: 'fact_validation',
+            description: 'All facts verified - content ready for publication',
+            impact: 'High',
+            confidence: 0.95
           }
         ];
         break;
 
-      case 'timing_agent':
+      case 'seo_evaluator':
         results.insights = [
-          "Current schedule conflicts with low-engagement period",
-          "Optimal posting window identified based on audience activity",
-          "Content type performs best in morning slots"
+          "Content optimized for relevant keywords and search terms",
+          "Meta descriptions and titles follow SEO best practices",
+          "Internal linking opportunities identified"
         ];
         results.optimizations = [
           {
-            type: 'schedule_optimization',
-            description: 'Move to optimal time slot for maximum visibility',
-            impact: 'High',
-            confidence: 0.87
+            type: 'seo_optimization',
+            description: 'Enhanced keyword density and meta optimization',
+            impact: 'Medium',
+            confidence: 0.82
           }
         ];
         break;
@@ -388,10 +414,10 @@ const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }
       judge_agent_approved: judgeResults.quality_gate_passed,
       optimized_by: [
         'Content Strategist Agent',
-        'Audience Intelligence Agent', 
-        'Engagement Optimization Agent',
-        'Brand Compliance Agent',
-        'Timing Optimization Agent',
+        'Brand Checker Agent', 
+        'Engagement Agent',
+        'Fact Checker Agent',
+        'SEO Evaluator Agent',
         'Judge Agent'
       ],
       version_history: [...(content.version_history || []), {
@@ -508,10 +534,10 @@ const MultiAgentOrchestrationModal = ({ content, onClose, onApplyOptimizations }
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-2">
                             {agentId === 'content_strategist' && <Target className="w-4 h-4 text-blue-600" />}
-                            {agentId === 'audience_agent' && <Users className="w-4 h-4 text-green-600" />}
-                            {agentId === 'engagement_agent' && <Heart className="w-4 h-4 text-red-600" />}
                             {agentId === 'brand_checker' && <Eye className="w-4 h-4 text-purple-600" />}
-                            {agentId === 'timing_agent' && <Clock className="w-4 h-4 text-orange-600" />}
+                            {agentId === 'engagement_agent' && <Heart className="w-4 h-4 text-red-600" />}
+                            {agentId === 'fact_checker' && <CheckCircle className="w-4 h-4 text-green-600" />}
+                            {agentId === 'seo_evaluator' && <TrendingUp className="w-4 h-4 text-orange-600" />}
                             {agentId === 'judge_agent' && <CheckCircle className="w-4 h-4 text-indigo-600" />}
                             <span className="font-medium text-gray-900 capitalize">
                               {agentId.replace('_', ' ')} Agent

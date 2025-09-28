@@ -35,7 +35,7 @@ import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
 import AdaptiveReschedulingModal from '../modals/AdaptiveReschedulingModal';
 import MultiAgentOrchestrationModal from '../modals/MultiAgentOrchestrationModal';
 
-const ContentCalendarTab = ({ calendar }) => {
+const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedContent, setSelectedContent] = useState(null);
@@ -1470,6 +1470,7 @@ const ContentCalendarTab = ({ calendar }) => {
       {showOrchestrationModal && orchestrationContent && (
         <MultiAgentOrchestrationModal
           content={orchestrationContent}
+          hiredAgents={hiredAgents}
           onClose={() => {
             setShowOrchestrationModal(false);
             setOrchestrationContent(null);
