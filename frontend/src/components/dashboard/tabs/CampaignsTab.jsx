@@ -37,25 +37,26 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  // Calculate aggregate metrics
-  const totalSpend = campaigns.reduce((sum, campaign) => sum + (campaign.spend || 0), 0);
-  const totalBudget = campaigns.reduce((sum, campaign) => sum + (campaign.budget || 0), 0);
-  const totalReach = campaigns.reduce((sum, campaign) => sum + (campaign.reach || 0), 0);
-  const totalImpressions = campaigns.reduce((sum, campaign) => sum + (campaign.impressions || 0), 0);
-  const totalClicks = campaigns.reduce((sum, campaign) => sum + (campaign.clicks || 0), 0);
-  const totalConversions = campaigns.reduce((sum, campaign) => sum + (campaign.conversions || 0), 0);
-  const totalEngagement = campaigns.reduce((sum, campaign) => sum + (campaign.engagement || 0), 0);
+  // Calculate aggregate metrics with null checks
+  const totalSpend = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.spend || 0), 0);
+  const totalBudget = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.budget || 0), 0);
+  const totalReach = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.reach || 0), 0);
+  const totalImpressions = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.impressions || 0), 0);
+  const totalClicks = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.clicks || 0), 0);
+  const totalConversions = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.conversions || 0), 0);
+  const totalEngagement = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.engagement || 0), 0);
 
   // Calculate derived metrics
   const overallCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(2) : 0;
   const overallConversionRate = totalClicks > 0 ? (totalConversions / totalClicks * 100).toFixed(2) : 0;
-  const averageROAS = campaigns.length > 0 ? campaigns.reduce((sum, campaign) => sum + (campaign.roas || 0), 0) / campaigns.length : 0;
+  const averageROAS = (campaigns || []).length > 0 ? (campaigns || []).reduce((sum, campaign) => sum + (campaign?.roas || 0), 0) / (campaigns || []).length : 0;
 
-  // Filter campaigns
-  const filteredCampaigns = campaigns.filter(campaign => {
+  // Filter campaigns with null checks
+  const filteredCampaigns = (campaigns || []).filter(campaign => {
+    if (!campaign) return false;
     const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus;
-    const matchesSearch = campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         campaign.platform.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (campaign.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (campaign.platform || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
   });
 
@@ -264,19 +265,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
 
         {/* Campaign List */}
         <div className="space-y-4">
-          {filteredCampaigns.map((campaign) => (
-            <div key={campaign.campaign_id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+          {filteredCampaigns.map((campaign) => {
+            if (!campaign) return null;
+            return (
+            <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
                   <div className="text-2xl">{getPlatformIcon(campaign.platform)}</div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{campaign.name}</h3>
-                    <p className="text-sm text-gray-600 capitalize">{campaign.platform} • {campaign.type || 'Campaign'}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">{campaign.name || 'Unnamed Campaign'}</h3>
+                    <p className="text-sm text-gray-600 capitalize">{campaign.platform || 'Unknown'} • {campaign.type || 'Campaign'}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status)}`}>
-                    {campaign.status}
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
+                    {campaign.status || 'Unknown'}
                   </span>
                   <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                     <MoreHorizontal className="w-4 h-4" />
@@ -439,7 +442,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredCampaigns.length === 0 && (
