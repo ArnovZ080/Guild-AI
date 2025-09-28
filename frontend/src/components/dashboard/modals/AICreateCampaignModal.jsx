@@ -46,6 +46,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCampaign, setGeneratedCampaign] = useState(null);
+  const [isRefiningAudience, setIsRefiningAudience] = useState(false);
 
   const handleInputChange = (field, value) => {
     setCampaignInput(prev => ({ ...prev, [field]: value }));
@@ -187,16 +188,35 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Who is your target audience?
-                    </label>
-                    <textarea
-                      value={campaignInput.targetAudience}
-                      onChange={(e) => handleInputChange('targetAudience', e.target.value)}
-                      placeholder="e.g., Young professionals aged 25-35, interested in fitness and wellness..."
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">Who is your target audience?</label>
+                      <button 
+                        type="button" 
+                        onClick={() => setIsRefiningAudience(!isRefiningAudience)} 
+                        className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                      >
+                        {isRefiningAudience ? 'Use Default' : 'Refine Audience'}
+                      </button>
+                    </div>
+                    {!isRefiningAudience ? (
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="flex items-start space-x-2">
+                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                          <div>
+                            <p className="text-sm text-gray-700 font-medium">Using Onboarding Data</p>
+                            <p className="text-xs text-gray-500 mt-1">{campaignInput.targetAudience || 'No audience data found'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <textarea
+                        value={campaignInput.targetAudience}
+                        onChange={(e) => handleInputChange('targetAudience', e.target.value)}
+                        placeholder="e.g., Young professionals aged 25-35, interested in fitness and wellness..."
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,22 +302,40 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
               </div>
 
               <div className="space-y-4">
-                <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-700">Strategy Agent analyzing your business data...</span>
-                </div>
-                <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-700">Enhanced Campaign Agent configuring platform settings...</span>
-                </div>
-                <div className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-700">Lead Personalization Agent optimizing audience targeting...</span>
-                </div>
-                <div className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-gray-700">Judge Agent evaluating campaign quality...</span>
-                </div>
+                {[
+                  { id: 'strategy', name: 'Strategy Agent', description: 'Analyzing your business data and market trends...', icon: '🎯', status: 'completed' },
+                  { id: 'campaign', name: 'Enhanced Campaign Agent', description: 'Configuring platform settings and integrations...', icon: '🚀', status: 'completed' },
+                  { id: 'personalization', name: 'Lead Personalization Agent', description: 'Optimizing audience targeting and messaging...', icon: '🎯', status: 'in_progress' },
+                  { id: 'brand', name: 'Brand Strategist Agent', description: 'Ensuring brand consistency and creative alignment...', icon: '🎨', status: 'pending' },
+                  { id: 'judge', name: 'Judge Agent', description: 'Evaluating campaign quality and compliance...', icon: '⚖️', status: 'pending' }
+                ].map((agent, index) => (
+                  <div key={agent.id} className="flex items-center space-x-4 p-4 bg-white border border-gray-200 rounded-lg">
+                    <div className="flex-shrink-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                        agent.status === 'completed' ? 'bg-green-100' :
+                        agent.status === 'in_progress' ? 'bg-blue-100' :
+                        'bg-gray-100'
+                      }`}>
+                        {agent.status === 'completed' ? '✅' : 
+                         agent.status === 'in_progress' ? '🔄' : agent.icon}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-medium text-gray-900">{agent.name}</h4>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          agent.status === 'completed' ? 'bg-green-100 text-green-800' :
+                          agent.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {agent.status === 'completed' ? 'Completed' :
+                           agent.status === 'in_progress' ? 'In Progress' : 'Pending'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600">{agent.description}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {isGenerating && (
