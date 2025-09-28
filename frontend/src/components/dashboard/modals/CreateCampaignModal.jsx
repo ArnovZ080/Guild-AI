@@ -268,6 +268,10 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   };
 
   const handleSubmit = () => {
+    console.log('Create campaign button clicked');
+    console.log('Campaign data:', campaignData);
+    console.log('onCreateCampaign function:', onCreateCampaign);
+    
     // Add campaign ID and status
     const newCampaign = {
       ...campaignData,
@@ -283,8 +287,16 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       engagement: 0,
       roas: 0
     };
-    onCreateCampaign(newCampaign);
-    onClose();
+    
+    console.log('New campaign to create:', newCampaign);
+    
+    if (onCreateCampaign) {
+      console.log('Calling onCreateCampaign...');
+      onCreateCampaign(newCampaign);
+      onClose();
+    } else {
+      console.error('onCreateCampaign function is not defined');
+    }
   };
 
   const getAIRecommendations = () => {
@@ -425,7 +437,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
         <div className="flex flex-1">
           {/* Main Content */}
-          <div className="flex-1 p-6 overflow-y-auto" style={{maxHeight: 'calc(95vh - 200px)'}}>
+          <div className="flex-1 p-6 overflow-y-auto" style={{maxHeight: 'calc(95vh - 300px)'}}>
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -793,9 +805,32 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <button 
-                        onClick={() => {
-                          // This would open the AI Optimize Campaign modal
-                          console.log('Open AI Optimize Campaign modal');
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/agents/lead-personalization', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                action: 'optimize_targeting',
+                                campaign_data: campaignData,
+                                request: {
+                                  current_audience: campaignData.targetAudience,
+                                  campaign_objective: campaignData.objective,
+                                  platform: campaignData.platform
+                                }
+                              })
+                            });
+                            const result = await response.json();
+                            console.log('Targeting optimization result:', result);
+                            // Update campaign data with optimized targeting
+                            setCampaignData(prev => ({
+                              ...prev,
+                              targetAudience: result.optimized_audience || prev.targetAudience,
+                              aiInsights: { ...prev.aiInsights, targeting_optimization: result }
+                            }));
+                          } catch (error) {
+                            console.error('Targeting optimization failed:', error);
+                          }
                         }}
                         className="p-4 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left"
                       >
@@ -809,9 +844,33 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                       </button>
 
                       <button 
-                        onClick={() => {
-                          // This would open the AI Optimize Campaign modal
-                          console.log('Open AI Optimize Campaign modal');
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/agents/expense-optimizer', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                action: 'optimize_budget',
+                                campaign_data: campaignData,
+                                request: {
+                                  current_budget: campaignData.budget,
+                                  campaign_objective: campaignData.objective,
+                                  platform: campaignData.platform,
+                                  duration: campaignData.duration
+                                }
+                              })
+                            });
+                            const result = await response.json();
+                            console.log('Budget optimization result:', result);
+                            // Update campaign data with optimized budget
+                            setCampaignData(prev => ({
+                              ...prev,
+                              budget: result.optimized_budget || prev.budget,
+                              aiInsights: { ...prev.aiInsights, budget_optimization: result }
+                            }));
+                          } catch (error) {
+                            console.error('Budget optimization failed:', error);
+                          }
                         }}
                         className="p-4 border border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
                       >
@@ -825,9 +884,31 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                       </button>
 
                       <button 
-                        onClick={() => {
-                          // This would open the AI Optimize Campaign modal
-                          console.log('Open AI Optimize Campaign modal');
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/agents/enhanced-campaign', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                action: 'full_optimization',
+                                campaign_data: campaignData,
+                                request: {
+                                  current_setup: campaignData,
+                                  optimization_type: 'comprehensive'
+                                }
+                              })
+                            });
+                            const result = await response.json();
+                            console.log('Full optimization result:', result);
+                            // Update campaign data with full optimization
+                            setCampaignData(prev => ({
+                              ...prev,
+                              ...result.optimized_campaign,
+                              aiInsights: { ...prev.aiInsights, full_optimization: result }
+                            }));
+                          } catch (error) {
+                            console.error('Full optimization failed:', error);
+                          }
                         }}
                         className="p-4 border border-green-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left"
                       >
@@ -841,9 +922,33 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                       </button>
 
                       <button 
-                        onClick={() => {
-                          // This would open the AI Optimize Campaign modal
-                          console.log('Open AI Optimize Campaign modal');
+                        onClick={async () => {
+                          try {
+                            const response = await fetch('/api/agents/brand-strategist', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                action: 'creative_suggestions',
+                                campaign_data: campaignData,
+                                request: {
+                                  current_creative: campaignData.creativeAssets || [],
+                                  campaign_objective: campaignData.objective,
+                                  target_audience: campaignData.targetAudience,
+                                  platform: campaignData.platform
+                                }
+                              })
+                            });
+                            const result = await response.json();
+                            console.log('Creative suggestions result:', result);
+                            // Update campaign data with creative suggestions
+                            setCampaignData(prev => ({
+                              ...prev,
+                              creativeAssets: result.suggested_creatives || prev.creativeAssets,
+                              aiInsights: { ...prev.aiInsights, creative_suggestions: result }
+                            }));
+                          } catch (error) {
+                            console.error('Creative suggestions failed:', error);
+                          }
                         }}
                         className="p-4 border border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 text-left"
                       >
