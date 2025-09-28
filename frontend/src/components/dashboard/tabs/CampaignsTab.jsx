@@ -29,6 +29,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
+import AICreateCampaignModal from '../modals/AICreateCampaignModal';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -36,6 +37,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAIOptimizeModal, setShowAIOptimizeModal] = useState(false);
+  const [showAICreateModal, setShowAICreateModal] = useState(false);
+
+  // Campaign action handlers
+  const handleCampaignAction = (action, campaign) => {
+    console.log('Campaign action:', action, campaign);
+    if (onCampaignAction) {
+      onCampaignAction(action, campaign);
+    }
+  };
+
+  const handleCreateCampaign = (campaignData) => {
+    console.log('Creating campaign:', campaignData);
+    if (onCreateCampaign) {
+      onCreateCampaign(campaignData);
+    }
+  };
 
   // Calculate aggregate metrics with null checks
   const totalSpend = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.spend || 0), 0);
@@ -151,6 +169,39 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <strong>Opportunity:</strong> TikTok campaigns showing 45% higher engagement
               </span>
             </div>
+          </div>
+          
+          {/* AI Campaign Actions */}
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button 
+              onClick={() => setShowAIOptimizeModal(true)}
+              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">AI Optimize Campaign</h3>
+                  <p className="text-sm text-gray-600">Let AI analyze and optimize your existing campaigns</p>
+                </div>
+              </div>
+            </button>
+            
+            <button 
+              onClick={() => setShowAICreateModal(true)}
+              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Brain className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">AI Create Campaign</h3>
+                  <p className="text-sm text-gray-600">AI creates optimized campaigns based on your business data</p>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
@@ -281,7 +332,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                   </span>
-                  <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => handleCampaignAction('menu', campaign)}
+                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
                 </div>
@@ -303,7 +357,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">{campaign.ctr ? `${campaign.ctr}%` : '0%'}</div>
-                  <div className="text-xs text-gray-500">CTR</div>
+                  <div className="text-xs text-gray-500">Click Through Rate (CTR)</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">{formatNumber(campaign.conversions || 0)}</div>
@@ -472,7 +526,14 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       <CreateCampaignModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreateCampaign={onCreateCampaign}
+        onCreateCampaign={handleCreateCampaign}
+      />
+
+      {/* AI Create Campaign Modal */}
+      <AICreateCampaignModal
+        isOpen={showAICreateModal}
+        onClose={() => setShowAICreateModal(false)}
+        onCreateCampaign={handleCreateCampaign}
       />
     </div>
   );

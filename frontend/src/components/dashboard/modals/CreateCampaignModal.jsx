@@ -166,7 +166,22 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   };
 
   const handleSubmit = () => {
-    onCreateCampaign(campaignData);
+    // Add campaign ID and status
+    const newCampaign = {
+      ...campaignData,
+      campaign_id: `campaign_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      startDate: new Date().toISOString(),
+      spend: 0,
+      reach: 0,
+      impressions: 0,
+      clicks: 0,
+      conversions: 0,
+      engagement: 0,
+      roas: 0
+    };
+    onCreateCampaign(newCampaign);
     onClose();
   };
 
@@ -264,7 +279,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
