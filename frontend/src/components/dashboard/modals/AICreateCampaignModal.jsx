@@ -107,9 +107,14 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   };
 
   const handleCreateCampaign = () => {
+    console.log('Create campaign button clicked');
+    console.log('Generated campaign:', generatedCampaign);
     if (generatedCampaign) {
+      console.log('Calling onCreateCampaign with:', generatedCampaign);
       onCreateCampaign(generatedCampaign);
       onClose();
+    } else {
+      console.log('No generated campaign found');
     }
   };
 
@@ -446,6 +451,11 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Create Campaign
               </button>
+            )}
+            {step === 3 && !generatedCampaign && (
+              <div className="text-center text-gray-500 text-sm">
+                No campaign generated yet. Please go back and try again.
+              </div>
             )}
           </div>
         </div>
