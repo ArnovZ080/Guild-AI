@@ -1946,17 +1946,19 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
   };
 
   const generateContentPreview = (platform, theme, objectives) => {
+    const safeObjectives = objectives || 'business growth';
+    const safeTheme = theme || 'marketing';
     const previews = {
-      instagram: `📸 ${theme} content: "Transform your ${objectives.toLowerCase()} with our proven strategies. Swipe to see the complete guide! #${theme.toLowerCase().replace(' ', '')}"`,
-      linkedin: `💼 ${theme} insight: "The key to successful ${objectives.toLowerCase()} lies in understanding your audience's pain points. Here's what we've learned..."`,
-      twitter: `🐦 ${theme} tip: "Quick win: ${objectives.toLowerCase()} doesn't have to be complicated. Start with this simple framework..."`,
-      facebook: `📘 ${theme} story: "Behind the scenes of our ${objectives.toLowerCase()} journey. The ups, downs, and lessons learned..."`,
-      tiktok: `🎵 ${theme} trend: "POV: You're trying to ${objectives.toLowerCase()} but everyone's doing it wrong. Here's the right way..."`,
-      youtube: `📺 ${theme} tutorial: "Complete guide to ${objectives.toLowerCase()}. From beginner to expert in 10 minutes."`,
-      pinterest: `📌 ${theme} inspiration: "Visual guide to ${objectives.toLowerCase()}. Pin this for later reference!"`,
-      email: `📧 ${theme} newsletter: "This week's insights on ${objectives.toLowerCase()}. Plus exclusive tips for subscribers."`
+      instagram: `📸 ${safeTheme} content: "Transform your ${safeObjectives.toLowerCase()} with our proven strategies. Swipe to see the complete guide! #${safeTheme.toLowerCase().replace(' ', '')}"`,
+      linkedin: `💼 ${safeTheme} insight: "The key to successful ${safeObjectives.toLowerCase()} lies in understanding your audience's pain points. Here's what we've learned..."`,
+      twitter: `🐦 ${safeTheme} tip: "Quick win: ${safeObjectives.toLowerCase()} doesn't have to be complicated. Start with this simple framework..."`,
+      facebook: `📘 ${safeTheme} story: "Behind the scenes of our ${safeObjectives.toLowerCase()} journey. The ups, downs, and lessons learned..."`,
+      tiktok: `🎵 ${safeTheme} trend: "POV: You're trying to ${safeObjectives.toLowerCase()} but everyone's doing it wrong. Here's the right way..."`,
+      youtube: `📺 ${safeTheme} tutorial: "Complete guide to ${safeObjectives.toLowerCase()}. From beginner to expert in 10 minutes."`,
+      pinterest: `📌 ${safeTheme} inspiration: "Visual guide to ${safeObjectives.toLowerCase()}. Pin this for later reference!"`,
+      email: `📧 ${safeTheme} newsletter: "This week's insights on ${safeObjectives.toLowerCase()}. Plus exclusive tips for subscribers."`
     };
-    return previews[platform] || `Content about ${theme} for ${objectives}`;
+    return previews[platform] || `Content about ${safeTheme} for ${safeObjectives}`;
   };
 
   const generateOptimalSchedule = (platform) => {
