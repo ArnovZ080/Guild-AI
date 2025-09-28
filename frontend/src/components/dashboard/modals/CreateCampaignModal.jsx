@@ -425,7 +425,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
         <div className="flex flex-1">
           {/* Main Content */}
-          <div className="flex-1 p-6 overflow-y-auto max-h-[60vh]">
+          <div className="flex-1 p-6 overflow-y-auto">
             {step === 1 && (
               <div className="space-y-6">
                 <div>
