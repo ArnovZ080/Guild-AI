@@ -16,13 +16,13 @@ import {
   CheckCircle,
   Clock,
   Zap,
+  TrendingUp,
   Settings,
   Eye,
   MousePointer,
   Heart,
   MessageCircle,
   Share2,
-  TrendingUp,
   ArrowRight,
   Info,
   HelpCircle
@@ -342,7 +342,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
         <div className="flex flex-1">
           {/* Main Content */}
-          <div className={`p-6 overflow-y-auto ${campaignData.agentWorkflow.length > 0 ? 'flex-1 min-w-0' : 'w-full'}`}>
+          <div className="flex-1 p-6 overflow-y-auto">
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -604,65 +604,149 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                 </div>
               </div>
             )}
-          </div>
 
-          {/* AI Agent Workflow Sidebar */}
-          {campaignData.agentWorkflow.length > 0 && (
-            <div className="w-80 border-l border-gray-200 bg-gray-50 p-4 overflow-y-auto flex-shrink-0">
-            <div className="flex items-center space-x-2 mb-4">
-              <Brain className="w-5 h-5 text-blue-600" />
-              <span className="font-semibold text-gray-900">AI Agent Workflow</span>
-            </div>
-            
-            <div className="space-y-3">
-              {campaignData.agentWorkflow.map((workflow, index) => (
-                <div key={index} className="bg-white rounded-lg p-3 border border-gray-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      workflow.status === 'completed' ? 'bg-green-500' :
-                      workflow.status === 'in_progress' ? 'bg-yellow-500' :
-                      'bg-gray-300'
-                    }`} />
-                    <span className="text-sm font-medium text-gray-900">{workflow.agent}</span>
-                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                      {workflow.agentType}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-2">{workflow.action}</p>
-                  <p className="text-xs text-gray-700 bg-gray-50 p-2 rounded">{workflow.insights}</p>
-                  <div className="mt-2">
-                    <div className="text-xs text-gray-500 mb-1">
-                      <strong>Capabilities:</strong>
+            {step === 4 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Campaign Analysis & Optimization</h3>
+                  
+                  {/* AI Confidence Score */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Brain className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">AI Campaign Confidence Score</h4>
+                        <p className="text-sm text-gray-600">Based on your campaign setup and market data</p>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-1">
-                      {workflow.capabilities.map((capability, capIndex) => (
-                        <span key={capIndex} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                          {capability}
-                        </span>
-                      ))}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-green-600 mb-2">87%</div>
+                        <div className="text-sm text-gray-600">Overall Confidence</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-blue-600 mb-2">92%</div>
+                        <div className="text-sm text-gray-600">Audience Match</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-purple-600 mb-2">78%</div>
+                        <div className="text-sm text-gray-600">Budget Efficiency</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <h5 className="font-semibold text-gray-900 mb-2">AI Predictions</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Expected Reach:</span>
+                          <span className="font-medium">12,500 - 18,000 people</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Estimated Clicks:</span>
+                          <span className="font-medium">450 - 650 clicks</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Predicted CTR:</span>
+                          <span className="font-medium">3.2% - 4.1%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Expected Conversions:</span>
+                          <span className="font-medium">25 - 40 conversions</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">ROI Prediction:</span>
+                          <span className="font-medium text-green-600">280% - 420%</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {new Date(workflow.timestamp).toLocaleTimeString()}
+
+                  {/* AI Optimization Options */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="p-2 bg-purple-100 rounded-lg">
+                        <Zap className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">AI Optimization Options</h4>
+                        <p className="text-sm text-gray-600">Let our AI agents optimize your campaign for better performance</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <button 
+                        onClick={() => {
+                          // This would open the AI Optimize Campaign modal
+                          console.log('Open AI Optimize Campaign modal');
+                        }}
+                        className="p-4 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left"
+                      >
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <Target className="w-5 h-5 text-purple-600" />
+                          </div>
+                          <h5 className="font-semibold text-gray-900">Optimize Targeting</h5>
+                        </div>
+                        <p className="text-sm text-gray-600">AI will refine your audience targeting for better reach and engagement</p>
+                      </button>
+
+                      <button 
+                        onClick={() => {
+                          // This would open the AI Optimize Campaign modal
+                          console.log('Open AI Optimize Campaign modal');
+                        }}
+                        className="p-4 border border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
+                      >
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <DollarSign className="w-5 h-5 text-blue-600" />
+                          </div>
+                          <h5 className="font-semibold text-gray-900">Optimize Budget</h5>
+                        </div>
+                        <p className="text-sm text-gray-600">AI will adjust your budget allocation for maximum ROI</p>
+                      </button>
+
+                      <button 
+                        onClick={() => {
+                          // This would open the AI Optimize Campaign modal
+                          console.log('Open AI Optimize Campaign modal');
+                        }}
+                        className="p-4 border border-green-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left"
+                      >
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <TrendingUp className="w-5 h-5 text-green-600" />
+                          </div>
+                          <h5 className="font-semibold text-gray-900">Full AI Optimization</h5>
+                        </div>
+                        <p className="text-sm text-gray-600">Complete AI optimization of targeting, budget, and creative strategy</p>
+                      </button>
+
+                      <button 
+                        onClick={() => {
+                          // This would open the AI Optimize Campaign modal
+                          console.log('Open AI Optimize Campaign modal');
+                        }}
+                        className="p-4 border border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 text-left"
+                      >
+                        <div className="flex items-center space-x-3 mb-2">
+                          <div className="p-2 bg-orange-100 rounded-lg">
+                            <Lightbulb className="w-5 h-5 text-orange-600" />
+                          </div>
+                          <h5 className="font-semibold text-gray-900">Creative Suggestions</h5>
+                        </div>
+                        <p className="text-sm text-gray-600">AI will suggest creative improvements and A/B testing ideas</p>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-2 mb-2">
-                <Lightbulb className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-900">Learning Tip</span>
               </div>
-              <p className="text-xs text-gray-700">
-                Notice how Guild-AI agents work together? The Strategy Agent analyzes market trends, 
-                Enhanced Campaign Agent handles Meta Business Suite integration, Lead Personalization Agent 
-                applies sales psychology, Brand Strategist ensures consistency, and Judge Agent evaluates quality. 
-                This collaborative approach ensures your campaigns are optimized from every angle.
-              </p>
-            </div>
+            )}
           </div>
-          )}
+
         </div>
 
         {/* Footer */}

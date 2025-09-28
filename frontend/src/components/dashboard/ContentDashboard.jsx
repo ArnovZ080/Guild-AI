@@ -187,8 +187,32 @@ const ContentDashboard = () => {
   };
 
   const handleCampaignAction = async (campaignId, action) => {
+    console.log('Campaign action:', action, 'for campaign:', campaignId);
     try {
-      await executeAction(`campaign_${action}`, { campaign_id: campaignId });
+      // Handle different campaign actions
+      if (action === 'pause' || action === 'resume') {
+        // Update campaign status in the state
+        setContentData(prev => ({
+          ...prev,
+          campaigns: prev.campaigns?.map(campaign => 
+            campaign.id === campaignId || campaign.campaign_id === campaignId
+              ? { ...campaign, status: action === 'pause' ? 'paused' : 'active' }
+              : campaign
+          ) || []
+        }));
+      } else if (action === 'analytics') {
+        // Open analytics modal or navigate to analytics
+        console.log('Opening analytics for campaign:', campaignId);
+      } else if (action === 'settings') {
+        // Open settings modal
+        console.log('Opening settings for campaign:', campaignId);
+      } else if (action === 'menu') {
+        // Handle menu actions
+        console.log('Opening menu for campaign:', campaignId);
+      }
+      
+      // In a real implementation, this would call an API
+      // await executeAction(`campaign_${action}`, { campaign_id: campaignId });
     } catch (error) {
       console.error('Campaign action failed:', error);
     }
@@ -196,9 +220,16 @@ const ContentDashboard = () => {
 
   const handleCreateCampaign = (campaignData) => {
     console.log('Creating campaign:', campaignData);
-    // In a real implementation, this would call an API to create the campaign
-    // For now, we'll just log it and the campaign will be added to the list
-    // The actual campaign creation would be handled by the backend
+    // Add the new campaign to the contentData state
+    setContentData(prev => ({
+      ...prev,
+      campaigns: [...(prev.campaigns || []), {
+        ...campaignData,
+        id: Date.now().toString(), // Generate a unique ID
+        created_at: new Date().toISOString(),
+        status: 'active'
+      }]
+    }));
   };
 
   const handleRepeatStrategy = async (insight) => {
