@@ -78,6 +78,8 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [revenueAttributionContent, setRevenueAttributionContent] = useState(null);
   const [showScenarioSimulationModal, setShowScenarioSimulationModal] = useState(false);
   const [scenarioSimulationContent, setScenarioSimulationContent] = useState(null);
+  const [selectedPosts, setSelectedPosts] = useState([]);
+  const [showOptimizationToolbar, setShowOptimizationToolbar] = useState(false);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -465,6 +467,62 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
     
     // Show success feedback
     alert(`Scenario simulation applied! Content optimized based on ${appliedScenarios.length} selected scenario(s) for strategic growth.`);
+  };
+
+  // Post selection and bulk operations
+  const handlePostSelection = (postId, isSelected) => {
+    if (isSelected) {
+      setSelectedPosts(prev => [...prev, postId]);
+    } else {
+      setSelectedPosts(prev => prev.filter(id => id !== postId));
+    }
+  };
+
+  const handleSelectAllPosts = () => {
+    const allPostIds = localCalendar.map(post => post.id);
+    setSelectedPosts(allPostIds);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPosts([]);
+  };
+
+  const handleBulkOptimization = (optimizationType) => {
+    if (selectedPosts.length === 0) {
+      alert('Please select at least one post to apply optimization.');
+      return;
+    }
+
+    const selectedContent = localCalendar.find(post => post.id === selectedPosts[0]);
+    if (!selectedContent) return;
+
+    // Apply optimization to first selected post (for modal display)
+    // In a real implementation, this would process all selected posts
+    switch (optimizationType) {
+      case 'optimize_schedule':
+        handleAdaptiveRescheduleContent(selectedContent);
+        break;
+      case 'orchestrate':
+        handleOrchestrateContent(selectedContent);
+        break;
+      case 'dynamic_slots':
+        handleDynamicSlotsContent(selectedContent);
+        break;
+      case 'growth_goals':
+        handleGrowthGoalsContent(selectedContent);
+        break;
+      case 'ab_testing':
+        handleABTestingContent(selectedContent);
+        break;
+      case 'revenue_attribution':
+        handleRevenueAttributionContent(selectedContent);
+        break;
+      case 'scenario_simulation':
+        handleScenarioSimulationContent(selectedContent);
+        break;
+      default:
+        break;
+    }
   };
 
   // Version control functions
@@ -949,6 +1007,95 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
           )}
         </div>
 
+        {/* Optimization Toolbar */}
+        {selectedPosts.length > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="font-medium text-gray-900">
+                    {selectedPosts.length} post{selectedPosts.length !== 1 ? 's' : ''} selected
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleSelectAllPosts}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    onClick={handleClearSelection}
+                    className="text-xs text-gray-600 hover:text-gray-800 underline"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={handleClearSelection}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center space-x-2 overflow-x-auto">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Apply optimization:</span>
+              <button
+                onClick={() => handleBulkOptimization('optimize_schedule')}
+                className="px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <Clock className="w-3 h-3 mr-1" />
+                Optimize Schedule
+              </button>
+              <button
+                onClick={() => handleBulkOptimization('orchestrate')}
+                className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <Brain className="w-3 h-3 mr-1" />
+                Orchestrate
+              </button>
+              <button
+                onClick={() => handleBulkOptimization('dynamic_slots')}
+                className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <Activity className="w-3 h-3 mr-1" />
+                Dynamic Slots
+              </button>
+              <button
+                onClick={() => handleBulkOptimization('growth_goals')}
+                className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <Target className="w-3 h-3 mr-1" />
+                Growth Goals
+              </button>
+              <button
+                onClick={() => handleBulkOptimization('ab_testing')}
+                className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <TestTube className="w-3 h-3 mr-1" />
+                A/B Testing
+              </button>
+              <button
+                onClick={() => handleBulkOptimization('revenue_attribution')}
+                className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <DollarSign className="w-3 h-3 mr-1" />
+                Revenue Attribution
+              </button>
+              <button
+                onClick={() => handleBulkOptimization('scenario_simulation')}
+                className="px-3 py-1 bg-violet-600 text-white rounded-md text-sm hover:bg-violet-700 transition-colors flex items-center whitespace-nowrap"
+              >
+                <Calculator className="w-3 h-3 mr-1" />
+                Scenario Simulation
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* View Mode Toggle (moved above calendar) */}
         <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
           {[
@@ -1028,8 +1175,8 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                   content={dayData.content}
                   onContentMove={handleContentMove}
                   onContentClick={handleContentClick}
-                  onContentSelect={handleItemSelect}
-                  selectedItems={selectedItems}
+                  onContentSelect={handlePostSelection}
+                  selectedItems={new Set(selectedPosts)}
                   isCurrentMonth={dayData.isCurrentMonth}
                   isToday={dayData.isToday}
                 />
@@ -1059,8 +1206,8 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                   content={dayData.content}
                   onContentMove={handleContentMove}
                   onContentClick={handleContentClick}
-                  onContentSelect={handleItemSelect}
-                  selectedItems={selectedItems}
+                  onContentSelect={handlePostSelection}
+                  selectedItems={new Set(selectedPosts)}
                 />
               ))}
             </div>
@@ -1091,6 +1238,15 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedPosts.includes(content.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handlePostSelection(content.id, e.target.checked);
+                        }}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
                       <div className={`w-3 h-3 rounded-full ${
                         content.platform === 'instagram' ? 'bg-pink-500' :
                         content.platform === 'linkedin' ? 'bg-blue-500' :
@@ -1165,10 +1321,12 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                     <div className="flex items-center space-x-4">
                       <input
                         type="checkbox"
-                        checked={selectedItems.has(content.content_id)}
-                        onChange={(e) => handleItemSelect(content.content_id, e.target.checked)}
+                        checked={selectedPosts.includes(content.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handlePostSelection(content.id, e.target.checked);
+                        }}
                         className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                        onClick={(e) => e.stopPropagation()}
                       />
                       <div className={`w-3 h-3 rounded-full ${
                         content.platform === 'instagram' ? 'bg-pink-500' :
@@ -1313,10 +1471,12 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                           <div className="flex items-start space-x-2">
                             <input
                               type="checkbox"
-                              checked={selectedItems.has(content.content_id)}
-                              onChange={(e) => handleItemSelect(content.content_id, e.target.checked)}
+                              checked={selectedPosts.includes(content.id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handlePostSelection(content.id, e.target.checked);
+                              }}
                               className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-1"
-                              onClick={(e) => e.stopPropagation()}
                             />
                             <div className="flex-1">
                               <div className="flex items-center space-x-2 mb-2">

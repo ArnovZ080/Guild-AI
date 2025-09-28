@@ -251,60 +251,6 @@ const ContentDetailsModal = ({
 
         {/* Action Menu at Bottom */}
         <div className="border-t p-6 space-y-4">
-          {/* Optimization Row - Only for user-generated content */}
-          {!isAIGenerated && (
-            <div className="flex items-center justify-center space-x-2">
-              <button
-                onClick={() => handleAction('adaptive_reschedule')}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-              >
-                <Brain className="w-4 h-4 mr-2" />
-                Optimize Schedule
-              </button>
-              <button
-                onClick={() => handleAction('orchestrate')}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
-              >
-                <Zap className="w-4 h-4 mr-2" />
-                Orchestrate
-              </button>
-              <button
-                onClick={() => handleAction('dynamic_slots')}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
-              >
-                <Activity className="w-4 h-4 mr-2" />
-                Dynamic Slots
-              </button>
-              <button
-                onClick={() => handleAction('growth_goals')}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-              >
-                <Target className="w-4 h-4 mr-2" />
-                Growth Goals
-              </button>
-              <button
-                onClick={() => handleAction('ab_testing')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <TestTube className="w-4 h-4 mr-2" />
-                A/B Testing
-              </button>
-              <button
-                onClick={() => handleAction('revenue_attribution')}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
-              >
-                <DollarSign className="w-4 h-4 mr-2" />
-                Revenue Attribution
-              </button>
-              <button
-                onClick={() => handleAction('scenario_simulation')}
-                className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors flex items-center"
-              >
-                <Calculator className="w-4 h-4 mr-2" />
-                Scenario Simulation
-              </button>
-            </div>
-          )}
 
           {/* Main Action Row */}
           <div className="flex items-center justify-between">
