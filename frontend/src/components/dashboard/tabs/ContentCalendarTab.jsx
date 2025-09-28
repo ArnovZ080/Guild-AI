@@ -32,6 +32,7 @@ import ContentRepurposeModal from '../modals/ContentRepurposeModal';
 import AIContentSuggestionsModal from '../modals/AIContentSuggestionsModal';
 import ScheduleContentModal from '../modals/ScheduleContentModal';
 import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
+import AdaptiveReschedulingModal from '../modals/AdaptiveReschedulingModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -57,6 +58,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [scheduleContent, setScheduleContent] = useState(null);
   const [showForecastModal, setShowForecastModal] = useState(false);
   const [forecastContent, setForecastContent] = useState(null);
+  const [showAdaptiveRescheduleModal, setShowAdaptiveRescheduleModal] = useState(false);
+  const [adaptiveRescheduleContent, setAdaptiveRescheduleContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -331,6 +334,19 @@ const ContentCalendarTab = ({ calendar }) => {
   const handleOptimizeContent = (optimizedContent) => {
     // Add the optimized content to the calendar
     setLocalCalendar(prev => [...prev, optimizedContent]);
+  };
+
+  const handleAdaptiveRescheduleContent = (content) => {
+    setAdaptiveRescheduleContent(content);
+    setShowAdaptiveRescheduleModal(true);
+  };
+
+  const handleApplyAdaptiveRescheduling = (optimizedContent, appliedSuggestions) => {
+    // Add the rescheduled content to the calendar
+    setLocalCalendar(prev => [...prev, optimizedContent]);
+    
+    // Show success feedback
+    alert(`Successfully applied ${appliedSuggestions.length} rescheduling optimization(s)! New content added to calendar.`);
   };
 
   // Version control functions
@@ -1281,6 +1297,7 @@ const ContentCalendarTab = ({ calendar }) => {
             setSelectedContent(null);
           }}
           onForecast={handleForecastContent}
+          onAdaptiveReschedule={handleAdaptiveRescheduleContent}
         />
       )}
 
@@ -1417,6 +1434,18 @@ const ContentCalendarTab = ({ calendar }) => {
             setForecastContent(null);
           }}
           onOptimize={handleOptimizeContent}
+        />
+      )}
+
+      {/* Adaptive Rescheduling Modal */}
+      {showAdaptiveRescheduleModal && adaptiveRescheduleContent && (
+        <AdaptiveReschedulingModal
+          content={adaptiveRescheduleContent}
+          onClose={() => {
+            setShowAdaptiveRescheduleModal(false);
+            setAdaptiveRescheduleContent(null);
+          }}
+          onApplyRescheduling={handleApplyAdaptiveRescheduling}
         />
       )}
 

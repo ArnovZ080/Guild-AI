@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3 } from 'lucide-react';
+import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
 
@@ -13,7 +13,8 @@ const ContentDetailsModal = ({
   onEdit,
   onDelete,
   onDraft,
-  onForecast
+  onForecast,
+  onAdaptiveReschedule
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -49,6 +50,9 @@ const ContentDetailsModal = ({
         break;
       case 'forecast':
         if (onForecast) onForecast(content);
+        break;
+      case 'adaptive_reschedule':
+        if (onAdaptiveReschedule) onAdaptiveReschedule(content);
         break;
       default:
         break;
@@ -284,6 +288,13 @@ const ContentDetailsModal = ({
                   Forecast
                 </button>
               )}
+              <button
+                onClick={() => handleAction('adaptive_reschedule')}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+              >
+                <Brain className="w-4 h-4 mr-2" />
+                Optimize Schedule
+              </button>
             </div>
             <div className="flex items-center space-x-2">
               <button
