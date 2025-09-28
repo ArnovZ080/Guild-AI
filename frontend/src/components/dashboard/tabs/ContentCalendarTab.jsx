@@ -122,9 +122,9 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
     const matchesPlatform = filterPlatform === 'all' || item.platform === filterPlatform;
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     const matchesSearch = searchQuery === '' || 
-      item.content_preview?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.platform?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.content_type?.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.content_preview || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.platform || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.content_type || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesPlatform && matchesStatus && matchesSearch;
   });

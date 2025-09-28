@@ -71,7 +71,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   };
 
   const getPlatformIcon = (platform) => {
-    switch (platform.toLowerCase()) {
+    switch ((platform || '').toLowerCase()) {
       case 'facebook': case 'meta': return '📘';
       case 'instagram': return '📷';
       case 'google': case 'google ads': return '🔍';
