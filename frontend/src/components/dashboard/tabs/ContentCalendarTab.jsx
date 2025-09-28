@@ -33,6 +33,7 @@ import AIContentSuggestionsModal from '../modals/AIContentSuggestionsModal';
 import ScheduleContentModal from '../modals/ScheduleContentModal';
 import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
 import AdaptiveReschedulingModal from '../modals/AdaptiveReschedulingModal';
+import MultiAgentOrchestrationModal from '../modals/MultiAgentOrchestrationModal';
 
 const ContentCalendarTab = ({ calendar }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -60,6 +61,8 @@ const ContentCalendarTab = ({ calendar }) => {
   const [forecastContent, setForecastContent] = useState(null);
   const [showAdaptiveRescheduleModal, setShowAdaptiveRescheduleModal] = useState(false);
   const [adaptiveRescheduleContent, setAdaptiveRescheduleContent] = useState(null);
+  const [showOrchestrationModal, setShowOrchestrationModal] = useState(false);
+  const [orchestrationContent, setOrchestrationContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -347,6 +350,19 @@ const ContentCalendarTab = ({ calendar }) => {
     
     // Show success feedback
     alert(`Successfully applied ${appliedSuggestions.length} rescheduling optimization(s)! New content added to calendar.`);
+  };
+
+  const handleOrchestrateContent = (content) => {
+    setOrchestrationContent(content);
+    setShowOrchestrationModal(true);
+  };
+
+  const handleApplyOrchestration = (optimizedContent) => {
+    // Add the orchestrated content to the calendar
+    setLocalCalendar(prev => [...prev, optimizedContent]);
+    
+    // Show success feedback
+    alert(`Multi-agent orchestration complete! Optimized content added to calendar with ${Math.round(optimizedContent.orchestration_score * 100)}% quality score.`);
   };
 
   // Version control functions
@@ -1298,6 +1314,7 @@ const ContentCalendarTab = ({ calendar }) => {
           }}
           onForecast={handleForecastContent}
           onAdaptiveReschedule={handleAdaptiveRescheduleContent}
+          onOrchestrate={handleOrchestrateContent}
         />
       )}
 
@@ -1446,6 +1463,18 @@ const ContentCalendarTab = ({ calendar }) => {
             setAdaptiveRescheduleContent(null);
           }}
           onApplyRescheduling={handleApplyAdaptiveRescheduling}
+        />
+      )}
+
+      {/* Multi-Agent Orchestration Modal */}
+      {showOrchestrationModal && orchestrationContent && (
+        <MultiAgentOrchestrationModal
+          content={orchestrationContent}
+          onClose={() => {
+            setShowOrchestrationModal(false);
+            setOrchestrationContent(null);
+          }}
+          onApplyOptimizations={handleApplyOrchestration}
         />
       )}
 
