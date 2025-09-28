@@ -46,7 +46,7 @@ import AutoABTestingModal from '../modals/AutoABTestingModal';
 import RevenueAttributionModal from '../modals/RevenueAttributionModal';
 import ScenarioSimulationModal from '../modals/ScenarioSimulationModal';
 
-const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highlightedCampaign = null }) => {
+const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highlightedCampaign = null, onHighlightCampaign = null }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedContent, setSelectedContent] = useState(null);
@@ -1087,8 +1087,16 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
                       </div>
                       <button
                         onClick={() => {
-                          // This would trigger highlighting in the calendar
+                          // Highlight the campaign in the calendar
                           console.log('Highlight campaign in calendar:', campaign.name);
+                          if (onHighlightCampaign) {
+                            onHighlightCampaign(campaign.id || campaign.campaign_id);
+                          }
+                          // Scroll to the calendar view
+                          const calendarElement = document.querySelector('[data-calendar-view]');
+                          if (calendarElement) {
+                            calendarElement.scrollIntoView({ behavior: 'smooth' });
+                          }
                         }}
                         className="text-xs text-purple-600 hover:text-purple-700 font-medium"
                       >
@@ -1140,7 +1148,7 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
 
         {/* Calendar View */}
         {viewMode === 'month' && (
-          <div className="space-y-4">
+          <div className="space-y-4" data-calendar-view>
             {/* Calendar Navigation Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">

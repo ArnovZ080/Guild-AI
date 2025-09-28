@@ -485,6 +485,10 @@ const ContentDashboard = () => {
               ]}
               campaigns={[...campaigns, ...userCampaigns]}
               highlightedCampaign={highlightedCampaign}
+              onHighlightCampaign={(campaignId) => {
+                setHighlightedCampaign(campaignId);
+                console.log('Campaign highlighted in calendar:', campaignId);
+              }}
             />
           </motion.div>
         )}
