@@ -37,6 +37,8 @@ import MultiAgentOrchestrationModal from '../modals/MultiAgentOrchestrationModal
 import DynamicSlotsModal from '../modals/DynamicSlotsModal';
 import GrowthGoalsModal from '../modals/GrowthGoalsModal';
 import AutoABTestingModal from '../modals/AutoABTestingModal';
+import RevenueAttributionModal from '../modals/RevenueAttributionModal';
+import ScenarioSimulationModal from '../modals/ScenarioSimulationModal';
 
 const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
@@ -72,6 +74,10 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [growthGoalsContent, setGrowthGoalsContent] = useState(null);
   const [showABTestingModal, setShowABTestingModal] = useState(false);
   const [abTestingContent, setABTestingContent] = useState(null);
+  const [showRevenueAttributionModal, setShowRevenueAttributionModal] = useState(false);
+  const [revenueAttributionContent, setRevenueAttributionContent] = useState(null);
+  const [showScenarioSimulationModal, setShowScenarioSimulationModal] = useState(false);
+  const [scenarioSimulationContent, setScenarioSimulationContent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
@@ -421,6 +427,44 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
     
     // Show success feedback
     alert(`A/B testing launched! Created ${testContentItems.length} test variants based on ${appliedTests.length} selected test(s) for automated optimization.`);
+  };
+
+  // Revenue Attribution handlers
+  const handleRevenueAttributionContent = (content) => {
+    setRevenueAttributionContent(content);
+    setShowRevenueAttributionModal(true);
+  };
+
+  const handleApplyRevenueOptimization = (optimizedContent, appliedStrategies) => {
+    setLocalCalendar(prev => 
+      prev.map(item => 
+        item.id === optimizedContent.id ? optimizedContent : item
+      )
+    );
+    setShowRevenueAttributionModal(false);
+    setRevenueAttributionContent(null);
+    
+    // Show success feedback
+    alert(`Revenue optimization applied! Content optimized with ${appliedStrategies.length} revenue strategy(ies) for maximum ROI.`);
+  };
+
+  // Scenario Simulation handlers
+  const handleScenarioSimulationContent = (content) => {
+    setScenarioSimulationContent(content);
+    setShowScenarioSimulationModal(true);
+  };
+
+  const handleApplyScenario = (optimizedContent, appliedScenarios) => {
+    setLocalCalendar(prev => 
+      prev.map(item => 
+        item.id === optimizedContent.id ? optimizedContent : item
+      )
+    );
+    setShowScenarioSimulationModal(false);
+    setScenarioSimulationContent(null);
+    
+    // Show success feedback
+    alert(`Scenario simulation applied! Content optimized based on ${appliedScenarios.length} selected scenario(s) for strategic growth.`);
   };
 
   // Version control functions
@@ -1376,6 +1420,8 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
           onDynamicSlots={handleDynamicSlotsContent}
           onGrowthGoals={handleGrowthGoalsContent}
           onABTesting={handleABTestingContent}
+          onRevenueAttribution={handleRevenueAttributionContent}
+          onScenarioSimulation={handleScenarioSimulationContent}
         />
       )}
 
@@ -1576,6 +1622,32 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
             setABTestingContent(null);
           }}
           onApplyABTests={handleApplyABTests}
+        />
+      )}
+
+      {/* Revenue Attribution Modal */}
+      {showRevenueAttributionModal && revenueAttributionContent && (
+        <RevenueAttributionModal
+          content={revenueAttributionContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowRevenueAttributionModal(false);
+            setRevenueAttributionContent(null);
+          }}
+          onApplyRevenueOptimization={handleApplyRevenueOptimization}
+        />
+      )}
+
+      {/* Scenario Simulation Modal */}
+      {showScenarioSimulationModal && scenarioSimulationContent && (
+        <ScenarioSimulationModal
+          content={scenarioSimulationContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowScenarioSimulationModal(false);
+            setScenarioSimulationContent(null);
+          }}
+          onApplyScenario={handleApplyScenario}
         />
       )}
 

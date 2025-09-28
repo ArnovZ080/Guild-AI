@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain, Zap, Activity, Target, TestTube } from 'lucide-react';
+import { TrendingUp, X, CheckCircle, Calendar, Eye, Edit, Trash2, Send, Clock, BarChart3, Brain, Zap, Activity, Target, TestTube, DollarSign, Calculator } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
 
@@ -18,7 +18,9 @@ const ContentDetailsModal = ({
   onOrchestrate,
   onDynamicSlots,
   onGrowthGoals,
-  onABTesting
+  onABTesting,
+  onRevenueAttribution,
+  onScenarioSimulation
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -69,6 +71,12 @@ const ContentDetailsModal = ({
         break;
       case 'ab_testing':
         if (onABTesting) onABTesting(content);
+        break;
+      case 'revenue_attribution':
+        if (onRevenueAttribution) onRevenueAttribution(content);
+        break;
+      case 'scenario_simulation':
+        if (onScenarioSimulation) onScenarioSimulation(content);
         break;
       default:
         break;
@@ -212,32 +220,32 @@ const ContentDetailsModal = ({
             <div className="bg-white border rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Performance Data</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {content.engagement_rate !== undefined && (
+                  {content.engagement_rate !== undefined && (
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="text-xl font-bold text-gray-900">{content.engagement_rate}%</div>
                     <div className="text-xs text-gray-600">Engagement Rate</div>
                   </div>
-                )}
-                {content.reach !== undefined && (
+                  )}
+                  {content.reach !== undefined && (
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="text-xl font-bold text-gray-900">{content.reach?.toLocaleString?.() || content.reach}</div>
                     <div className="text-xs text-gray-600">Reach</div>
                   </div>
-                )}
-                {content.impressions !== undefined && (
+                  )}
+                  {content.impressions !== undefined && (
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="text-xl font-bold text-gray-900">{content.impressions?.toLocaleString?.() || content.impressions}</div>
                     <div className="text-xs text-gray-600">Impressions</div>
                   </div>
-                )}
-                {content.clicks !== undefined && (
+                  )}
+                  {content.clicks !== undefined && (
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
                     <div className="text-xl font-bold text-gray-900">{content.clicks?.toLocaleString?.() || content.clicks}</div>
                     <div className="text-xs text-gray-600">Clicks</div>
                   </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
           )}
         </div>
 
@@ -281,6 +289,20 @@ const ContentDetailsModal = ({
                 <TestTube className="w-4 h-4 mr-2" />
                 A/B Testing
               </button>
+              <button
+                onClick={() => handleAction('revenue_attribution')}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center"
+              >
+                <DollarSign className="w-4 h-4 mr-2" />
+                Revenue Attribution
+              </button>
+              <button
+                onClick={() => handleAction('scenario_simulation')}
+                className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors flex items-center"
+              >
+                <Calculator className="w-4 h-4 mr-2" />
+                Scenario Simulation
+              </button>
             </div>
           )}
 
@@ -321,8 +343,8 @@ const ContentDetailsModal = ({
                   <>
                     <Clock className="w-4 h-4 mr-2" />
                     Draft
-                  </>
-                )}
+                    </>
+                  )}
               </button>
               <button
                 onClick={() => handleAction('edit')}
@@ -356,12 +378,12 @@ const ContentDetailsModal = ({
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete
               </button>
-              <button
+                <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
+                >
                 Close
-              </button>
+                </button>
             </div>
           </div>
         </div>
