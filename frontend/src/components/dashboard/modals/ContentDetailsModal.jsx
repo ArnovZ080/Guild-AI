@@ -247,13 +247,6 @@ const ContentDetailsModal = ({
           {!isAIGenerated && (
             <div className="flex items-center justify-center space-x-2">
               <button
-                onClick={() => handleAction('repurpose')}
-                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
-              >
-                <TrendingUp className="w-4 h-4 mr-2" />
-                Repurpose
-              </button>
-              <button
                 onClick={() => handleAction('adaptive_reschedule')}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
               >
@@ -266,13 +259,6 @@ const ContentDetailsModal = ({
               >
                 <Zap className="w-4 h-4 mr-2" />
                 Orchestrate
-              </button>
-              <button
-                onClick={() => handleAction('forecast')}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Forecast
               </button>
               <button
                 onClick={() => handleAction('dynamic_slots')}
@@ -344,6 +330,20 @@ const ContentDetailsModal = ({
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
+              </button>
+              <button
+                onClick={() => handleAction('repurpose')}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+              >
+                <TrendingUp className="w-4 h-4 mr-2" />
+                Repurpose
+              </button>
+              <button
+                onClick={() => handleAction('forecast')}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Forecast
               </button>
             </div>
 
