@@ -450,7 +450,11 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <CampaignsTab campaigns={contentData.campaigns} onCampaignAction={handleCampaignAction} />
+            <CampaignsTab 
+              campaigns={contentData.campaigns || []} 
+              onCampaignAction={handleCampaignAction}
+              onCreateCampaign={handleCampaignAction}
+            />
           </motion.div>
         )}
 
