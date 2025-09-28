@@ -113,7 +113,7 @@ const ContentDashboard = () => {
   const [selectedAction, setSelectedAction] = useState(null);
   const [selectedContentItem, setSelectedContentItem] = useState(null);
   const [isOrchestrating, setIsOrchestrating] = useState(false);
-  const [campaigns, setCampaigns] = useState([]);
+  const [userCampaigns, setUserCampaigns] = useState([]);
 
   // API hooks with real-time updates and platform integration
   const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();
@@ -193,7 +193,7 @@ const ContentDashboard = () => {
       // Handle different campaign actions
       if (action === 'pause' || action === 'resume') {
         // Update campaign status in the state
-        setCampaigns(prev => prev.map(campaign => 
+        setUserCampaigns(prev => prev.map(campaign => 
           campaign.id === campaignId || campaign.campaign_id === campaignId
             ? { ...campaign, status: action === 'pause' ? 'paused' : 'active' }
             : campaign
@@ -219,7 +219,7 @@ const ContentDashboard = () => {
   const handleCreateCampaign = (campaignData) => {
     console.log('Creating campaign:', campaignData);
     // Add the new campaign to the campaigns state
-    setCampaigns(prev => [...prev, {
+    setUserCampaigns(prev => [...prev, {
       ...campaignData,
       id: Date.now().toString(), // Generate a unique ID
       created_at: new Date().toISOString(),
@@ -484,7 +484,7 @@ const ContentDashboard = () => {
             className="space-y-6"
           >
             <CampaignsTab 
-              campaigns={campaigns} 
+              campaigns={[...campaigns, ...userCampaigns]} 
               onCampaignAction={handleCampaignAction}
               onCreateCampaign={handleCreateCampaign}
             />
