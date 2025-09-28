@@ -19,6 +19,9 @@ const ContentDetailsModal = ({
   
   if (!content) return null;
 
+  // Detect if content is AI-generated
+  const isAIGenerated = content?.ai_generated || content?.created_by?.includes('AI') || content?.assignee === 'AI Agent';
+
   const handleAction = (action) => {
     switch (action) {
       case 'publish':
@@ -142,7 +145,9 @@ const ContentDetailsModal = ({
 
           {/* Key Metrics (Confidence Breakdown) */}
           <div className="bg-white border rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Key Metrics</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              {isAIGenerated ? 'AI-Optimized Metrics' : 'Key Metrics'}
+            </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <div className="text-2xl font-bold text-green-600">
@@ -171,14 +176,16 @@ const ContentDetailsModal = ({
             </div>
           </div>
 
-          {/* AI Annotations */}
-          <div>
-            <AIRecommendations 
-              content={content} 
-              showDetails={true} 
-              defaultExpanded={true}
-            />
-          </div>
+          {/* AI Annotations - Only show for user-generated content */}
+          {!isAIGenerated && (
+            <div>
+              <AIRecommendations 
+                content={content} 
+                showDetails={true} 
+                defaultExpanded={true}
+              />
+            </div>
+          )}
 
           {/* Performance Data (if available) */}
           {(content.engagement_rate || content.reach || content.impressions) && (
@@ -268,13 +275,15 @@ const ContentDetailsModal = ({
                 <TrendingUp className="w-4 h-4 mr-2" />
                 Repurpose
               </button>
-              <button
-                onClick={() => handleAction('forecast')}
-                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Forecast
-              </button>
+              {!isAIGenerated && (
+                <button
+                  onClick={() => handleAction('forecast')}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center"
+                >
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Forecast
+                </button>
+              )}
             </div>
             <div className="flex items-center space-x-2">
               <button

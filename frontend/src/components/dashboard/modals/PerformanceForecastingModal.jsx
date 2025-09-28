@@ -385,7 +385,7 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
                   <h3 className="text-lg font-semibold text-gray-900">Performance Summary</h3>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-green-600">
-                      {forecastData.predictions.engagement_rate.value}%
+                      {forecastData?.predictions?.engagement_rate?.value || 0}%
                     </div>
                     <div className="text-sm text-gray-600">Expected Engagement</div>
                   </div>
@@ -393,25 +393,25 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
                     <div className="text-xl font-bold text-blue-600">
-                      {forecastData.predictions.reach.value.toLocaleString()}
+                      {(forecastData?.predictions?.reach?.value || 0).toLocaleString()}
                     </div>
                     <div className="text-xs text-gray-600">Reach</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold text-purple-600">
-                      {forecastData.predictions.likes.value}
+                      {forecastData?.predictions?.likes?.value || 0}
                     </div>
                     <div className="text-xs text-gray-600">Likes</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold text-orange-600">
-                      {forecastData.predictions.comments.value}
+                      {forecastData?.predictions?.comments?.value || 0}
                     </div>
                     <div className="text-xs text-gray-600">Comments</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold text-red-600">
-                      {forecastData.predictions.shares.value}
+                      {forecastData?.predictions?.shares?.value || 0}
                     </div>
                     <div className="text-xs text-gray-600">Shares</div>
                   </div>
@@ -422,7 +422,7 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
               <div className="bg-white border rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Detailed Predictions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(forecastData.predictions).map(([metric, data]) => (
+                  {Object.entries(forecastData?.predictions || {}).map(([metric, data]) => (
                     <div key={metric} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
@@ -452,16 +452,16 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xl font-bold text-gray-900">
-                      {forecastData.timing_analysis.optimal_day} at {forecastData.timing_analysis.optimal_time}
+                      {forecastData?.timing_analysis?.optimal_day || 'N/A'} at {forecastData?.timing_analysis?.optimal_time || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-600">
-                      {forecastData.timing_analysis.timezone}
+                      {forecastData?.timing_analysis?.timezone || 'UTC'}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
-                      {forecastData.timing_analysis.reasoning}
+                      {forecastData?.timing_analysis?.reasoning || 'No timing analysis available'}
                     </div>
                   </div>
-                  <ConfidenceScore score={forecastData.timing_analysis.confidence} size="medium" showDetails={false} />
+                  <ConfidenceScore score={forecastData?.timing_analysis?.confidence || 0} size="medium" showDetails={false} />
                 </div>
               </div>
 
@@ -479,7 +479,7 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  {forecastData.optimization_suggestions.map((suggestion, idx) => (
+                  {(forecastData?.optimization_suggestions || []).map((suggestion, idx) => (
                     <div key={idx} className={`flex items-start space-x-3 p-3 rounded-lg ${
                       suggestion.status === 'implemented' ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
                     }`}>
@@ -584,7 +584,7 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
               <div className="bg-white border rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Agent Insights</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(forecastData.agent_insights).map(([agent, insight]) => (
+                  {Object.entries(forecastData?.agent_insights || {}).map(([agent, insight]) => (
                     <div key={agent} className="p-3 bg-blue-50 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium text-gray-900 capitalize">
@@ -599,11 +599,11 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
               </div>
 
               {/* Risk Factors */}
-              {forecastData.risk_factors.length > 0 && (
+              {(forecastData?.risk_factors || []).length > 0 && (
                 <div className="bg-white border rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Risk Assessment</h3>
                   <div className="space-y-3">
-                    {forecastData.risk_factors.map((risk, idx) => (
+                    {(forecastData?.risk_factors || []).map((risk, idx) => (
                       <div key={idx} className="flex items-start space-x-3 p-3 bg-yellow-50 rounded-lg">
                         <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1">
@@ -627,19 +627,19 @@ const PerformanceForecastingModal = ({ content, onClose, onOptimize }) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-lg font-bold text-gray-900">
-                      {forecastData.performance_vs_industry.reach}
+                      {forecastData?.performance_vs_industry?.reach || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-600">vs Industry Reach</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-lg font-bold text-gray-900">
-                      {forecastData.performance_vs_industry.engagement}
+                      {forecastData?.performance_vs_industry?.engagement || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-600">vs Industry Engagement</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <div className="text-lg font-bold text-gray-900">
-                      {forecastData.performance_vs_industry.comments}
+                      {forecastData?.performance_vs_industry?.comments || 'N/A'}
                     </div>
                     <div className="text-sm text-gray-600">vs Industry Comments</div>
                   </div>
