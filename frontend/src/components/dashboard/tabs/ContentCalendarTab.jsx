@@ -46,7 +46,7 @@ import AutoABTestingModal from '../modals/AutoABTestingModal';
 import RevenueAttributionModal from '../modals/RevenueAttributionModal';
 import ScenarioSimulationModal from '../modals/ScenarioSimulationModal';
 
-const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
+const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highlightedCampaign = null }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedContent, setSelectedContent] = useState(null);
@@ -1101,6 +1101,86 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Campaign Overview Section */}
+        {campaigns && campaigns.length > 0 && (
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Target className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Campaign Overview</h3>
+                  <p className="text-sm text-gray-600">Active and scheduled campaigns</p>
+                </div>
+              </div>
+              <div className="text-sm text-gray-500">
+                {campaigns.filter(c => c.status === 'active').length} active, {campaigns.filter(c => c.status === 'scheduled').length} scheduled
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {campaigns.slice(0, 6).map((campaign) => (
+                <div 
+                  key={campaign.id || campaign.campaign_id}
+                  className={`bg-white rounded-lg p-3 border-2 transition-all duration-200 ${
+                    highlightedCampaign === (campaign.id || campaign.campaign_id)
+                      ? 'border-purple-300 bg-purple-50 shadow-lg' 
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        campaign.status === 'active' ? 'bg-green-500' :
+                        campaign.status === 'paused' ? 'bg-yellow-500' :
+                        campaign.status === 'scheduled' ? 'bg-blue-500' :
+                        'bg-gray-500'
+                      }`}></div>
+                      <span className="text-sm font-medium text-gray-900 truncate">
+                        {campaign.name}
+                      </span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                      campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                      campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {campaign.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-600 mb-2">
+                    {campaign.platform} • ${campaign.budget}/day
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-gray-500">
+                      {campaign.startDate && new Date(campaign.startDate).toLocaleDateString()}
+                    </div>
+                    <button
+                      onClick={() => {
+                        // This would trigger highlighting in the calendar
+                        console.log('Highlight campaign in calendar:', campaign.name);
+                      }}
+                      className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      Show in Calendar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {campaigns.length > 6 && (
+              <div className="text-center mt-3">
+                <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                  View All Campaigns ({campaigns.length})
+                </button>
+              </div>
+            )}
           </div>
         )}
 

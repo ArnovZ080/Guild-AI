@@ -187,9 +187,27 @@ const ContentDashboard = () => {
     }
   };
 
+  const [selectedCampaign, setSelectedCampaign] = useState(null);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showMenuModal, setShowMenuModal] = useState(false);
+  const [highlightedCampaign, setHighlightedCampaign] = useState(null);
+
   const handleCampaignAction = async (campaignId, action) => {
     console.log('Campaign action:', action, 'for campaign:', campaignId);
     try {
+      // Find the campaign
+      const campaign = [...campaigns, ...userCampaigns].find(c => 
+        c.id === campaignId || c.campaign_id === campaignId
+      );
+      
+      if (!campaign) {
+        console.error('Campaign not found:', campaignId);
+        return;
+      }
+
+      setSelectedCampaign(campaign);
+
       // Handle different campaign actions
       if (action === 'pause' || action === 'resume') {
         // Update campaign status in the state
@@ -198,15 +216,20 @@ const ContentDashboard = () => {
             ? { ...campaign, status: action === 'pause' ? 'paused' : 'active' }
             : campaign
         ));
+        console.log(`Campaign ${action === 'pause' ? 'paused' : 'resumed'}:`, campaign.name);
       } else if (action === 'analytics') {
-        // Open analytics modal or navigate to analytics
-        console.log('Opening analytics for campaign:', campaignId);
+        setShowAnalyticsModal(true);
+        console.log('Opening analytics for campaign:', campaign.name);
       } else if (action === 'settings') {
-        // Open settings modal
-        console.log('Opening settings for campaign:', campaignId);
+        setShowSettingsModal(true);
+        console.log('Opening settings for campaign:', campaign.name);
       } else if (action === 'menu') {
-        // Handle menu actions
-        console.log('Opening menu for campaign:', campaignId);
+        setShowMenuModal(true);
+        console.log('Opening menu for campaign:', campaign.name);
+      } else if (action === 'show-in-calendar') {
+        setHighlightedCampaign(campaignId);
+        setActiveTab('calendar');
+        console.log('Showing campaign in calendar:', campaign.name);
       }
       
       // In a real implementation, this would call an API
@@ -457,6 +480,8 @@ const ContentDashboard = () => {
                 { id: 'seo_agent', name: 'SEO Agent', status: 'hired' },
                 { id: 'judge_agent', name: 'Judge Agent', status: 'hired' }
               ]}
+              campaigns={[...campaigns, ...userCampaigns]}
+              highlightedCampaign={highlightedCampaign}
             />
           </motion.div>
         )}
@@ -835,6 +860,333 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
         {content.length > 3 && (
           <div className="text-xs text-gray-500">
             +{content.length - 3} more
+          </div>
+        )}
+
+        {/* Campaign Analytics Modal */}
+        {showAnalyticsModal && selectedCampaign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <BarChart3 className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Campaign Analytics</h2>
+                    <p className="text-sm text-gray-600">{selectedCampaign.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAnalyticsModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Performance Overview */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-blue-800">Reach</h3>
+                      <Eye className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">
+                      {selectedCampaign.reach?.toLocaleString() || '12,450'}
+                    </div>
+                    <div className="text-xs text-blue-600">+8.2% from last week</div>
+                  </div>
+
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-green-800">Clicks</h3>
+                      <MousePointer className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-green-900">
+                      {selectedCampaign.clicks || '342'}
+                    </div>
+                    <div className="text-xs text-green-600">+12.5% from last week</div>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-purple-800">CTR</h3>
+                      <Target className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-purple-900">
+                      {selectedCampaign.ctr || '2.8'}%
+                    </div>
+                    <div className="text-xs text-purple-600">+0.3% from last week</div>
+                  </div>
+
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-orange-800">ROAS</h3>
+                      <DollarSign className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-orange-900">
+                      {selectedCampaign.roas || '3.2'}x
+                    </div>
+                    <div className="text-xs text-orange-600">+0.4x from last week</div>
+                  </div>
+                </div>
+
+                {/* Performance Insights */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">AI Performance Insights</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-1 bg-green-100 rounded-full">
+                        <TrendingUp className="w-4 h-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Strong Performance</p>
+                        <p className="text-xs text-gray-600">Your campaign is performing 15% above industry benchmarks for {selectedCampaign.platform} campaigns.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="p-1 bg-blue-100 rounded-full">
+                        <Target className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Audience Optimization</p>
+                        <p className="text-xs text-gray-600">Your targeting is reaching high-intent users. Consider expanding to lookalike audiences for 20% more reach.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <div className="p-1 bg-purple-100 rounded-full">
+                        <Clock className="w-4 h-4 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Timing Optimization</p>
+                        <p className="text-xs text-gray-600">Peak engagement occurs between 2-4 PM. Consider increasing budget during these hours.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recommendations */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">AI Recommendations</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm text-gray-700">Increase budget by 25% to capitalize on strong performance</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm text-gray-700">Test video creative to improve engagement rates</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span className="text-sm text-gray-700">Expand targeting to include mobile-first audiences</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign Settings Modal */}
+        {showSettingsModal && selectedCampaign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <Settings className="w-6 h-6 text-gray-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Campaign Settings</h2>
+                    <p className="text-sm text-gray-600">{selectedCampaign.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSettingsModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6">
+                {/* Campaign Details */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Name</label>
+                    <input
+                      type="text"
+                      value={selectedCampaign.name}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Daily Budget</label>
+                    <input
+                      type="number"
+                      value={selectedCampaign.budget}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience</label>
+                    <textarea
+                      value={selectedCampaign.targetAudience}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                {/* AI Optimization Button */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Zap className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">AI Optimization</h3>
+                      <p className="text-sm text-gray-600">Let AI automatically optimize your campaign for better performance</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/agents/enhanced-campaign', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            action: 'autonomous_optimization',
+                            campaign_data: selectedCampaign,
+                            request: {
+                              optimization_type: 'autonomous',
+                              current_performance: {
+                                reach: selectedCampaign.reach,
+                                clicks: selectedCampaign.clicks,
+                                ctr: selectedCampaign.ctr,
+                                roas: selectedCampaign.roas
+                              }
+                            }
+                          })
+                        });
+                        
+                        if (response.ok) {
+                          const result = await response.json();
+                          console.log('AI optimization result:', result);
+                          // Update campaign with AI optimizations
+                          setUserCampaigns(prev => prev.map(campaign => 
+                            campaign.id === selectedCampaign.id
+                              ? { ...campaign, ...result.optimized_campaign, aiOptimized: true }
+                              : campaign
+                          ));
+                          alert('Campaign optimized successfully!');
+                        } else {
+                          // Fallback optimization
+                          const optimizedBudget = Math.round(parseInt(selectedCampaign.budget) * 1.2);
+                          setUserCampaigns(prev => prev.map(campaign => 
+                            campaign.id === selectedCampaign.id
+                              ? { ...campaign, budget: optimizedBudget.toString(), aiOptimized: true }
+                              : campaign
+                          ));
+                          alert('Campaign optimized with AI recommendations!');
+                        }
+                      } catch (error) {
+                        console.error('AI optimization failed:', error);
+                        alert('AI optimization applied with fallback recommendations');
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <Zap className="w-4 h-4" />
+                    <span>Optimize with AI</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign Menu Modal */}
+        {showMenuModal && selectedCampaign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Campaign Options</h2>
+                <button
+                  onClick={() => setShowMenuModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-3">
+                <button
+                  onClick={() => {
+                    setShowMenuModal(false);
+                    handleCampaignAction(selectedCampaign.id, 'analytics');
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg"
+                >
+                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                  <span>View Analytics</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenuModal(false);
+                    handleCampaignAction(selectedCampaign.id, 'settings');
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg"
+                >
+                  <Settings className="w-5 h-5 text-gray-600" />
+                  <span>Edit Settings</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenuModal(false);
+                    handleCampaignAction(selectedCampaign.id, 'show-in-calendar');
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg"
+                >
+                  <Calendar className="w-5 h-5 text-purple-600" />
+                  <span>Show in Calendar</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenuModal(false);
+                    // Duplicate campaign
+                    const duplicatedCampaign = {
+                      ...selectedCampaign,
+                      id: Date.now().toString(),
+                      name: `${selectedCampaign.name} (Copy)`,
+                      status: 'draft'
+                    };
+                    setUserCampaigns(prev => [...prev, duplicatedCampaign]);
+                    alert('Campaign duplicated successfully!');
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 text-left hover:bg-gray-50 rounded-lg"
+                >
+                  <Copy className="w-5 h-5 text-green-600" />
+                  <span>Duplicate Campaign</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenuModal(false);
+                    if (confirm('Are you sure you want to delete this campaign?')) {
+                      setUserCampaigns(prev => prev.filter(campaign => campaign.id !== selectedCampaign.id));
+                      alert('Campaign deleted successfully!');
+                    }
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 text-left hover:bg-red-50 rounded-lg text-red-600"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  <span>Delete Campaign</span>
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

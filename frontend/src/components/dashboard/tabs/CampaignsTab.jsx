@@ -486,6 +486,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
                   </button>
+                  <button
+                    onClick={() => handleCampaignAction('show-in-calendar', campaign)}
+                    className="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium flex items-center"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Show in Calendar
+                  </button>
                 </div>
                 <div className="text-sm text-gray-500">
                   {campaign.startDate && (
