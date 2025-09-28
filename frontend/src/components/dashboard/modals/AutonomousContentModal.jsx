@@ -142,29 +142,66 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
     const content = [];
     const platforms = data.platforms.length ? data.platforms : ['instagram','linkedin','twitter'];
     const themes = data.content_themes.length ? data.content_themes : ['Educational','Behind-the-scenes'];
-    platforms.forEach(platform => {
-      themes.forEach(theme => {
-        // Assign assets to content (distribute selected assets across content pieces)
-        const assetIndex = content.length % selectedAssets.length;
-        const assignedAsset = selectedAssets.length > 0 ? selectedAssets[assetIndex] : null;
-        
-        content.push({
-          content_id: `autonomous_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
-          platform,
-          content_type: getContentTypeForPlatform(platform),
-          theme,
-          content_preview: `${theme} for ${platform}: ${data.business_objectives || 'objective'}`,
-          scheduled_date: new Date(Date.now() + Math.random()*7*24*60*60*1000).toISOString(),
-          scheduled_timezone: data.scheduled_timezone || 'UTC',
-          status: 'scheduled',
-          priority: 'high',
-          ai_generated: true,
-          quality_score: 0.92,
-          assets: assignedAsset ? [assignedAsset] : [],
-          has_visual_content: !!assignedAsset
-        });
+    
+    // Calculate total posts based on timeframe and frequency
+    const timeframeDays = {
+      '7d': 7,
+      '30d': 30,
+      '90d': 90,
+      '180d': 180
+    };
+    
+    const frequencyPostsPerWeek = {
+      'low': 2,      // 1-2 posts/week, average 1.5
+      'medium': 4,   // 3-5 posts/week, average 4
+      'high': 8,     // 6-10 posts/week, average 8
+      'aggressive': 12 // 10+ posts/week, average 12
+    };
+    
+    const totalDays = timeframeDays[data.timeframe] || 30;
+    const postsPerWeek = frequencyPostsPerWeek[data.content_frequency] || 4;
+    const totalPosts = Math.ceil((totalDays / 7) * postsPerWeek);
+    
+    // Generate content based on calculated total
+    for (let i = 0; i < totalPosts; i++) {
+      // Rotate through platforms and themes
+      const platform = platforms[i % platforms.length];
+      const theme = themes[i % themes.length];
+      
+      // Calculate scheduled date (spread across the timeframe)
+      const daysFromNow = Math.floor((i / totalPosts) * totalDays) + Math.floor(Math.random() * 2); // Add some randomness
+      const scheduledDate = new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000);
+      
+      // Assign assets to content (distribute selected assets across content pieces)
+      const assetIndex = i % Math.max(selectedAssets.length, 1);
+      const assignedAsset = selectedAssets.length > 0 ? selectedAssets[assetIndex] : null;
+      
+      content.push({
+        content_id: `autonomous_${Date.now()}_${Math.random().toString(36).slice(2,9)}_${i}`,
+        platform,
+        content_type: getContentTypeForPlatform(platform),
+        theme,
+        content_preview: `${theme} content for ${platform}: ${data.business_objectives || 'objective'} (Post ${i + 1}/${totalPosts})`,
+        scheduled_date: scheduledDate.toISOString(),
+        scheduled_timezone: data.scheduled_timezone || 'UTC',
+        status: 'scheduled',
+        priority: 'high',
+        ai_generated: true,
+        quality_score: 0.92,
+        assets: assignedAsset ? [assignedAsset] : [],
+        has_visual_content: !!assignedAsset,
+        // Add metadata for transparency
+        generation_metadata: {
+          total_posts_planned: totalPosts,
+          timeframe: data.timeframe,
+          frequency: data.content_frequency,
+          posts_per_week: postsPerWeek,
+          generation_date: new Date().toISOString()
+        }
       });
-    });
+    }
+    
+    console.log(`Generated ${totalPosts} posts for ${data.timeframe} timeframe with ${data.content_frequency} frequency (${postsPerWeek} posts/week)`);
     return content;
   };
 
@@ -506,7 +543,16 @@ const AutonomousContentModal = ({ onClose, onSchedule }) => {
             <div className="space-y-6">
               <div className="bg-green-50 p-4 rounded-lg">
                 <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Autonomous Content Generated!</h3>
-                <p className="text-green-700">Our AI workforce has created {generatedContent.length} pieces across {formData.platforms.length} platforms.</p>
+                <p className="text-green-700">
+                  Our AI workforce has created {generatedContent.length} pieces across {formData.platforms.length} platforms.
+                  <br />
+                  <span className="text-sm">
+                    📅 Timeframe: {formData.timeframe} | 📊 Frequency: {formData.content_frequency} 
+                    {generatedContent.length > 0 && generatedContent[0].generation_metadata && (
+                      <span> | 🎯 Target: {generatedContent[0].generation_metadata.posts_per_week} posts/week</span>
+                    )}
+                  </span>
+                </p>
               </div>
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-900">Generated Content Preview</h4>
