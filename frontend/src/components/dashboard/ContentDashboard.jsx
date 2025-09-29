@@ -218,12 +218,18 @@ const ContentDashboard = () => {
         ));
         console.log(`Campaign ${action === 'pause' ? 'paused' : 'resumed'}:`, campaign.name);
       } else if (action === 'analytics') {
+        // Ensure the modal host is visible
+        setActiveTab('calendar');
         setShowAnalyticsModal(true);
         console.log('Opening analytics for campaign:', campaign.name);
       } else if (action === 'settings') {
+        // Ensure the modal host is visible
+        setActiveTab('calendar');
         setShowSettingsModal(true);
         console.log('Opening settings for campaign:', campaign.name);
       } else if (action === 'menu') {
+        // Ensure the modal host is visible
+        setActiveTab('calendar');
         setShowMenuModal(true);
         console.log('Opening menu for campaign:', campaign.name);
       } else if (action === 'show-in-calendar') {
@@ -512,11 +518,21 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
+            {(() => {
+              // Merge realtime campaigns with userCampaigns, letting userCampaigns override by id
+              const byId = new Map();
+              [...(campaigns || []), ...(userCampaigns || [])].forEach(c => {
+                const key = c?.id || c?.campaign_id;
+                if (key) byId.set(key, { ...c });
+              });
+              const mergedCampaigns = Array.from(byId.values());
+              return (
             <CampaignsTab 
-              campaigns={[...campaigns, ...userCampaigns]} 
+              campaigns={mergedCampaigns} 
               onCampaignAction={handleCampaignAction}
               onCreateCampaign={handleCreateCampaign}
-            />
+            />);
+            })()}
           </motion.div>
         )}
 
