@@ -648,6 +648,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         </div>
       </div>
 
+      {/* Campaign Details Heading (global) */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center space-x-2">
+          <Target className="w-4 h-4 text-gray-700" />
+          <span className="font-semibold text-gray-900">Campaign Details</span>
+        </div>
+        <button
+          onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
+          className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+        >
+          {showCampaignDetails ? 'Hide details' : 'Show details'}
+        </button>
+      </div>
+
       {/* Campaign Controls */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <div className="flex items-center justify-between mb-6">
@@ -746,20 +760,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             </div>
           </div>
         )}
-
-        {/* Campaign Details Header + Toggle */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <Target className="w-4 h-4 text-gray-700" />
-            <span className="font-semibold text-gray-900">Campaign Details</span>
-          </div>
-          <button
-            onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
-            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
-          >
-            {showCampaignDetails ? 'Hide details' : 'Show details'}
-          </button>
-        </div>
 
         {/* Campaign List (collapsible, scrollable) */}
         {showCampaignDetails && (
