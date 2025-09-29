@@ -592,6 +592,60 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                   );
                 })()}
               </div>
+              {/* Creative Performance Insights (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Creative Performance</div>
+                  <Tooltip label="Which assets and copy performed best across campaigns."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const rows = [];
+                  filteredCampaigns.forEach(c=>{
+                    if (Array.isArray(c?.creative_performance)) {
+                      c.creative_performance.forEach(r=>{
+                        rows.push({
+                          name: r.name || r.asset || 'Asset',
+                          ctr: r.ctr!=null? Number(r.ctr): null,
+                          roas: r.roas!=null? Number(r.roas): null
+                        });
+                      });
+                    }
+                  });
+                  if (rows.length===0) return <div className="text-sm text-gray-500">No data yet.</div>;
+                  const top = rows.sort((a,b)=>{
+                    const as = (a.ctr||0)*0.6 + (a.roas||0)*0.4;
+                    const bs = (b.ctr||0)*0.6 + (b.roas||0)*0.4;
+                    return bs-as;
+                  }).slice(0,3);
+                  return (
+                    <ul className="text-sm text-gray-800 space-y-1">
+                      {top.map((r,i)=>(
+                        <li key={i} className="flex items-center justify-between">
+                          <span className="truncate mr-2" title={r.name}>{r.name}</span>
+                          <span className="text-gray-600 text-xs">CTR {r.ctr!=null? `${r.ctr}%`:'—'} • ROAS {r.roas!=null? `${r.roas}x`:'—'}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                })()}
+              </div>
+              {/* Sentiment Analysis (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Sentiment Analysis</div>
+                  <Tooltip label="We analyze recent comments/replies to gauge audience sentiment."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const comments = filteredCampaigns.flatMap(c => c?.recent_comments || []);
+                  return comments.length === 0 ? (
+                    <div className="text-sm text-gray-500">No recent responses available.</div>
+                  ) : (
+                    <div className="text-sm text-gray-700">
+                      <SentimentBlock comments={comments} />
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
             )}
           </div>
@@ -812,62 +866,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
         </div>
 
-        {/* Creative Performance Insights */}
-        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <div className="font-medium text-gray-900">Creative Performance Insights</div>
-            <Tooltip label="Which assets and copy performed best across campaigns."><span className="text-xs text-gray-600">Why this</span></Tooltip>
-          </div>
-          {(() => {
-            const rows = [];
-            filteredCampaigns.forEach(c=>{
-              if (Array.isArray(c?.creative_performance)) {
-                c.creative_performance.forEach(r=>{
-                  rows.push({
-                    name: r.name || r.asset || 'Asset',
-                    impressions: r.impressions||0,
-                    ctr: r.ctr!=null? Number(r.ctr): null,
-                    conversions: r.conversions!=null? Number(r.conversions): null,
-                    roas: r.roas!=null? Number(r.roas): null
-                  });
-                });
-              }
-            });
-            if (rows.length===0) return <div className="text-sm text-gray-500">No creative performance data yet.</div>;
-            const top = rows.sort((a,b)=>{
-              const as = (a.ctr||0)*0.5 + (a.conversions||0)*0.3 + (a.roas||0)*0.2;
-              const bs = (b.ctr||0)*0.5 + (b.conversions||0)*0.3 + (b.roas||0)*0.2;
-              return bs-as;
-            }).slice(0,5);
-            return (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-left text-gray-600">
-                      <th className="py-1 pr-3">Asset</th>
-                      <th className="py-1 pr-3">Impr.</th>
-                      <th className="py-1 pr-3">CTR</th>
-                      <th className="py-1 pr-3">Conv.</th>
-                      <th className="py-1 pr-3">ROAS</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {top.map((r,i)=> (
-                      <tr key={i} className="border-t">
-                        <td className="py-1 pr-3 text-gray-900">{r.name}</td>
-                        <td className="py-1 pr-3">{r.impressions.toLocaleString()}</td>
-                        <td className="py-1 pr-3">{r.ctr!=null? `${r.ctr}%` : '—'}</td>
-                        <td className="py-1 pr-3">{r.conversions!=null? r.conversions : '—'}</td>
-                        <td className="py-1 pr-3">{r.roas!=null? `${r.roas}x` : '—'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })()}
-        </div>
-
         {/* Competitive Benchmarks */}
         <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
           <div className="flex items-center justify-between mb-2">
@@ -911,21 +909,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           })()}
         </div>
 
-        {/* Sentiment Analysis */}
-        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <div className="font-medium text-gray-900">Sentiment Analysis</div>
-            <Tooltip label="We analyze recent comments/replies to gauge audience sentiment."><span className="text-xs text-gray-600">Why this</span></Tooltip>
-          </div>
-          {(() => {
-            const comments = filteredCampaigns.flatMap(c => c?.recent_comments || []);
-            return (
-              <div className="p-3 bg-white border rounded">
-                <SentimentBlock comments={comments} />
-              </div>
-            );
-          })()}
-        </div>
+        
           </>
           )}
         </div>
