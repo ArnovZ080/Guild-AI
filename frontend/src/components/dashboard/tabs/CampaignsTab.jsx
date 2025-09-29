@@ -924,6 +924,30 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
+              {/* ROI snapshot (ads only) */}
+              {((campaign.platform||'').toLowerCase()!=='email') && (
+                <div className="mb-2 grid grid-cols-3 gap-2 text-center text-xs">
+                  <Tooltip label="Average cost to acquire a lead from this campaign.">
+                    <div className="p-2 bg-gray-50 rounded border">
+                      <div className="text-gray-900 font-semibold">{campaign.cpl != null ? `$${campaign.cpl}` : '—'}</div>
+                      <div className="text-gray-600">CPL</div>
+                    </div>
+                  </Tooltip>
+                  <Tooltip label="Average cost to acquire a customer from this campaign.">
+                    <div className="p-2 bg-gray-50 rounded border">
+                      <div className="text-gray-900 font-semibold">{campaign.cpa != null ? `$${campaign.cpa}` : '—'}</div>
+                      <div className="text-gray-600">CPA</div>
+                    </div>
+                  </Tooltip>
+                  <Tooltip label="Return on Ad Spend. 3.0x means $3 revenue per $1 spent.">
+                    <div className="p-2 bg-gray-50 rounded border">
+                      <div className="text-gray-900 font-semibold">{campaign.roas != null ? `${campaign.roas}x` : '—'}</div>
+                      <div className="text-gray-600">ROAS</div>
+                    </div>
+                  </Tooltip>
+                </div>
+              )}
+
               {/* Optimization suggestions (ads only, if provided) */}
               {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.ai_suggestions && campaign.ai_suggestions.length>0) && (
                 <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg">
