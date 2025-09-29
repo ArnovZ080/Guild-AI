@@ -591,7 +591,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       <AIOptimizeCampaignModal
         isOpen={showAIOptimizeModal}
         onClose={() => setShowAIOptimizeModal(false)}
-        campaigns={campaigns}
+        campaigns={campaigns.filter(c => !!c && c.status !== 'deleted')}
       />
 
       {/* Fallback Analytics Modal (local) */}

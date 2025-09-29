@@ -194,6 +194,7 @@ const ContentDashboard = () => {
   const [highlightedCampaign, setHighlightedCampaign] = useState(null);
 
   const [deletedCampaignIds, setDeletedCampaignIds] = useState(new Set());
+  const [realtimeOverrides, setRealtimeOverrides] = useState({});
 
   const handleCampaignAction = async (campaignId, action, payload) => {
     console.log('Campaign action:', action, 'for campaign:', campaignId);
@@ -218,6 +219,11 @@ const ContentDashboard = () => {
             ? { ...campaign, status: action === 'pause' ? 'paused' : 'active' }
             : campaign
         ));
+        // Mirror status for realtime campaigns in local merged view by adding a shadow override
+        setRealtimeOverrides(prev => ({
+          ...prev,
+          [campaignId]: { ...(prev?.[campaignId] || {}), status: action === 'pause' ? 'paused' : 'active' }
+        }));
         console.log(`Campaign ${action === 'pause' ? 'paused' : 'resumed'}:`, campaign.name);
       } else if (action === 'update') {
         // Merge payload into user campaign if present
@@ -511,7 +517,10 @@ const ContentDashboard = () => {
               const byId = new Map();
               [...(campaigns || []), ...(userCampaigns || [])].forEach(c => {
                 const key = c?.id || c?.campaign_id;
-                if (key && !deletedCampaignIds.has(key)) byId.set(key, { ...c });
+                if (key && !deletedCampaignIds.has(key)) {
+                  const override = realtimeOverrides?.[key] || {};
+                  byId.set(key, { ...c, ...override });
+                }
               });
               const mergedCampaigns = Array.from(byId.values());
 
