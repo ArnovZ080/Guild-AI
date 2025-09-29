@@ -511,6 +511,90 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
           
           {/* Actions moved to header to avoid duplication */}
+          {/* General Insights (collapsible) moved under AI Campaign Insights */}
+          <div className="mt-4 pt-4 border-t border-blue-100">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="w-4 h-4 text-gray-700" />
+                <span className="font-semibold text-gray-900">General Insights</span>
+              </div>
+              <button onClick={()=>setShowGeneralInsights(!showGeneralInsights)} className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100">
+                {showGeneralInsights ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showGeneralInsights && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Audience Breakdown (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Audience Breakdown</div>
+                  <Tooltip label="Breakdown of demographics and locations derived from campaign and onboarding data."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="p-2 bg-white border rounded">
+                    <div className="text-[11px] text-gray-500">Age</div>
+                    <div className="mt-1 text-gray-900">{(() => {
+                      const ages = filteredCampaigns.map(c=>c?.demographics?.age || null).filter(Boolean);
+                      if (ages.length===0) return '—';
+                      const min = Math.min(...ages.map(a=>a.min||0));
+                      const max = Math.max(...ages.map(a=>a.max||0));
+                      return `${min}-${max}`;
+                    })()}</div>
+                  </div>
+                  <div className="p-2 bg-white border rounded">
+                    <div className="text-[11px] text-gray-500">Gender</div>
+                    <div className="mt-1 text-gray-900">{(() => {
+                      const g = { male:0, female:0, other:0 };
+                      filteredCampaigns.forEach(c=>{ const gg=c?.demographics?.genders; if (gg) { Object.keys(g).forEach(k=>{ if (gg[k]) g[k]++; }); }});
+                      const active = Object.entries(g).filter(([,v])=>v>0).map(([k])=>k);
+                      return active.length? active.join(', ') : '—';
+                    })()}</div>
+                  </div>
+                  <div className="p-2 bg-white border rounded">
+                    <div className="text-[11px] text-gray-500">Top Locations</div>
+                    <div className="mt-1 text-gray-900">{(() => {
+                      const locs = {};
+                      filteredCampaigns.forEach(c=>{ const country=c?.geo?.country || c?.targeting?.country; if (country) locs[country]=(locs[country]||0)+1; });
+                      const top = Object.entries(locs).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>k);
+                      return top.length? top.join(', ') : '—';
+                    })()}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Competitive Benchmarks (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Competitive Benchmarks</div>
+                  <Tooltip label="Compare your key metrics against category benchmarks."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const data = competitive || { ctr_avg: 1.5, roas_avg: 2.8, cpa_avg: 42 };
+                  const avg = (arr)=>{ const vals = arr.filter(v=>v!=null && !isNaN(Number(v))).map(Number); if (!vals.length) return null; return vals.reduce((a,b)=>a+b,0)/vals.length; };
+                  const myCtr = avg(filteredCampaigns.map(c => c.ctr));
+                  const myRoas = avg(filteredCampaigns.map(c => c.roas));
+                  const myCpa = avg(filteredCampaigns.map(c => c.cpa));
+                  return (
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="p-2 bg-white border rounded">
+                        <div className="text-[11px] text-gray-500">CTR</div>
+                        <div className="mt-1 text-gray-900">{myCtr!=null? `${myCtr.toFixed(1)}%` : '—'} <span className="text-[11px] text-gray-500">vs {data.ctr_avg}%</span></div>
+                      </div>
+                      <div className="p-2 bg-white border rounded">
+                        <div className="text-[11px] text-gray-500">ROAS</div>
+                        <div className="mt-1 text-gray-900">{myRoas!=null? `${myRoas.toFixed(1)}x` : '—'} <span className="text-[11px] text-gray-500">vs {data.roas_avg}x</span></div>
+                      </div>
+                      <div className="p-2 bg-white border rounded">
+                        <div className="text-[11px] text-gray-500">CPA</div>
+                        <div className="mt-1 text-gray-900">{myCpa!=null? `$${myCpa.toFixed(0)}` : '—'} <span className="text-[11px] text-gray-500">vs ${data.cpa_avg}</span></div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            )}
+          </div>
         </div>
 
         {/* Cross-Channel Comparison */}
@@ -624,7 +708,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       </div>
 
       {/* Campaign Controls */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6 pb-8">
         {/* Campaign Details Heading and toggle inside card */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
