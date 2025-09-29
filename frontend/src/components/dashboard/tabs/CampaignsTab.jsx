@@ -106,7 +106,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
   const [attribOpenForId, setAttribOpenForId] = useState(null);
   const [showCampaignDetails, setShowCampaignDetails] = useState(false);
-  const [showAnomalies, setShowAnomalies] = useState(true);
+  const [showAnomalies, setShowAnomalies] = useState(() => {
+    try {
+      const raw = localStorage.getItem('guild_campaign_anomalies_toggle');
+      return raw ? JSON.parse(raw) === true : true;
+    } catch { return true; }
+  });
   const [benchmarks, setBenchmarks] = useState(null);
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
   const [competitive, setCompetitive] = useState(null);
@@ -120,6 +125,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+
+  // Persist anomaly toggle for reliability across renders/navigation
+  useEffect(() => {
+    try { localStorage.setItem('guild_campaign_anomalies_toggle', JSON.stringify(!!showAnomalies)); } catch {}
+  }, [showAnomalies]);
 
   useEffect(() => {
     let mounted = true;
@@ -471,9 +481,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               <Zap className="w-4 h-4 mr-2" />
               AI Orchestrated Campaign
             </button>
-            <button onClick={handleRefreshInsights} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh insights and benchmarks">
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
 
@@ -648,22 +655,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         </div>
       </div>
 
-      {/* Campaign Details Heading (global) */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <Target className="w-4 h-4 text-gray-700" />
-          <span className="font-semibold text-gray-900">Campaign Details</span>
-        </div>
-        <button
-          onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
-          className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
-        >
-          {showCampaignDetails ? 'Hide details' : 'Show details'}
-        </button>
-      </div>
-
       {/* Campaign Controls */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
+        {/* Campaign Details Heading and toggle inside card */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <Target className="w-4 h-4 text-gray-700" />
+            <span className="font-semibold text-gray-900">Campaign Details</span>
+          </div>
+          <button
+            onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+          >
+            {showCampaignDetails ? 'Hide details' : 'Show details'}
+          </button>
+        </div>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
