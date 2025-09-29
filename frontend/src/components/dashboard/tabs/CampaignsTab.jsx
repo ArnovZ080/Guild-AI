@@ -84,7 +84,7 @@ const SentimentBlock = ({ comments = [] }) => {
 };
 import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity } from '../../../services/campaignInsightsApi';
 
-const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
+const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRefreshCampaigns }) => {
   const [selectedView, setSelectedView] = useState('overview');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,6 +110,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
   const [competitive, setCompetitive] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showThresholdsModal, setShowThresholdsModal] = useState(false);
   const [dismissedAnomalies, setDismissedAnomalies] = useState(() => {
     try {
       const raw = localStorage.getItem('guild_campaign_anomaly_dismissals');
@@ -672,6 +673,9 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             <div className="hidden md:flex items-center space-x-2">
               <button onClick={()=>setFilterPlatform2('all')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='all'?'bg-gray-800 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>All</button>
               <button onClick={()=>setFilterPlatform2('email')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='email'?'bg-purple-700 text-white':'bg-purple-100 text-purple-800 hover:bg-purple-200'}`}>Email</button>
+              <button onClick={onRefreshCampaigns} className="ml-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh campaigns data">
+                <RefreshCw className="w-4 h-4" />
+              </button>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -689,7 +693,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               </button>
             </Tooltip>
             <Tooltip label="Configure anomaly thresholds">
-              <button onClick={()=>setShowSettingsModal(true)} className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100" title="Threshold settings">
+              <button onClick={()=>setShowThresholdsModal(true)} className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100" title="Threshold settings">
                 <Sliders className="w-4 h-4" />
               </button>
             </Tooltip>
@@ -1084,27 +1088,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
-              {/* ROI snapshot (ads only) */}
+              {/* ROI snapshot aligned with actions (ads only) */}
               {((campaign.platform||'').toLowerCase()!=='email') && (
-                <div className="mb-2 grid grid-cols-3 gap-2 text-center text-xs">
-                  <Tooltip label="Average cost to acquire a lead from this campaign.">
-                    <div className="p-2 bg-gray-50 rounded border">
-                      <div className="text-gray-900 font-semibold">{campaign.cpl != null ? `$${campaign.cpl}` : '—'}</div>
-                      <div className="text-gray-600">CPL</div>
-                    </div>
-                  </Tooltip>
-                  <Tooltip label="Average cost to acquire a customer from this campaign.">
-                    <div className="p-2 bg-gray-50 rounded border">
-                      <div className="text-gray-900 font-semibold">{campaign.cpa != null ? `$${campaign.cpa}` : '—'}</div>
-                      <div className="text-gray-600">CPA</div>
-                    </div>
-                  </Tooltip>
-                  <Tooltip label="Return on Ad Spend. 3.0x means $3 revenue per $1 spent.">
-                    <div className="p-2 bg-gray-50 rounded border">
-                      <div className="text-gray-900 font-semibold">{campaign.roas != null ? `${campaign.roas}x` : '—'}</div>
-                      <div className="text-gray-600">ROAS</div>
-                    </div>
-                  </Tooltip>
+                <div className="flex items-center justify-between mb-2">
+                  <div />
+                  <div className="hidden md:flex items-center space-x-4 text-xs">
+                    <Tooltip label="Average cost to acquire a customer from this campaign.">
+                      <div className="text-gray-700"><span className="text-gray-500">Cost per Action (CPA):</span> <span className="font-semibold text-gray-900">{campaign.cpa != null ? `$${campaign.cpa}` : '—'}</span></div>
+                    </Tooltip>
+                    <Tooltip label="Average cost to generate a lead.">
+                      <div className="text-gray-700"><span className="text-gray-500">Cost per Lead (CPL):</span> <span className="font-semibold text-gray-900">{campaign.cpl != null ? `$${campaign.cpl}` : '—'}</span></div>
+                    </Tooltip>
+                    <Tooltip label="Return on Ad Spend. 3.0x means $3 revenue per $1 spent.">
+                      <div className="text-gray-700"><span className="text-gray-500">Return on Ad Spend (ROAS):</span> <span className="font-semibold text-gray-900">{campaign.roas != null ? `${campaign.roas}x` : '—'}</span></div>
+                    </Tooltip>
+                  </div>
                 </div>
               )}
 
@@ -1603,6 +1601,67 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
         </div>
       )}
 
+      {/* Thresholds Settings Modal (global) */}
+      {showThresholdsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="font-semibold text-gray-900">Anomaly Thresholds</div>
+              <button onClick={()=>setShowThresholdsModal(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-4 space-y-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-gray-700 mb-1">CTR min (%)</label>
+                  <input type="number" defaultValue={benchmarks?.ctr_min ?? 1.0} onBlur={(e)=>{
+                    const next = { ads: { ...(benchmarks||{}), ctr_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                    saveAnomalyThresholds(next);
+                    setBenchmarks(next.ads);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">ROAS min (x)</label>
+                  <input type="number" defaultValue={benchmarks?.roas_min ?? 2.0} onBlur={(e)=>{
+                    const next = { ads: { ...(benchmarks||{}), roas_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                    saveAnomalyThresholds(next);
+                    setBenchmarks(next.ads);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">CPA max ($)</label>
+                  <input type="number" defaultValue={benchmarks?.cpa_max ?? 50} onBlur={(e)=>{
+                    const next = { ads: { ...(benchmarks||{}), cpa_max: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                    saveAnomalyThresholds(next);
+                    setBenchmarks(next.ads);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 mb-1">Email: Delivery min (%)</label>
+                  <input type="number" defaultValue={emailBenchmarks?.delivery_min ?? 95} onBlur={(e)=>{
+                    const next = { ads: benchmarks, email: { ...(emailBenchmarks||{}), delivery_min: parseFloat(e.target.value||'0') } };
+                    saveAnomalyThresholds(next);
+                    setEmailBenchmarks(next.email);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Email: Open rate min (%)</label>
+                  <input type="number" defaultValue={emailBenchmarks?.open_rate_min ?? 20} onBlur={(e)=>{
+                    const next = { ads: benchmarks, email: { ...(emailBenchmarks||{}), open_rate_min: parseFloat(e.target.value||'0') } };
+                    saveAnomalyThresholds(next);
+                    setEmailBenchmarks(next.email);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">These thresholds control anomaly flags across campaigns. Values are saved locally and will be moved to backend when available.</div>
+            </div>
+            <div className="p-4 border-t border-gray-200 flex justify-end">
+              <button onClick={()=>setShowThresholdsModal(false)} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Done</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Fallback Settings Modal (local) */}
       {showSettingsModal && selectedCampaign && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
