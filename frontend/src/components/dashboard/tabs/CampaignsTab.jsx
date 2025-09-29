@@ -58,6 +58,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [settingsFields, setSettingsFields] = useState(null);
   const [showAssetsModal, setShowAssetsModal] = useState(false);
   const [assetsPayload, setAssetsPayload] = useState(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filterPlatform2, setFilterPlatform2] = useState('all');
+  const [filterBudgetRange, setFilterBudgetRange] = useState([0, 100000]);
+  const [filterDurationRange, setFilterDurationRange] = useState([0, 365]);
+  const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
@@ -408,18 +413,75 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             </select>
           </div>
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <Download className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
-          </button>
+            </button>
           </div>
         </div>
 
+        {showAdvancedFilters && (
+          <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Platform</label>
+                <select value={filterPlatform2} onChange={(e)=>setFilterPlatform2(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+                  {['all','facebook','instagram','google','tiktok','linkedin','twitter','email','multi','unknown'].map(p => (
+                    <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Budget range ($/day)</label>
+                <div className="flex items-center space-x-2">
+                  <input type="number" value={filterBudgetRange[0]} onChange={(e)=>setFilterBudgetRange([parseInt(e.target.value||0), filterBudgetRange[1]])} className="w-1/2 px-2 py-1 border rounded" />
+                  <span className="text-gray-500">to</span>
+                  <input type="number" value={filterBudgetRange[1]} onChange={(e)=>setFilterBudgetRange([filterBudgetRange[0], parseInt(e.target.value||0)])} className="w-1/2 px-2 py-1 border rounded" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Duration (days)</label>
+                <div className="flex items-center space-x-2">
+                  <input type="number" value={filterDurationRange[0]} onChange={(e)=>setFilterDurationRange([parseInt(e.target.value||0), filterDurationRange[1]])} className="w-1/2 px-2 py-1 border rounded" />
+                  <span className="text-gray-500">to</span>
+                  <input type="number" value={filterDurationRange[1]} onChange={(e)=>setFilterDurationRange([filterDurationRange[0], parseInt(e.target.value||0)])} className="w-1/2 px-2 py-1 border rounded" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Sort by performance</label>
+                <select value={sortByPerformance} onChange={(e)=>setSortByPerformance(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+                  <option value="none">None</option>
+                  <option value="best">Best Performing</option>
+                  <option value="worst">Worst Performing</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Campaign List */}
         <div className="space-y-4">
-          {filteredCampaigns.map((campaign) => {
+          {filteredCampaigns
+            .filter(c => filterPlatform2==='all' || (c?.platform||'').toLowerCase()===filterPlatform2)
+            .filter(c => {
+              const b = parseFloat(c?.budget||0);
+              return b>=filterBudgetRange[0] && b<=filterBudgetRange[1];
+            })
+            .filter(c => {
+              const d = parseInt(c?.duration||0);
+              return d>=filterDurationRange[0] && d<=filterDurationRange[1];
+            })
+            .sort((a,b)=>{
+              if (sortByPerformance==='none') return 0;
+              const score = (x)=>{
+                const ctr = (x?.impressions||0)>0 ? (x.clicks||0)/(x.impressions||0) : 0;
+                const convRate = (x?.clicks||0)>0 ? (x.conversions||0)/(x.clicks||0) : 0;
+                const roas = x?.roas||0;
+                return (ctr*0.3)+(convRate*0.3)+(roas*0.4);
+              };
+              const sa = score(a), sb = score(b);
+              return sortByPerformance==='best' ? sb-sa : sa-sb;
+            })
+            .map((campaign) => {
             if (!campaign) return null;
             return (
             <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
