@@ -146,8 +146,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     { id: 'google', name: 'Google Ads', icon: '🔍', description: 'Capture high-intent search traffic' },
     { id: 'tiktok', name: 'TikTok', icon: '🎵', description: 'Engage Gen Z with short-form video' },
     { id: 'linkedin', name: 'LinkedIn', icon: '💼', description: 'Target B2B professionals' },
-    { id: 'twitter', name: 'Twitter/X', icon: '🐦', description: 'Real-time engagement and news' },
-    { id: 'email', name: 'Email Marketing', icon: '📧', description: 'Direct communication with subscribers' }
+    { id: 'twitter', name: 'Twitter/X', icon: '🐦', description: 'Real-time engagement and news' }
   ];
 
   const campaignTypes = {
@@ -177,11 +176,6 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       { id: 'awareness', name: 'Awareness', description: 'Increase brand awareness' },
       { id: 'video_views', name: 'Video Views', description: 'Promote video content' },
       { id: 'website_clicks', name: 'Website Clicks', description: 'Drive traffic to website' }
-    ],
-    email: [
-      { id: 'newsletter', name: 'Newsletter', description: 'Regular content updates' },
-      { id: 'promotional', name: 'Promotional', description: 'Sales and offers' },
-      { id: 'nurture', name: 'Nurture Sequence', description: 'Lead nurturing automation' }
     ]
   };
 

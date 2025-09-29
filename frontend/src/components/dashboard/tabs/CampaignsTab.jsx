@@ -924,6 +924,24 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
+              {/* Optimization suggestions (ads only, if provided) */}
+              {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.ai_suggestions && campaign.ai_suggestions.length>0) && (
+                <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center space-x-2 text-sm font-medium text-gray-900">
+                      <Zap className="w-4 h-4 text-purple-600" />
+                      <span>Optimization suggestions</span>
+                    </div>
+                    <Tooltip label="Provided by Guild AI agents; shows actionable steps and why they help."><span className="text-xs text-gray-600">Why</span></Tooltip>
+                  </div>
+                  <ul className="list-disc pl-5 text-xs text-gray-700 space-y-0.5">
+                    {campaign.ai_suggestions.slice(0,3).map((s, i)=>(
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Attribution Details Drawer */}
               {attribOpenForId === (campaign.campaign_id || campaign.id) && (
                 <div className="mb-4 p-4 border border-purple-200 rounded-lg bg-purple-50">
