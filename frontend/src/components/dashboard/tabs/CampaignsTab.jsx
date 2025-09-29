@@ -434,7 +434,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
-                <div className="hidden md:flex items-center space-x-2 text-xs">
+                <div className="flex items-center space-x-2 text-xs">
                   <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200" title="First-touch attribution: the first campaign interaction that introduced a user">First-touch: {campaign.attributed_first || 0}</span>
                   <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200" title="Last-touch attribution: the final campaign interaction before conversion">Last-touch: {campaign.attributed_last || 0}</span>
                 </div>
