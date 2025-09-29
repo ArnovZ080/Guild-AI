@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { X, BrainCircuit, Target, DollarSign, Calendar, Zap, CheckCircle, Lightbulb, BarChart3, ShieldCheck } from 'lucide-react';
+import { X, BrainCircuit, Target, DollarSign, Calendar, Zap, CheckCircle, Lightbulb, BarChart3, ShieldCheck, Edit3 } from 'lucide-react';
 
 const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   // Onboarding defaults
@@ -73,13 +73,47 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
 
   // Page 3: Creative variants
   const [creatives, setCreatives] = useState([]);
+  const [editingCreative, setEditingCreative] = useState(null);
+  const [abFactor, setAbFactor] = useState('headline'); // headline|creative|copy|cta|subject
+  const recommendedAb = useMemo(() => {
+    if ((resolvedGoal||'').toLowerCase().includes('awareness')) return { factor: 'creative', why: 'Visuals drive reach/recall in awareness campaigns.' };
+    if ((resolvedGoal||'').toLowerCase().includes('lead')) return { factor: 'headline', why: 'Headline clarity impacts conversion intent for lead gen.' };
+    if ((resolvedGoal||'').toLowerCase().includes('sales')) return { factor: 'cta', why: 'Stronger CTAs typically lift purchases in sales campaigns.' };
+    return { factor: 'headline', why: 'Defaulting to headline which usually has broad impact.' };
+  }, [resolvedGoal]);
+
   const generateCreatives = () => {
-    // Mock creation of variants per channel
+    // Mock creation of variants per channel with copy fields
     const list = (blueprint.channels || []).flatMap((ch) => ([
-      { id: `${ch}_A`, channel: ch, type: ch==='email'?'email':'ad', headline: 'Variant A headline', asset: 'image_A.png' },
-      { id: `${ch}_B`, channel: ch, type: ch==='email'?'email':'ad', headline: 'Variant B headline', asset: 'image_B.png' }
+      { id: `${ch}_A`, channel: ch, type: ch==='email'?'email':'ad',
+        headline: 'Unlock your potential today',
+        primaryText: 'Join thousands improving with our program.',
+        cta: 'Get Started',
+        subject: 'Your next win starts here',
+        asset: '/api/placeholder/360/200' },
+      { id: `${ch}_B`, channel: ch, type: ch==='email'?'email':'ad',
+        headline: 'Level up in weeks, not months',
+        primaryText: 'Proven paths, real outcomes. See how.',
+        cta: 'See Plans',
+        subject: 'A faster path to results',
+        asset: '/api/placeholder/360/200' }
     ]));
     setCreatives(list);
+  };
+
+  const openEditCreative = (creative) => setEditingCreative({ ...creative });
+  const applyEditCreative = () => {
+    setCreatives(prev => prev.map(c => c.id === editingCreative.id ? editingCreative : c));
+    setEditingCreative(null);
+  };
+  const regenerateAlternative = (field, constraintNote) => {
+    if (!editingCreative) return;
+    const next = { ...editingCreative };
+    if (field === 'headline') next.headline = 'New concise headline (AI)';
+    if (field === 'primaryText') next.primaryText = 'Refined body copy focusing on benefits.';
+    if (field === 'cta') next.cta = 'Try Free';
+    if (field === 'subject') next.subject = 'Quick win inside';
+    setEditingCreative(next);
   };
 
   // Page 4: Optimization checks
@@ -141,6 +175,12 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
       },
       blueprint,
       creatives,
+      ab_test: {
+        enabled: true,
+        factor: abFactor,
+        recommended: recommendedAb,
+        note: 'Limit to single-factor for clean results',
+      },
       optimization,
       judge,
       created_at: new Date().toISOString(),
@@ -341,25 +381,82 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
           {step === 3 && (
             <div className="space-y-6">
               <div className="flex items-center space-x-2">
-                <Lightbulb className="w-5 h-5 text-yellow-600" />
+                <span className="text-lg">💡</span>
                 <div className="font-medium text-gray-900">AI-Created Content & Variants</div>
               </div>
-              <div className="text-sm text-gray-700">Creative variants prepared per channel with brand voice alignment.</div>
-              <div>
+              <div className="text-sm text-gray-700">Creative variants prepared per channel with brand voice alignment. Click a card to edit.</div>
+              <div className="flex items-center space-x-3">
                 <button onClick={generateCreatives} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm">Generate Variants</button>
+                <div className="text-sm text-gray-700 flex items-center space-x-2">
+                  <span className="text-xs px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">A/B</span>
+                  <span>Test factor:</span>
+                  <select value={abFactor} onChange={(e)=>setAbFactor(e.target.value)} className="px-2 py-1 border rounded text-sm">
+                    <option value="headline">Headline</option>
+                    <option value="creative">Creative (image/video)</option>
+                    <option value="copy">Primary copy</option>
+                    <option value="cta">CTA</option>
+                    <option value="subject">Subject (email)</option>
+                  </select>
+                  <span className="text-xs text-gray-500">Recommended: {recommendedAb.factor} — {recommendedAb.why}</span>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {creatives.map(c => (
-                  <div key={c.id} className="p-3 border rounded text-sm">
-                    <div className="flex items-center justify-between mb-1">
+                  <button key={c.id} onClick={()=>openEditCreative(c)} className="p-3 border rounded-lg text-left text-sm hover:bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="font-medium capitalize">{c.channel} {c.type}</div>
                       <span className="px-2 py-0.5 rounded-full text-xs bg-purple-50 text-purple-700 border border-purple-200">A/B</span>
                     </div>
-                    <div className="text-gray-700">{c.headline}</div>
-                    <div className="text-xs text-gray-500">Asset: {c.asset}</div>
-                  </div>
+                    <div className="mb-2">
+                      <img src={c.asset} alt="creative" className="w-full h-28 object-cover rounded" />
+                    </div>
+                    <div className="text-gray-900 font-medium">{c.headline}</div>
+                    <div className="text-xs text-gray-600 line-clamp-2">{c.primaryText}</div>
+                    <div className="mt-1 text-xs text-gray-500">CTA: {c.cta}{c.type==='email' ? ` • Subject: ${c.subject}` : ''}</div>
+                  </button>
                 ))}
               </div>
+
+              {/* Edit Creative Modal */}
+              {editingCreative && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+                    <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                      <div className="flex items-center space-x-2"><Edit3 className="w-4 h-4 text-blue-600" /><div className="font-semibold text-gray-900">Edit Creative</div></div>
+                      <button onClick={()=>setEditingCreative(null)} className="p-2 text-gray-400 hover:text-gray-600 rounded"><X className="w-5 h-5" /></button>
+                    </div>
+                    <div className="p-4 space-y-3 text-sm">
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Headline</label>
+                        <input type="text" value={editingCreative.headline} onChange={(e)=>setEditingCreative(p=>({...p,headline:e.target.value}))} className="w-full px-3 py-2 border rounded" />
+                        <button onClick={()=>regenerateAlternative('headline','shorten by 15%')} className="mt-1 text-xs text-blue-600">Regenerate alternative (keep tone)</button>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-600 mb-1">Primary Copy</label>
+                        <textarea value={editingCreative.primaryText} onChange={(e)=>setEditingCreative(p=>({...p,primaryText:e.target.value}))} rows={3} className="w-full px-3 py-2 border rounded" />
+                        <button onClick={()=>regenerateAlternative('primaryText','more benefits focus')} className="mt-1 text-xs text-blue-600">Regenerate alternative (benefit-led)</button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">CTA</label>
+                          <input type="text" value={editingCreative.cta} onChange={(e)=>setEditingCreative(p=>({...p,cta:e.target.value}))} className="w-full px-3 py-2 border rounded" />
+                        </div>
+                        {editingCreative.type==='email' && (
+                          <div>
+                            <label className="block text-xs text-gray-600 mb-1">Subject</label>
+                            <input type="text" value={editingCreative.subject} onChange={(e)=>setEditingCreative(p=>({...p,subject:e.target.value}))} className="w-full px-3 py-2 border rounded" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="pt-2 border-t text-xs text-gray-600">Suggestions: Based on brand and objective, tighten headline and keep one benefit per sentence.</div>
+                    </div>
+                    <div className="flex items-center justify-end p-4 border-t border-gray-200 bg-gray-50 space-x-2">
+                      <button onClick={()=>setEditingCreative(null)} className="px-4 py-2 text-gray-600">Cancel</button>
+                      <button onClick={applyEditCreative} className="px-5 py-2 bg-blue-600 text-white rounded">Apply</button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
