@@ -42,19 +42,32 @@ const CustomNode = ({ data }) => (
 
 const nodeTypes = { custom: CustomNode };
 
-const MarketingCampaignCreator = ({ apiBaseUrl, onCreated }) => {
+const MarketingCampaignCreator = ({ apiBaseUrl, onCreated, initialObjective = '', initialAudienceDesc = '' }) => {
     const [view, setView] = useState('input'); // 'input', 'approval', 'monitoring'
-    const [objective, setObjective] = useState('');
-    const [audienceDesc, setAudienceDesc] = useState('');
+    const [objective, setObjective] = useState(initialObjective || '');
+    const [audienceDesc, setAudienceDesc] = useState(initialAudienceDesc || '');
     const [notes, setNotes] = useState('');
 
     const [workflow, setWorkflow] = useState(null);
     const [workflowId, setWorkflowId] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [helpTip, setHelpTip] = useState(null);
 
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    // Prefill from onboarding data if available and not provided via props
+    useEffect(() => {
+        try {
+            const onboardingStr = localStorage.getItem('guild_onboarding_data');
+            if (onboardingStr) {
+                const data = JSON.parse(onboardingStr);
+                setObjective(prev => prev || data.businessType || data.answers?.[0] || '');
+                setAudienceDesc(prev => prev || data.idealClient || data.clientAvatar || data.answers?.[3] || '');
+            }
+        } catch (_) {}
+    }, []);
+
 
     // --- API Calls ---
     const generatePlan = async (e) => {
@@ -79,6 +92,7 @@ const MarketingCampaignCreator = ({ apiBaseUrl, onCreated }) => {
             setView('approval');
         } catch (err) {
             setError(err.message);
+            setHelpTip('Check API URL configuration (VITE_API_URL or REACT_APP_API_URL) and backend availability.');
         } finally {
             setIsLoading(false);
         }
@@ -255,7 +269,16 @@ const MarketingCampaignCreator = ({ apiBaseUrl, onCreated }) => {
 
     return (
         <div className="p-4 flex justify-center items-center h-full">
-            {view === 'input' && renderInputView()}
+            {view === 'input' && (
+                <>
+                    {helpTip && (
+                        <div className="w-full max-w-2xl mb-3 text-sm text-orange-700 bg-orange-50 border border-orange-200 rounded p-2">
+                            {helpTip}
+                        </div>
+                    )}
+                    {renderInputView()}
+                </>
+            )}
             {view === 'approval' && renderApprovalView()}
             {view === 'monitoring' && renderMonitoringView()}
         </div>

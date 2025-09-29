@@ -174,6 +174,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <Plus className="w-4 h-4 mr-2" />
               Create Campaign
             </button>
+            <button 
+              onClick={() => setShowAIWorkflowModal(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              AI Orchestrated Campaign
+            </button>
             <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
               <RefreshCw className="w-4 h-4" />
             </button>
@@ -228,20 +235,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               onClick={() => setShowAICreateModal(true)}
               className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
             >
-            <button 
-              onClick={() => setShowAIWorkflowModal(true)}
-              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">AI Orchestrated Campaign</h3>
-                  <p className="text-sm text-gray-600">Plan approval with live agent workflow transparency</p>
-                </div>
-              </div>
-            </button>
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Brain className="w-5 h-5 text-blue-600" />
