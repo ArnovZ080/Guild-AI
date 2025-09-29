@@ -809,6 +809,74 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
+            {/* CTR/ROAS mini-sparkline (ads only, if data exists) */}
+            {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.trend?.ctr || campaign?.trend?.roas) && (
+              <div className="mb-4 flex items-center space-x-6 text-xs">
+                {campaign?.trend?.ctr && Array.isArray(campaign.trend.ctr) && campaign.trend.ctr.length>1 && (
+                  <Tooltip label="CTR trend over recent periods; higher bars indicate better click-through performance.">
+                    <div className="flex items-end space-x-0.5" title="CTR trend">
+                      {(() => {
+                        const values = campaign.trend.ctr.map(n=>Number(n)||0);
+                        const max = Math.max(...values, 1);
+                        return values.map((v,i)=> (
+                          <div key={i} className="w-1.5 bg-purple-400" style={{ height: `${Math.max(2, Math.round((v/max)*24))}px` }} />
+                        ));
+                      })()}
+                      <span className="ml-2 text-gray-600">CTR</span>
+                    </div>
+                  </Tooltip>
+                )}
+                {campaign?.trend?.roas && Array.isArray(campaign.trend.roas) && campaign.trend.roas.length>1 && (
+                  <Tooltip label="ROAS trend over recent periods; bars scale to the best observed value.">
+                    <div className="flex items-end space-x-0.5" title="ROAS trend">
+                      {(() => {
+                        const values = campaign.trend.roas.map(n=>Number(n)||0);
+                        const max = Math.max(...values, 1);
+                        return values.map((v,i)=> (
+                          <div key={i} className="w-1.5 bg-emerald-400" style={{ height: `${Math.max(2, Math.round((v/max)*24))}px` }} />
+                        ));
+                      })()}
+                      <span className="ml-2 text-gray-600">ROAS</span>
+                    </div>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+
+              {/* Creative performance (if provided) */}
+              {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.creative_performance && campaign.creative_performance.length>0) && (
+                <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium text-gray-900">Top creatives</div>
+                    <Tooltip label="Shows basic asset performance to help you learn which creatives pull results."><span className="text-xs text-gray-500">Why this</span></Tooltip>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-left text-gray-600">
+                          <th className="py-1 pr-3">Asset</th>
+                          <th className="py-1 pr-3">Impr.</th>
+                          <th className="py-1 pr-3">CTR</th>
+                          <th className="py-1 pr-3">Conv.</th>
+                          <th className="py-1 pr-3">ROAS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {campaign.creative_performance.slice(0,5).map((row,i)=> (
+                          <tr key={i} className="border-t">
+                            <td className="py-1 pr-3 text-gray-900">{row.name || row.asset || `Asset ${i+1}`}</td>
+                            <td className="py-1 pr-3">{(row.impressions||0).toLocaleString()}</td>
+                            <td className="py-1 pr-3">{row.ctr != null ? `${row.ctr}%` : '—'}</td>
+                            <td className="py-1 pr-3">{row.conversions != null ? row.conversions : '—'}</td>
+                            <td className="py-1 pr-3">{row.roas != null ? `${row.roas}x` : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               {/* Budget and Spend */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-6">
