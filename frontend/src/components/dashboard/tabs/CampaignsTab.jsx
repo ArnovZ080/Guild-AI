@@ -33,11 +33,15 @@ import {
   Layers,
   Sliders,
   Globe,
-  Hash
+  Hash,
+  Info
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
+import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
+import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
+import EmailTab from './EmailTab';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -47,10 +51,29 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAIOptimizeModal, setShowAIOptimizeModal] = useState(false);
   const [showAICreateModal, setShowAICreateModal] = useState(false);
+  const [showAIWorkflowModal, setShowAIWorkflowModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [openMenuForId, setOpenMenuForId] = useState(null);
   const [settingsFields, setSettingsFields] = useState(null);
+  const [showAssetsModal, setShowAssetsModal] = useState(false);
+  const [assetsPayload, setAssetsPayload] = useState(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [filterPlatform2, setFilterPlatform2] = useState('all');
+  const [filterBudgetRange, setFilterBudgetRange] = useState([0, 100000]);
+  const [filterDurationRange, setFilterDurationRange] = useState([0, 365]);
+  const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
+  const [attribOpenForId, setAttribOpenForId] = useState(null);
+
+  // Lightweight Tooltip component
+  const Tooltip = ({ label, children }) => (
+    <span className="relative group inline-flex items-center">
+      {children}
+      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
+        {label}
+      </span>
+    </span>
+  );
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
@@ -89,6 +112,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
     }
   };
 
+  const handleLocalDelete = (campaignId) => {
+    // Inform parent
+    onCampaignAction && onCampaignAction(campaignId, 'delete');
+  };
+
   // Calculate aggregate metrics with null checks
   const totalSpend = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.spend || 0), 0);
   const totalBudget = (campaigns || []).reduce((sum, campaign) => sum + (campaign?.budget || 0), 0);
@@ -102,6 +130,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const overallCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(2) : 0;
   const overallConversionRate = totalClicks > 0 ? (totalConversions / totalClicks * 100).toFixed(2) : 0;
   const averageROAS = (campaigns || []).length > 0 ? (campaigns || []).reduce((sum, campaign) => sum + (campaign?.roas || 0), 0) / (campaigns || []).length : 0;
+
+  // Cross-channel comparisons (lightweight aggregation)
+  const channelAgg = (campaigns || []).reduce((acc, c) => {
+    if (!c || !c.platform) return acc;
+    const key = (c.platform || 'unknown').toLowerCase();
+    if (!acc[key]) acc[key] = { spend: 0, conversions: 0, clicks: 0, impressions: 0 };
+    acc[key].spend += c.spend || 0;
+    acc[key].conversions += c.conversions || 0;
+    acc[key].clicks += c.clicks || 0;
+    acc[key].impressions += c.impressions || 0;
+    return acc;
+  }, {});
+  const channelRows = Object.entries(channelAgg).map(([platform, v]) => {
+    const cpa = v.conversions > 0 ? (v.spend / v.conversions) : null;
+    const ctr = v.impressions > 0 ? (v.clicks / v.impressions) * 100 : null;
+    return { platform, spend: v.spend, conversions: v.conversions, cpa, ctr };
+  }).sort((a,b) => (a.cpa ?? Infinity) - (b.cpa ?? Infinity));
 
   // Filter campaigns with null checks
   const filteredCampaigns = (campaigns || []).filter(campaign => {
@@ -135,6 +180,28 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
     }
   };
 
+  const goalOptions = [
+    { id: 'awareness', label: 'Brand awareness' },
+    { id: 'traffic', label: 'Website traffic' },
+    { id: 'leads', label: 'Leads' },
+    { id: 'sales', label: 'Sales' },
+    { id: 'retention', label: 'Retention' }
+  ];
+
+  const computeGoalProgress = (campaign) => {
+    const goal = (campaign.goal || '').toLowerCase();
+    const target = parseFloat(campaign.goal_target || 0);
+    if (!goal || !target || target <= 0) return null;
+    let current = 0;
+    if (goal === 'awareness') current = campaign.impressions || 0;
+    if (goal === 'traffic') current = campaign.clicks || 0;
+    if (goal === 'leads') current = campaign.leads || 0;
+    if (goal === 'sales') current = campaign.conversions || 0;
+    if (goal === 'retention') current = campaign.returning_customers || 0;
+    const pct = Math.max(0, Math.min(100, Math.round((current / target) * 100)));
+    return { current, target, pct };
+  };
+
   const formatNumber = (num) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
@@ -148,6 +215,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const getMiniTimeline = (campaign) => {
+    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+    if (!start) return null;
+    const today = new Date();
+    const daysElapsed = Math.max(0, Math.floor((today - start) / (1000*60*60*24)));
+    const totalDays = end ? Math.max(1, Math.floor((end - start) / (1000*60*60*24)) + 1) : null;
+    const pct = totalDays ? Math.min(100, Math.max(0, Math.round((daysElapsed / totalDays) * 100))) : null;
+    return { daysElapsed, totalDays, pct };
   };
 
   return (
@@ -171,6 +249,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Campaign
+            </button>
+            <button 
+              onClick={() => setShowAIWorkflowModal(true)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center"
+            >
+              <Zap className="w-4 h-4 mr-2" />
+              AI Orchestrated Campaign
             </button>
             <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
               <RefreshCw className="w-4 h-4" />
@@ -238,6 +323,33 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             </button>
           </div>
         </div>
+
+        {/* Cross-Channel Comparison */}
+        {channelRows.length > 0 && (
+          <div className="mt-4 border-t border-blue-100 pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-gray-900">Cross-channel comparison</span>
+              </div>
+              <span className="text-xs text-gray-500">Lower CPA is better</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {channelRows.slice(0,6).map((row, i) => (
+                <div key={i} className="p-3 rounded-lg border border-gray-200 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium capitalize">{row.platform}</div>
+                    <div className="text-xs text-gray-500">CPA</div>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-sm">
+                    <div className="text-gray-900">{row.cpa != null ? `$${Math.round(row.cpa)}` : '—'}</div>
+                    <div className="text-gray-600">CTR: {row.ctr != null ? `${row.ctr.toFixed(1)}%` : '—'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Key Metrics Overview */}
@@ -339,18 +451,75 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             </select>
           </div>
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <Download className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+            <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
-          </button>
+            </button>
           </div>
         </div>
 
+        {showAdvancedFilters && (
+          <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Platform</label>
+                <select value={filterPlatform2} onChange={(e)=>setFilterPlatform2(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+                  {['all','facebook','instagram','google','tiktok','linkedin','twitter','email','multi','unknown'].map(p => (
+                    <option key={p} value={p}>{p.charAt(0).toUpperCase()+p.slice(1)}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Budget range ($/day)</label>
+                <div className="flex items-center space-x-2">
+                  <input type="number" value={filterBudgetRange[0]} onChange={(e)=>setFilterBudgetRange([parseInt(e.target.value||0), filterBudgetRange[1]])} className="w-1/2 px-2 py-1 border rounded" />
+                  <span className="text-gray-500">to</span>
+                  <input type="number" value={filterBudgetRange[1]} onChange={(e)=>setFilterBudgetRange([filterBudgetRange[0], parseInt(e.target.value||0)])} className="w-1/2 px-2 py-1 border rounded" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Duration (days)</label>
+                <div className="flex items-center space-x-2">
+                  <input type="number" value={filterDurationRange[0]} onChange={(e)=>setFilterDurationRange([parseInt(e.target.value||0), filterDurationRange[1]])} className="w-1/2 px-2 py-1 border rounded" />
+                  <span className="text-gray-500">to</span>
+                  <input type="number" value={filterDurationRange[1]} onChange={(e)=>setFilterDurationRange([filterDurationRange[0], parseInt(e.target.value||0)])} className="w-1/2 px-2 py-1 border rounded" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Sort by performance</label>
+                <select value={sortByPerformance} onChange={(e)=>setSortByPerformance(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded">
+                  <option value="none">None</option>
+                  <option value="best">Best Performing</option>
+                  <option value="worst">Worst Performing</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Campaign List */}
         <div className="space-y-4">
-          {filteredCampaigns.map((campaign) => {
+          {filteredCampaigns
+            .filter(c => filterPlatform2==='all' || (c?.platform||'').toLowerCase()===filterPlatform2)
+            .filter(c => {
+              const b = parseFloat(c?.budget||0);
+              return b>=filterBudgetRange[0] && b<=filterBudgetRange[1];
+            })
+            .filter(c => {
+              const d = parseInt(c?.duration||0);
+              return d>=filterDurationRange[0] && d<=filterDurationRange[1];
+            })
+            .sort((a,b)=>{
+              if (sortByPerformance==='none') return 0;
+              const score = (x)=>{
+                const ctr = (x?.impressions||0)>0 ? (x.clicks||0)/(x.impressions||0) : 0;
+                const convRate = (x?.clicks||0)>0 ? (x.conversions||0)/(x.clicks||0) : 0;
+                const roas = x?.roas||0;
+                return (ctr*0.3)+(convRate*0.3)+(roas*0.4);
+              };
+              const sa = score(a), sb = score(b);
+              return sortByPerformance==='best' ? sb-sa : sa-sb;
+            })
+            .map((campaign) => {
             if (!campaign) return null;
             return (
             <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -358,14 +527,43 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <div className="flex items-center space-x-4">
                   <div className="text-2xl">{getPlatformIcon(campaign.platform)}</div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{campaign.name || 'Unnamed Campaign'}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                      <span>{campaign.name || 'Unnamed Campaign'}</span>
+                      {campaign?.ab_test?.enabled && (
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 border border-pink-200">A/B</span>
+                      )}
+                    </h3>
                     <p className="text-sm text-gray-600 capitalize">{campaign.platform || 'Unknown'} • {campaign.type || 'Campaign'}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
+                {(() => { const gp = computeGoalProgress(campaign); return gp ? (
+                  <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-full border text-xs text-emerald-800 border-emerald-200 bg-emerald-50" title={`Goal progress: ${gp.current}/${gp.target}`}>
+                    Goal: {(campaign.goal||'').toString()}
+                    <span className="ml-2 w-16 bg-emerald-100 rounded-full h-1.5 inline-block">
+                      <span className="bg-emerald-600 h-1.5 rounded-full inline-block" style={{ width: `${gp.pct}%` }}></span>
+                    </span>
+                    <span className="ml-1">{gp.pct}%</span>
+                  </span>
+                ) : null; })()}
+                <div className="flex items-center space-x-2 text-xs">
+                  <Tooltip label="First-touch attribution: the first campaign interaction that introduced a user">
+                    <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
+                  </Tooltip>
+                  <Tooltip label="Last-touch attribution: the final campaign interaction before conversion">
+                    <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Last-touch: {campaign.attributed_last || 0}</span>
+                  </Tooltip>
+                  <button
+                    onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                    className="p-1 text-gray-500 hover:text-gray-700"
+                    title="View attribution details"
+                  >
+                    <Info className="w-3 h-3" />
+                  </button>
+                </div>
                   <div className="relative">
                     <button 
                       onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
@@ -375,10 +573,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </button>
                     {openMenuForId === (campaign.campaign_id || campaign.id) && (
                       <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || {}); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
                         <div className="border-t border-gray-200"></div>
-                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('menu', campaign); }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                        <button onClick={() => { setOpenMenuForId(null); if (window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.')) { handleLocalDelete(campaign.id || campaign.campaign_id); } }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
                       </div>
                     )}
                   </div>
@@ -430,8 +629,16 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                       {formatCurrency((campaign.budget || 0) - (campaign.spend || 0))}
                     </span>
                   </div>
+                  <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
+                    <Tooltip label="Cost per Lead (CPL): your average cost for generating one lead">
+                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Lead (CPL): {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
+                    </Tooltip>
+                    <Tooltip label="Cost per Acquisition (CPA): your average cost for acquiring one customer">
+                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Acquisition (CPA): {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
+                    </Tooltip>
+                  </div>
                 </div>
-                <div className="w-32">
+                <div className="w-40">
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full" 
@@ -441,8 +648,31 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
+              {/* Attribution Details Drawer */}
+              {attribOpenForId === (campaign.campaign_id || campaign.id) && (
+                <div className="mb-4 p-4 border border-purple-200 rounded-lg bg-purple-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-purple-900">Attribution details</div>
+                    <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    {([campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter','email']).map(ch => (
+                      <div key={ch} className="bg-white border border-purple-100 rounded p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="capitalize text-gray-800">{ch}</span>
+                          <span className="text-xs text-gray-500">by channel</span>
+                        </div>
+                        <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
+                        <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
+                        <div className="mt-1 text-xs text-gray-500">Multi-touch (placeholder): —</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Engagement Metrics */}
-              {(campaign.likes || campaign.comments || campaign.shares || campaign.opens || campaign.clicks) && (
+              {(campaign.likes || campaign.comments || campaign.shares || campaign.opens || campaign.clicks || campaign.unsubscribe_rate || campaign.bounce_rate) && (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
                   {campaign.likes && (
                     <div className="text-center">
@@ -473,7 +703,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   )}
                   {campaign.opens && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="flex items-center justify-center space-x-1" title="Open Rate: percentage of recipients who opened the email">
                         <Mail className="w-4 h-4 text-purple-500" />
                         <span className="text-lg font-semibold text-gray-900">{formatNumber(campaign.opens)}</span>
                       </div>
@@ -482,11 +712,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   )}
                   {campaign.emailClicks && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="flex items-center justify-center space-x-1" title="Click Rate: percentage of recipients who clicked a link in the email">
                         <MousePointer className="w-4 h-4 text-orange-500" />
                         <span className="text-lg font-semibold text-gray-900">{formatNumber(campaign.emailClicks)}</span>
                       </div>
                       <div className="text-xs text-gray-500">Email Clicks</div>
+                    </div>
+                  )}
+                  {campaign.unsubscribe_rate != null && (
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900" title="Unsubscribe Rate: percentage of recipients who unsubscribed">{campaign.unsubscribe_rate}%</div>
+                      <div className="text-xs text-gray-500">Unsubscribe Rate</div>
+                    </div>
+                  )}
+                  {campaign.bounce_rate != null && (
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900" title="Bounce Rate: percentage of emails that couldn’t be delivered">{campaign.bounce_rate}%</div>
+                      <div className="text-xs text-gray-500">Bounce Rate</div>
                     </div>
                   )}
                 </div>
@@ -537,13 +779,28 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     Show in Calendar
                 </button>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {campaign.startDate && (
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>Started {new Date(campaign.startDate).toLocaleDateString()}</span>
-                    </div>
-                  )}
+                <div className="text-sm text-gray-500 flex items-center space-x-2" title="Timeline: progress from campaign start to end date">
+                  {(() => {
+                    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+                    if (!start) return null;
+                    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+                    const today = new Date();
+                    const daysElapsed = Math.max(0, Math.floor((today - start) / (1000*60*60*24)));
+                    const totalDays = end ? Math.max(1, Math.floor((end - start) / (1000*60*60*24)) + 1) : null;
+                    const pct = totalDays ? Math.min(100, Math.max(0, Math.round((daysElapsed / totalDays) * 100))) : null;
+                    return (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-1.5">
+                          {pct !== null && (
+                            <div className="bg-gray-600 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-600">
+                          {totalDays ? `${daysElapsed}/${totalDays} days` : `${daysElapsed} days`}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -584,6 +841,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       <AICreateCampaignModal
         isOpen={showAICreateModal}
         onClose={() => setShowAICreateModal(false)}
+        onCreateCampaign={handleCreateCampaign}
+      />
+
+      <AIWorkflowCreateCampaignModal
+        isOpen={showAIWorkflowModal}
+        onClose={() => setShowAIWorkflowModal(false)}
         onCreateCampaign={handleCreateCampaign}
       />
 
@@ -645,7 +908,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   </div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Efficiency</div>
+                  <div className="text-sm text-gray-600 mb-1">Efficiency & Goal</div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpc || 0)}</div>
@@ -660,6 +923,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                       <div className="text-xs text-gray-500">Cost per Acquisition (CPA)</div>
                     </div>
                   </div>
+                  {(() => { const gp = computeGoalProgress(selectedCampaign); return gp ? (
+                    <div className="mt-3">
+                      <div className="text-xs text-gray-600 mb-1">Goal: {(selectedCampaign.goal||'')}</div>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="bg-emerald-600 h-2 rounded-full" style={{ width: `${gp.pct}%` }}></div>
+                        </div>
+                        <div className="text-xs text-gray-700 whitespace-nowrap">{gp.current}/{gp.target} ({gp.pct}%)</div>
+                      </div>
+                    </div>
+                  ) : null; })()}
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="text-sm text-gray-600 mb-1">Revenue & Return on Ad Spend (ROAS)</div>
@@ -842,6 +1116,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
                     <input type="text" defaultValue={selectedCampaign.objective || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Goal</label>
+                    <select defaultValue={selectedCampaign.goal || ''} className="w-full px-3 py-2 border border-gray-300 rounded">
+                      <option value="">Select goal</option>
+                      {goalOptions.map(g => (<option key={g.id} value={g.id}>{g.label}</option>))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Goal Target (number)</label>
+                    <input type="number" defaultValue={selectedCampaign.goal_target || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -913,6 +1198,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     placements: settingsFields?.placements,
                     optimization_goal: settingsFields?.optimization_goal,
                     bid_strategy: settingsFields?.bid_strategy,
+                    goal: document.querySelector('select[value="'+(selectedCampaign.goal||'')+'"]')?.value || selectedCampaign.goal,
+                    goal_target: parseFloat(document.querySelector('input[type="number"][value="'+(selectedCampaign.goal_target||'')+'"]')?.value) || selectedCampaign.goal_target,
                   };
                   onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'update', payload);
                   setShowSettingsModal(false);

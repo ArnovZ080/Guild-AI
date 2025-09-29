@@ -30,7 +30,7 @@ import {
 
 const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [step, setStep] = useState(1);
-  const [campaignData, setCampaignData] = useState({
+  const initialCampaignData = {
     name: '',
     platform: '',
     type: '',
@@ -41,26 +41,36 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     targetAudience: '',
     creativeAssets: [],
     aiRecommendations: null,
-    agentWorkflow: []
-  });
+    agentWorkflow: [],
+    ab_test: {
+      enabled: false,
+      variants: {
+        A: { note: '' },
+        B: { note: '' }
+      }
+    }
+  };
+  const [campaignData, setCampaignData] = useState(initialCampaignData);
 
-  // Load onboarding data on component mount
+  // Load onboarding data on open
   useEffect(() => {
+    if (!isOpen) return;
     try {
       const onboardingData = localStorage.getItem('guild_onboarding_data');
       if (onboardingData) {
         const data = JSON.parse(onboardingData);
         setCampaignData(prev => ({
-          ...prev,
+          ...initialCampaignData,
           targetAudience: data.idealClient || data.clientAvatar || data.answers?.[3] || '',
           objective: data.businessType || data.answers?.[0] || '',
           brandVoice: data.brandVoice || data.answers?.[11] || ''
         }));
+        setStep(1);
       }
     } catch (e) {
       console.log('No onboarding data found');
     }
-  }, []);
+  }, [isOpen]);
 
   const [aiInsights, setAiInsights] = useState({
     strategy: null,
@@ -623,6 +633,66 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* A/B Testing */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="font-medium text-gray-900">A/B Testing</div>
+                    <label className="inline-flex items-center space-x-2 text-sm text-gray-700">
+                      <input
+                        type="checkbox"
+                        checked={!!campaignData.ab_test?.enabled}
+                        onChange={(e)=>setCampaignData(prev=>({
+                          ...prev,
+                          ab_test: { ...(prev.ab_test||{}), enabled: e.target.checked }
+                        }))}
+                      />
+                      <span>Enable</span>
+                    </label>
+                  </div>
+                  {campaignData.ab_test?.enabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Variant A note</label>
+                        <input
+                          type="text"
+                          value={campaignData.ab_test?.variants?.A?.note || ''}
+                          onChange={(e)=>setCampaignData(prev=>({
+                            ...prev,
+                            ab_test: {
+                              ...(prev.ab_test||{enabled:true,variants:{A:{},B:{}}}),
+                              variants: {
+                                ...(prev.ab_test?.variants||{}),
+                                A: { ...(prev.ab_test?.variants?.A||{}), note: e.target.value }
+                              }
+                            }
+                          }))}
+                          placeholder="e.g., Headline A, Image 1, CTA X"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Variant B note</label>
+                        <input
+                          type="text"
+                          value={campaignData.ab_test?.variants?.B?.note || ''}
+                          onChange={(e)=>setCampaignData(prev=>({
+                            ...prev,
+                            ab_test: {
+                              ...(prev.ab_test||{enabled:true,variants:{A:{},B:{}}}),
+                              variants: {
+                                ...(prev.ab_test?.variants||{}),
+                                B: { ...(prev.ab_test?.variants?.B||{}), note: e.target.value }
+                              }
+                            }
+                          }))}
+                          placeholder="e.g., Headline B, Image 2, CTA Y"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

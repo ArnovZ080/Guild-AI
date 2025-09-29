@@ -26,6 +26,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     platforms: [],
     specificRequirements: ''
   });
+  const [abTest, setAbTest] = useState({ enabled: false, variants: { A: { note: '' }, B: { note: '' } } });
 
   // Load onboarding data on component mount
   useEffect(() => {
@@ -116,7 +117,8 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         created_at: new Date().toISOString(),
         startDate: startIso,
         endDate: endIso,
-        campaign_id: `ai_campaign_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+        campaign_id: `ai_campaign_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+        ab_test: abTest
       };
       
       setGeneratedCampaign(campaign);
@@ -321,6 +323,29 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                     />
                   </div>
                 </div>
+
+              {/* A/B testing toggle */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">A/B Testing</div>
+                  <label className="inline-flex items-center space-x-2 text-sm text-gray-700">
+                    <input type="checkbox" checked={abTest.enabled} onChange={(e)=>setAbTest(prev=>({ ...prev, enabled: e.target.checked }))} />
+                    <span>Enable</span>
+                  </label>
+                </div>
+                {abTest.enabled && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Variant A note</label>
+                      <input type="text" value={abTest.variants.A.note} onChange={(e)=>setAbTest(prev=>({ ...prev, variants: { ...prev.variants, A: { note: e.target.value } } }))} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="e.g., Headline A / Image 1" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Variant B note</label>
+                      <input type="text" value={abTest.variants.B.note} onChange={(e)=>setAbTest(prev=>({ ...prev, variants: { ...prev.variants, B: { note: e.target.value } } }))} className="w-full px-3 py-2 border border-gray-300 rounded" placeholder="e.g., Headline B / Image 2" />
+                    </div>
+                  </div>
+                )}
+              </div>
               </div>
             </div>
           )}
