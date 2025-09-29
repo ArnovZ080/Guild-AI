@@ -227,10 +227,13 @@ const ContentDashboard = () => {
         console.log('Opening settings for campaign:', campaign.name);
       } else if (action === 'menu' || action === 'delete') {
         // Confirm deletion and remove from views
-        const confirmDelete = window.confirm('Delete this campaign? This removes it from your dashboard view.');
+        const confirmDelete = window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.');
         if (confirmDelete) {
           setUserCampaigns(prev => prev.filter(c => (c.id || c.campaign_id) !== campaignId));
           setDeletedCampaignIds(prev => new Set([...prev, campaignId]));
+          if (highlightedCampaign === campaignId) {
+            setHighlightedCampaign(null);
+          }
           console.log('Deleted campaign from view:', campaign.name);
         }
       } else if (action === 'show-in-calendar') {
@@ -477,6 +480,16 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
+            {(() => {
+              // Build merged filtered campaigns for calendar view
+              const byId = new Map();
+              [...(campaigns || []), ...(userCampaigns || [])].forEach(c => {
+                const key = c?.id || c?.campaign_id;
+                if (key && !deletedCampaignIds.has(key)) byId.set(key, { ...c });
+              });
+              const mergedCampaigns = Array.from(byId.values());
+
+              return (
             <ContentCalendarTab 
               calendar={contentData.content_calendar} 
               hiredAgents={[
@@ -487,13 +500,14 @@ const ContentDashboard = () => {
                 { id: 'seo_agent', name: 'SEO Agent', status: 'hired' },
                 { id: 'judge_agent', name: 'Judge Agent', status: 'hired' }
               ]}
-              campaigns={[...campaigns, ...userCampaigns]}
+              campaigns={mergedCampaigns}
               highlightedCampaign={highlightedCampaign}
               onHighlightCampaign={(campaignId) => {
                 setHighlightedCampaign(campaignId);
                 console.log('Campaign highlighted in calendar:', campaignId);
               }}
-            />
+            />);
+            })()}
           </motion.div>
         )}
 

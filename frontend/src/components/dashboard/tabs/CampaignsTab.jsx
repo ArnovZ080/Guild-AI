@@ -26,7 +26,8 @@ import {
   Clock,
   Zap,
   Brain,
-  Lightbulb
+  Lightbulb,
+  X
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
@@ -42,6 +43,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showAICreateModal, setShowAICreateModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [openMenuForId, setOpenMenuForId] = useState(null);
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
@@ -346,12 +348,19 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   </span>
                   <div className="relative">
                     <button 
-                      onClick={() => handleCampaignAction('menu', campaign)}
-                      title="Delete"
-                      className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
+                    {openMenuForId === (campaign.campaign_id || campaign.id) && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
+                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
+                        <div className="border-t border-gray-200"></div>
+                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('menu', campaign); }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
