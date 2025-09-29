@@ -40,6 +40,7 @@ import AICreateCampaignModal from '../modals/AICreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
+import EmailTab from './EmailTab';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -107,6 +108,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const overallCTR = totalImpressions > 0 ? (totalClicks / totalImpressions * 100).toFixed(2) : 0;
   const overallConversionRate = totalClicks > 0 ? (totalConversions / totalClicks * 100).toFixed(2) : 0;
   const averageROAS = (campaigns || []).length > 0 ? (campaigns || []).reduce((sum, campaign) => sum + (campaign?.roas || 0), 0) / (campaigns || []).length : 0;
+
+  // Cross-channel comparisons (lightweight aggregation)
+  const channelAgg = (campaigns || []).reduce((acc, c) => {
+    if (!c || !c.platform) return acc;
+    const key = (c.platform || 'unknown').toLowerCase();
+    if (!acc[key]) acc[key] = { spend: 0, conversions: 0, clicks: 0, impressions: 0 };
+    acc[key].spend += c.spend || 0;
+    acc[key].conversions += c.conversions || 0;
+    acc[key].clicks += c.clicks || 0;
+    acc[key].impressions += c.impressions || 0;
+    return acc;
+  }, {});
+  const channelRows = Object.entries(channelAgg).map(([platform, v]) => {
+    const cpa = v.conversions > 0 ? (v.spend / v.conversions) : null;
+    const ctr = v.impressions > 0 ? (v.clicks / v.impressions) * 100 : null;
+    return { platform, spend: v.spend, conversions: v.conversions, cpa, ctr };
+  }).sort((a,b) => (a.cpa ?? Infinity) - (b.cpa ?? Infinity));
 
   // Filter campaigns with null checks
   const filteredCampaigns = (campaigns || []).filter(campaign => {
@@ -261,6 +279,33 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             </button>
           </div>
         </div>
+
+        {/* Cross-Channel Comparison */}
+        {channelRows.length > 0 && (
+          <div className="mt-4 border-t border-blue-100 pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <TrendingUp className="w-4 h-4 text-blue-600" />
+                <span className="font-semibold text-gray-900">Cross-channel comparison</span>
+              </div>
+              <span className="text-xs text-gray-500">Lower CPA is better</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {channelRows.slice(0,6).map((row, i) => (
+                <div key={i} className="p-3 rounded-lg border border-gray-200 bg-white">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium capitalize">{row.platform}</div>
+                    <div className="text-xs text-gray-500">CPA</div>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between text-sm">
+                    <div className="text-gray-900">{row.cpa != null ? `$${Math.round(row.cpa)}` : '—'}</div>
+                    <div className="text-gray-600">CTR: {row.ctr != null ? `${row.ctr.toFixed(1)}%` : '—'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Key Metrics Overview */}
@@ -390,8 +435,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     {campaign.status || 'Unknown'}
                 </span>
                 <div className="hidden md:flex items-center space-x-2 text-xs">
-                  <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
-                  <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Last-touch: {campaign.attributed_last || 0}</span>
+                  <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200" title="First-touch attribution: the first campaign interaction that introduced a user">First-touch: {campaign.attributed_first || 0}</span>
+                  <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200" title="Last-touch attribution: the final campaign interaction before conversion">Last-touch: {campaign.attributed_last || 0}</span>
                 </div>
                   <div className="relative">
                     <button 
@@ -459,8 +504,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </span>
                   </div>
                   <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
-                    <span className="px-2 py-1 bg-gray-100 rounded">CPL: {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded">CPA: {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
+                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Lead (CPL): your average cost for generating one lead">CPL: {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
+                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Acquisition (CPA): your average cost for acquiring one customer">CPA: {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
                   </div>
                 </div>
                 <div className="w-32">
@@ -474,7 +519,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               </div>
 
               {/* Engagement Metrics */}
-              {(campaign.likes || campaign.comments || campaign.shares || campaign.opens || campaign.clicks) && (
+              {(campaign.likes || campaign.comments || campaign.shares || campaign.opens || campaign.clicks || campaign.unsubscribe_rate || campaign.bounce_rate) && (
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
                   {campaign.likes && (
                     <div className="text-center">
@@ -505,7 +550,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   )}
                   {campaign.opens && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="flex items-center justify-center space-x-1" title="Open Rate: percentage of recipients who opened the email">
                         <Mail className="w-4 h-4 text-purple-500" />
                         <span className="text-lg font-semibold text-gray-900">{formatNumber(campaign.opens)}</span>
                       </div>
@@ -514,11 +559,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   )}
                   {campaign.emailClicks && (
                     <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
+                      <div className="flex items-center justify-center space-x-1" title="Click Rate: percentage of recipients who clicked a link in the email">
                         <MousePointer className="w-4 h-4 text-orange-500" />
                         <span className="text-lg font-semibold text-gray-900">{formatNumber(campaign.emailClicks)}</span>
                       </div>
                       <div className="text-xs text-gray-500">Email Clicks</div>
+                    </div>
+                  )}
+                  {campaign.unsubscribe_rate != null && (
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900" title="Unsubscribe Rate: percentage of recipients who unsubscribed">{campaign.unsubscribe_rate}%</div>
+                      <div className="text-xs text-gray-500">Unsubscribe Rate</div>
+                    </div>
+                  )}
+                  {campaign.bounce_rate != null && (
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900" title="Bounce Rate: percentage of emails that couldn’t be delivered">{campaign.bounce_rate}%</div>
+                      <div className="text-xs text-gray-500">Bounce Rate</div>
                     </div>
                   )}
                 </div>
