@@ -77,4 +77,37 @@ export function saveAnomalyThresholds(thresholds) {
   } catch { return false; }
 }
 
+// A/B results persistence
+const AB_RESULTS_KEY = 'guild_campaign_ab_results';
+
+export function loadABResults(campaignId) {
+  try {
+    const raw = localStorage.getItem(AB_RESULTS_KEY);
+    const db = raw ? JSON.parse(raw) : {};
+    return db[campaignId] || null;
+  } catch { return null; }
+}
+
+export function saveABResults(campaignId, results) {
+  try {
+    const raw = localStorage.getItem(AB_RESULTS_KEY);
+    const db = raw ? JSON.parse(raw) : {};
+    db[campaignId] = results;
+    localStorage.setItem(AB_RESULTS_KEY, JSON.stringify(db));
+    return true;
+  } catch { return false; }
+}
+
+export function computeABWinner(results) {
+  if (!results) return null;
+  const a = results.A || {};
+  const b = results.B || {};
+  // Simple rule: prioritize conversions, then CTR
+  const convA = a.conversions ?? 0, convB = b.conversions ?? 0;
+  if (convA !== convB) return convA > convB ? 'A' : 'B';
+  const ctrA = a.ctr ?? 0, ctrB = b.ctr ?? 0;
+  if (ctrA !== ctrB) return ctrA > ctrB ? 'A' : 'B';
+  return null;
+}
+
 

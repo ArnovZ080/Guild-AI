@@ -42,7 +42,7 @@ import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignMod
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 import EmailTab from './EmailTab';
-import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds } from '../../services/campaignInsightsApi';
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner } from '../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -875,15 +875,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               </div>
 
             {/* A/B mini-summary (if present) */}
-            {campaign?.ab_test?.enabled && (campaign?.ab_results?.A || campaign?.ab_results?.B) && (
+            {campaign?.ab_test?.enabled && ((campaign?.ab_results?.A || campaign?.ab_results?.B) || loadABResults(campaign.campaign_id||campaign.id)) && (()=>{
+              const cid = campaign.campaign_id||campaign.id;
+              const ab = campaign.ab_results || loadABResults(cid) || {};
+              const winner = campaign.ab_winner || computeABWinner(ab);
+              return (
               <div className="mb-3 text-xs text-gray-700 inline-flex items-center space-x-2">
                 <span className="uppercase tracking-wider px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 border border-pink-200">A/B</span>
-                <span>CTR A: {(campaign?.ab_results?.A?.ctr ?? '—')}%</span>
-                <span>CTR B: {(campaign?.ab_results?.B?.ctr ?? '—')}%</span>
-                {campaign?.ab_winner && <span className="text-green-700">Winner: {campaign.ab_winner}</span>}
-                {!campaign?.ab_winner && <Tooltip label="Winner is computed on your Email/Ads detail page."><span className="text-gray-500">Winner: —</span></Tooltip>}
+                <span>CTR A: {(ab?.A?.ctr ?? '—')}%</span>
+                <span>CTR B: {(ab?.B?.ctr ?? '—')}%</span>
+                {winner && <span className="text-green-700">Winner: {winner}</span>}
+                {!winner && <Tooltip label="Winner is computed using conversions then CTR."><span className="text-gray-500">Winner: —</span></Tooltip>}
               </div>
-            )}
+              );
+            })()}
 
             {/* Campaign Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
