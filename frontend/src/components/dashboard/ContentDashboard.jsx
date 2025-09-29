@@ -193,6 +193,8 @@ const ContentDashboard = () => {
   const [showMenuModal, setShowMenuModal] = useState(false);
   const [highlightedCampaign, setHighlightedCampaign] = useState(null);
 
+  const [deletedCampaignIds, setDeletedCampaignIds] = useState(new Set());
+
   const handleCampaignAction = async (campaignId, action) => {
     console.log('Campaign action:', action, 'for campaign:', campaignId);
     try {
@@ -218,20 +220,19 @@ const ContentDashboard = () => {
         ));
         console.log(`Campaign ${action === 'pause' ? 'paused' : 'resumed'}:`, campaign.name);
       } else if (action === 'analytics') {
-        // Ensure the modal host is visible
-        setActiveTab('calendar');
         setShowAnalyticsModal(true);
         console.log('Opening analytics for campaign:', campaign.name);
       } else if (action === 'settings') {
-        // Ensure the modal host is visible
-        setActiveTab('calendar');
         setShowSettingsModal(true);
         console.log('Opening settings for campaign:', campaign.name);
-      } else if (action === 'menu') {
-        // Ensure the modal host is visible
-        setActiveTab('calendar');
-        setShowMenuModal(true);
-        console.log('Opening menu for campaign:', campaign.name);
+      } else if (action === 'menu' || action === 'delete') {
+        // Confirm deletion and remove from views
+        const confirmDelete = window.confirm('Delete this campaign? This removes it from your dashboard view.');
+        if (confirmDelete) {
+          setUserCampaigns(prev => prev.filter(c => (c.id || c.campaign_id) !== campaignId));
+          setDeletedCampaignIds(prev => new Set([...prev, campaignId]));
+          console.log('Deleted campaign from view:', campaign.name);
+        }
       } else if (action === 'show-in-calendar') {
         setHighlightedCampaign(campaignId);
         setActiveTab('calendar');
@@ -519,11 +520,11 @@ const ContentDashboard = () => {
             className="space-y-6"
           >
             {(() => {
-              // Merge realtime campaigns with userCampaigns, letting userCampaigns override by id
+              // Merge realtime campaigns with userCampaigns, letting userCampaigns override by id, and drop deleted
               const byId = new Map();
               [...(campaigns || []), ...(userCampaigns || [])].forEach(c => {
                 const key = c?.id || c?.campaign_id;
-                if (key) byId.set(key, { ...c });
+                if (key && !deletedCampaignIds.has(key)) byId.set(key, { ...c });
               });
               const mergedCampaigns = Array.from(byId.values());
               return (
