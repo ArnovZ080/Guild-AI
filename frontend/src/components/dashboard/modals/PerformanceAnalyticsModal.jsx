@@ -155,6 +155,40 @@ const PerformanceAnalyticsModal = ({ calendar, onClose, campaign }) => {
             </div>
           )}
 
+          {/* Top Creatives */}
+          <div className="bg-white border rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-4">Top creatives</h3>
+            <div className="text-sm text-gray-500 mb-3">CTR, conversions, and fatigue are placeholders until asset telemetry is wired.</div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-600">
+                    <th className="py-2 pr-4">Asset</th>
+                    <th className="py-2 pr-4">Impressions</th>
+                    <th className="py-2 pr-4">CTR</th>
+                    <th className="py-2 pr-4">Conversions</th>
+                    <th className="py-2 pr-4">Fatigue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(campaign?.creative_performance || [
+                    { name: 'Primary Video', impressions: 12000, ctr: 2.8, conversions: 35, fatigue: 'Low' },
+                    { name: 'Carousel A', impressions: 8500, ctr: 3.4, conversions: 28, fatigue: 'Medium' },
+                    { name: 'Headline Variant B', impressions: 6200, ctr: 2.1, conversions: 12, fatigue: 'Low' },
+                  ]).map((row, i) => (
+                    <tr key={i} className="border-t">
+                      <td className="py-2 pr-4 text-gray-900">{row.name}</td>
+                      <td className="py-2 pr-4">{(row.impressions||0).toLocaleString()}</td>
+                      <td className="py-2 pr-4">{row.ctr != null ? `${row.ctr}%` : '—'}</td>
+                      <td className="py-2 pr-4">{row.conversions != null ? row.conversions : '—'}</td>
+                      <td className="py-2 pr-4">{row.fatigue || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
             <div className="flex justify-end">
               <button onClick={onClose} className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">Close</button>
             </div>

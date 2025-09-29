@@ -175,6 +175,28 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
     }
   };
 
+  const goalOptions = [
+    { id: 'awareness', label: 'Brand awareness' },
+    { id: 'traffic', label: 'Website traffic' },
+    { id: 'leads', label: 'Leads' },
+    { id: 'sales', label: 'Sales' },
+    { id: 'retention', label: 'Retention' }
+  ];
+
+  const computeGoalProgress = (campaign) => {
+    const goal = (campaign.goal || '').toLowerCase();
+    const target = parseFloat(campaign.goal_target || 0);
+    if (!goal || !target || target <= 0) return null;
+    let current = 0;
+    if (goal === 'awareness') current = campaign.impressions || 0;
+    if (goal === 'traffic') current = campaign.clicks || 0;
+    if (goal === 'leads') current = campaign.leads || 0;
+    if (goal === 'sales') current = campaign.conversions || 0;
+    if (goal === 'retention') current = campaign.returning_customers || 0;
+    const pct = Math.max(0, Math.min(100, Math.round((current / target) * 100)));
+    return { current, target, pct };
+  };
+
   const formatNumber = (num) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
@@ -508,6 +530,15 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
+                {(() => { const gp = computeGoalProgress(campaign); return gp ? (
+                  <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-full border text-xs text-emerald-800 border-emerald-200 bg-emerald-50" title={`Goal progress: ${gp.current}/${gp.target}`}>
+                    Goal: {(campaign.goal||'').toString()}
+                    <span className="ml-2 w-16 bg-emerald-100 rounded-full h-1.5 inline-block">
+                      <span className="bg-emerald-600 h-1.5 rounded-full inline-block" style={{ width: `${gp.pct}%` }}></span>
+                    </span>
+                    <span className="ml-1">{gp.pct}%</span>
+                  </span>
+                ) : null; })()}
                 <div className="flex items-center space-x-2 text-xs">
                   <Tooltip label="First-touch attribution: the first campaign interaction that introduced a user">
                     <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
@@ -867,7 +898,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   </div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Efficiency</div>
+                  <div className="text-sm text-gray-600 mb-1">Efficiency & Goal</div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpc || 0)}</div>
@@ -882,6 +913,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                       <div className="text-xs text-gray-500">Cost per Acquisition (CPA)</div>
                     </div>
                   </div>
+                  {(() => { const gp = computeGoalProgress(selectedCampaign); return gp ? (
+                    <div className="mt-3">
+                      <div className="text-xs text-gray-600 mb-1">Goal: {(selectedCampaign.goal||'')}</div>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div className="bg-emerald-600 h-2 rounded-full" style={{ width: `${gp.pct}%` }}></div>
+                        </div>
+                        <div className="text-xs text-gray-700 whitespace-nowrap">{gp.current}/{gp.target} ({gp.pct}%)</div>
+                      </div>
+                    </div>
+                  ) : null; })()}
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="text-sm text-gray-600 mb-1">Revenue & Return on Ad Spend (ROAS)</div>
@@ -1064,6 +1106,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
                     <input type="text" defaultValue={selectedCampaign.objective || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Goal</label>
+                    <select defaultValue={selectedCampaign.goal || ''} className="w-full px-3 py-2 border border-gray-300 rounded">
+                      <option value="">Select goal</option>
+                      {goalOptions.map(g => (<option key={g.id} value={g.id}>{g.label}</option>))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Goal Target (number)</label>
+                    <input type="number" defaultValue={selectedCampaign.goal_target || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -1135,6 +1188,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     placements: settingsFields?.placements,
                     optimization_goal: settingsFields?.optimization_goal,
                     bid_strategy: settingsFields?.bid_strategy,
+                    goal: document.querySelector('select[value="'+(selectedCampaign.goal||'')+'"]')?.value || selectedCampaign.goal,
+                    goal_target: parseFloat(document.querySelector('input[type="number"][value="'+(selectedCampaign.goal_target||'')+'"]')?.value) || selectedCampaign.goal_target,
                   };
                   onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'update', payload);
                   setShowSettingsModal(false);
