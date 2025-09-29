@@ -38,6 +38,7 @@ import {
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
+import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
@@ -53,6 +54,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [openMenuForId, setOpenMenuForId] = useState(null);
   const [settingsFields, setSettingsFields] = useState(null);
+  const [showAssetsModal, setShowAssetsModal] = useState(false);
+  const [assetsPayload, setAssetsPayload] = useState(null);
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
@@ -150,6 +153,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const getMiniTimeline = (campaign) => {
+    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+    if (!start) return null;
+    const today = new Date();
+    const daysElapsed = Math.max(0, Math.floor((today - start) / (1000*60*60*24)));
+    const totalDays = end ? Math.max(1, Math.floor((end - start) / (1000*60*60*24)) + 1) : null;
+    const pct = totalDays ? Math.min(100, Math.max(0, Math.round((daysElapsed / totalDays) * 100))) : null;
+    return { daysElapsed, totalDays, pct };
   };
 
   return (
@@ -371,10 +385,14 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <p className="text-sm text-gray-600 capitalize">{campaign.platform || 'Unknown'} • {campaign.type || 'Campaign'}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
+                <div className="hidden md:flex items-center space-x-2 text-xs">
+                  <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
+                  <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Last-touch: {campaign.attributed_last || 0}</span>
+                </div>
                   <div className="relative">
                     <button 
                       onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
@@ -384,6 +402,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </button>
                     {openMenuForId === (campaign.campaign_id || campaign.id) && (
                       <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || {}); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
                         <div className="border-t border-gray-200"></div>
@@ -438,6 +457,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <span className="ml-2 font-semibold text-gray-900">
                       {formatCurrency((campaign.budget || 0) - (campaign.spend || 0))}
                     </span>
+                  </div>
+                  <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
+                    <span className="px-2 py-1 bg-gray-100 rounded">CPL: {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
+                    <span className="px-2 py-1 bg-gray-100 rounded">CPA: {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
                   </div>
                 </div>
                 <div className="w-32">
@@ -546,13 +569,28 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     Show in Calendar
                 </button>
                 </div>
-                <div className="text-sm text-gray-500">
-                  {campaign.startDate && (
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>Started {new Date(campaign.startDate).toLocaleDateString()}</span>
-                    </div>
-                  )}
+                <div className="text-sm text-gray-500 flex items-center space-x-2">
+                  {(() => {
+                    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+                    if (!start) return null;
+                    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+                    const today = new Date();
+                    const daysElapsed = Math.max(0, Math.floor((today - start) / (1000*60*60*24)));
+                    const totalDays = end ? Math.max(1, Math.floor((end - start) / (1000*60*60*24)) + 1) : null;
+                    const pct = totalDays ? Math.min(100, Math.max(0, Math.round((daysElapsed / totalDays) * 100))) : null;
+                    return (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-24 bg-gray-200 rounded-full h-1.5">
+                          {pct !== null && (
+                            <div className="bg-gray-600 h-1.5 rounded-full" style={{ width: `${pct}%` }}></div>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-600">
+                          {totalDays ? `${daysElapsed}/${totalDays} days` : `${daysElapsed} days`}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
