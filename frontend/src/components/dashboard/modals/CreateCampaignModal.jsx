@@ -37,6 +37,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     objective: '',
     budget: '',
     duration: '',
+    startDate: '',
     targetAudience: '',
     creativeAssets: [],
     aiRecommendations: null,
@@ -273,12 +274,27 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     console.log('onCreateCampaign function:', onCreateCampaign);
     
     // Add campaign ID and status
+    // Calculate endDate from startDate + duration (if provided)
+    let computedEndDate = undefined;
+    try {
+      if (campaignData.startDate && campaignData.duration) {
+        const s = new Date(campaignData.startDate);
+        const d = parseInt(campaignData.duration, 10) || 0;
+        if (!isNaN(s.getTime()) && d > 0) {
+          const e = new Date(s);
+          e.setDate(e.getDate() + (d - 1));
+          computedEndDate = e.toISOString();
+        }
+      }
+    } catch {}
+
     const newCampaign = {
       ...campaignData,
       campaign_id: `campaign_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
       status: 'active',
       created_at: new Date().toISOString(),
-      startDate: new Date().toISOString(),
+      startDate: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString(),
+      endDate: computedEndDate,
       spend: 0,
       reach: 0,
       impressions: 0,
@@ -561,6 +577,18 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                           placeholder="30"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={campaignData.startDate}
+                          onChange={(e) => handleInputChange('startDate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">End date will be calculated from duration.</p>
                       </div>
                     </div>
                     <div>

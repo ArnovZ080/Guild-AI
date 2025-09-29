@@ -22,6 +22,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     targetAudience: '',
     budget: '',
     timeline: '',
+    startDate: '',
     platforms: [],
     specificRequirements: ''
   });
@@ -85,6 +86,22 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       setAiAnalysis(analysis);
       
       // Generate campaign details
+      // Compute start and end dates from input
+      let startIso = new Date().toISOString();
+      let endIso = undefined;
+      try {
+        if (campaignInput.startDate) {
+          const s = new Date(campaignInput.startDate);
+          if (!isNaN(s.getTime())) startIso = s.toISOString();
+        }
+        const d = parseInt(analysis.recommendedStrategy.duration, 10) || 0;
+        if (d > 0) {
+          const e = new Date(startIso);
+          e.setDate(e.getDate() + (d - 1));
+          endIso = e.toISOString();
+        }
+      } catch {}
+
       const campaign = {
         name: `${campaignInput.businessGoal} Campaign`,
         platform: analysis.recommendedStrategy.platforms[0],
@@ -97,6 +114,8 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         aiGenerated: true,
         aiInsights: analysis,
         created_at: new Date().toISOString(),
+        startDate: startIso,
+        endDate: endIso,
         campaign_id: `ai_campaign_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
       };
       
@@ -250,6 +269,18 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                         placeholder="30"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Start Date
+                      </label>
+                      <input
+                        type="date"
+                        value={campaignInput.startDate}
+                        onChange={(e) => handleInputChange('startDate', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">End date will be calculated from duration.</p>
                     </div>
                   </div>
 
