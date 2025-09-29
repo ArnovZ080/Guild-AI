@@ -42,6 +42,7 @@ import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignMod
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 import EmailTab from './EmailTab';
+import { getBenchmarks, getEmailBenchmarks } from '../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -64,6 +65,47 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [filterDurationRange, setFilterDurationRange] = useState([0, 365]);
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
   const [attribOpenForId, setAttribOpenForId] = useState(null);
+  const [showAnomalies, setShowAnomalies] = useState(true);
+  const [benchmarks, setBenchmarks] = useState(null);
+  const [emailBenchmarks, setEmailBenchmarks] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [b, eb] = await Promise.all([
+          getBenchmarks().catch(() => null),
+          getEmailBenchmarks().catch(() => null)
+        ]);
+        if (!mounted) return;
+        setBenchmarks(b || { ctr_min: 1.0, roas_min: 2.0, cpa_max: 50 });
+        setEmailBenchmarks(eb || { delivery_min: 95, open_rate_min: 20, click_rate_min: 2, unsubscribe_max: 0.5, bounce_max: 1.0 });
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const detectAnomalies = (campaign) => {
+    const reasons = [];
+    if (!campaign) return reasons;
+    const b = benchmarks || { ctr_min: 1.0, roas_min: 2.0, cpa_max: 50 };
+    const eb = emailBenchmarks || { delivery_min: 95, open_rate_min: 20, click_rate_min: 2, unsubscribe_max: 0.5, bounce_max: 1.0 };
+
+    const isEmail = (campaign.platform || '').toLowerCase() === 'email';
+    const ctr = (campaign?.impressions || 0) > 0 ? (campaign?.clicks || 0) / (campaign?.impressions || 0) * 100 : (campaign?.ctr ?? null);
+    if (ctr != null && ctr < b.ctr_min) reasons.push(`CTR ${ctr.toFixed ? ctr.toFixed(2) : ctr}% is below benchmark ${b.ctr_min}%`);
+    if (campaign?.roas != null && campaign.roas < b.roas_min) reasons.push(`ROAS ${campaign.roas}x is below benchmark ${b.roas_min}x`);
+    if (campaign?.cpa != null && campaign.cpa > b.cpa_max) reasons.push(`CPA $${campaign.cpa} exceeds threshold $${b.cpa_max}`);
+
+    if (isEmail) {
+      if (campaign?.delivery_rate != null && campaign.delivery_rate < eb.delivery_min) reasons.push(`Delivery ${campaign.delivery_rate}% below ${eb.delivery_min}%`);
+      if (campaign?.open_rate != null && campaign.open_rate < eb.open_rate_min) reasons.push(`Open rate ${campaign.open_rate}% below ${eb.open_rate_min}%`);
+      if (campaign?.email_click_rate != null && campaign.email_click_rate < eb.click_rate_min) reasons.push(`Click rate ${campaign.email_click_rate}% below ${eb.click_rate_min}%`);
+      if (campaign?.unsubscribe_rate != null && campaign.unsubscribe_rate > eb.unsubscribe_max) reasons.push(`Unsubscribe ${campaign.unsubscribe_rate}% above ${eb.unsubscribe_max}%`);
+      if (campaign?.bounce_rate != null && campaign.bounce_rate > eb.bounce_max) reasons.push(`Bounce ${campaign.bounce_rate}% above ${eb.bounce_max}%`);
+    }
+    return reasons;
+  };
 
   // Lightweight Tooltip component
   const Tooltip = ({ label, children }) => (
@@ -449,11 +491,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <option value="scheduled">Scheduled</option>
               <option value="completed">Completed</option>
             </select>
+            <div className="hidden md:flex items-center space-x-2">
+              <button onClick={()=>setFilterPlatform2('all')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='all'?'bg-gray-800 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>All</button>
+              <button onClick={()=>setFilterPlatform2('email')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='email'?'bg-purple-700 text-white':'bg-purple-100 text-purple-800 hover:bg-purple-200'}`}>Email</button>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
             </button>
+            <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on benchmarks'}>
+              <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomalies">
+                <AlertTriangle className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -540,6 +591,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
+                {showAnomalies && (()=>{ const reasons = detectAnomalies(campaign); return reasons.length>0 ? (
+                  <Tooltip label={`Why flagged: ${reasons.join(' • ')}`}>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full border text-xs text-orange-800 border-orange-200 bg-orange-50">
+                      <AlertTriangle className="w-3 h-3 mr-1" /> Potential issue
+                    </span>
+                  </Tooltip>
+                ) : null; })()}
                 {(() => { const gp = computeGoalProgress(campaign); return gp ? (
                   <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-full border text-xs text-emerald-800 border-emerald-200 bg-emerald-50" title={`Goal progress: ${gp.current}/${gp.target}`}>
                     Goal: {(campaign.goal||'').toString()}
@@ -664,7 +722,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                         </div>
                         <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
                         <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
-                        <div className="mt-1 text-xs text-gray-500">Multi-touch (placeholder): —</div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          <Tooltip label="Multi-touch distributes credit across touches (e.g., linear, time-decay). We’ll enable this once telemetry is wired.">
+                            <span>Multi-touch (placeholder): —</span>
+                          </Tooltip>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -829,6 +891,63 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
           </div>
         )}
       </div>
+
+      {/* Email Rollup (basic) */}
+      {(() => {
+        const emailCampaigns = (campaigns||[]).filter(c=> (c?.platform||'').toLowerCase()==='email');
+        if (emailCampaigns.length===0) return null;
+        const totalSent = emailCampaigns.reduce((s,c)=> s + (c.sent || 0), 0);
+        const totalDelivered = emailCampaigns.reduce((s,c)=> s + Math.round(((c.sent||0) * ((c.delivery_rate||0)/100))), 0);
+        const avgDelivery = emailCampaigns.reduce((s,c)=> s + (c.delivery_rate||0), 0) / emailCampaigns.length || 0;
+        const avgOpen = emailCampaigns.reduce((s,c)=> s + (c.open_rate||0), 0) / emailCampaigns.length || 0;
+        const avgClick = emailCampaigns.reduce((s,c)=> s + (c.email_click_rate||0), 0) / emailCampaigns.length || 0;
+        const avgUnsub = emailCampaigns.reduce((s,c)=> s + (c.unsubscribe_rate||0), 0) / emailCampaigns.length || 0;
+        const avgBounce = emailCampaigns.reduce((s,c)=> s + (c.bounce_rate||0), 0) / emailCampaigns.length || 0;
+        return (
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Mail className="w-5 h-5 text-purple-600" />
+                <span className="font-semibold text-gray-900">Email performance (rollup)</span>
+              </div>
+              <div className="text-xs text-gray-500">Quick view · deeper analytics in Email tab</div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{formatNumber(totalSent)}</div>
+                <div className="text-xs text-gray-500">Sent</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{formatNumber(totalDelivered)}</div>
+                <div className="text-xs text-gray-500">Delivered</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{avgDelivery.toFixed(1)}%</div>
+                <div className="text-xs text-gray-500">Delivery rate</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{avgOpen.toFixed(1)}%</div>
+                <div className="text-xs text-gray-500">Open rate</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{avgClick.toFixed(1)}%</div>
+                <div className="text-xs text-gray-500">Click rate</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-900">{avgUnsub.toFixed(2)}%</div>
+                <div className="text-xs text-gray-500">Unsub rate</div>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-xs text-gray-700">
+              <Tooltip label="Based on general benchmarks; your brand may vary."><div>Benchmarks: Delivery ≥ {(emailBenchmarks?.delivery_min ?? 95)}%</div></Tooltip>
+              <Tooltip label="Open rate below this often signals weak subject or list fatigue."><div>Open ≥ {(emailBenchmarks?.open_rate_min ?? 20)}%</div></Tooltip>
+              <Tooltip label="Click rate measures content and CTA effectiveness."><div>Click ≥ {(emailBenchmarks?.click_rate_min ?? 2)}%</div></Tooltip>
+              <Tooltip label="High unsub can indicate misaligned content or cadence."><div>Unsub ≤ {(emailBenchmarks?.unsubscribe_max ?? 0.5)}%</div></Tooltip>
+              <Tooltip label="Bounce rate reflects list quality and deliverability."><div>Bounce ≤ {(emailBenchmarks?.bounce_max ?? 1.0)}%</div></Tooltip>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Create Campaign Modal */}
       <CreateCampaignModal
