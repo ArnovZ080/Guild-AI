@@ -109,6 +109,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [benchmarks, setBenchmarks] = useState(null);
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
   const [competitive, setCompetitive] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [dismissedAnomalies, setDismissedAnomalies] = useState(() => {
     try {
       const raw = localStorage.getItem('guild_campaign_anomaly_dismissals');
@@ -144,6 +145,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
     })();
     return () => { mounted = false; };
   }, []);
+
+  const handleRefreshInsights = async () => {
+    try {
+      setIsRefreshing(true);
+      const [b, eb, cb] = await Promise.all([
+        getBenchmarks().catch(()=>null),
+        getEmailBenchmarks().catch(()=>null),
+        getCompetitiveBenchmarks().catch(()=>null)
+      ]);
+      const persisted = loadAnomalyThresholds();
+      setBenchmarks(persisted?.ads || b || benchmarks);
+      setEmailBenchmarks(persisted?.email || eb || emailBenchmarks);
+      if (cb) setCompetitive(cb);
+    } finally {
+      setTimeout(()=>setIsRefreshing(false), 300);
+    }
+  };
 
   const detectAnomalies = (campaign) => {
     const reasons = [];
@@ -449,8 +467,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <Zap className="w-4 h-4 mr-2" />
               AI Orchestrated Campaign
             </button>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={handleRefreshInsights} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh insights and benchmarks">
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -660,9 +678,14 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
             </button>
-            <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on benchmarks'}>
-              <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomalies">
-                <AlertTriangle className="w-4 h-4" />
+            <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on thresholds'}>
+              <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomaly flags">
+                <AlertTriangle className={`w-4 h-4 ${(() => {
+                  try {
+                    const any = (campaigns||[]).some(c => detectAnomalies(c).length>0);
+                    return any && showAnomalies ? 'text-orange-600' : '';
+                  } catch { return ''; }
+                })()}`} />
               </button>
             </Tooltip>
             <Tooltip label="Configure anomaly thresholds">
