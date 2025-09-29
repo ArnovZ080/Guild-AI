@@ -50,6 +50,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [openMenuForId, setOpenMenuForId] = useState(null);
+  const [settingsFields, setSettingsFields] = useState(null);
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
@@ -64,6 +65,19 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       setShowAnalyticsModal(true);
     } else if (action === 'settings') {
       setSelectedCampaign(campaign);
+      // Initialize settings fields for controlled inputs
+      setSettingsFields({
+        name: campaign.name || '',
+        budget: campaign.budget || '',
+        startDate: campaign.startDate ? campaign.startDate.split('T')[0] : '',
+        duration: campaign.duration || 30,
+        objective: campaign.objective || '',
+        targetAudience: campaign.targetAudience || '',
+        geo: campaign.geo || 'All Locations',
+        placements: campaign.placements || 'Automatic',
+        optimization_goal: campaign.optimization_goal || 'Conversions',
+        bid_strategy: campaign.bid_strategy || 'Lowest Cost'
+      });
       setShowSettingsModal(true);
     }
   };
@@ -635,43 +649,34 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
                       <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpc || 0)}</div>
-                      <div className="text-xs text-gray-500">CPC</div>
+                      <div className="text-xs text-gray-500">Cost per Click (CPC)</div>
                     </div>
                     <div>
                       <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpl || 0)}</div>
-                      <div className="text-xs text-gray-500">CPL</div>
+                      <div className="text-xs text-gray-500">Cost per Lead (CPL)</div>
                     </div>
                     <div>
                       <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpa || 0)}</div>
-                      <div className="text-xs text-gray-500">CPA</div>
+                      <div className="text-xs text-gray-500">Cost per Acquisition (CPA)</div>
                     </div>
                   </div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="text-sm text-gray-600 mb-1">Revenue & ROAS</div>
+                  <div className="text-sm text-gray-600 mb-1">Revenue & Return on Ad Spend (ROAS)</div>
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="text-xs text-gray-500">Revenue</div>
                       <div className="text-lg font-semibold text-gray-900">${selectedCampaign.revenue || 0}</div>
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">ROAS</div>
+                      <div className="text-xs text-gray-500">Return on Ad Spend (ROAS)</div>
                       <div className="text-lg font-semibold text-gray-900">{selectedCampaign.roas ? `${selectedCampaign.roas}x` : '0x'}</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Spend vs Budget */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium text-gray-900">Spend vs Budget</div>
-                  <div className="text-sm text-gray-600">{`$${selectedCampaign.spend || 0} / $${selectedCampaign.budget || 0}`}</div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(selectedCampaign.budget > 0 ? (selectedCampaign.spend / selectedCampaign.budget) * 100 : 0)}%` }}></div>
-                </div>
-              </div>
+              {/* Removed duplicate Spend vs Budget section */}
 
               {/* Channel Breakdown */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -774,7 +779,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <Zap className="w-5 h-5 text-purple-600" />
                     <span className="font-medium text-gray-900">AI Insights</span>
                   </div>
-                  <button onClick={() => onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'optimize')} className="text-sm px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700">Enable Continuous Optimization</button>
+                  <button onClick={() => onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'optimize')} className="text-sm px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700">Enable AI Optimization</button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
@@ -841,26 +846,55 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Audience</label>
-                    <textarea defaultValue={selectedCampaign.targetAudience || ''} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    <textarea value={settingsFields?.targetAudience || ''} onChange={(e) => setSettingsFields(prev => ({ ...prev, targetAudience: e.target.value }))} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded" />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Geography</label>
-                      <input type="text" defaultValue={selectedCampaign.geo || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                      <select value={settingsFields?.geo || 'All Locations'} onChange={(e) => setSettingsFields(prev => ({ ...prev, geo: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded">
+                        <option>All Locations</option>
+                        <option>United States</option>
+                        <option>United Kingdom</option>
+                        <option>European Union</option>
+                        <option>South Africa</option>
+                        <option>Custom (AI Recommended)</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Placements</label>
-                      <input type="text" defaultValue={selectedCampaign.placements || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                      <select value={settingsFields?.placements || 'Automatic'} onChange={(e) => setSettingsFields(prev => ({ ...prev, placements: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded">
+                        <option>Automatic</option>
+                        <option>Feeds only</option>
+                        <option>Stories/Reels</option>
+                        <option>Search</option>
+                        <option>Display</option>
+                        <option>YouTube</option>
+                        <option>Custom (AI Recommended)</option>
+                      </select>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Optimization Goal</label>
-                      <input type="text" defaultValue={selectedCampaign.optimization_goal || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                      <select value={settingsFields?.optimization_goal || 'Conversions'} onChange={(e) => setSettingsFields(prev => ({ ...prev, optimization_goal: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded">
+                        <option>Conversions</option>
+                        <option>Leads</option>
+                        <option>Traffic</option>
+                        <option>Engagement</option>
+                        <option>Video Views</option>
+                        <option>Reach</option>
+                        <option>AI Recommended</option>
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Bid Strategy</label>
-                      <input type="text" defaultValue={selectedCampaign.bid_strategy || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                      <select value={settingsFields?.bid_strategy || 'Lowest Cost'} onChange={(e) => setSettingsFields(prev => ({ ...prev, bid_strategy: e.target.value }))} className="w-full px-3 py-2 border border-gray-300 rounded">
+                        <option>Lowest Cost</option>
+                        <option>Cost Cap</option>
+                        <option>Bid Cap</option>
+                        <option>Target ROAS</option>
+                        <option>AI Recommended</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -868,10 +902,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
 
               <div className="flex items-center justify-end">
                 <button onClick={() => {
-                  // Gather a minimal payload from visible fields (for now, demo-only)
                   const payload = {
-                    // In a full implementation, collect controlled inputs here
-                    objective: selectedCampaign.objective,
+                    name: settingsFields?.name,
+                    budget: settingsFields?.budget,
+                    startDate: settingsFields?.startDate ? new Date(settingsFields.startDate).toISOString() : selectedCampaign.startDate,
+                    duration: settingsFields?.duration,
+                    objective: settingsFields?.objective,
+                    targetAudience: settingsFields?.targetAudience,
+                    geo: settingsFields?.geo,
+                    placements: settingsFields?.placements,
+                    optimization_goal: settingsFields?.optimization_goal,
+                    bid_strategy: settingsFields?.bid_strategy,
                   };
                   onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'update', payload);
                   setShowSettingsModal(false);
