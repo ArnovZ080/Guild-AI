@@ -27,7 +27,13 @@ import {
   Zap,
   Brain,
   Lightbulb,
-  X
+  X,
+  LineChart,
+  Percent,
+  Layers,
+  Sliders,
+  Globe,
+  Hash
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
@@ -324,7 +330,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             </button>
             <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
               <Filter className="w-4 h-4" />
-            </button>
+          </button>
           </div>
         </div>
 
@@ -345,7 +351,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <div className="flex items-center space-x-3">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
-                  </span>
+                </span>
                   <div className="relative">
                     <button 
                       onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
@@ -502,20 +508,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Analytics
                   </button>
-                  <button
+                <button
                     onClick={() => handleCampaignAction('settings', campaign)}
                     className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium flex items-center"
-                  >
+                >
                     <Settings className="w-4 h-4 mr-2" />
                     Settings
-                  </button>
-                  <button
+                </button>
+                <button
                     onClick={() => handleCampaignAction('show-in-calendar', campaign)}
                     className="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium flex items-center"
-                  >
+                >
                     <Calendar className="w-4 h-4 mr-2" />
                     Show in Calendar
-                  </button>
+                </button>
                 </div>
                 <div className="text-sm text-gray-500">
                   {campaign.startDate && (
@@ -577,7 +583,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       {/* Fallback Analytics Modal (local) */}
       {showAnalyticsModal && selectedCampaign && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
@@ -592,20 +598,63 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-sm text-blue-800">Reach</div>
-                  <div className="text-2xl font-bold text-blue-900">{(selectedCampaign.reach || 0).toLocaleString()}</div>
+            <div className="p-6 space-y-6">
+              {/* KPI Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {[
+                  { label: 'Reach', value: selectedCampaign.reach || 0, icon: Eye, color: 'blue' },
+                  { label: 'Impressions', value: selectedCampaign.impressions || 0, icon: LineChart, color: 'indigo' },
+                  { label: 'Clicks', value: selectedCampaign.clicks || 0, icon: MousePointer, color: 'green' },
+                  { label: 'CTR', value: `${selectedCampaign.ctr ?? 0}%`, icon: Percent, color: 'purple' },
+                  { label: 'Conversions', value: selectedCampaign.conversions || 0, icon: CheckCircle, color: 'emerald' },
+                ].map((kpi, idx) => (
+                  <div key={idx} className={`rounded-lg p-4 bg-${kpi.color}-50`}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-sm text-${kpi.color}-800`}>{kpi.label}</span>
+                      <kpi.icon className={`w-4 h-4 text-${kpi.color}-600`} />
+                    </div>
+                    <div className={`text-2xl font-bold text-${kpi.color}-900`}>{typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Spend vs Budget */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Spend vs Budget</div>
+                  <div className="text-sm text-gray-600">{`$${selectedCampaign.spend || 0} / $${selectedCampaign.budget || 0}`}</div>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="text-sm text-green-800">Clicks</div>
-                  <div className="text-2xl font-bold text-green-900">{selectedCampaign.clicks || 0}</div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(selectedCampaign.budget > 0 ? (selectedCampaign.spend / selectedCampaign.budget) * 100 : 0)}%` }}></div>
                 </div>
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="text-sm text-purple-800">CTR</div>
-                  <div className="text-2xl font-bold text-purple-900">{selectedCampaign.ctr ? `${selectedCampaign.ctr}%` : '0%'}</div>
+              </div>
+
+              {/* Channel Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="font-medium text-gray-900 mb-2">Performance Over Time</div>
+                  <div className="text-sm text-gray-500">(Sparkline placeholder)</div>
                 </div>
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="font-medium text-gray-900 mb-2">Attribution Snapshot</div>
+                  <div className="text-sm text-gray-500">(Attribution breakdown placeholder)</div>
+                </div>
+              </div>
+
+              {/* AI Insights & Optimization */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Zap className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium text-gray-900">AI Insights</span>
+                  </div>
+                  <button onClick={() => onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'optimize')} className="text-sm px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700">Enable Continuous Optimization</button>
+                </div>
+                <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
+                  <li>Increase budget during peak hours for higher conversion likelihood</li>
+                  <li>Shift spend from low-performing placements to high-ROAS segments</li>
+                  <li>Test creative variant B (historically +12% CTR)</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -615,7 +664,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       {/* Fallback Settings Modal (local) */}
       {showSettingsModal && selectedCampaign && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-gray-100 rounded-lg">
@@ -630,18 +679,70 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget</label>
-                <input type="number" defaultValue={selectedCampaign.budget} className="w-full px-3 py-2 border border-gray-300 rounded" />
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
+                    <input type="text" defaultValue={selectedCampaign.name} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget</label>
+                    <input type="number" defaultValue={selectedCampaign.budget} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                      <input type="date" defaultValue={selectedCampaign.startDate ? selectedCampaign.startDate.split('T')[0] : ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</label>
+                      <input type="number" defaultValue={selectedCampaign.duration || 30} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
+                    <input type="text" defaultValue={selectedCampaign.objective || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Audience</label>
+                    <textarea defaultValue={selectedCampaign.targetAudience || ''} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Geography</label>
+                      <input type="text" defaultValue={selectedCampaign.geo || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Placements</label>
+                      <input type="text" defaultValue={selectedCampaign.placements || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Optimization Goal</label>
+                      <input type="text" defaultValue={selectedCampaign.optimization_goal || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bid Strategy</label>
+                      <input type="text" defaultValue={selectedCampaign.bid_strategy || ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <input type="date" defaultValue={selectedCampaign.startDate ? selectedCampaign.startDate.split('T')[0] : ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</label>
-                <input type="number" defaultValue={selectedCampaign.duration || 30} className="w-full px-3 py-2 border border-gray-300 rounded" />
+
+              <div className="flex items-center justify-end">
+                <button onClick={() => {
+                  // Gather a minimal payload from visible fields (for now, demo-only)
+                  const payload = {
+                    // In a full implementation, collect controlled inputs here
+                    objective: selectedCampaign.objective,
+                  };
+                  onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'update', payload);
+                  setShowSettingsModal(false);
+                }} className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Changes</button>
               </div>
             </div>
           </div>

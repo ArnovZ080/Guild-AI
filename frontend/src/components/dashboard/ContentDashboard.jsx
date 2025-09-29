@@ -195,7 +195,7 @@ const ContentDashboard = () => {
 
   const [deletedCampaignIds, setDeletedCampaignIds] = useState(new Set());
 
-  const handleCampaignAction = async (campaignId, action) => {
+  const handleCampaignAction = async (campaignId, action, payload) => {
     console.log('Campaign action:', action, 'for campaign:', campaignId);
     try {
       // Find the campaign
@@ -219,6 +219,32 @@ const ContentDashboard = () => {
             : campaign
         ));
         console.log(`Campaign ${action === 'pause' ? 'paused' : 'resumed'}:`, campaign.name);
+      } else if (action === 'update') {
+        // Merge payload into user campaign if present
+        if (payload && Object.keys(payload).length > 0) {
+          setUserCampaigns(prev => prev.map(c => (
+            (c.id === campaignId || c.campaign_id === campaignId)
+              ? { ...c, ...payload }
+              : c
+          )));
+          console.log('Campaign settings updated:', campaignId, payload);
+        }
+      } else if (action === 'optimize') {
+        // Trigger enhanced campaign optimization (fire-and-forget with fallback)
+        try {
+          await fetch('/api/agents/enhanced-campaign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'continuous_optimization',
+              campaign_id: campaignId,
+              campaign_data: campaign,
+            })
+          });
+          console.log('Continuous optimization triggered for campaign:', campaignId);
+        } catch (e) {
+          console.warn('Optimization trigger failed, continuing with UI only:', e?.message);
+        }
       } else if (action === 'analytics') {
         setShowAnalyticsModal(true);
         console.log('Opening analytics for campaign:', campaign.name);
