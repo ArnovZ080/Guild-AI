@@ -43,7 +43,48 @@ import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 import EmailTab from './EmailTab';
 
-const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
+// Inline sentiment block component
+const SentimentBlock = ({ comments = [] }) => {
+  const [result, setResult] = React.useState(null);
+  React.useEffect(()=>{
+    let mounted = true;
+    (async()=>{
+      try {
+        const r = await analyzeSentiment(comments.map(c=> (typeof c==='string'? c : (c?.text||''))));
+        if (mounted) setResult(r);
+      } catch {}
+    })();
+    return ()=>{ mounted=false; };
+  }, [comments]);
+  if (!result) return <div className="text-xs text-gray-500">Analyzing sentiment...</div>;
+  const { average, distribution } = result;
+  const pct = (x)=> Math.round((x/(comments.length||1))*100);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center space-x-2 text-sm">
+        <span className="text-gray-600">Average score:</span>
+        <span className={`font-semibold ${average>0.66?'text-green-600':average<0.33?'text-red-600':'text-gray-800'}`}>{average.toFixed(2)}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="p-2 bg-green-50 rounded border">
+          <div className="font-semibold text-green-700">Positive</div>
+          <div className="text-gray-700">{distribution.positive} ({pct(distribution.positive)}%)</div>
+        </div>
+        <div className="p-2 bg-gray-50 rounded border">
+          <div className="font-semibold text-gray-700">Neutral</div>
+          <div className="text-gray-700">{distribution.neutral} ({pct(distribution.neutral)}%)</div>
+        </div>
+        <div className="p-2 bg-red-50 rounded border">
+          <div className="font-semibold text-red-700">Negative</div>
+          <div className="text-gray-700">{distribution.negative} ({pct(distribution.negative)}%)</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity } from '../../../services/campaignInsightsApi';
+
+const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRefreshCampaigns }) => {
   const [selectedView, setSelectedView] = useState('overview');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,6 +105,166 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [filterDurationRange, setFilterDurationRange] = useState([0, 365]);
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
   const [attribOpenForId, setAttribOpenForId] = useState(null);
+  const [showCampaignDetails, setShowCampaignDetails] = useState(false);
+  const [showAnomalies, setShowAnomalies] = useState(true);
+  const [benchmarks, setBenchmarks] = useState(null);
+  const [emailBenchmarks, setEmailBenchmarks] = useState(null);
+  const [competitive, setCompetitive] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshingCampaigns, setIsRefreshingCampaigns] = useState(false);
+  const [showThresholdsModal, setShowThresholdsModal] = useState(false);
+  const [thresholdSavedAt, setThresholdSavedAt] = useState(null);
+  const [dismissedAnomalies, setDismissedAnomalies] = useState(() => {
+    try {
+      const raw = localStorage.getItem('guild_campaign_anomaly_dismissals');
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [b, eb] = await Promise.all([
+          getBenchmarks().catch(() => null),
+          getEmailBenchmarks().catch(() => null)
+        ]);
+        if (!mounted) return;
+        const persisted = loadAnomalyThresholds();
+        setBenchmarks(persisted?.ads || b || { ctr_min: 1.0, roas_min: 2.0, cpa_max: 50 });
+        setEmailBenchmarks(persisted?.email || eb || { delivery_min: 95, open_rate_min: 20, click_rate_min: 2, unsubscribe_max: 0.5, bounce_max: 1.0 });
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const cb = await getCompetitiveBenchmarks().catch(()=>null);
+        if (!mounted) return;
+        setCompetitive(cb);
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const handleRefreshInsights = async () => {
+    try {
+      setIsRefreshing(true);
+      const [b, eb, cb] = await Promise.all([
+        getBenchmarks().catch(()=>null),
+        getEmailBenchmarks().catch(()=>null),
+        getCompetitiveBenchmarks().catch(()=>null)
+      ]);
+      const persisted = loadAnomalyThresholds();
+      setBenchmarks(persisted?.ads || b || benchmarks);
+      setEmailBenchmarks(persisted?.email || eb || emailBenchmarks);
+      if (cb) setCompetitive(cb);
+    } finally {
+      setTimeout(()=>setIsRefreshing(false), 300);
+    }
+  };
+
+  const detectAnomalies = (campaign) => {
+    const reasons = [];
+    if (!campaign) return reasons;
+    const b = benchmarks || { ctr_min: 1.0, roas_min: 2.0, cpa_max: 50 };
+    const eb = emailBenchmarks || { delivery_min: 95, open_rate_min: 20, click_rate_min: 2, unsubscribe_max: 0.5, bounce_max: 1.0 };
+
+    const isEmail = (campaign.platform || '').toLowerCase() === 'email';
+    const ctr = (campaign?.impressions || 0) > 0 ? (campaign?.clicks || 0) / (campaign?.impressions || 0) * 100 : (campaign?.ctr ?? null);
+    if (ctr != null && ctr < b.ctr_min) reasons.push(`CTR ${ctr.toFixed ? ctr.toFixed(2) : ctr}% is below benchmark ${b.ctr_min}%`);
+    if (campaign?.roas != null && campaign.roas < b.roas_min) reasons.push(`ROAS ${campaign.roas}x is below benchmark ${b.roas_min}x`);
+    if (campaign?.cpa != null && campaign.cpa > b.cpa_max) reasons.push(`CPA $${campaign.cpa} exceeds threshold $${b.cpa_max}`);
+
+    if (isEmail) {
+      if (campaign?.delivery_rate != null && campaign.delivery_rate < eb.delivery_min) reasons.push(`Delivery ${campaign.delivery_rate}% below ${eb.delivery_min}%`);
+      if (campaign?.open_rate != null && campaign.open_rate < eb.open_rate_min) reasons.push(`Open rate ${campaign.open_rate}% below ${eb.open_rate_min}%`);
+      if (campaign?.email_click_rate != null && campaign.email_click_rate < eb.click_rate_min) reasons.push(`Click rate ${campaign.email_click_rate}% below ${eb.click_rate_min}%`);
+      if (campaign?.unsubscribe_rate != null && campaign.unsubscribe_rate > eb.unsubscribe_max) reasons.push(`Unsubscribe ${campaign.unsubscribe_rate}% above ${eb.unsubscribe_max}%`);
+      if (campaign?.bounce_rate != null && campaign.bounce_rate > eb.bounce_max) reasons.push(`Bounce ${campaign.bounce_rate}% above ${eb.bounce_max}%`);
+    }
+    return reasons;
+  };
+
+  // --- Multi-touch attribution calculators (client-side) ---
+  const calcLinearAttribution = (touches = []) => {
+    if (!Array.isArray(touches) || touches.length === 0) return {};
+    const credit = 1 / touches.length;
+    return touches.reduce((acc, ch) => { acc[ch] = (acc[ch]||0) + credit; return acc; }, {});
+  };
+
+  const calcTimeDecayAttribution = (touches = []) => {
+    if (!Array.isArray(touches) || touches.length === 0) return {};
+    // More recent touches get higher weight. Use geometric decay.
+    const decay = 0.5; // 50% decay per step back
+    const weights = touches.map((_, i) => Math.pow(decay, touches.length - 1 - i));
+    const sum = weights.reduce((s,v)=>s+v,0) || 1;
+    return touches.reduce((acc, ch, i) => { acc[ch] = (acc[ch]||0) + (weights[i]/sum); return acc; }, {});
+  };
+
+  const calcPositionBasedAttribution = (touches = []) => {
+    if (!Array.isArray(touches) || touches.length === 0) return {};
+    const firstLast = Math.min(0.8, 0.4 * Math.min(2, touches.length)); // up to 40% to first and last
+    const middleCredit = 1 - (touches.length >= 2 ? firstLast*2 : firstLast);
+    const result = {};
+    if (touches.length === 1) {
+      result[touches[0]] = 1;
+      return result;
+    }
+    const first = touches[0];
+    const last = touches[touches.length-1];
+    result[first] = (result[first]||0) + firstLast;
+    result[last] = (result[last]||0) + firstLast;
+    const middles = touches.slice(1, -1);
+    if (middles.length > 0) {
+      const each = middleCredit / middles.length;
+      middles.forEach(ch => { result[ch] = (result[ch]||0) + each; });
+    }
+    return result;
+  };
+
+  const buildAttributionSummary = (campaign) => {
+    // touches input expected: ordered array of channel keys for a converting journey
+    const touches = campaign?.mta_touches || [];
+    const linear = calcLinearAttribution(touches);
+    const timeDecay = calcTimeDecayAttribution(touches);
+    const position = calcPositionBasedAttribution(touches);
+    const sumCredits = (map) => Object.values(map).reduce((s,v)=>s+v,0);
+    return {
+      linear: { credits: linear, total: sumCredits(linear) },
+      timeDecay: { credits: timeDecay, total: sumCredits(timeDecay) },
+      position: { credits: position, total: sumCredits(position) }
+    };
+  };
+
+  // Log example activity when optimizing (transparency)
+  const logOptimize = (campaign) => {
+    const cid = campaign?.campaign_id || campaign?.id;
+    if (!cid) return;
+    logCampaignActivity(cid, {
+      actor: 'Enhanced Campaign Agent',
+      action: 'optimize_campaign',
+      reason: 'Reallocated budget to high-ROAS sets; paused underperformers'
+    });
+  };
+
+  const isAnomalyDismissed = (campaignId) => {
+    if (!campaignId) return false;
+    const entry = dismissedAnomalies[campaignId];
+    if (!entry) return false;
+    const now = Date.now();
+    return now < entry.expiresAt;
+  };
+
+  const dismissAnomaliesFor = (campaignId) => {
+    if (!campaignId) return;
+    const next = { ...dismissedAnomalies, [campaignId]: { expiresAt: Date.now() + 7*24*60*60*1000 } };
+    setDismissedAnomalies(next);
+    try { localStorage.setItem('guild_campaign_anomaly_dismissals', JSON.stringify(next)); } catch {}
+  };
 
   // Lightweight Tooltip component
   const Tooltip = ({ label, children }) => (
@@ -148,10 +349,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
     return { platform, spend: v.spend, conversions: v.conversions, cpa, ctr };
   }).sort((a,b) => (a.cpa ?? Infinity) - (b.cpa ?? Infinity));
 
+  // Normalize display status using dates if missing/misaligned
+  const normalizeStatus = (c) => {
+    const status = (c?.status || '').toLowerCase();
+    const s = c?.startDate ? new Date(c.startDate) : (c?.start_date ? new Date(c.start_date) : null);
+    const e = c?.endDate ? new Date(c.endDate) : (c?.end_date ? new Date(c.end_date) : null);
+    const now = new Date();
+    if (status === 'paused' || status === 'active' || status === 'scheduled' || status === 'completed') return status;
+    if (s && now < s) return 'scheduled';
+    if (e && now > e) return 'completed';
+    return 'active';
+  };
+
   // Filter campaigns with null checks
   const filteredCampaigns = (campaigns || []).filter(campaign => {
     if (!campaign) return false;
-    const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus;
+    const displayStatus = normalizeStatus(campaign);
+    const matchesStatus = filterStatus === 'all' || displayStatus === filterStatus;
     const matchesSearch = (campaign.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (campaign.platform || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -257,8 +471,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <Zap className="w-4 h-4 mr-2" />
               AI Orchestrated Campaign
             </button>
-            <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <RefreshCw className="w-4 h-4" />
+            <button onClick={handleRefreshInsights} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh insights and benchmarks">
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -345,6 +559,16 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <div className="text-gray-900">{row.cpa != null ? `$${Math.round(row.cpa)}` : '—'}</div>
                     <div className="text-gray-600">CTR: {row.ctr != null ? `${row.ctr.toFixed(1)}%` : '—'}</div>
                   </div>
+                    {competitive?.[row.platform] && (
+                      <div className="mt-1 text-xs text-gray-600">
+                        <div className="flex items-center justify-between">
+                          <Tooltip label="Your CPA vs industry average">
+                            <span>vs avg</span>
+                          </Tooltip>
+                          <span>{`$${competitive[row.platform].cpa_avg} • ${competitive[row.platform].ctr_avg}% CTR • ${competitive[row.platform].roas_avg}x ROAS`}</span>
+                        </div>
+                      </div>
+                    )}
                 </div>
               ))}
             </div>
@@ -424,6 +648,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
         </div>
       </div>
 
+      {/* Campaign Details Heading (global) */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center space-x-2">
+          <Target className="w-4 h-4 text-gray-700" />
+          <span className="font-semibold text-gray-900">Campaign Details</span>
+        </div>
+        <button
+          onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
+          className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+        >
+          {showCampaignDetails ? 'Hide details' : 'Show details'}
+        </button>
+      </div>
+
       {/* Campaign Controls */}
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <div className="flex items-center justify-between mb-6">
@@ -449,13 +687,40 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <option value="scheduled">Scheduled</option>
               <option value="completed">Completed</option>
             </select>
+            <div className="hidden md:flex items-center space-x-2">
+              <button onClick={()=>setFilterPlatform2('all')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='all'?'bg-gray-800 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>All</button>
+              <button onClick={()=>setFilterPlatform2('email')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='email'?'bg-purple-700 text-white':'bg-purple-100 text-purple-800 hover:bg-purple-200'}`}>Email</button>
+              <button onClick={async ()=>{ try { setIsRefreshingCampaigns(true); await onRefreshCampaigns?.(); } finally { setTimeout(()=>setIsRefreshingCampaigns(false), 300);} }} className="ml-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh campaigns data">
+                <RefreshCw className={`w-4 h-4 ${isRefreshingCampaigns ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
           <div className="flex items-center space-x-2">
             <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
             </button>
+            <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on thresholds'}>
+              <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomaly flags">
+                <AlertTriangle className={`w-4 h-4 ${(() => {
+                  try {
+                    const any = (campaigns||[]).some(c => detectAnomalies(c).length>0);
+                    return any && showAnomalies ? 'text-orange-600' : '';
+                  } catch { return ''; }
+                })()}`} />
+              </button>
+            </Tooltip>
+            <Tooltip label="Configure anomaly thresholds">
+              <button onClick={()=>setShowThresholdsModal(true)} className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100" title="Threshold settings">
+                <Sliders className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         </div>
+        {showAnomalies && (
+          <div className="mt-2 text-xs inline-flex items-center px-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
+            <AlertTriangle className="w-3 h-3 mr-1" /> Anomaly flags ON
+          </div>
+        )}
 
         {showAdvancedFilters && (
           <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -496,8 +761,9 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
           </div>
         )}
 
-        {/* Campaign List */}
-        <div className="space-y-4">
+        {/* Campaign List (collapsible, scrollable) */}
+        {showCampaignDetails && (
+        <div className="space-y-4 max-h-[1100px] overflow-y-auto pr-1">
           {filteredCampaigns
             .filter(c => filterPlatform2==='all' || (c?.platform||'').toLowerCase()===filterPlatform2)
             .filter(c => {
@@ -521,6 +787,106 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             })
             .map((campaign) => {
             if (!campaign) return null;
+            const isEmail = ((campaign.platform||'').toLowerCase()==='email' || (campaign.type||'').toLowerCase()==='email');
+            if (isEmail) {
+            const seqCount = campaign.sequence_count || campaign.emails_in_sequence || (campaign.sequence?.length) || (campaign.emails?.length) || campaign.email_sequence_length || 0;
+            const delivered = campaign.delivered != null ? campaign.delivered : (campaign.sent && campaign.delivery_rate!=null ? Math.round((campaign.sent||0) * ((campaign.delivery_rate||0)/100)) : (campaign.emails_delivered||0));
+            const openRate = campaign.open_rate != null ? campaign.open_rate : (campaign.opens_rate || null);
+            const bounceRate = campaign.bounce_rate != null ? campaign.bounce_rate : null;
+            const linkClicks = campaign.emailClicks != null ? campaign.emailClicks : (campaign.link_clicks != null ? campaign.link_clicks : (campaign.clicks ?? null));
+            const emailType = (campaign.type || 'newsletter').toString().replace('_',' ');
+            return (
+            <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="text-2xl">{getPlatformIcon('email')}</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                      <span>{campaign.name || 'Unnamed Campaign'}</span>
+                    </h3>
+                    <p className="text-sm text-gray-600 capitalize">email • {emailType}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
+                    {campaign.status || 'Unknown'}
+                  </span>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                    {openMenuForId === (campaign.campaign_id || campaign.id) && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <button onClick={() => { setOpenMenuForId(null); if (window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.')) { handleLocalDelete(campaign.id || campaign.campaign_id); } }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Minimal Email Metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{seqCount}</div>
+                  <div className="text-xs text-gray-500">Emails in sequence</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{openRate!=null ? `${Number(openRate).toFixed(1)}%` : '—'}</div>
+                  <div className="text-xs text-gray-500">Open rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{delivered != null ? delivered.toLocaleString() : '—'}</div>
+                  <div className="text-xs text-gray-500">Emails delivered</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{bounceRate!=null ? `${Number(bounceRate).toFixed(1)}%` : '—'}</div>
+                  <div className="text-xs text-gray-500">Bounce rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{linkClicks != null ? formatNumber(linkClicks) : '—'}</div>
+                  <div className="text-xs text-gray-500">Link clicks</div>
+                </div>
+              </div>
+
+              {/* Action Buttons (limited) */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleCampaignAction(campaign.status === 'active' ? 'pause' : 'resume', campaign)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                      campaign.status === 'active' 
+                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' 
+                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                    }`}
+                  >
+                    {campaign.status === 'active' ? (
+                      <>
+                        <Pause className="w-4 h-4 mr-2" />
+                        Pause
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Resume
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleCampaignAction('show-in-calendar', campaign)}
+                    className="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium flex items-center"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Show in Calendar
+                  </button>
+                </div>
+                <div className="text-sm text-gray-500" />
+              </div>
+            </div>
+            );
+            }
             return (
             <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
@@ -540,6 +906,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
+                {showAnomalies && ((campaign.platform||'').toLowerCase()!=='email') && (()=>{ const reasons = detectAnomalies(campaign); const cid=(campaign.campaign_id||campaign.id); if (reasons.length>0 && !isAnomalyDismissed(cid)) return (
+                  <div className="inline-flex items-center space-x-1">
+                    <Tooltip label={`Why flagged: ${reasons.join(' • ')}`}>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full border text-xs text-orange-800 border-orange-200 bg-orange-50">
+                        <AlertTriangle className="w-3 h-3 mr-1" /> Potential issue
+                      </span>
+                    </Tooltip>
+                    <Tooltip label="Dismiss for 7 days (stores locally). Rationale: reduce alert fatigue while you address it.">
+                      <button onClick={()=>dismissAnomaliesFor(cid)} className="text-xs text-gray-600 hover:text-gray-900 px-1 py-0.5 border border-gray-200 rounded">
+                        Dismiss 7d
+                      </button>
+                    </Tooltip>
+                  </div>
+                ); return null; })()}
                 {(() => { const gp = computeGoalProgress(campaign); return gp ? (
                   <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-full border text-xs text-emerald-800 border-emerald-200 bg-emerald-50" title={`Goal progress: ${gp.current}/${gp.target}`}>
                     Goal: {(campaign.goal||'').toString()}
@@ -549,21 +929,32 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <span className="ml-1">{gp.pct}%</span>
                   </span>
                 ) : null; })()}
-                <div className="flex items-center space-x-2 text-xs">
-                  <Tooltip label="First-touch attribution: the first campaign interaction that introduced a user">
-                    <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
-                  </Tooltip>
-                  <Tooltip label="Last-touch attribution: the final campaign interaction before conversion">
-                    <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Last-touch: {campaign.attributed_last || 0}</span>
-                  </Tooltip>
-                  <button
-                    onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
-                    className="p-1 text-gray-500 hover:text-gray-700"
-                    title="View attribution details"
-                  >
-                    <Info className="w-3 h-3" />
-                  </button>
-                </div>
+                {((campaign.platform||'').toLowerCase()!=='email') && (
+                  <div className="flex items-center space-x-2 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <Tooltip label="First-touch: first interaction; Last-touch: final interaction before conversion.">
+                        <span className="text-gray-600">Attrib</span>
+                      </Tooltip>
+                      <div className="w-20 bg-gray-200 rounded h-1.5 overflow-hidden">
+                        {(() => { const ft = campaign.attributed_first||0; const lt = campaign.attributed_last||0; const total = Math.max(1, ft+lt); return (
+                          <div className="flex w-full h-full">
+                            <span className="bg-purple-400" style={{ width: `${Math.round((ft/total)*100)}%` }} />
+                            <span className="bg-indigo-400" style={{ width: `${Math.round((lt/total)*100)}%` }} />
+                          </div>
+                        ); })()}
+                      </div>
+                      <span className="text-purple-700">F:{campaign.attributed_first||0}</span>
+                      <span className="text-indigo-700">L:{campaign.attributed_last||0}</span>
+                    </div>
+                    <button
+                      onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                      className="p-1 text-gray-500 hover:text-gray-700"
+                      title="View attribution details"
+                    >
+                      <Info className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
                   <div className="relative">
                     <button 
                       onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
@@ -573,7 +964,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </button>
                     {openMenuForId === (campaign.campaign_id || campaign.id) && (
                       <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                        <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || {}); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
+                        <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || loadCampaignAssets(campaign.campaign_id || campaign.id)); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
                         <div className="border-t border-gray-200"></div>
@@ -584,7 +975,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
-              {/* Campaign Metrics Grid */}
+            {/* A/B mini-summary (if present) */}
+            {campaign?.ab_test?.enabled && ((campaign?.ab_results?.A || campaign?.ab_results?.B) || loadABResults(campaign.campaign_id||campaign.id)) && (()=>{
+              const cid = campaign.campaign_id||campaign.id;
+              const ab = campaign.ab_results || loadABResults(cid) || {};
+              const winner = campaign.ab_winner || computeABWinner(ab);
+              return (
+              <div className="mb-3 text-xs text-gray-700 inline-flex items-center space-x-2">
+                <span className="uppercase tracking-wider px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 border border-pink-200">A/B</span>
+                <span>CTR A: {(ab?.A?.ctr ?? '—')}%</span>
+                <span>CTR B: {(ab?.B?.ctr ?? '—')}%</span>
+                {winner && <span className="text-green-700">Winner: {winner}</span>}
+                {!winner && <Tooltip label="Winner is computed using conversions then CTR."><span className="text-gray-500">Winner: —</span></Tooltip>}
+              </div>
+              );
+            })()}
+
+            {/* Campaign Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">{formatNumber(campaign.reach || 0)}</div>
@@ -606,11 +1013,75 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <div className="text-2xl font-bold text-gray-900">{formatNumber(campaign.conversions || 0)}</div>
                   <div className="text-xs text-gray-500">Conversions</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{campaign.roas ? `${campaign.roas}x` : '0x'}</div>
-                  <div className="text-xs text-gray-500">ROAS</div>
-                </div>
               </div>
+
+            {/* CTR/ROAS mini-sparkline (ads only, if data exists) */}
+            {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.trend?.ctr || campaign?.trend?.roas) && (
+              <div className="mb-4 flex items-center space-x-6 text-xs">
+                {campaign?.trend?.ctr && Array.isArray(campaign.trend.ctr) && campaign.trend.ctr.length>1 && (
+                  <Tooltip label="CTR trend over recent periods; higher bars indicate better click-through performance.">
+                    <div className="flex items-end space-x-0.5" title="CTR trend">
+                      {(() => {
+                        const values = campaign.trend.ctr.map(n=>Number(n)||0);
+                        const max = Math.max(...values, 1);
+                        return values.map((v,i)=> (
+                          <div key={i} className="w-1.5 bg-purple-400" style={{ height: `${Math.max(2, Math.round((v/max)*24))}px` }} />
+                        ));
+                      })()}
+                      <span className="ml-2 text-gray-600">CTR</span>
+                    </div>
+                  </Tooltip>
+                )}
+                {campaign?.trend?.roas && Array.isArray(campaign.trend.roas) && campaign.trend.roas.length>1 && (
+                  <Tooltip label="ROAS trend over recent periods; bars scale to the best observed value.">
+                    <div className="flex items-end space-x-0.5" title="ROAS trend">
+                      {(() => {
+                        const values = campaign.trend.roas.map(n=>Number(n)||0);
+                        const max = Math.max(...values, 1);
+                        return values.map((v,i)=> (
+                          <div key={i} className="w-1.5 bg-emerald-400" style={{ height: `${Math.max(2, Math.round((v/max)*24))}px` }} />
+                        ));
+                      })()}
+                      <span className="ml-2 text-gray-600">ROAS</span>
+                    </div>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+
+              {/* Creative performance (if provided) */}
+              {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.creative_performance && campaign.creative_performance.length>0) && (
+                <div className="mb-4 p-3 bg-white border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium text-gray-900">Top creatives</div>
+                    <Tooltip label="Shows basic asset performance to help you learn which creatives pull results."><span className="text-xs text-gray-500">Why this</span></Tooltip>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-left text-gray-600">
+                          <th className="py-1 pr-3">Asset</th>
+                          <th className="py-1 pr-3">Impr.</th>
+                          <th className="py-1 pr-3">CTR</th>
+                          <th className="py-1 pr-3">Conv.</th>
+                          <th className="py-1 pr-3">ROAS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {campaign.creative_performance.slice(0,5).map((row,i)=> (
+                          <tr key={i} className="border-t">
+                            <td className="py-1 pr-3 text-gray-900">{row.name || row.asset || `Asset ${i+1}`}</td>
+                            <td className="py-1 pr-3">{(row.impressions||0).toLocaleString()}</td>
+                            <td className="py-1 pr-3">{row.ctr != null ? `${row.ctr}%` : '—'}</td>
+                            <td className="py-1 pr-3">{row.conversions != null ? row.conversions : '—'}</td>
+                            <td className="py-1 pr-3">{row.roas != null ? `${row.roas}x` : '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {/* Budget and Spend */}
               <div className="flex items-center justify-between mb-4">
@@ -629,14 +1100,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                       {formatCurrency((campaign.budget || 0) - (campaign.spend || 0))}
                     </span>
                   </div>
-                  <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
-                    <Tooltip label="Cost per Lead (CPL): your average cost for generating one lead">
-                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Lead (CPL): {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
-                    </Tooltip>
-                    <Tooltip label="Cost per Acquisition (CPA): your average cost for acquiring one customer">
-                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Acquisition (CPA): {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
-                    </Tooltip>
-                  </div>
                 </div>
                 <div className="w-40">
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -648,6 +1111,41 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
+              {/* ROI snapshot inline with bottom-left buttons (ads only) */}
+              {((campaign.platform||'').toLowerCase()!=='email') && (
+                <div className="mb-2">
+                  <div className="flex items-center space-x-4 text-xs text-gray-700">
+                    <Tooltip label="Average cost to acquire a customer from this campaign.">
+                      <div><span className="text-gray-500">Cost per Action (CPA):</span> <span className="font-semibold text-gray-900">{campaign.cpa != null ? `$${campaign.cpa}` : '—'}</span></div>
+                    </Tooltip>
+                    <Tooltip label="Average cost to generate a lead.">
+                      <div><span className="text-gray-500">Cost per Lead (CPL):</span> <span className="font-semibold text-gray-900">{campaign.cpl != null ? `$${campaign.cpl}` : '—'}</span></div>
+                    </Tooltip>
+                    <Tooltip label="Return on Ad Spend. 3.0x means $3 revenue per $1 spent.">
+                      <div><span className="text-gray-500">Return on Ad Spend (ROAS):</span> <span className="font-semibold text-gray-900">{campaign.roas != null ? `${campaign.roas}x` : '—'}</span></div>
+                    </Tooltip>
+                  </div>
+                </div>
+              )}
+
+              {/* Optimization suggestions (ads only, if provided) */}
+              {((campaign.platform||'').toLowerCase()!=='email') && (campaign?.ai_suggestions && campaign.ai_suggestions.length>0) && (
+                <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-lg">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center space-x-2 text-sm font-medium text-gray-900">
+                      <Zap className="w-4 h-4 text-purple-600" />
+                      <span>Optimization suggestions</span>
+                    </div>
+                    <Tooltip label="Provided by Guild AI agents; shows actionable steps and why they help."><span className="text-xs text-gray-600">Why</span></Tooltip>
+                  </div>
+                  <ul className="list-disc pl-5 text-xs text-gray-700 space-y-0.5">
+                    {campaign.ai_suggestions.slice(0,3).map((s, i)=>(
+                      <li key={i}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               {/* Attribution Details Drawer */}
               {attribOpenForId === (campaign.campaign_id || campaign.id) && (
                 <div className="mb-4 p-4 border border-purple-200 rounded-lg bg-purple-50">
@@ -655,19 +1153,49 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <div className="font-medium text-purple-900">Attribution details</div>
                     <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                    {([campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter','email']).map(ch => (
-                      <div key={ch} className="bg-white border border-purple-100 rounded p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="capitalize text-gray-800">{ch}</span>
-                          <span className="text-xs text-gray-500">by channel</span>
+                  {(() => {
+                    const channels = [campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter'];
+                    const summary = buildAttributionSummary(campaign);
+                    return (
+                      <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {channels.map(ch => (
+                            <div key={ch} className="bg-white border border-purple-100 rounded p-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="capitalize text-gray-800">{ch}</span>
+                                <span className="text-xs text-gray-500">by channel</span>
+                              </div>
+                              <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
+                              <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
+                              <div className="mt-1 text-xs text-gray-700">
+                                <div className="flex items-center justify-between"><span>Linear</span><span>{(summary.linear.credits[ch]||0).toFixed(2)}</span></div>
+                                <div className="flex items-center justify-between"><span>Time-decay</span><span>{(summary.timeDecay.credits[ch]||0).toFixed(2)}</span></div>
+                                <div className="flex items-center justify-between"><span>Position</span><span>{(summary.position.credits[ch]||0).toFixed(2)}</span></div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
-                        <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
-                        <div className="mt-1 text-xs text-gray-500">Multi-touch (placeholder): —</div>
+                        <div className="bg-white border border-purple-100 rounded p-3">
+                          <div className="font-medium text-gray-900 mb-1">Totals</div>
+                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
+                            <div className="p-2 bg-purple-50 rounded border">
+                              <div className="font-semibold">{summary.linear.total.toFixed(2)}</div>
+                              <div>Linear total</div>
+                            </div>
+                            <div className="p-2 bg-purple-50 rounded border">
+                              <div className="font-semibold">{summary.timeDecay.total.toFixed(2)}</div>
+                              <div>Time-decay total</div>
+                            </div>
+                            <div className="p-2 bg-purple-50 rounded border">
+                              <div className="font-semibold">{summary.position.total.toFixed(2)}</div>
+                              <div>Position-based total</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500">Note: Totals represent relative credit across touches for a typical converting journey. Connect telemetry to replace sample touches.</div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()}
                 </div>
               )}
 
@@ -736,7 +1264,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-4">
                   <button
                     onClick={() => handleCampaignAction(campaign.status === 'active' ? 'pause' : 'resume', campaign)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
@@ -778,6 +1306,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <Calendar className="w-4 h-4 mr-2" />
                     Show in Calendar
                 </button>
+                  {/* keep ROI inline to the left with buttons on narrow widths as well */}
                 </div>
                 <div className="text-sm text-gray-500 flex items-center space-x-2" title="Timeline: progress from campaign start to end date">
                   {(() => {
@@ -807,6 +1336,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             );
           })}
         </div>
+        )}
 
         {filteredCampaigns.length === 0 && (
           <div className="text-center py-12">
@@ -829,6 +1359,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
           </div>
         )}
       </div>
+
+      {/* Email rollup intentionally removed per spec: detailed email analytics live in Email tab */}
 
       {/* Create Campaign Modal */}
       <CreateCampaignModal
@@ -1046,6 +1578,26 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <div className="text-sm text-gray-500">(First/last touch, multi-touch contribution, drop-off points placeholder)</div>
               </div>
 
+              {/* Sentiment Analysis (social/email responses) */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Sentiment Analysis</div>
+                  <Tooltip label="We analyze recent comments/replies to gauge audience sentiment."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const comments = selectedCampaign.recent_comments || [];
+                  return comments.length === 0 ? (
+                    <div className="text-sm text-gray-500">No recent responses available.</div>
+                  ) : (
+                    <div className="text-sm text-gray-700">
+                      {/* Lightweight client call */}
+                      {/* eslint-disable-next-line jsx-a11y/aria-props */}
+                      <SentimentBlock comments={comments} />
+                    </div>
+                  );
+                })()}
+              </div>
+
               {/* AI Insights & Optimization */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -1073,6 +1625,67 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
         </div>
       )}
 
+      {/* Thresholds Settings Modal (global) */}
+      {showThresholdsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="font-semibold text-gray-900">Anomaly Thresholds</div>
+              <button onClick={()=>setShowThresholdsModal(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-4 space-y-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-gray-700 mb-1">CTR min (%)</label>
+                  <input type="number" defaultValue={benchmarks?.ctr_min ?? 1.0} onBlur={(e)=>{
+                    const next = { ads: { ...(benchmarks||{}), ctr_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                    saveAnomalyThresholds(next);
+                    setBenchmarks(next.ads);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">ROAS min (x)</label>
+                  <input type="number" defaultValue={benchmarks?.roas_min ?? 2.0} onBlur={(e)=>{
+                    const next = { ads: { ...(benchmarks||{}), roas_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                    saveAnomalyThresholds(next);
+                    setBenchmarks(next.ads);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">CPA max ($)</label>
+                  <input type="number" defaultValue={benchmarks?.cpa_max ?? 50} onBlur={(e)=>{
+                    const next = { ads: { ...(benchmarks||{}), cpa_max: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                    saveAnomalyThresholds(next);
+                    setBenchmarks(next.ads);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 mb-1">Email: Delivery min (%)</label>
+                  <input type="number" defaultValue={emailBenchmarks?.delivery_min ?? 95} onBlur={(e)=>{
+                    const next = { ads: benchmarks, email: { ...(emailBenchmarks||{}), delivery_min: parseFloat(e.target.value||'0') } };
+                    saveAnomalyThresholds(next);
+                    setEmailBenchmarks(next.email);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-1">Email: Open rate min (%)</label>
+                  <input type="number" defaultValue={emailBenchmarks?.open_rate_min ?? 20} onBlur={(e)=>{
+                    const next = { ads: benchmarks, email: { ...(emailBenchmarks||{}), open_rate_min: parseFloat(e.target.value||'0') } };
+                    saveAnomalyThresholds(next);
+                    setEmailBenchmarks(next.email);
+                  }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">These thresholds control anomaly flags across campaigns. Values are saved locally and will be moved to backend when available.</div>
+            </div>
+            <div className="p-4 border-t border-gray-200 flex justify-end">
+              <button onClick={()=>setShowThresholdsModal(false)} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Done</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Fallback Settings Modal (local) */}
       {showSettingsModal && selectedCampaign && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1181,6 +1794,36 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                         <option>AI Recommended</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+              </div>
+              {/* Thresholds (global) */}
+              <div className="border-t pt-6">
+                <div className="text-sm font-medium text-gray-900 mb-3">Anomaly Thresholds (Global)</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <label className="block text-gray-700 mb-1">CTR min (%)</label>
+                    <input type="number" defaultValue={benchmarks?.ctr_min ?? 1.0} onBlur={(e)=>{
+                      const next = { ads: { ...(benchmarks||{}), ctr_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                      saveAnomalyThresholds(next);
+                      setBenchmarks(next.ads);
+                    }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">ROAS min (x)</label>
+                    <input type="number" defaultValue={benchmarks?.roas_min ?? 2.0} onBlur={(e)=>{
+                      const next = { ads: { ...(benchmarks||{}), roas_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                      saveAnomalyThresholds(next);
+                      setBenchmarks(next.ads);
+                    }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">CPA max ($)</label>
+                    <input type="number" defaultValue={benchmarks?.cpa_max ?? 50} onBlur={(e)=>{
+                      const next = { ads: { ...(benchmarks||{}), cpa_max: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                      saveAnomalyThresholds(next);
+                      setBenchmarks(next.ads);
+                    }} className="w-full px-3 py-2 border border-gray-300 rounded" />
                   </div>
                 </div>
               </div>

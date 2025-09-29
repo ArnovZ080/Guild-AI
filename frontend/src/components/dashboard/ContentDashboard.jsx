@@ -119,7 +119,7 @@ const ContentDashboard = () => {
   const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();
   const { data: calendar, loading: calendarLoading } = useContentCalendar(selectedTimeframe);
   const { data: performance, loading: performanceLoading } = useRealtimeContentPerformance('all', selectedTimeframe);
-  const { campaigns, loading: campaignsLoading } = useRealtimeActiveCampaigns();
+  const { campaigns, loading: campaignsLoading, refetch: refetchCampaigns } = useRealtimeActiveCampaigns();
   const { emailData, loading: emailLoading } = useEmailPerformance(selectedTimeframe);
   const { assets, loading: assetsLoading } = useCreativeAssets();
   const { executeAction, createContent, scheduleContent, executing } = useContentActions();
@@ -581,6 +581,7 @@ const ContentDashboard = () => {
               campaigns={mergedCampaigns} 
               onCampaignAction={handleCampaignAction}
               onCreateCampaign={handleCreateCampaign}
+              onRefreshCampaigns={async ()=>{ try { await refetchCampaigns(); } catch {} }}
             />);
             })()}
           </motion.div>
