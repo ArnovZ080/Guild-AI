@@ -572,6 +572,106 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             })
             .map((campaign) => {
             if (!campaign) return null;
+            const isEmail = ((campaign.platform||'').toLowerCase()==='email' || (campaign.type||'').toLowerCase()==='email');
+            if (isEmail) {
+            const seqCount = campaign.sequence_count || campaign.emails_in_sequence || (campaign.sequence?.length) || (campaign.emails?.length) || campaign.email_sequence_length || 0;
+            const delivered = campaign.delivered != null ? campaign.delivered : (campaign.sent && campaign.delivery_rate!=null ? Math.round((campaign.sent||0) * ((campaign.delivery_rate||0)/100)) : (campaign.emails_delivered||0));
+            const openRate = campaign.open_rate != null ? campaign.open_rate : (campaign.opens_rate || null);
+            const bounceRate = campaign.bounce_rate != null ? campaign.bounce_rate : null;
+            const linkClicks = campaign.emailClicks != null ? campaign.emailClicks : (campaign.link_clicks != null ? campaign.link_clicks : (campaign.clicks ?? null));
+            const emailType = (campaign.type || 'newsletter').toString().replace('_',' ');
+            return (
+            <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="text-2xl">{getPlatformIcon('email')}</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                      <span>{campaign.name || 'Unnamed Campaign'}</span>
+                    </h3>
+                    <p className="text-sm text-gray-600 capitalize">email • {emailType}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
+                    {campaign.status || 'Unknown'}
+                  </span>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                    {openMenuForId === (campaign.campaign_id || campaign.id) && (
+                      <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                        <button onClick={() => { setOpenMenuForId(null); if (window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.')) { handleLocalDelete(campaign.id || campaign.campaign_id); } }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Minimal Email Metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{seqCount}</div>
+                  <div className="text-xs text-gray-500">Emails in sequence</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{openRate!=null ? `${Number(openRate).toFixed(1)}%` : '—'}</div>
+                  <div className="text-xs text-gray-500">Open rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{delivered != null ? delivered.toLocaleString() : '—'}</div>
+                  <div className="text-xs text-gray-500">Emails delivered</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{bounceRate!=null ? `${Number(bounceRate).toFixed(1)}%` : '—'}</div>
+                  <div className="text-xs text-gray-500">Bounce rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-gray-900">{linkClicks != null ? formatNumber(linkClicks) : '—'}</div>
+                  <div className="text-xs text-gray-500">Link clicks</div>
+                </div>
+              </div>
+
+              {/* Action Buttons (limited) */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handleCampaignAction(campaign.status === 'active' ? 'pause' : 'resume', campaign)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
+                      campaign.status === 'active' 
+                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' 
+                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                    }`}
+                  >
+                    {campaign.status === 'active' ? (
+                      <>
+                        <Pause className="w-4 h-4 mr-2" />
+                        Pause
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 mr-2" />
+                        Resume
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => handleCampaignAction('show-in-calendar', campaign)}
+                    className="px-4 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-sm font-medium flex items-center"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Show in Calendar
+                  </button>
+                </div>
+                <div className="text-sm text-gray-500" />
+              </div>
+            </div>
+            );
+            }
             return (
             <div key={campaign.campaign_id || Math.random()} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
@@ -591,7 +691,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
-                {showAnomalies && (()=>{ const reasons = detectAnomalies(campaign); return reasons.length>0 ? (
+                {showAnomalies && ((campaign.platform||'').toLowerCase()!=='email') && (()=>{ const reasons = detectAnomalies(campaign); return reasons.length>0 ? (
                   <Tooltip label={`Why flagged: ${reasons.join(' • ')}`}>
                     <span className="inline-flex items-center px-2 py-1 rounded-full border text-xs text-orange-800 border-orange-200 bg-orange-50">
                       <AlertTriangle className="w-3 h-3 mr-1" /> Potential issue
@@ -892,62 +992,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
         )}
       </div>
 
-      {/* Email Rollup (basic) */}
-      {(() => {
-        const emailCampaigns = (campaigns||[]).filter(c=> (c?.platform||'').toLowerCase()==='email');
-        if (emailCampaigns.length===0) return null;
-        const totalSent = emailCampaigns.reduce((s,c)=> s + (c.sent || 0), 0);
-        const totalDelivered = emailCampaigns.reduce((s,c)=> s + Math.round(((c.sent||0) * ((c.delivery_rate||0)/100))), 0);
-        const avgDelivery = emailCampaigns.reduce((s,c)=> s + (c.delivery_rate||0), 0) / emailCampaigns.length || 0;
-        const avgOpen = emailCampaigns.reduce((s,c)=> s + (c.open_rate||0), 0) / emailCampaigns.length || 0;
-        const avgClick = emailCampaigns.reduce((s,c)=> s + (c.email_click_rate||0), 0) / emailCampaigns.length || 0;
-        const avgUnsub = emailCampaigns.reduce((s,c)=> s + (c.unsubscribe_rate||0), 0) / emailCampaigns.length || 0;
-        const avgBounce = emailCampaigns.reduce((s,c)=> s + (c.bounce_rate||0), 0) / emailCampaigns.length || 0;
-        return (
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Mail className="w-5 h-5 text-purple-600" />
-                <span className="font-semibold text-gray-900">Email performance (rollup)</span>
-              </div>
-              <div className="text-xs text-gray-500">Quick view · deeper analytics in Email tab</div>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{formatNumber(totalSent)}</div>
-                <div className="text-xs text-gray-500">Sent</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{formatNumber(totalDelivered)}</div>
-                <div className="text-xs text-gray-500">Delivered</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{avgDelivery.toFixed(1)}%</div>
-                <div className="text-xs text-gray-500">Delivery rate</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{avgOpen.toFixed(1)}%</div>
-                <div className="text-xs text-gray-500">Open rate</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{avgClick.toFixed(1)}%</div>
-                <div className="text-xs text-gray-500">Click rate</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-gray-900">{avgUnsub.toFixed(2)}%</div>
-                <div className="text-xs text-gray-500">Unsub rate</div>
-              </div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3 text-xs text-gray-700">
-              <Tooltip label="Based on general benchmarks; your brand may vary."><div>Benchmarks: Delivery ≥ {(emailBenchmarks?.delivery_min ?? 95)}%</div></Tooltip>
-              <Tooltip label="Open rate below this often signals weak subject or list fatigue."><div>Open ≥ {(emailBenchmarks?.open_rate_min ?? 20)}%</div></Tooltip>
-              <Tooltip label="Click rate measures content and CTA effectiveness."><div>Click ≥ {(emailBenchmarks?.click_rate_min ?? 2)}%</div></Tooltip>
-              <Tooltip label="High unsub can indicate misaligned content or cadence."><div>Unsub ≤ {(emailBenchmarks?.unsubscribe_max ?? 0.5)}%</div></Tooltip>
-              <Tooltip label="Bounce rate reflects list quality and deliverability."><div>Bounce ≤ {(emailBenchmarks?.bounce_max ?? 1.0)}%</div></Tooltip>
-            </div>
-          </div>
-        );
-      })()}
+      {/* Email rollup intentionally removed per spec: detailed email analytics live in Email tab */}
 
       {/* Create Campaign Modal */}
       <CreateCampaignModal
