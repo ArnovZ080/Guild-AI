@@ -174,7 +174,7 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-2">
-                    <Target className="w-5 h-5 text-blue-600" />
+                    <span className="text-lg">🎯</span>
                     <div className="font-medium text-gray-900">Campaign Goal</div>
                   </div>
                   <div className="grid grid-cols-1 gap-2">
@@ -194,39 +194,45 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
                     )}
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                    <div className="font-medium text-gray-900">Budget Range</div>
+                <div className="space-y-4">
+                  <div className="space-y-3 p-4 border rounded-lg bg-white">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">💰</span>
+                      <div className="font-medium text-gray-900">Budget Range</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="number" value={budgetRange.min} onChange={(e)=>setBudgetRange(r=>({...r,min:parseInt(e.target.value||0)}))} className="px-3 py-2 border border-gray-300 rounded-lg" placeholder="Min" />
+                      <input type="number" value={budgetRange.max} onChange={(e)=>setBudgetRange(r=>({...r,max:parseInt(e.target.value||0)}))} className="px-3 py-2 border border-gray-300 rounded-lg" placeholder="Max" />
+                    </div>
+                    <div className="text-xs text-gray-600">AI suggestion: ${recommendedBudget.min}–${recommendedBudget.max} • {recommendedBudget.reason}</div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="number" value={budgetRange.min} onChange={(e)=>setBudgetRange(r=>({...r,min:parseInt(e.target.value||0)}))} className="px-3 py-2 border rounded" placeholder="Min" />
-                    <input type="number" value={budgetRange.max} onChange={(e)=>setBudgetRange(r=>({...r,max:parseInt(e.target.value||0)}))} className="px-3 py-2 border rounded" placeholder="Max" />
-                  </div>
-                  <div className="text-xs text-gray-600">AI suggestion: ${recommendedBudget.min}–${recommendedBudget.max} • {recommendedBudget.reason}</div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="w-5 h-5 text-purple-600" />
-                    <div className="font-medium text-gray-900">Timeframe</div>
+                  {/* Timeframe stacked below Budget */}
+                  <div className="space-y-3 p-4 border rounded-lg bg-white">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">📅</span>
+                      <div className="font-medium text-gray-900">Timeframe</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="date" value={timeframe.start} onChange={(e)=>setTimeframe(t=>({...t,start:e.target.value}))} className="px-3 py-2 border border-gray-300 rounded-lg" />
+                      <input type="date" value={timeframe.end} onChange={(e)=>setTimeframe(t=>({...t,end:e.target.value}))} className="px-3 py-2 border border-gray-300 rounded-lg" />
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <input type="date" value={timeframe.start} onChange={(e)=>setTimeframe(t=>({...t,start:e.target.value}))} className="px-3 py-2 border rounded" />
-                    <input type="date" value={timeframe.end} onChange={(e)=>setTimeframe(t=>({...t,end:e.target.value}))} className="px-3 py-2 border rounded" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-900">Pacing</div>
-                  <div className="flex items-center space-x-2">
-                    <label className={`px-3 py-2 border rounded cursor-pointer text-sm ${pacing==='even'?'border-blue-500 bg-blue-50':'border-gray-200'}`}>
-                      <input type="radio" className="mr-2" checked={pacing==='even'} onChange={()=>setPacing('even')} /> Even pacing
-                    </label>
-                    <label className={`px-3 py-2 border rounded cursor-pointer text-sm ${pacing==='front'?'border-blue-500 bg-blue-50':'border-gray-200'}`}>
-                      <input type="radio" className="mr-2" checked={pacing==='front'} onChange={()=>setPacing('front')} /> Spend heavier early
-                    </label>
+
+                  {/* Pacing stacked below Timeframe */}
+                  <div className="space-y-2 p-4 border rounded-lg bg-white">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">⏱️</span>
+                      <div className="font-medium text-gray-900">Pacing</div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <label className={`px-3 py-2 border rounded-lg cursor-pointer text-sm ${pacing==='even'?'border-blue-500 bg-blue-50':'border-gray-200'}`}>
+                        <input type="radio" className="mr-2" checked={pacing==='even'} onChange={()=>setPacing('even')} /> Even pacing
+                      </label>
+                      <label className={`px-3 py-2 border rounded-lg cursor-pointer text-sm ${pacing==='front'?'border-blue-500 bg-blue-50':'border-gray-200'}`}>
+                        <input type="radio" className="mr-2" checked={pacing==='front'} onChange={()=>setPacing('front')} /> Spend heavier early
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
