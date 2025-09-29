@@ -110,4 +110,39 @@ export function computeABWinner(results) {
   return null;
 }
 
+// Sentiment analysis stub for comments/replies
+export async function analyzeSentiment(texts = []) {
+  await new Promise(r => setTimeout(r, 60));
+  const scores = texts.map(t => {
+    const s = (t || '').toLowerCase();
+    if (s.includes('love') || s.includes('great') || s.includes('amazing')) return 0.8;
+    if (s.includes('bad') || s.includes('hate') || s.includes('terrible')) return 0.2;
+    return 0.5;
+  });
+  const avg = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : 0.5;
+  return { average: avg, distribution: { positive: scores.filter(x=>x>0.66).length, neutral: scores.filter(x=>x>=0.33 && x<=0.66).length, negative: scores.filter(x=>x<0.33).length } };
+}
+
+// Workflow activity log (local persistence for transparency)
+const ACTIVITY_KEY = 'guild_campaign_activity_log';
+
+export function logCampaignActivity(campaignId, entry) {
+  try {
+    const raw = localStorage.getItem(ACTIVITY_KEY);
+    const db = raw ? JSON.parse(raw) : {};
+    if (!db[campaignId]) db[campaignId] = [];
+    db[campaignId].push({ ...entry, ts: new Date().toISOString() });
+    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(db));
+    return true;
+  } catch { return false; }
+}
+
+export function loadCampaignActivity(campaignId) {
+  try {
+    const raw = localStorage.getItem(ACTIVITY_KEY);
+    const db = raw ? JSON.parse(raw) : {};
+    return db[campaignId] || [];
+  } catch { return []; }
+}
+
 

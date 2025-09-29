@@ -42,7 +42,47 @@ import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignMod
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 import EmailTab from './EmailTab';
-import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner } from '../../services/campaignInsightsApi';
+
+// Inline sentiment block component
+const SentimentBlock = ({ comments = [] }) => {
+  const [result, setResult] = React.useState(null);
+  React.useEffect(()=>{
+    let mounted = true;
+    (async()=>{
+      try {
+        const r = await analyzeSentiment(comments.map(c=> (typeof c==='string'? c : (c?.text||''))));
+        if (mounted) setResult(r);
+      } catch {}
+    })();
+    return ()=>{ mounted=false; };
+  }, [comments]);
+  if (!result) return <div className="text-xs text-gray-500">Analyzing sentiment...</div>;
+  const { average, distribution } = result;
+  const pct = (x)=> Math.round((x/(comments.length||1))*100);
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center space-x-2 text-sm">
+        <span className="text-gray-600">Average score:</span>
+        <span className={`font-semibold ${average>0.66?'text-green-600':average<0.33?'text-red-600':'text-gray-800'}`}>{average.toFixed(2)}</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-xs">
+        <div className="p-2 bg-green-50 rounded border">
+          <div className="font-semibold text-green-700">Positive</div>
+          <div className="text-gray-700">{distribution.positive} ({pct(distribution.positive)}%)</div>
+        </div>
+        <div className="p-2 bg-gray-50 rounded border">
+          <div className="font-semibold text-gray-700">Neutral</div>
+          <div className="text-gray-700">{distribution.neutral} ({pct(distribution.neutral)}%)</div>
+        </div>
+        <div className="p-2 bg-red-50 rounded border">
+          <div className="font-semibold text-red-700">Negative</div>
+          <div className="text-gray-700">{distribution.negative} ({pct(distribution.negative)}%)</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity } from '../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -176,6 +216,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       timeDecay: { credits: timeDecay, total: sumCredits(timeDecay) },
       position: { credits: position, total: sumCredits(position) }
     };
+  };
+
+  // Log example activity when optimizing (transparency)
+  const logOptimize = (campaign) => {
+    const cid = campaign?.campaign_id || campaign?.id;
+    if (!cid) return;
+    logCampaignActivity(cid, {
+      actor: 'Enhanced Campaign Agent',
+      action: 'optimize_campaign',
+      reason: 'Reallocated budget to high-ROAS sets; paused underperformers'
+    });
   };
 
   const isAnomalyDismissed = (campaignId) => {
@@ -1492,6 +1543,26 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <div className="font-medium text-gray-900 mb-2">Attribution & Funnel Impact</div>
                 <div className="text-sm text-gray-500">(First/last touch, multi-touch contribution, drop-off points placeholder)</div>
+              </div>
+
+              {/* Sentiment Analysis (social/email responses) */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Sentiment Analysis</div>
+                  <Tooltip label="We analyze recent comments/replies to gauge audience sentiment."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const comments = selectedCampaign.recent_comments || [];
+                  return comments.length === 0 ? (
+                    <div className="text-sm text-gray-500">No recent responses available.</div>
+                  ) : (
+                    <div className="text-sm text-gray-700">
+                      {/* Lightweight client call */}
+                      {/* eslint-disable-next-line jsx-a11y/aria-props */}
+                      <SentimentBlock comments={comments} />
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* AI Insights & Optimization */}
