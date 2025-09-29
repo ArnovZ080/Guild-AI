@@ -598,7 +598,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-8">
               {/* KPI Grid */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {[
@@ -616,6 +616,50 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <div className={`text-2xl font-bold text-${kpi.color}-900`}>{typeof kpi.value === 'number' ? kpi.value.toLocaleString() : kpi.value}</div>
                   </div>
                 ))}
+              </div>
+
+              {/* Executive Snapshot */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Spend vs Budget</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-2xl font-semibold text-gray-900">${selectedCampaign.spend || 0}</div>
+                    <div className="text-sm text-gray-600">of ${selectedCampaign.budget || 0}</div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(selectedCampaign.budget > 0 ? (selectedCampaign.spend / selectedCampaign.budget) * 100 : 0)}%` }}></div>
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Efficiency</div>
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpc || 0)}</div>
+                      <div className="text-xs text-gray-500">CPC</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpl || 0)}</div>
+                      <div className="text-xs text-gray-500">CPL</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-semibold text-gray-900">${(selectedCampaign.cpa || 0)}</div>
+                      <div className="text-xs text-gray-500">CPA</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="text-sm text-gray-600 mb-1">Revenue & ROAS</div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-gray-500">Revenue</div>
+                      <div className="text-lg font-semibold text-gray-900">${selectedCampaign.revenue || 0}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs text-gray-500">ROAS</div>
+                      <div className="text-lg font-semibold text-gray-900">{selectedCampaign.roas ? `${selectedCampaign.roas}x` : '0x'}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Spend vs Budget */}
@@ -641,6 +685,88 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
+              {/* Platform-Specific Breakdown */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Layers className="w-4 h-4 text-gray-600" />
+                  <div className="font-medium text-gray-900">Platform Breakdown</div>
+                  <span className="text-xs text-gray-500">({(selectedCampaign.platform || 'all').toString()})</span>
+                </div>
+                {(() => {
+                  const p = (selectedCampaign.platform || '').toLowerCase();
+                  if (p === 'facebook' || p === 'instagram' || p === 'meta') {
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div>CPM: ${selectedCampaign.cpm || 0}</div>
+                        <div>Engagement Rate: {selectedCampaign.engagement_rate ?? 0}%</div>
+                        <div>Conversions: {selectedCampaign.conversions || 0}</div>
+                      </div>
+                    );
+                  } else if (p === 'google') {
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div>Quality Score: {selectedCampaign.quality_score ?? '-'}</div>
+                        <div>CPC: ${selectedCampaign.cpc || 0}</div>
+                        <div>Conv Rate: {selectedCampaign.conversion_rate ?? 0}%</div>
+                      </div>
+                    );
+                  } else if (p === 'tiktok') {
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div>Avg Watch Time: {selectedCampaign.avg_watch_time || '-'}s</div>
+                        <div>Video Completion: {selectedCampaign.completion_rate ?? 0}%</div>
+                        <div>CPC: ${selectedCampaign.cpc || 0}</div>
+                      </div>
+                    );
+                  } else if (p === 'linkedin') {
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div>Leads: {selectedCampaign.leads || 0}</div>
+                        <div>CPL: ${selectedCampaign.cpl || 0}</div>
+                        <div>Top Demographic: {selectedCampaign.top_demo || '—'}</div>
+                      </div>
+                    );
+                  } else if (p === 'email') {
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                        <div>Delivery: {selectedCampaign.delivery_rate ?? 0}%</div>
+                        <div>Open Rate: {selectedCampaign.open_rate ?? 0}%</div>
+                        <div>Unsubscribe: {selectedCampaign.unsubscribe_rate ?? 0}%</div>
+                      </div>
+                    );
+                  }
+                  return <div className="text-sm text-gray-500">No platform-specific metrics available.</div>;
+                })()}
+              </div>
+
+              {/* Audience Insights */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Globe className="w-4 h-4 text-gray-600" />
+                  <div className="font-medium text-gray-900">Audience Insights</div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div>Age/Gender: {selectedCampaign.audience_demo || '—'}</div>
+                  <div>Top Locations: {selectedCampaign.top_locations || '—'}</div>
+                  <div>Device Mix: {selectedCampaign.device_mix || '—'}</div>
+                </div>
+              </div>
+
+              {/* Creative Performance */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Hash className="w-4 h-4 text-gray-600" />
+                  <div className="font-medium text-gray-900">Creative Performance</div>
+                </div>
+                <div className="text-sm text-gray-500">(Per-asset table placeholder: CTR, engagement, conversions, fatigue)</div>
+              </div>
+
+              {/* Attribution & Funnel */}
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="font-medium text-gray-900 mb-2">Attribution & Funnel Impact</div>
+                <div className="text-sm text-gray-500">(First/last touch, multi-touch contribution, drop-off points placeholder)</div>
+              </div>
+
               {/* AI Insights & Optimization */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -650,11 +776,18 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   </div>
                   <button onClick={() => onCampaignAction && onCampaignAction(selectedCampaign.campaign_id || selectedCampaign.id, 'optimize')} className="text-sm px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700">Enable Continuous Optimization</button>
                 </div>
-                <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
-                  <li>Increase budget during peak hours for higher conversion likelihood</li>
-                  <li>Shift spend from low-performing placements to high-ROAS segments</li>
-                  <li>Test creative variant B (historically +12% CTR)</li>
-                </ul>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ul className="list-disc pl-6 text-sm text-gray-700 space-y-1">
+                    <li>Your CTR is above benchmark; focus on landing page to improve conversion rate.</li>
+                    <li>Reallocate 15% budget to high-ROAS placements; pause underperforming ad set C.</li>
+                    <li>Introduce 2 new creatives; variant B historically +12% CTR on similar audience.</li>
+                  </ul>
+                  <div className="bg-white border border-purple-200 rounded-lg p-3 text-sm">
+                    <div className="font-medium text-gray-900 mb-1">Predictive Outlook</div>
+                    <div className="text-gray-700">Projected conversions to completion: {selectedCampaign.projected_conversions || '—'}</div>
+                    <div className="text-gray-700">Projected revenue: ${selectedCampaign.projected_revenue || '—'}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
