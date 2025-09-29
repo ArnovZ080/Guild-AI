@@ -504,11 +504,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </span>
                   </div>
                   <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
-                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Lead (CPL): your average cost for generating one lead">CPL: {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Acquisition (CPA): your average cost for acquiring one customer">CPA: {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
+                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Lead (CPL): your average cost for generating one lead">Cost per Lead (CPL): {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
+                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Acquisition (CPA): your average cost for acquiring one customer">Cost per Acquisition (CPA): {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
                   </div>
                 </div>
-                <div className="w-32">
+                <div className="w-40">
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full" 
@@ -626,7 +626,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     Show in Calendar
                 </button>
                 </div>
-                <div className="text-sm text-gray-500 flex items-center space-x-2">
+                <div className="text-sm text-gray-500 flex items-center space-x-2" title="Timeline: progress from campaign start to end date">
                   {(() => {
                     const start = campaign.startDate ? new Date(campaign.startDate) : null;
                     if (!start) return null;
