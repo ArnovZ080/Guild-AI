@@ -33,7 +33,8 @@ import {
   Layers,
   Sliders,
   Globe,
-  Hash
+  Hash,
+  Info
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
@@ -437,6 +438,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <div className="flex items-center space-x-2 text-xs">
                   <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200" title="First-touch attribution: the first campaign interaction that introduced a user">First-touch: {campaign.attributed_first || 0}</span>
                   <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200" title="Last-touch attribution: the final campaign interaction before conversion">Last-touch: {campaign.attributed_last || 0}</span>
+                  <Info className="w-3 h-3 text-gray-500" title="Attribution 101: First-touch gives credit to the initial interaction; Last-touch to the final interaction before conversion." />
                 </div>
                   <div className="relative">
                     <button 
