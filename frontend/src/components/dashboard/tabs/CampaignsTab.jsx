@@ -104,6 +104,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
   const [attribOpenForId, setAttribOpenForId] = useState(null);
   const [showCampaignDetails, setShowCampaignDetails] = useState(false);
+  const [showGeneralInsights, setShowGeneralInsights] = useState(true);
   const [showAnomalies, setShowAnomalies] = useState(() => {
     try {
       const raw = localStorage.getItem('guild_campaign_anomalies_toggle');
@@ -676,8 +677,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         </div>
         
 
+        {/* General Insights (collapsible) */}
+        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4 text-gray-700" />
+              <span className="font-semibold text-gray-900">General Insights</span>
+            </div>
+            <button onClick={()=>setShowGeneralInsights(!showGeneralInsights)} className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100">
+              {showGeneralInsights ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showGeneralInsights && (
+          <>
         {/* Audience Breakdown */}
-        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+        <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
           <div className="flex items-center justify-between mb-2">
             <div className="font-medium text-gray-900">Audience Breakdown</div>
             <Tooltip label="Breakdown of demographics and locations derived from campaign and onboarding data."><span className="text-xs text-gray-600">Why this</span></Tooltip>
@@ -827,6 +841,9 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               </div>
             );
           })()}
+        </div>
+          </>
+          )}
         </div>
 
 
