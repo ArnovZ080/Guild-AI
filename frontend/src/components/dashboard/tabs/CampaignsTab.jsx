@@ -615,7 +615,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                    {['facebook','instagram','google','tiktok','linkedin','twitter','email'].map(ch => (
+                    {([campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter','email']).map(ch => (
                       <div key={ch} className="bg-white border border-purple-100 rounded p-3">
                         <div className="flex items-center justify-between mb-1">
                           <span className="capitalize text-gray-800">{ch}</span>

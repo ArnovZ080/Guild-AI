@@ -30,7 +30,7 @@ import {
 
 const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [step, setStep] = useState(1);
-  const [campaignData, setCampaignData] = useState({
+  const initialCampaignData = {
     name: '',
     platform: '',
     type: '',
@@ -42,25 +42,28 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     creativeAssets: [],
     aiRecommendations: null,
     agentWorkflow: []
-  });
+  };
+  const [campaignData, setCampaignData] = useState(initialCampaignData);
 
-  // Load onboarding data on component mount
+  // Load onboarding data on open
   useEffect(() => {
+    if (!isOpen) return;
     try {
       const onboardingData = localStorage.getItem('guild_onboarding_data');
       if (onboardingData) {
         const data = JSON.parse(onboardingData);
         setCampaignData(prev => ({
-          ...prev,
+          ...initialCampaignData,
           targetAudience: data.idealClient || data.clientAvatar || data.answers?.[3] || '',
           objective: data.businessType || data.answers?.[0] || '',
           brandVoice: data.brandVoice || data.answers?.[11] || ''
         }));
+        setStep(1);
       }
     } catch (e) {
       console.log('No onboarding data found');
     }
-  }, []);
+  }, [isOpen]);
 
   const [aiInsights, setAiInsights] = useState({
     strategy: null,
