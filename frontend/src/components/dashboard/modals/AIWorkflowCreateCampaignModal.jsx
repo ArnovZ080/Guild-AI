@@ -24,6 +24,23 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
   const [budgetRange, setBudgetRange] = useState({ min: 50, max: 200 });
   const [timeframe, setTimeframe] = useState({ start: '', end: '' });
   const [pacing, setPacing] = useState('even'); // even | frontloaded
+  // Audience and Location (refine like CreateCampaignModal style)
+  const [isRefiningAudience, setIsRefiningAudience] = useState(false);
+  const [audienceText, setAudienceText] = useState('');
+  const [locations, setLocations] = useState({ country: '', regions: '' });
+  const [demographics, setDemographics] = useState({ ageMin: '', ageMax: '', genders: { male: false, female: false, other: false } });
+
+  useEffect(() => {
+    setAudienceText(initialAudienceDesc || '');
+  try {
+    const onboardingStr = typeof window !== 'undefined' ? localStorage.getItem('guild_onboarding_data') : null;
+    if (onboardingStr) {
+      const data = JSON.parse(onboardingStr);
+        const defaultCountry = data?.country || '';
+        setLocations(prev => ({ ...prev, country: defaultCountry }));
+    }
+  } catch {}
+  }, [initialAudienceDesc]);
 
   // Simple recommendations (stubs) driven by onboarding context
   const recommendedBudget = useMemo(() => {
@@ -114,6 +131,12 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
       pacing,
       budget_min: budgetRange.min,
       budget_max: budgetRange.max,
+      audience: audienceText,
+      targeting: {
+        country: locations.country || null,
+        regions: locations.regions || null,
+        demographics,
+      },
       blueprint,
       creatives,
       optimization,
@@ -193,6 +216,76 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
                     <label className={`px-3 py-2 border rounded cursor-pointer text-sm ${pacing==='front'?'border-blue-500 bg-blue-50':'border-gray-200'}`}>
                       <input type="radio" className="mr-2" checked={pacing==='front'} onChange={()=>setPacing('front')} /> Spend heavier early
                     </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Audience and Location - styled like CreateCampaignModal */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">Target Audience</label>
+                    <button 
+                      type="button" 
+                      onClick={()=>setIsRefiningAudience(v=>!v)} 
+                      className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      {isRefiningAudience ? 'Use Default' : 'Refine Audience'}
+                    </button>
+                  </div>
+                  {!isRefiningAudience ? (
+                    <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="text-xs text-gray-600">Using onboarding data</div>
+                      <div className="text-sm text-gray-800 mt-1 min-h-[44px] whitespace-pre-line">{audienceText || 'No audience data found'}</div>
+                    </div>
+                  ) : (
+                    <textarea 
+                      value={audienceText}
+                      onChange={(e)=>setAudienceText(e.target.value)}
+                      rows={3}
+                      placeholder="e.g., Young professionals 25-35 interested in fitness..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Primary Country</label>
+                    <input 
+                      type="text" 
+                      value={locations.country}
+                      onChange={(e)=>setLocations(p=>({...p,country:e.target.value}))}
+                      placeholder="e.g., United States"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Regions / Cities (optional)</label>
+                    <input 
+                      type="text" 
+                      value={locations.regions}
+                      onChange={(e)=>setLocations(p=>({...p,regions:e.target.value}))}
+                      placeholder="e.g., California; New York City"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Age Min</label>
+                      <input type="number" value={demographics.ageMin} onChange={(e)=>setDemographics(p=>({...p,ageMin:e.target.value}))} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Age Max</label>
+                      <input type="number" value={demographics.ageMax} onChange={(e)=>setDemographics(p=>({...p,ageMax:e.target.value}))} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Genders</label>
+                      <div className="flex items-center space-x-3 text-sm text-gray-700">
+                        <label className="inline-flex items-center space-x-1"><input type="checkbox" checked={demographics.genders.male} onChange={(e)=>setDemographics(p=>({...p,genders:{...p.genders,male:e.target.checked}}))} /><span>Male</span></label>
+                        <label className="inline-flex items-center space-x-1"><input type="checkbox" checked={demographics.genders.female} onChange={(e)=>setDemographics(p=>({...p,genders:{...p.genders,female:e.target.checked}}))} /><span>Female</span></label>
+                        <label className="inline-flex items-center space-x-1"><input type="checkbox" checked={demographics.genders.other} onChange={(e)=>setDemographics(p=>({...p,genders:{...p.genders,other:e.target.checked}}))} /><span>Other</span></label>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
