@@ -40,12 +40,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAIOptimizeModal, setShowAIOptimizeModal] = useState(false);
   const [showAICreateModal, setShowAICreateModal] = useState(false);
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
     console.log('Campaign action:', action, campaign);
     if (onCampaignAction) {
       onCampaignAction(campaign.campaign_id || campaign.id, action);
+    }
+
+    // Local modals to ensure UX works regardless of parent tab
+    if (action === 'analytics') {
+      setSelectedCampaign(campaign);
+      setShowAnalyticsModal(true);
+    } else if (action === 'settings') {
+      setSelectedCampaign(campaign);
+      setShowSettingsModal(true);
     }
   };
 
@@ -553,6 +564,80 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
         onClose={() => setShowAIOptimizeModal(false)}
         campaigns={campaigns}
       />
+
+      {/* Fallback Analytics Modal (local) */}
+      {showAnalyticsModal && selectedCampaign && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <BarChart3 className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Campaign Analytics</h2>
+                  <p className="text-sm text-gray-600">{selectedCampaign.name}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowAnalyticsModal(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="text-sm text-blue-800">Reach</div>
+                  <div className="text-2xl font-bold text-blue-900">{(selectedCampaign.reach || 0).toLocaleString()}</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="text-sm text-green-800">Clicks</div>
+                  <div className="text-2xl font-bold text-green-900">{selectedCampaign.clicks || 0}</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <div className="text-sm text-purple-800">CTR</div>
+                  <div className="text-2xl font-bold text-purple-900">{selectedCampaign.ctr ? `${selectedCampaign.ctr}%` : '0%'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback Settings Modal (local) */}
+      {showSettingsModal && selectedCampaign && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gray-100 rounded-lg">
+                  <Settings className="w-6 h-6 text-gray-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">Campaign Settings</h2>
+                  <p className="text-sm text-gray-600">{selectedCampaign.name}</p>
+                </div>
+              </div>
+              <button onClick={() => setShowSettingsModal(false)} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Daily Budget</label>
+                <input type="number" defaultValue={selectedCampaign.budget} className="w-full px-3 py-2 border border-gray-300 rounded" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <input type="date" defaultValue={selectedCampaign.startDate ? selectedCampaign.startDate.split('T')[0] : ''} className="w-full px-3 py-2 border border-gray-300 rounded" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</label>
+                <input type="number" defaultValue={selectedCampaign.duration || 30} className="w-full px-3 py-2 border border-gray-300 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
