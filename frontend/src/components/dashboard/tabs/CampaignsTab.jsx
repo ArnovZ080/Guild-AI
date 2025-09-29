@@ -963,10 +963,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <div className="text-2xl font-bold text-gray-900">{formatNumber(campaign.conversions || 0)}</div>
                   <div className="text-xs text-gray-500">Conversions</div>
                 </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{campaign.roas ? `${campaign.roas}x` : '0x'}</div>
-                  <div className="text-xs text-gray-500">ROAS</div>
-                </div>
               </div>
 
             {/* CTR/ROAS mini-sparkline (ads only, if data exists) */}
@@ -1053,14 +1049,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <span className="ml-2 font-semibold text-gray-900">
                       {formatCurrency((campaign.budget || 0) - (campaign.spend || 0))}
                     </span>
-                  </div>
-                  <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
-                    <Tooltip label="Cost per Lead (CPL): your average cost for generating one lead">
-                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Lead (CPL): {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
-                    </Tooltip>
-                    <Tooltip label="Cost per Acquisition (CPA): your average cost for acquiring one customer">
-                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Acquisition (CPA): {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
-                    </Tooltip>
                   </div>
                 </div>
                 <div className="w-40">
