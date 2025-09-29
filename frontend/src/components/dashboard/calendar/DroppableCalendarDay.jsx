@@ -2,7 +2,7 @@ import React from 'react';
 import { useDrop } from 'react-dnd';
 import DraggableContentItem from './DraggableContentItem';
 
-const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, onContentSelect, selectedItems, isCurrentMonth = true, isToday = false }) => {
+const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, onContentSelect, selectedItems, isCurrentMonth = true, isToday = false, isInHighlightedRange = false, isRangeStart = false, isRangeEnd = false }) => {
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: 'content',
     drop: (item) => {
@@ -19,12 +19,22 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
   return (
     <div
       ref={drop}
-      className={`min-h-[120px] border border-gray-200 rounded-lg p-2 transition-colors ${
+      className={`relative min-h-[120px] border border-gray-200 rounded-lg p-2 transition-colors ${
         isOver && canDrop ? 'bg-purple-50 border-purple-300' : 
         isToday ? 'bg-blue-50 border-blue-300' :
         isCurrentMonth ? 'hover:bg-gray-50' : 'bg-gray-50 opacity-60'
       }`}
     >
+      {isInHighlightedRange && (
+        <div
+          className={`absolute top-0 left-0 right-0 h-1 ${
+            isRangeStart && isRangeEnd ? 'rounded-full' :
+            isRangeStart ? 'rounded-l-full' :
+            isRangeEnd ? 'rounded-r-full' : ''
+          } bg-purple-400`}
+          title="Highlighted campaign period"
+        />
+      )}
       <div className="flex items-center justify-between mb-2">
         <div className={`text-sm font-medium ${
           isToday ? 'text-blue-700 bg-blue-100 px-2 py-1 rounded-full' :

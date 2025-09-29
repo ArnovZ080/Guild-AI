@@ -211,6 +211,28 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
 
   const viewContent = getViewContent();
 
+  // Highlighted campaign date-range helper
+  const getHighlightedCampaign = () => {
+    if (!highlightedCampaign || !Array.isArray(campaigns) || campaigns.length === 0) return null;
+    return campaigns.find(c => (c.id || c.campaign_id) === highlightedCampaign) || null;
+  };
+
+  const isDateWithinHighlightedCampaign = (date) => {
+    const campaign = getHighlightedCampaign();
+    if (!campaign) return false;
+    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+    if (!start && !end) return false;
+    const d = new Date(date);
+    d.setHours(0,0,0,0);
+    if (start) start.setHours(0,0,0,0);
+    if (end) end.setHours(0,0,0,0);
+    if (start && end) return d >= start && d <= end;
+    if (start && !end) return d.getTime() === start.getTime();
+    if (!start && end) return d.getTime() === end.getTime();
+    return false;
+  };
+
   // Handle content move via drag and drop
   const handleContentMove = (content, newDate) => {
     setLocalCalendar(prevCalendar => 
@@ -1191,19 +1213,38 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
         
             {/* Month Grid */}
         <div className="grid grid-cols-7 gap-2">
-              {viewContent.map((dayData, i) => (
-                <DroppableCalendarDay
-                  key={i}
-                  date={dayData.date}
-                  content={dayData.content}
-                  onContentMove={handleContentMove}
-                  onContentClick={handleContentClick}
-                  onContentSelect={handlePostSelection}
-                  selectedItems={new Set(selectedPosts)}
-                  isCurrentMonth={dayData.isCurrentMonth}
-                  isToday={dayData.isToday}
-                />
-              ))}
+              {viewContent.map((dayData, i) => {
+                const inRange = isDateWithinHighlightedCampaign(dayData.date);
+                let isStart = false;
+                let isEnd = false;
+                const hc = getHighlightedCampaign();
+                if (inRange && hc) {
+                  const start = hc.startDate ? new Date(hc.startDate) : null;
+                  const end = hc.endDate ? new Date(hc.endDate) : null;
+                  if (start) start.setHours(0,0,0,0);
+                  if (end) end.setHours(0,0,0,0);
+                  const d = new Date(dayData.date);
+                  d.setHours(0,0,0,0);
+                  isStart = !!start && d.getTime() === start.getTime();
+                  isEnd = !!end && d.getTime() === end.getTime();
+                }
+                return (
+                  <DroppableCalendarDay
+                    key={i}
+                    date={dayData.date}
+                    content={dayData.content}
+                    onContentMove={handleContentMove}
+                    onContentClick={handleContentClick}
+                    onContentSelect={handlePostSelection}
+                    selectedItems={new Set(selectedPosts)}
+                    isCurrentMonth={dayData.isCurrentMonth}
+                    isToday={dayData.isToday}
+                    isInHighlightedRange={inRange}
+                    isRangeStart={isStart}
+                    isRangeEnd={isEnd}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -1222,17 +1263,36 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
             
             {/* Week Grid */}
             <div className="grid grid-cols-7 gap-2">
-              {viewContent.map((dayData, i) => (
-                <DroppableCalendarDay
-                  key={i}
-                  date={dayData.date}
-                  content={dayData.content}
-                  onContentMove={handleContentMove}
-                  onContentClick={handleContentClick}
-                  onContentSelect={handlePostSelection}
-                  selectedItems={new Set(selectedPosts)}
-                />
-              ))}
+              {viewContent.map((dayData, i) => {
+                const inRange = isDateWithinHighlightedCampaign(dayData.date);
+                let isStart = false;
+                let isEnd = false;
+                const hc = getHighlightedCampaign();
+                if (inRange && hc) {
+                  const start = hc.startDate ? new Date(hc.startDate) : null;
+                  const end = hc.endDate ? new Date(hc.endDate) : null;
+                  if (start) start.setHours(0,0,0,0);
+                  if (end) end.setHours(0,0,0,0);
+                  const d = new Date(dayData.date);
+                  d.setHours(0,0,0,0);
+                  isStart = !!start && d.getTime() === start.getTime();
+                  isEnd = !!end && d.getTime() === end.getTime();
+                }
+                return (
+                  <DroppableCalendarDay
+                    key={i}
+                    date={dayData.date}
+                    content={dayData.content}
+                    onContentMove={handleContentMove}
+                    onContentClick={handleContentClick}
+                    onContentSelect={handlePostSelection}
+                    selectedItems={new Set(selectedPosts)}
+                    isInHighlightedRange={inRange}
+                    isRangeStart={isStart}
+                    isRangeEnd={isEnd}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
