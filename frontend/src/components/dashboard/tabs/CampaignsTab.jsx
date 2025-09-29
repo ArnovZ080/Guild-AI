@@ -676,6 +676,160 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         </div>
         
 
+        {/* Audience Breakdown */}
+        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-medium text-gray-900">Audience Breakdown</div>
+            <Tooltip label="Breakdown of demographics and locations derived from campaign and onboarding data."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="p-3 bg-white border rounded">
+              <div className="text-xs text-gray-500">Age</div>
+              <div className="mt-1 text-gray-900">{(() => {
+                const ages = filteredCampaigns.map(c=>c?.demographics?.age || null).filter(Boolean);
+                if (ages.length===0) return '—';
+                const min = Math.min(...ages.map(a=>a.min||0));
+                const max = Math.max(...ages.map(a=>a.max||0));
+                return `${min}-${max}`;
+              })()}</div>
+            </div>
+            <div className="p-3 bg-white border rounded">
+              <div className="text-xs text-gray-500">Gender</div>
+              <div className="mt-1 text-gray-900">{(() => {
+                const g = { male:0, female:0, other:0 };
+                filteredCampaigns.forEach(c=>{ const gg=c?.demographics?.genders; if (gg) { Object.keys(g).forEach(k=>{ if (gg[k]) g[k]++; }); }});
+                const active = Object.entries(g).filter(([,v])=>v>0).map(([k])=>k);
+                return active.length? active.join(', ') : '—';
+              })()}</div>
+            </div>
+            <div className="p-3 bg-white border rounded">
+              <div className="text-xs text-gray-500">Top Locations</div>
+              <div className="mt-1 text-gray-900">{(() => {
+                const locs = {};
+                filteredCampaigns.forEach(c=>{ const country=c?.geo?.country || c?.targeting?.country; if (country) locs[country]=(locs[country]||0)+1; });
+                const top = Object.entries(locs).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k])=>k);
+                return top.length? top.join(', ') : '—';
+              })()}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Creative Performance Insights */}
+        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-medium text-gray-900">Creative Performance Insights</div>
+            <Tooltip label="Which assets and copy performed best across campaigns."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+          </div>
+          {(() => {
+            const rows = [];
+            filteredCampaigns.forEach(c=>{
+              if (Array.isArray(c?.creative_performance)) {
+                c.creative_performance.forEach(r=>{
+                  rows.push({
+                    name: r.name || r.asset || 'Asset',
+                    impressions: r.impressions||0,
+                    ctr: r.ctr!=null? Number(r.ctr): null,
+                    conversions: r.conversions!=null? Number(r.conversions): null,
+                    roas: r.roas!=null? Number(r.roas): null
+                  });
+                });
+              }
+            });
+            if (rows.length===0) return <div className="text-sm text-gray-500">No creative performance data yet.</div>;
+            const top = rows.sort((a,b)=>{
+              const as = (a.ctr||0)*0.5 + (a.conversions||0)*0.3 + (a.roas||0)*0.2;
+              const bs = (b.ctr||0)*0.5 + (b.conversions||0)*0.3 + (b.roas||0)*0.2;
+              return bs-as;
+            }).slice(0,5);
+            return (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left text-gray-600">
+                      <th className="py-1 pr-3">Asset</th>
+                      <th className="py-1 pr-3">Impr.</th>
+                      <th className="py-1 pr-3">CTR</th>
+                      <th className="py-1 pr-3">Conv.</th>
+                      <th className="py-1 pr-3">ROAS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {top.map((r,i)=> (
+                      <tr key={i} className="border-t">
+                        <td className="py-1 pr-3 text-gray-900">{r.name}</td>
+                        <td className="py-1 pr-3">{r.impressions.toLocaleString()}</td>
+                        <td className="py-1 pr-3">{r.ctr!=null? `${r.ctr}%` : '—'}</td>
+                        <td className="py-1 pr-3">{r.conversions!=null? r.conversions : '—'}</td>
+                        <td className="py-1 pr-3">{r.roas!=null? `${r.roas}x` : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Competitive Benchmarks */}
+        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-medium text-gray-900">Competitive Benchmarks</div>
+            <Tooltip label="Compare your key metrics against category benchmarks."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+          </div>
+          {(() => {
+            const data = competitive || { ctr_avg: 1.5, roas_avg: 2.8, cpa_avg: 42 };
+            const avg = (arr)=>{
+              const vals = arr.filter(v=>v!=null && !isNaN(Number(v))).map(Number);
+              if (!vals.length) return null; return vals.reduce((a,b)=>a+b,0)/vals.length;
+            };
+            const myCtr = avg(filteredCampaigns.map(c => c.ctr));
+            const myRoas = avg(filteredCampaigns.map(c => c.roas));
+            const myCpa = avg(filteredCampaigns.map(c => c.cpa));
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                <div className="p-3 bg-white border rounded">
+                  <div className="text-xs text-gray-500">CTR</div>
+                  <div className="flex items-baseline space-x-2 mt-1">
+                    <span className="text-gray-900 font-semibold">{myCtr!=null? `${myCtr.toFixed(2)}%` : '—'}</span>
+                    <span className="text-xs text-gray-500">vs {data.ctr_avg}%</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-white border rounded">
+                  <div className="text-xs text-gray-500">ROAS</div>
+                  <div className="flex items-baseline space-x-2 mt-1">
+                    <span className="text-gray-900 font-semibold">{myRoas!=null? `${myRoas.toFixed(2)}x` : '—'}</span>
+                    <span className="text-xs text-gray-500">vs {data.roas_avg}x</span>
+                  </div>
+                </div>
+                <div className="p-3 bg-white border rounded">
+                  <div className="text-xs text-gray-500">CPA</div>
+                  <div className="flex items-baseline space-x-2 mt-1">
+                    <span className="text-gray-900 font-semibold">{myCpa!=null? `$${myCpa.toFixed(2)}` : '—'}</span>
+                    <span className="text-xs text-gray-500">vs ${data.cpa_avg}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Sentiment Analysis */}
+        <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-medium text-gray-900">Sentiment Analysis</div>
+            <Tooltip label="We analyze recent comments/replies to gauge audience sentiment."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+          </div>
+          {(() => {
+            const comments = filteredCampaigns.flatMap(c => c?.recent_comments || []);
+            return (
+              <div className="p-3 bg-white border rounded">
+                <SentimentBlock comments={comments} />
+              </div>
+            );
+          })()}
+        </div>
+
+
         {showAdvancedFilters && (
           <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
