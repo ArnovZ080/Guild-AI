@@ -3,11 +3,22 @@ import { X, BrainCircuit } from 'lucide-react';
 import MarketingCampaignCreator from '../../MarketingCampaignCreator';
 
 const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign, apiBaseUrl }) => {
+  // Pull onboarding defaults for objective/audience
+  let initialObjective = '';
+  let initialAudienceDesc = '';
+  try {
+    const onboardingStr = typeof window !== 'undefined' ? localStorage.getItem('guild_onboarding_data') : null;
+    if (onboardingStr) {
+      const data = JSON.parse(onboardingStr);
+      initialObjective = data.businessType || data.answers?.[0] || '';
+      initialAudienceDesc = data.idealClient || data.clientAvatar || data.answers?.[3] || '';
+    }
+  } catch {}
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[95vh] flex flex-col">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-2">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -24,12 +35,14 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign, apiB
         </div>
 
         <div className="flex-1 overflow-hidden">
-          <div className="h-[calc(95vh-64px-20px)] p-6 overflow-auto">
+          <div className="p-6 overflow-auto">
             <MarketingCampaignCreator
               apiBaseUrl={apiBaseUrl}
               onCreated={(campaign) => {
                 try { if (onCreateCampaign) onCreateCampaign(campaign); } catch (_) {}
               }}
+              initialObjective={initialObjective}
+              initialAudienceDesc={initialAudienceDesc}
             />
           </div>
         </div>
