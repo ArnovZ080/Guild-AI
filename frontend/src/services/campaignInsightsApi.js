@@ -22,6 +22,19 @@ export async function getEmailBenchmarks() {
   };
 }
 
+// Competitive benchmarks per platform (stubbed averages)
+export async function getCompetitiveBenchmarks() {
+  await new Promise(r => setTimeout(r, 50));
+  return {
+    facebook: { cpa_avg: 40, ctr_avg: 1.5, roas_avg: 2.8 },
+    instagram: { cpa_avg: 45, ctr_avg: 1.7, roas_avg: 3.0 },
+    google: { cpa_avg: 55, ctr_avg: 2.5, roas_avg: 3.2 },
+    tiktok: { cpa_avg: 35, ctr_avg: 2.2, roas_avg: 2.6 },
+    linkedin: { cpa_avg: 80, ctr_avg: 0.9, roas_avg: 2.2 },
+    twitter: { cpa_avg: 50, ctr_avg: 1.2, roas_avg: 2.0 }
+  };
+}
+
 // Simple local persistence for campaign assets (placeholder for backend wiring)
 const ASSETS_STORE_KEY = 'guild_campaign_assets_store';
 
@@ -45,6 +58,23 @@ export function saveCampaignAssets(campaignId, assets) {
   } catch {
     return false;
   }
+}
+
+// Anomaly thresholds persistence
+const THRESHOLDS_KEY = 'guild_campaign_thresholds';
+
+export function loadAnomalyThresholds() {
+  try {
+    const raw = localStorage.getItem(THRESHOLDS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function saveAnomalyThresholds(thresholds) {
+  try {
+    localStorage.setItem(THRESHOLDS_KEY, JSON.stringify(thresholds));
+    return true;
+  } catch { return false; }
 }
 
 

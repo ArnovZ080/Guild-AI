@@ -42,7 +42,7 @@ import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignMod
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 import EmailTab from './EmailTab';
-import { getBenchmarks, getEmailBenchmarks, loadCampaignAssets } from '../../services/campaignInsightsApi';
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds } from '../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -68,6 +68,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showAnomalies, setShowAnomalies] = useState(true);
   const [benchmarks, setBenchmarks] = useState(null);
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
+  const [competitive, setCompetitive] = useState(null);
   const [dismissedAnomalies, setDismissedAnomalies] = useState(() => {
     try {
       const raw = localStorage.getItem('guild_campaign_anomaly_dismissals');
@@ -84,8 +85,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
           getEmailBenchmarks().catch(() => null)
         ]);
         if (!mounted) return;
-        setBenchmarks(b || { ctr_min: 1.0, roas_min: 2.0, cpa_max: 50 });
-        setEmailBenchmarks(eb || { delivery_min: 95, open_rate_min: 20, click_rate_min: 2, unsubscribe_max: 0.5, bounce_max: 1.0 });
+        const persisted = loadAnomalyThresholds();
+        setBenchmarks(persisted?.ads || b || { ctr_min: 1.0, roas_min: 2.0, cpa_max: 50 });
+        setEmailBenchmarks(persisted?.email || eb || { delivery_min: 95, open_rate_min: 20, click_rate_min: 2, unsubscribe_max: 0.5, bounce_max: 1.0 });
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const cb = await getCompetitiveBenchmarks().catch(()=>null);
+        if (!mounted) return;
+        setCompetitive(cb);
       } catch {}
     })();
     return () => { mounted = false; };
@@ -472,6 +486,16 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <div className="text-gray-900">{row.cpa != null ? `$${Math.round(row.cpa)}` : '—'}</div>
                     <div className="text-gray-600">CTR: {row.ctr != null ? `${row.ctr.toFixed(1)}%` : '—'}</div>
                   </div>
+                    {competitive?.[row.platform] && (
+                      <div className="mt-1 text-xs text-gray-600">
+                        <div className="flex items-center justify-between">
+                          <Tooltip label="Your CPA vs industry average">
+                            <span>vs avg</span>
+                          </Tooltip>
+                          <span>{`$${competitive[row.platform].cpa_avg} • ${competitive[row.platform].ctr_avg}% CTR • ${competitive[row.platform].roas_avg}x ROAS`}</span>
+                        </div>
+                      </div>
+                    )}
                 </div>
               ))}
             </div>
@@ -588,6 +612,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
             <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on benchmarks'}>
               <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomalies">
                 <AlertTriangle className="w-4 h-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label="Configure anomaly thresholds">
+              <button onClick={()=>setShowSettingsModal(true)} className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100" title="Threshold settings">
+                <Sliders className="w-4 h-4" />
               </button>
             </Tooltip>
           </div>
@@ -1595,6 +1624,36 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                         <option>AI Recommended</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+              </div>
+              {/* Thresholds (global) */}
+              <div className="border-t pt-6">
+                <div className="text-sm font-medium text-gray-900 mb-3">Anomaly Thresholds (Global)</div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <label className="block text-gray-700 mb-1">CTR min (%)</label>
+                    <input type="number" defaultValue={benchmarks?.ctr_min ?? 1.0} onBlur={(e)=>{
+                      const next = { ads: { ...(benchmarks||{}), ctr_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                      saveAnomalyThresholds(next);
+                      setBenchmarks(next.ads);
+                    }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">ROAS min (x)</label>
+                    <input type="number" defaultValue={benchmarks?.roas_min ?? 2.0} onBlur={(e)=>{
+                      const next = { ads: { ...(benchmarks||{}), roas_min: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                      saveAnomalyThresholds(next);
+                      setBenchmarks(next.ads);
+                    }} className="w-full px-3 py-2 border border-gray-300 rounded" />
+                  </div>
+                  <div>
+                    <label className="block text-gray-700 mb-1">CPA max ($)</label>
+                    <input type="number" defaultValue={benchmarks?.cpa_max ?? 50} onBlur={(e)=>{
+                      const next = { ads: { ...(benchmarks||{}), cpa_max: parseFloat(e.target.value||'0') }, email: emailBenchmarks };
+                      saveAnomalyThresholds(next);
+                      setBenchmarks(next.ads);
+                    }} className="w-full px-3 py-2 border border-gray-300 rounded" />
                   </div>
                 </div>
               </div>
