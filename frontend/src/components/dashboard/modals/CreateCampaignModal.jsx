@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { logCampaignActivity } from '../../services/campaignInsightsApi';
+import { logCampaignActivity } from '../../../services/campaignInsightsApi';
 import { 
   X, 
   Target, 
