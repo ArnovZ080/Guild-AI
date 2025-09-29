@@ -509,37 +509,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             </div>
           </div>
           
-          {/* AI Campaign Actions - unified: Create + AI Orchestrated */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Plus className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Create Campaign</h3>
-                  <p className="text-sm text-gray-600">Set up a campaign manually with full control</p>
-                </div>
-              </div>
-            </button>
-            <button 
-              onClick={() => setShowAIWorkflowModal(true)}
-              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Zap className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">AI Orchestrated Campaign</h3>
-                  <p className="text-sm text-gray-600">Unified AI flow: strategy → creatives → validation → judge</p>
-                </div>
-              </div>
-            </button>
-          </div>
+          {/* Actions moved to header to avoid duplication */}
         </div>
 
         {/* Cross-Channel Comparison */}
