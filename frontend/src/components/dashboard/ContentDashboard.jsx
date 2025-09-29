@@ -581,7 +581,7 @@ const ContentDashboard = () => {
               campaigns={mergedCampaigns} 
               onCampaignAction={handleCampaignAction}
               onCreateCampaign={handleCreateCampaign}
-              onRefreshCampaigns={refetchCampaigns}
+              onRefreshCampaigns={async ()=>{ try { await refetchCampaigns(); } catch {} }}
             />);
             })()}
           </motion.div>

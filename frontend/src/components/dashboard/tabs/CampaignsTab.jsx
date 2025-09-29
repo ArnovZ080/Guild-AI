@@ -110,7 +110,9 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
   const [competitive, setCompetitive] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshingCampaigns, setIsRefreshingCampaigns] = useState(false);
   const [showThresholdsModal, setShowThresholdsModal] = useState(false);
+  const [thresholdSavedAt, setThresholdSavedAt] = useState(null);
   const [dismissedAnomalies, setDismissedAnomalies] = useState(() => {
     try {
       const raw = localStorage.getItem('guild_campaign_anomaly_dismissals');
@@ -699,6 +701,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             </Tooltip>
           </div>
         </div>
+        {showAnomalies && (
+          <div className="mt-2 text-xs inline-flex items-center px-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
+            <AlertTriangle className="w-3 h-3 mr-1" /> Anomaly flags ON
+          </div>
+        )}
 
         {showAdvancedFilters && (
           <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -1088,19 +1095,18 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                 </div>
               </div>
 
-              {/* ROI snapshot aligned with actions (ads only) */}
+              {/* ROI snapshot inline with bottom-left buttons (ads only) */}
               {((campaign.platform||'').toLowerCase()!=='email') && (
-                <div className="flex items-center justify-between mb-2">
-                  <div />
-                  <div className="hidden md:flex items-center space-x-4 text-xs">
+                <div className="mb-2">
+                  <div className="flex items-center space-x-4 text-xs text-gray-700">
                     <Tooltip label="Average cost to acquire a customer from this campaign.">
-                      <div className="text-gray-700"><span className="text-gray-500">Cost per Action (CPA):</span> <span className="font-semibold text-gray-900">{campaign.cpa != null ? `$${campaign.cpa}` : '—'}</span></div>
+                      <div><span className="text-gray-500">Cost per Action (CPA):</span> <span className="font-semibold text-gray-900">{campaign.cpa != null ? `$${campaign.cpa}` : '—'}</span></div>
                     </Tooltip>
                     <Tooltip label="Average cost to generate a lead.">
-                      <div className="text-gray-700"><span className="text-gray-500">Cost per Lead (CPL):</span> <span className="font-semibold text-gray-900">{campaign.cpl != null ? `$${campaign.cpl}` : '—'}</span></div>
+                      <div><span className="text-gray-500">Cost per Lead (CPL):</span> <span className="font-semibold text-gray-900">{campaign.cpl != null ? `$${campaign.cpl}` : '—'}</span></div>
                     </Tooltip>
                     <Tooltip label="Return on Ad Spend. 3.0x means $3 revenue per $1 spent.">
-                      <div className="text-gray-700"><span className="text-gray-500">Return on Ad Spend (ROAS):</span> <span className="font-semibold text-gray-900">{campaign.roas != null ? `${campaign.roas}x` : '—'}</span></div>
+                      <div><span className="text-gray-500">Return on Ad Spend (ROAS):</span> <span className="font-semibold text-gray-900">{campaign.roas != null ? `${campaign.roas}x` : '—'}</span></div>
                     </Tooltip>
                   </div>
                 </div>
@@ -1242,7 +1248,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-4">
                   <button
                     onClick={() => handleCampaignAction(campaign.status === 'active' ? 'pause' : 'resume', campaign)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center ${
@@ -1284,6 +1290,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     <Calendar className="w-4 h-4 mr-2" />
                     Show in Calendar
                 </button>
+                  {/* keep ROI inline to the left with buttons on narrow widths as well */}
                 </div>
                 <div className="text-sm text-gray-500 flex items-center space-x-2" title="Timeline: progress from campaign start to end date">
                   {(() => {
