@@ -15,7 +15,11 @@ import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
 import { Loader2, CheckCircle, XCircle, FileText, BrainCircuit, Bot } from 'lucide-react';
 
-const API_URL = 'http://localhost:8000'; // Adjust if your API is elsewhere
+// Resolve API base URL from props or environment
+const DEFAULT_API_URL =
+    (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
+    (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) ||
+    'http://localhost:8000';
 
 const nodeStatusIcons = {
     pending: <FileText className="h-4 w-4 text-gray-500" />,
@@ -38,7 +42,7 @@ const CustomNode = ({ data }) => (
 
 const nodeTypes = { custom: CustomNode };
 
-const MarketingCampaignCreator = () => {
+const MarketingCampaignCreator = ({ apiBaseUrl, onCreated }) => {
     const [view, setView] = useState('input'); // 'input', 'approval', 'monitoring'
     const [objective, setObjective] = useState('');
     const [audienceDesc, setAudienceDesc] = useState('');
@@ -58,7 +62,8 @@ const MarketingCampaignCreator = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/workflows/contracts`, {
+            const apiUrl = apiBaseUrl || DEFAULT_API_URL;
+            const response = await fetch(`${apiUrl}/workflows/contracts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -83,11 +88,40 @@ const MarketingCampaignCreator = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_URL}/workflows/${workflowId}/approve`, {
+            const apiUrl = apiBaseUrl || DEFAULT_API_URL;
+            const response = await fetch(`${apiUrl}/workflows/${workflowId}/approve`, {
                 method: 'POST',
             });
             if (!response.ok) throw new Error('Failed to approve and execute workflow.');
             setView('monitoring');
+            // Optionally register a minimal campaign in the unified list for visibility
+            if (typeof onCreated === 'function') {
+                const nowIso = new Date().toISOString();
+                const stubCampaign = {
+                    campaign_id: `workflow_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+                    name: objective ? `${objective.substring(0, 60)}` : 'AI Orchestrated Campaign',
+                    platform: 'multi',
+                    type: 'ai_workflow',
+                    objective: objective || 'AI Orchestrated Campaign',
+                    budget: 0,
+                    duration: '',
+                    targetAudience: audienceDesc || '',
+                    status: 'scheduled',
+                    aiGenerated: true,
+                    aiInsights: { workflowId },
+                    created_at: nowIso,
+                    startDate: nowIso,
+                    endDate: undefined,
+                    spend: 0,
+                    reach: 0,
+                    impressions: 0,
+                    clicks: 0,
+                    conversions: 0,
+                    engagement: 0,
+                    roas: 0
+                };
+                try { onCreated(stubCampaign); } catch (_) {}
+            }
         } catch (err) {
             setError(err.message);
         } finally {
@@ -99,7 +133,8 @@ const MarketingCampaignCreator = () => {
         if (view !== 'monitoring' || !workflowId) return;
 
         try {
-            const response = await fetch(`${API_URL}/workflows/${workflowId}/status`);
+            const apiUrl = apiBaseUrl || DEFAULT_API_URL;
+            const response = await fetch(`${apiUrl}/workflows/${workflowId}/status`);
             if (!response.ok) return; // Don't throw error on failed poll
             const data = await response.json();
 

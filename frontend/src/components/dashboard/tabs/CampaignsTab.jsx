@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AICreateCampaignModal from '../modals/AICreateCampaignModal';
+import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
@@ -47,6 +48,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAIOptimizeModal, setShowAIOptimizeModal] = useState(false);
   const [showAICreateModal, setShowAICreateModal] = useState(false);
+  const [showAIWorkflowModal, setShowAIWorkflowModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [openMenuForId, setOpenMenuForId] = useState(null);
@@ -226,6 +228,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
               onClick={() => setShowAICreateModal(true)}
               className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
             >
+            <button 
+              onClick={() => setShowAIWorkflowModal(true)}
+              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Zap className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">AI Orchestrated Campaign</h3>
+                  <p className="text-sm text-gray-600">Plan approval with live agent workflow transparency</p>
+                </div>
+              </div>
+            </button>
               <div className="flex items-center space-x-3">
                 <div className="p-2 bg-blue-100 rounded-lg">
                   <Brain className="w-5 h-5 text-blue-600" />
@@ -584,6 +600,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       <AICreateCampaignModal
         isOpen={showAICreateModal}
         onClose={() => setShowAICreateModal(false)}
+        onCreateCampaign={handleCreateCampaign}
+      />
+
+      <AIWorkflowCreateCampaignModal
+        isOpen={showAIWorkflowModal}
+        onClose={() => setShowAIWorkflowModal(false)}
         onCreateCampaign={handleCreateCampaign}
       />
 
