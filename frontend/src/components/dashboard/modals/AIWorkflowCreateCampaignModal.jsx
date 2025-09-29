@@ -75,6 +75,9 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
   const [creatives, setCreatives] = useState([]);
   const [editingCreative, setEditingCreative] = useState(null);
   const [abFactor, setAbFactor] = useState('headline'); // headline|creative|copy|cta|subject
+  // Resolve goal early to avoid temporal dead zone issues
+  const resolvedGoal = goal === 'Other' ? (goalOther || '').trim() : goal;
+  const canProceedPage1 = resolvedGoal && budgetRange.min >= 0 && budgetRange.max >= budgetRange.min && timeframe.start;
   const recommendedAb = useMemo(() => {
     if ((resolvedGoal||'').toLowerCase().includes('awareness')) return { factor: 'creative', why: 'Visuals drive reach/recall in awareness campaigns.' };
     if ((resolvedGoal||'').toLowerCase().includes('lead')) return { factor: 'headline', why: 'Headline clarity impacts conversion intent for lead gen.' };
@@ -151,9 +154,6 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
   }, []);
 
   if (!isOpen) return null;
-
-  const resolvedGoal = goal === 'Other' ? (goalOther || '').trim() : goal;
-  const canProceedPage1 = resolvedGoal && budgetRange.min >= 0 && budgetRange.max >= budgetRange.min && timeframe.start;
 
   const handleLaunch = () => {
     // Produce a draft campaign payload for caller
