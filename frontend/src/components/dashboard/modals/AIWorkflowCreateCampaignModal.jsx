@@ -19,8 +19,9 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
   const [step, setStep] = useState(1);
 
   // Page 1: inputs
-  const goals = ['Sell more courses','Grow my following','Increase leads','Boost repeat purchases','Brand awareness'];
+  const goals = ['Sell more courses','Grow my following','Increase leads','Boost repeat purchases','Brand awareness','Other'];
   const [goal, setGoal] = useState('');
+  const [goalOther, setGoalOther] = useState('');
   const [budgetRange, setBudgetRange] = useState({ min: 50, max: 200 });
   const [timeframe, setTimeframe] = useState({ start: '', end: '' });
   const [pacing, setPacing] = useState('even'); // even | frontloaded
@@ -117,14 +118,15 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
 
   if (!isOpen) return null;
 
-  const canProceedPage1 = goal && budgetRange.min >= 0 && budgetRange.max >= budgetRange.min && timeframe.start;
+  const resolvedGoal = goal === 'Other' ? (goalOther || '').trim() : goal;
+  const canProceedPage1 = resolvedGoal && budgetRange.min >= 0 && budgetRange.max >= budgetRange.min && timeframe.start;
 
   const handleLaunch = () => {
     // Produce a draft campaign payload for caller
     const payload = {
-      name: `${goal} Campaign` || 'AI Orchestrated Campaign',
+      name: `${resolvedGoal} Campaign` || 'AI Orchestrated Campaign',
       type: 'ai_orchestrated',
-      objective: goal,
+      objective: resolvedGoal,
       status: 'draft',
       startDate: timeframe.start || new Date().toISOString(),
       endDate: timeframe.end || null,
@@ -181,6 +183,15 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
                         <input type="radio" className="mr-2" checked={goal===g} onChange={()=>setGoal(g)} /> {g}
                       </label>
                     ))}
+                    {goal === 'Other' && (
+                      <textarea
+                        value={goalOther}
+                        onChange={(e)=>setGoalOther(e.target.value)}
+                        rows={2}
+                        placeholder="Describe your goal in your own words..."
+                        className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    )}
                   </div>
                 </div>
                 <div className="space-y-3">
