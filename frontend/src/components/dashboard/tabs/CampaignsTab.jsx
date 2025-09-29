@@ -1372,24 +1372,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         onCreateCampaign={handleCreateCampaign}
       />
 
-      {/* AI Create Campaign Modal */}
-      <AICreateCampaignModal
-        isOpen={showAICreateModal}
-        onClose={() => setShowAICreateModal(false)}
-        onCreateCampaign={handleCreateCampaign}
-      />
-
       <AIWorkflowCreateCampaignModal
         isOpen={showAIWorkflowModal}
         onClose={() => setShowAIWorkflowModal(false)}
         onCreateCampaign={handleCreateCampaign}
-      />
-
-      {/* AI Optimize Campaign Modal */}
-      <AIOptimizeCampaignModal
-        isOpen={showAIOptimizeModal}
-        onClose={() => setShowAIOptimizeModal(false)}
-        campaigns={campaigns.filter(c => !!c && c.status !== 'deleted')}
       />
 
       {/* Fallback Analytics Modal (local) */}
