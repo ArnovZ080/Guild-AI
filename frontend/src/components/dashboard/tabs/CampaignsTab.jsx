@@ -69,7 +69,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const Tooltip = ({ label, children }) => (
     <span className="relative group inline-flex items-center">
       {children}
-      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-md">
         {label}
       </span>
     </span>
@@ -536,7 +536,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
                         <div className="border-t border-gray-200"></div>
-                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('menu', campaign); }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
+                        <button onClick={() => { setOpenMenuForId(null); if (window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.')) { handleCampaignAction('delete', campaign); } }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
                       </div>
                     )}
                   </div>
