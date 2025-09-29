@@ -68,6 +68,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [showAnomalies, setShowAnomalies] = useState(true);
   const [benchmarks, setBenchmarks] = useState(null);
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
+  const [dismissedAnomalies, setDismissedAnomalies] = useState(() => {
+    try {
+      const raw = localStorage.getItem('guild_campaign_anomaly_dismissals');
+      return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -105,6 +111,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       if (campaign?.bounce_rate != null && campaign.bounce_rate > eb.bounce_max) reasons.push(`Bounce ${campaign.bounce_rate}% above ${eb.bounce_max}%`);
     }
     return reasons;
+  };
+
+  const isAnomalyDismissed = (campaignId) => {
+    if (!campaignId) return false;
+    const entry = dismissedAnomalies[campaignId];
+    if (!entry) return false;
+    const now = Date.now();
+    return now < entry.expiresAt;
+  };
+
+  const dismissAnomaliesFor = (campaignId) => {
+    if (!campaignId) return;
+    const next = { ...dismissedAnomalies, [campaignId]: { expiresAt: Date.now() + 7*24*60*60*1000 } };
+    setDismissedAnomalies(next);
+    try { localStorage.setItem('guild_campaign_anomaly_dismissals', JSON.stringify(next)); } catch {}
   };
 
   // Lightweight Tooltip component
@@ -691,13 +712,20 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(campaign.status || 'unknown')}`}>
                     {campaign.status || 'Unknown'}
                 </span>
-                {showAnomalies && ((campaign.platform||'').toLowerCase()!=='email') && (()=>{ const reasons = detectAnomalies(campaign); return reasons.length>0 ? (
-                  <Tooltip label={`Why flagged: ${reasons.join(' • ')}`}>
-                    <span className="inline-flex items-center px-2 py-1 rounded-full border text-xs text-orange-800 border-orange-200 bg-orange-50">
-                      <AlertTriangle className="w-3 h-3 mr-1" /> Potential issue
-                    </span>
-                  </Tooltip>
-                ) : null; })()}
+                {showAnomalies && ((campaign.platform||'').toLowerCase()!=='email') && (()=>{ const reasons = detectAnomalies(campaign); const cid=(campaign.campaign_id||campaign.id); if (reasons.length>0 && !isAnomalyDismissed(cid)) return (
+                  <div className="inline-flex items-center space-x-1">
+                    <Tooltip label={`Why flagged: ${reasons.join(' • ')}`}>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full border text-xs text-orange-800 border-orange-200 bg-orange-50">
+                        <AlertTriangle className="w-3 h-3 mr-1" /> Potential issue
+                      </span>
+                    </Tooltip>
+                    <Tooltip label="Dismiss for 7 days (stores locally). Rationale: reduce alert fatigue while you address it.">
+                      <button onClick={()=>dismissAnomaliesFor(cid)} className="text-xs text-gray-600 hover:text-gray-900 px-1 py-0.5 border border-gray-200 rounded">
+                        Dismiss 7d
+                      </button>
+                    </Tooltip>
+                  </div>
+                ); return null; })()}
                 {(() => { const gp = computeGoalProgress(campaign); return gp ? (
                   <span className="hidden sm:inline-flex items-center px-2 py-1 rounded-full border text-xs text-emerald-800 border-emerald-200 bg-emerald-50" title={`Goal progress: ${gp.current}/${gp.target}`}>
                     Goal: {(campaign.goal||'').toString()}
@@ -742,7 +770,18 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 </div>
               </div>
 
-              {/* Campaign Metrics Grid */}
+            {/* A/B mini-summary (if present) */}
+            {campaign?.ab_test?.enabled && (campaign?.ab_results?.A || campaign?.ab_results?.B) && (
+              <div className="mb-3 text-xs text-gray-700 inline-flex items-center space-x-2">
+                <span className="uppercase tracking-wider px-1.5 py-0.5 rounded bg-pink-50 text-pink-700 border border-pink-200">A/B</span>
+                <span>CTR A: {(campaign?.ab_results?.A?.ctr ?? '—')}%</span>
+                <span>CTR B: {(campaign?.ab_results?.B?.ctr ?? '—')}%</span>
+                {campaign?.ab_winner && <span className="text-green-700">Winner: {campaign.ab_winner}</span>}
+                {!campaign?.ab_winner && <Tooltip label="Winner is computed on your Email/Ads detail page."><span className="text-gray-500">Winner: —</span></Tooltip>}
+              </div>
+            )}
+
+            {/* Campaign Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold text-gray-900">{formatNumber(campaign.reach || 0)}</div>
