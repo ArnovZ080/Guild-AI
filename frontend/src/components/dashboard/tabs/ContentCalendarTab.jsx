@@ -46,7 +46,7 @@ import AutoABTestingModal from '../modals/AutoABTestingModal';
 import RevenueAttributionModal from '../modals/RevenueAttributionModal';
 import ScenarioSimulationModal from '../modals/ScenarioSimulationModal';
 
-const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
+const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highlightedCampaign = null, onHighlightCampaign = null }) => {
   const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedContent, setSelectedContent] = useState(null);
@@ -86,7 +86,6 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   const [scenarioSimulationContent, setScenarioSimulationContent] = useState(null);
   const [selectedPosts, setSelectedPosts] = useState([]);
   const [showOptimizationToolbar, setShowOptimizationToolbar] = useState(false);
-  const [campaigns, setCampaigns] = useState([]);
   const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
   const [showDeadlines, setShowDeadlines] = useState(false);
   const [showCampaignOverview, setShowCampaignOverview] = useState(false);
@@ -122,9 +121,9 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
     const matchesPlatform = filterPlatform === 'all' || item.platform === filterPlatform;
     const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
     const matchesSearch = searchQuery === '' || 
-      item.content_preview?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.platform?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.content_type?.toLowerCase().includes(searchQuery.toLowerCase());
+      (item.content_preview || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.platform || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.content_type || '').toLowerCase().includes(searchQuery.toLowerCase());
     
     return matchesPlatform && matchesStatus && matchesSearch;
   });
@@ -211,6 +210,28 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
   };
 
   const viewContent = getViewContent();
+
+  // Highlighted campaign date-range helper
+  const getHighlightedCampaign = () => {
+    if (!highlightedCampaign || !Array.isArray(campaigns) || campaigns.length === 0) return null;
+    return campaigns.find(c => (c.id || c.campaign_id) === highlightedCampaign) || null;
+  };
+
+  const isDateWithinHighlightedCampaign = (date) => {
+    const campaign = getHighlightedCampaign();
+    if (!campaign) return false;
+    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+    if (!start && !end) return false;
+    const d = new Date(date);
+    d.setHours(0,0,0,0);
+    if (start) start.setHours(0,0,0,0);
+    if (end) end.setHours(0,0,0,0);
+    if (start && end) return d >= start && d <= end;
+    if (start && !end) return d.getTime() === start.getTime();
+    if (!start && end) return d.getTime() === end.getTime();
+    return false;
+  };
 
   // Handle content move via drag and drop
   const handleContentMove = (content, newDate) => {
@@ -926,92 +947,6 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
           )}
         </div>
 
-        {/* Campaign Overview */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Target className="w-5 h-5 text-indigo-500 mr-2" />
-              Campaign Overview
-            </h3>
-            <button 
-              onClick={() => setShowCampaignOverview(!showCampaignOverview)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center text-sm"
-            >
-              {showCampaignOverview ? 'Hide Campaigns' : 'View Campaigns'}
-            </button>
-          </div>
-          {showCampaignOverview && (
-            <div>
-              <div className="text-sm text-gray-600 mb-4">
-                Campaigns managed in Campaign Tab
-              </div>
-            
-            {campaigns.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns synced</h3>
-                <p className="text-gray-600 mb-4">Campaigns created in the Campaign Tab will appear here</p>
-                <div className="text-sm text-gray-500">
-                  Go to the Campaign Tab to create and manage campaigns
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {campaigns.map((campaign, idx) => {
-                  const campaignContent = getCampaignContent(campaign.id);
-                  return (
-                    <div key={campaign.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-1">{campaign.name}</h4>
-                          <p className="text-sm text-gray-600 line-clamp-2">{campaign.description}</p>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {campaignContent.length} scheduled
-                        </div>
-                      </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Status</span>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                          campaign.status === 'planning' ? 'bg-blue-100 text-blue-800' :
-                          campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
-                          campaign.status === 'completed' ? 'bg-gray-100 text-gray-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {campaign.status}
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Platforms</span>
-                        <span className="text-gray-900">{campaign.platforms?.length || 0} platforms</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Content</span>
-                        <span className="text-gray-900">{campaign.content?.length || 0} pieces</span>
-                      </div>
-                      
-                      {campaign.start_date && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Duration</span>
-                          <span className="text-gray-900">
-                            {new Date(campaign.start_date).toLocaleDateString()} - {campaign.end_date ? new Date(campaign.end_date).toLocaleDateString() : 'Ongoing'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  );
-                })}
-              </div>
-            )}
-            </div>
-          )}
-        </div>
 
         {/* Optimization Toolbar */}
         {selectedPosts.length > 0 && (
@@ -1104,6 +1039,108 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
           </div>
         )}
 
+        {/* Campaign Overview Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Target className="w-5 h-5 text-purple-500 mr-2" />
+              Campaign Overview
+            </h3>
+            <button 
+              onClick={() => setShowCampaignOverview(!showCampaignOverview)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+            >
+              {showCampaignOverview ? 'Hide Campaigns' : 'View Campaigns'}
+            </button>
+          </div>
+          {showCampaignOverview && (
+            <div>
+              <div className="text-sm text-gray-600 mb-4">
+                Campaigns managed in Campaign Tab
+              </div>
+            
+            {campaigns && campaigns.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns synced</h3>
+                <p className="text-gray-600 mb-4">Campaigns created in the Campaign Tab will appear here</p>
+                <div className="text-sm text-gray-500">
+                  Go to the Campaign Tab to create and manage campaigns
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {campaigns && campaigns.slice(0, 6).map((campaign) => (
+                  <div 
+                    key={campaign.id || campaign.campaign_id}
+                    className={`bg-white rounded-lg p-3 border-2 transition-all duration-200 ${
+                      highlightedCampaign === (campaign.id || campaign.campaign_id)
+                        ? 'border-purple-300 bg-purple-50 shadow-lg' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          campaign.status === 'active' ? 'bg-green-500' :
+                          campaign.status === 'paused' ? 'bg-yellow-500' :
+                          campaign.status === 'scheduled' ? 'bg-blue-500' :
+                          'bg-gray-500'
+                        }`}></div>
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {campaign.name}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                        campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                        campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {campaign.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 mb-2">
+                      {campaign.platform} • ${campaign.budget}/day
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        {campaign.startDate && new Date(campaign.startDate).toLocaleDateString()}
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Highlight the campaign in the calendar
+                          console.log('Highlight campaign in calendar:', campaign.name);
+                          if (onHighlightCampaign) {
+                            onHighlightCampaign(campaign.id || campaign.campaign_id);
+                          }
+                          // Scroll to the calendar view
+                          const calendarElement = document.querySelector('[data-calendar-view]');
+                          if (calendarElement) {
+                            calendarElement.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                      >
+                        Show in Calendar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {campaigns && campaigns.length > 6 && (
+              <div className="text-center mt-3">
+                <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                  View All Campaigns ({campaigns.length})
+                </button>
+              </div>
+            )}
+            </div>
+          )}
+        </div>
+
         {/* View Mode Toggle (moved above calendar) */}
         <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
           {[
@@ -1133,7 +1170,7 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
 
         {/* Calendar View */}
         {viewMode === 'month' && (
-          <div className="space-y-4">
+          <div className="space-y-4" data-calendar-view>
             {/* Calendar Navigation Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-4">
@@ -1176,19 +1213,38 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
         
             {/* Month Grid */}
         <div className="grid grid-cols-7 gap-2">
-              {viewContent.map((dayData, i) => (
-                <DroppableCalendarDay
-                  key={i}
-                  date={dayData.date}
-                  content={dayData.content}
-                  onContentMove={handleContentMove}
-                  onContentClick={handleContentClick}
-                  onContentSelect={handlePostSelection}
-                  selectedItems={new Set(selectedPosts)}
-                  isCurrentMonth={dayData.isCurrentMonth}
-                  isToday={dayData.isToday}
-                />
-              ))}
+              {viewContent.map((dayData, i) => {
+                const inRange = isDateWithinHighlightedCampaign(dayData.date);
+                let isStart = false;
+                let isEnd = false;
+                const hc = getHighlightedCampaign();
+                if (inRange && hc) {
+                  const start = hc.startDate ? new Date(hc.startDate) : null;
+                  const end = hc.endDate ? new Date(hc.endDate) : null;
+                  if (start) start.setHours(0,0,0,0);
+                  if (end) end.setHours(0,0,0,0);
+                  const d = new Date(dayData.date);
+                  d.setHours(0,0,0,0);
+                  isStart = !!start && d.getTime() === start.getTime();
+                  isEnd = !!end && d.getTime() === end.getTime();
+                }
+                return (
+                  <DroppableCalendarDay
+                    key={i}
+                    date={dayData.date}
+                    content={dayData.content}
+                    onContentMove={handleContentMove}
+                    onContentClick={handleContentClick}
+                    onContentSelect={handlePostSelection}
+                    selectedItems={new Set(selectedPosts)}
+                    isCurrentMonth={dayData.isCurrentMonth}
+                    isToday={dayData.isToday}
+                    isInHighlightedRange={inRange}
+                    isRangeStart={isStart}
+                    isRangeEnd={isEnd}
+                  />
+                );
+              })}
             </div>
           </div>
         )}
@@ -1207,17 +1263,36 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [] }) => {
             
             {/* Week Grid */}
             <div className="grid grid-cols-7 gap-2">
-              {viewContent.map((dayData, i) => (
-                <DroppableCalendarDay
-                  key={i}
-                  date={dayData.date}
-                  content={dayData.content}
-                  onContentMove={handleContentMove}
-                  onContentClick={handleContentClick}
-                  onContentSelect={handlePostSelection}
-                  selectedItems={new Set(selectedPosts)}
-                />
-              ))}
+              {viewContent.map((dayData, i) => {
+                const inRange = isDateWithinHighlightedCampaign(dayData.date);
+                let isStart = false;
+                let isEnd = false;
+                const hc = getHighlightedCampaign();
+                if (inRange && hc) {
+                  const start = hc.startDate ? new Date(hc.startDate) : null;
+                  const end = hc.endDate ? new Date(hc.endDate) : null;
+                  if (start) start.setHours(0,0,0,0);
+                  if (end) end.setHours(0,0,0,0);
+                  const d = new Date(dayData.date);
+                  d.setHours(0,0,0,0);
+                  isStart = !!start && d.getTime() === start.getTime();
+                  isEnd = !!end && d.getTime() === end.getTime();
+                }
+                return (
+                  <DroppableCalendarDay
+                    key={i}
+                    date={dayData.date}
+                    content={dayData.content}
+                    onContentMove={handleContentMove}
+                    onContentClick={handleContentClick}
+                    onContentSelect={handlePostSelection}
+                    selectedItems={new Set(selectedPosts)}
+                    isInHighlightedRange={inRange}
+                    isRangeStart={isStart}
+                    isRangeEnd={isEnd}
+                  />
+                );
+              })}
             </div>
           </div>
         )}

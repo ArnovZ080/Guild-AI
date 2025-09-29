@@ -225,7 +225,7 @@ const ContentRepurposeModal = ({ content, onClose, onSave }) => {
   };
 
   const expandContent = (content) => {
-    return `Expanded: ${content}\n\nThis topic deserves a deeper dive. Let's explore the key points:\n\n1. ${content}\n2. Additional insights and analysis\n3. Practical applications\n4. Real-world examples\n\nIn conclusion, ${content.toLowerCase()} offers valuable opportunities for growth and development.`;
+    return `Expanded: ${content}\n\nThis topic deserves a deeper dive. Let's explore the key points:\n\n1. ${content}\n2. Additional insights and analysis\n3. Practical applications\n4. Real-world examples\n\nIn conclusion, ${(content || '').toLowerCase()} offers valuable opportunities for growth and development.`;
   };
 
   const expandCaption = (caption) => {
