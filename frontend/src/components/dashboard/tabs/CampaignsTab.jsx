@@ -672,28 +672,9 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
             </button>
-            <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on thresholds'}>
-              <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomaly flags">
-                <AlertTriangle className={`w-4 h-4 ${(() => {
-                  try {
-                    const any = (campaigns||[]).some(c => detectAnomalies(c).length>0);
-                    return any && showAnomalies ? 'text-orange-600' : '';
-                  } catch { return ''; }
-                })()}`} />
-              </button>
-            </Tooltip>
-            <Tooltip label="Configure anomaly thresholds">
-              <button onClick={()=>setShowThresholdsModal(true)} className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100" title="Threshold settings">
-                <Sliders className="w-4 h-4" />
-              </button>
-            </Tooltip>
           </div>
         </div>
-        {showAnomalies && (
-          <div className="mt-2 text-xs inline-flex items-center px-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
-            <AlertTriangle className="w-3 h-3 mr-1" /> Anomaly flags ON
-          </div>
-        )}
+        
 
         {showAdvancedFilters && (
           <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
