@@ -735,21 +735,32 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <span className="ml-1">{gp.pct}%</span>
                   </span>
                 ) : null; })()}
-                <div className="flex items-center space-x-2 text-xs">
-                  <Tooltip label="First-touch attribution: the first campaign interaction that introduced a user">
-                    <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
-                  </Tooltip>
-                  <Tooltip label="Last-touch attribution: the final campaign interaction before conversion">
-                    <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Last-touch: {campaign.attributed_last || 0}</span>
-                  </Tooltip>
-                  <button
-                    onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
-                    className="p-1 text-gray-500 hover:text-gray-700"
-                    title="View attribution details"
-                  >
-                    <Info className="w-3 h-3" />
-                  </button>
-                </div>
+                {((campaign.platform||'').toLowerCase()!=='email') && (
+                  <div className="flex items-center space-x-2 text-xs">
+                    <div className="flex items-center space-x-1">
+                      <Tooltip label="First-touch: first interaction; Last-touch: final interaction before conversion.">
+                        <span className="text-gray-600">Attrib</span>
+                      </Tooltip>
+                      <div className="w-20 bg-gray-200 rounded h-1.5 overflow-hidden">
+                        {(() => { const ft = campaign.attributed_first||0; const lt = campaign.attributed_last||0; const total = Math.max(1, ft+lt); return (
+                          <div className="flex w-full h-full">
+                            <span className="bg-purple-400" style={{ width: `${Math.round((ft/total)*100)}%` }} />
+                            <span className="bg-indigo-400" style={{ width: `${Math.round((lt/total)*100)}%` }} />
+                          </div>
+                        ); })()}
+                      </div>
+                      <span className="text-purple-700">F:{campaign.attributed_first||0}</span>
+                      <span className="text-indigo-700">L:{campaign.attributed_last||0}</span>
+                    </div>
+                    <button
+                      onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                      className="p-1 text-gray-500 hover:text-gray-700"
+                      title="View attribution details"
+                    >
+                      <Info className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
                   <div className="relative">
                     <button 
                       onClick={() => setOpenMenuForId(openMenuForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
