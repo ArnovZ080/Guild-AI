@@ -107,7 +107,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [showAnomalies, setShowAnomalies] = useState(() => {
     try {
       const raw = localStorage.getItem('guild_campaign_anomalies_toggle');
-      return raw ? JSON.parse(raw) === true : true;
+      return raw ? JSON.parse(raw) : true;
     } catch { return true; }
   });
   const [benchmarks, setBenchmarks] = useState(null);
