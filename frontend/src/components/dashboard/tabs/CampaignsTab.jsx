@@ -37,10 +37,9 @@ import {
   Info
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
-import AICreateCampaignModal from '../modals/AICreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
-import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
+// removed AIOptimizeCampaignModal (redundant)
 import EmailTab from './EmailTab';
 
 // Inline sentiment block component
@@ -90,8 +89,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showAIOptimizeModal, setShowAIOptimizeModal] = useState(false);
-  const [showAICreateModal, setShowAICreateModal] = useState(false);
+  // removed showAIOptimizeModal and showAICreateModal (redundant)
   const [showAIWorkflowModal, setShowAIWorkflowModal] = useState(false);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -106,7 +104,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
   const [attribOpenForId, setAttribOpenForId] = useState(null);
   const [showCampaignDetails, setShowCampaignDetails] = useState(false);
-  const [showAnomalies, setShowAnomalies] = useState(true);
+  const [showGeneralInsights, setShowGeneralInsights] = useState(true);
+  const [showAnomalies, setShowAnomalies] = useState(() => {
+    try {
+      const raw = localStorage.getItem('guild_campaign_anomalies_toggle');
+      return raw ? JSON.parse(raw) : true;
+    } catch { return true; }
+  });
   const [benchmarks, setBenchmarks] = useState(null);
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
   const [competitive, setCompetitive] = useState(null);
@@ -120,6 +124,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+
+  // Persist anomaly toggle for reliability across renders/navigation
+  useEffect(() => {
+    try { localStorage.setItem('guild_campaign_anomalies_toggle', JSON.stringify(!!showAnomalies)); } catch {}
+  }, [showAnomalies]);
 
   useEffect(() => {
     let mounted = true;
@@ -471,9 +480,6 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               <Zap className="w-4 h-4 mr-2" />
               AI Orchestrated Campaign
             </button>
-            <button onClick={handleRefreshInsights} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh insights and benchmarks">
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
           </div>
         </div>
 
@@ -504,37 +510,144 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             </div>
           </div>
           
-          {/* AI Campaign Actions */}
-          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <button 
-              onClick={() => setShowAIOptimizeModal(true)}
-              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Zap className="w-5 h-5 text-blue-600" />
+          {/* Actions moved to header to avoid duplication */}
+          {/* General Insights (collapsible) moved under AI Campaign Insights */}
+          <div className="mt-4 pt-4 border-t border-blue-100">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <BarChart3 className="w-4 h-4 text-gray-700" />
+                <span className="font-semibold text-gray-900">General Insights</span>
+              </div>
+              <button onClick={()=>setShowGeneralInsights(!showGeneralInsights)} className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100">
+                {showGeneralInsights ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            {showGeneralInsights && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Audience Breakdown (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Audience Breakdown</div>
+                  <Tooltip label="Breakdown of demographics and locations derived from campaign and onboarding data."><span className="text-xs text-gray-600">Why this</span></Tooltip>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">AI Optimize Campaign</h3>
-                  <p className="text-sm text-gray-600">Let AI analyze and optimize your existing campaigns</p>
+                <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="p-2 bg-white border rounded">
+                    <div className="text-[11px] text-gray-500">Age</div>
+                    <div className="mt-1 text-gray-900">{(() => {
+                      const ages = filteredCampaigns.map(c=>c?.demographics?.age || null).filter(Boolean);
+                      if (ages.length===0) return '—';
+                      const min = Math.min(...ages.map(a=>a.min||0));
+                      const max = Math.max(...ages.map(a=>a.max||0));
+                      return `${min}-${max}`;
+                    })()}</div>
+                  </div>
+                  <div className="p-2 bg-white border rounded">
+                    <div className="text-[11px] text-gray-500">Gender</div>
+                    <div className="mt-1 text-gray-900">{(() => {
+                      const g = { male:0, female:0, other:0 };
+                      filteredCampaigns.forEach(c=>{ const gg=c?.demographics?.genders; if (gg) { Object.keys(g).forEach(k=>{ if (gg[k]) g[k]++; }); }});
+                      const active = Object.entries(g).filter(([,v])=>v>0).map(([k])=>k);
+                      return active.length? active.join(', ') : '—';
+                    })()}</div>
+                  </div>
+                  <div className="p-2 bg-white border rounded">
+                    <div className="text-[11px] text-gray-500">Top Locations</div>
+                    <div className="mt-1 text-gray-900">{(() => {
+                      const locs = {};
+                      filteredCampaigns.forEach(c=>{ const country=c?.geo?.country || c?.targeting?.country; if (country) locs[country]=(locs[country]||0)+1; });
+                      const top = Object.entries(locs).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>k);
+                      return top.length? top.join(', ') : '—';
+                    })()}</div>
+                  </div>
                 </div>
               </div>
-            </button>
-            
-            <button 
-              onClick={() => setShowAICreateModal(true)}
-              className="bg-white bg-opacity-80 hover:bg-opacity-100 rounded-lg p-4 text-left transition-all duration-200 border border-blue-200 hover:border-blue-300"
-            >
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Brain className="w-5 h-5 text-blue-600" />
+
+              {/* Competitive Benchmarks (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Competitive Benchmarks</div>
+                  <Tooltip label="Compare your key metrics against category benchmarks."><span className="text-xs text-gray-600">Why this</span></Tooltip>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">AI Create Campaign</h3>
-                  <p className="text-sm text-gray-600">AI creates optimized campaigns based on your business data</p>
-                </div>
+                {(() => {
+                  const data = competitive || { ctr_avg: 1.5, roas_avg: 2.8, cpa_avg: 42 };
+                  const avg = (arr)=>{ const vals = arr.filter(v=>v!=null && !isNaN(Number(v))).map(Number); if (!vals.length) return null; return vals.reduce((a,b)=>a+b,0)/vals.length; };
+                  const myCtr = avg(filteredCampaigns.map(c => c.ctr));
+                  const myRoas = avg(filteredCampaigns.map(c => c.roas));
+                  const myCpa = avg(filteredCampaigns.map(c => c.cpa));
+                  return (
+                    <div className="grid grid-cols-3 gap-3 text-sm">
+                      <div className="p-2 bg-white border rounded">
+                        <div className="text-[11px] text-gray-500">CTR</div>
+                        <div className="mt-1 text-gray-900">{myCtr!=null? `${myCtr.toFixed(1)}%` : '—'} <span className="text-[11px] text-gray-500">vs {data.ctr_avg}%</span></div>
+                      </div>
+                      <div className="p-2 bg-white border rounded">
+                        <div className="text-[11px] text-gray-500">ROAS</div>
+                        <div className="mt-1 text-gray-900">{myRoas!=null? `${myRoas.toFixed(1)}x` : '—'} <span className="text-[11px] text-gray-500">vs {data.roas_avg}x</span></div>
+                      </div>
+                      <div className="p-2 bg-white border rounded">
+                        <div className="text-[11px] text-gray-500">CPA</div>
+                        <div className="mt-1 text-gray-900">{myCpa!=null? `$${myCpa.toFixed(0)}` : '—'} <span className="text-[11px] text-gray-500">vs ${data.cpa_avg}</span></div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
-            </button>
+              {/* Creative Performance Insights (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Creative Performance</div>
+                  <Tooltip label="Which assets and copy performed best across campaigns."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const rows = [];
+                  filteredCampaigns.forEach(c=>{
+                    if (Array.isArray(c?.creative_performance)) {
+                      c.creative_performance.forEach(r=>{
+                        rows.push({
+                          name: r.name || r.asset || 'Asset',
+                          ctr: r.ctr!=null? Number(r.ctr): null,
+                          roas: r.roas!=null? Number(r.roas): null
+                        });
+                      });
+                    }
+                  });
+                  if (rows.length===0) return <div className="text-sm text-gray-500">No data yet.</div>;
+                  const top = rows.sort((a,b)=>{
+                    const as = (a.ctr||0)*0.6 + (a.roas||0)*0.4;
+                    const bs = (b.ctr||0)*0.6 + (b.roas||0)*0.4;
+                    return bs-as;
+                  }).slice(0,3);
+                  return (
+                    <ul className="text-sm text-gray-800 space-y-1">
+                      {top.map((r,i)=>(
+                        <li key={i} className="flex items-center justify-between">
+                          <span className="truncate mr-2" title={r.name}>{r.name}</span>
+                          <span className="text-gray-600 text-xs">CTR {r.ctr!=null? `${r.ctr}%`:'—'} • ROAS {r.roas!=null? `${r.roas}x`:'—'}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                })()}
+              </div>
+              {/* Sentiment Analysis (condensed) */}
+              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-gray-900">Sentiment Analysis</div>
+                  <Tooltip label="We analyze recent comments/replies to gauge audience sentiment."><span className="text-xs text-gray-600">Why this</span></Tooltip>
+                </div>
+                {(() => {
+                  const comments = filteredCampaigns.flatMap(c => c?.recent_comments || []);
+                  return comments.length === 0 ? (
+                    <div className="text-sm text-gray-500">No recent responses available.</div>
+                  ) : (
+                    <div className="text-sm text-gray-700">
+                      <SentimentBlock comments={comments} />
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+            )}
           </div>
         </div>
 
@@ -648,22 +761,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         </div>
       </div>
 
-      {/* Campaign Details Heading (global) */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-2">
-          <Target className="w-4 h-4 text-gray-700" />
-          <span className="font-semibold text-gray-900">Campaign Details</span>
-        </div>
-        <button
-          onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
-          className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
-        >
-          {showCampaignDetails ? 'Hide details' : 'Show details'}
-        </button>
-      </div>
-
       {/* Campaign Controls */}
-      <div className="bg-white rounded-lg shadow-sm border p-6">
+      <div className="bg-white rounded-lg shadow-sm border p-6 pb-8">
+        {/* Campaign Details Heading and toggle inside card */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <Target className="w-4 h-4 text-gray-700" />
+            <span className="font-semibold text-gray-900">Campaign Details</span>
+          </div>
+          <button
+            onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+          >
+            {showCampaignDetails ? 'Hide details' : 'Show details'}
+          </button>
+        </div>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -699,28 +811,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <button onClick={() => setShowAdvancedFilters(!showAdvancedFilters)} className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Filter campaigns">
               <Filter className="w-4 h-4" />
             </button>
-            <Tooltip label={showAnomalies? 'Hide anomaly flags':'Show anomaly flags based on thresholds'}>
-              <button onClick={()=>setShowAnomalies(v=>!v)} className={`p-2 rounded-lg transition-colors ${showAnomalies?'bg-orange-50 text-orange-700 border border-orange-200':'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`} title="Toggle anomaly flags">
-                <AlertTriangle className={`w-4 h-4 ${(() => {
-                  try {
-                    const any = (campaigns||[]).some(c => detectAnomalies(c).length>0);
-                    return any && showAnomalies ? 'text-orange-600' : '';
-                  } catch { return ''; }
-                })()}`} />
-              </button>
-            </Tooltip>
-            <Tooltip label="Configure anomaly thresholds">
-              <button onClick={()=>setShowThresholdsModal(true)} className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100" title="Threshold settings">
-                <Sliders className="w-4 h-4" />
-              </button>
-            </Tooltip>
           </div>
         </div>
-        {showAnomalies && (
-          <div className="mt-2 text-xs inline-flex items-center px-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700">
-            <AlertTriangle className="w-3 h-3 mr-1" /> Anomaly flags ON
-          </div>
-        )}
+        
+        
+
 
         {showAdvancedFilters && (
           <div className="mb-4 p-4 border border-gray-200 rounded-lg bg-gray-50">
@@ -1369,24 +1464,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         onCreateCampaign={handleCreateCampaign}
       />
 
-      {/* AI Create Campaign Modal */}
-      <AICreateCampaignModal
-        isOpen={showAICreateModal}
-        onClose={() => setShowAICreateModal(false)}
-        onCreateCampaign={handleCreateCampaign}
-      />
-
       <AIWorkflowCreateCampaignModal
         isOpen={showAIWorkflowModal}
         onClose={() => setShowAIWorkflowModal(false)}
         onCreateCampaign={handleCreateCampaign}
-      />
-
-      {/* AI Optimize Campaign Modal */}
-      <AIOptimizeCampaignModal
-        isOpen={showAIOptimizeModal}
-        onClose={() => setShowAIOptimizeModal(false)}
-        campaigns={campaigns.filter(c => !!c && c.status !== 'deleted')}
       />
 
       {/* Fallback Analytics Modal (local) */}

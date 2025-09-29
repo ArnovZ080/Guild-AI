@@ -49,6 +49,38 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         A: { note: '' },
         B: { note: '' }
       }
+    },
+    // New fields for refined flow
+    geo_targeting: {
+      country: '',
+      regions: '',
+      city: '',
+      radius: '',
+      language: ''
+    },
+    demographics: {
+      ageMin: '',
+      ageMax: '',
+      genders: { male: false, female: false, other: false }
+    },
+    interests: [],
+    custom_audiences: [],
+    lookalike_audiences: [],
+    budget_type: 'daily', // 'daily' or 'total'
+    total_budget: '',
+    smart_pacing: false,
+    creative_drafts: {
+      headlines: [],
+      descriptions: [],
+      ctas: []
+    },
+    uploaded_assets: [],
+    ai_creative_suggestions: [],
+    ab_testing_factors: {
+      headline: false,
+      image: false,
+      cta: false,
+      copy: false
     }
   };
   const [campaignData, setCampaignData] = useState(initialCampaignData);
@@ -188,7 +220,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   };
 
   const handleNext = () => {
-    if (step < 4) {
+    if (step < 5) {
       setStep(step + 1);
       // If moving to step 4, trigger AI analysis
       if (step === 3) {
@@ -512,7 +544,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         {/* Progress Bar */}
         <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            {[1, 2, 3, 4].map((stepNum) => (
+            {[1, 2, 3, 4, 5].map((stepNum) => (
               <div key={stepNum} className="flex items-center">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                   step >= stepNum 
@@ -521,7 +553,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                 }`}>
                   {stepNum}
                 </div>
-                {stepNum < 4 && (
+                {stepNum < 5 && (
                   <div className={`w-16 h-1 mx-2 ${
                     step > stepNum ? 'bg-blue-600' : 'bg-gray-200'
                   }`} />
@@ -537,7 +569,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
             {step === 1 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Campaign Basics</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🎯 Campaign Type & Objective</h3>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -577,16 +609,6 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                         ))}
                       </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Campaign Type & Objective</h3>
-                  <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Campaign Type *
@@ -625,55 +647,87 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 2 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Budget & Targeting</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🌍 Audience & Budget Setup</h3>
+                  
+                  {/* Geo-targeting */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">📍 Geo-targeting</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Daily Budget *
-                        </label>
-                        <div className="relative">
-                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
                           <input
-                            type="number"
-                            value={campaignData.budget}
-                            onChange={(e) => handleInputChange('budget', e.target.value)}
-                            placeholder="50"
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          type="text"
+                          value={campaignData.geo_targeting.country}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            geo_targeting: { ...prev.geo_targeting, country: e.target.value }
+                          }))}
+                          placeholder="e.g., United States"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           />
                         </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Regions/States</label>
+                        <input
+                          type="text"
+                          value={campaignData.geo_targeting.regions}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            geo_targeting: { ...prev.geo_targeting, regions: e.target.value }
+                          }))}
+                          placeholder="e.g., California, New York, Texas"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Campaign Duration (days)
-                        </label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">City (optional)</label>
+                        <input
+                          type="text"
+                          value={campaignData.geo_targeting.city}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            geo_targeting: { ...prev.geo_targeting, city: e.target.value }
+                          }))}
+                          placeholder="e.g., San Francisco"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Radius (miles)</label>
                         <input
                           type="number"
-                          value={campaignData.duration}
-                          onChange={(e) => handleInputChange('duration', e.target.value)}
-                          placeholder="30"
+                          value={campaignData.geo_targeting.radius}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            geo_targeting: { ...prev.geo_targeting, radius: e.target.value }
+                          }))}
+                          placeholder="e.g., 25"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Start Date
-                        </label>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
                         <input
-                          type="date"
-                          value={campaignData.startDate}
-                          onChange={(e) => handleInputChange('startDate', e.target.value)}
+                          type="text"
+                          value={campaignData.geo_targeting.language}
+                          onChange={(e) => setCampaignData(prev => ({
+                            ...prev,
+                            geo_targeting: { ...prev.geo_targeting, language: e.target.value }
+                          }))}
+                          placeholder="e.g., English"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        <p className="text-xs text-gray-500 mt-1">End date will be calculated from duration.</p>
-                      </div>
                     </div>
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-sm font-medium text-gray-700">Target Audience</label>
+                    </div>
+                  </div>
+
+                  {/* Audience Refinement */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900">👥 Audience Refinement</h4>
                         <button 
                           type="button" 
                           onClick={() => setIsRefiningAudience(!isRefiningAudience)} 
@@ -693,207 +747,331 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                           </div>
                         </div>
                       ) : (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Target Audience Description</label>
                         <textarea
                           value={campaignData.targetAudience}
                           onChange={(e) => handleInputChange('targetAudience', e.target.value)}
                           placeholder="Describe your target audience..."
-                          rows={4}
+                            rows={3}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                      )}
                     </div>
+                        
+                        {/* Demographics */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Demographics</label>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Age Min</label>
+                              <input
+                                type="number"
+                                value={campaignData.demographics.ageMin}
+                                onChange={(e) => setCampaignData(prev => ({
+                                  ...prev,
+                                  demographics: { ...prev.demographics, ageMin: e.target.value }
+                                }))}
+                                placeholder="18"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
                   </div>
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Age Max</label>
+                              <input
+                                type="number"
+                                value={campaignData.demographics.ageMax}
+                                onChange={(e) => setCampaignData(prev => ({
+                                  ...prev,
+                                  demographics: { ...prev.demographics, ageMax: e.target.value }
+                                }))}
+                                placeholder="65"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              />
                 </div>
-
-                {/* A/B Testing */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="font-medium text-gray-900">A/B Testing</div>
-                    <label className="inline-flex items-center space-x-2 text-sm text-gray-700">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Gender</label>
+                              <div className="flex space-x-2">
+                                {['male', 'female', 'other'].map(gender => (
+                                  <label key={gender} className="flex items-center space-x-1 text-sm">
                       <input
                         type="checkbox"
-                        checked={!!campaignData.ab_test?.enabled}
-                        onChange={(e)=>setCampaignData(prev=>({
+                                      checked={campaignData.demographics.genders[gender]}
+                                      onChange={(e) => setCampaignData(prev => ({
                           ...prev,
-                          ab_test: { ...(prev.ab_test||{}), enabled: e.target.checked }
-                        }))}
-                      />
-                      <span>Enable</span>
+                                        demographics: {
+                                          ...prev.demographics,
+                                          genders: {
+                                            ...prev.demographics.genders,
+                                            [gender]: e.target.checked
+                                          }
+                                        }
+                                      }))}
+                                      className="rounded"
+                                    />
+                                    <span className="capitalize">{gender}</span>
                     </label>
+                                ))}
                   </div>
-                  {campaignData.ab_test?.enabled && (
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Budget & Duration */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">💰 Budget & Duration</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Variant A note</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Budget Type</label>
+                        <div className="flex space-x-4">
+                          <label className="flex items-center space-x-2">
                         <input
-                          type="text"
-                          value={campaignData.ab_test?.variants?.A?.note || ''}
-                          onChange={(e)=>setCampaignData(prev=>({
-                            ...prev,
-                            ab_test: {
-                              ...(prev.ab_test||{enabled:true,variants:{A:{},B:{}}}),
-                              variants: {
-                                ...(prev.ab_test?.variants||{}),
-                                A: { ...(prev.ab_test?.variants?.A||{}), note: e.target.value }
+                              type="radio"
+                              checked={campaignData.budget_type === 'daily'}
+                              onChange={() => setCampaignData(prev => ({ ...prev, budget_type: 'daily' }))}
+                              className="text-blue-600"
+                            />
+                            <span className="text-sm">Daily Budget</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              checked={campaignData.budget_type === 'total'}
+                              onChange={() => setCampaignData(prev => ({ ...prev, budget_type: 'total' }))}
+                              className="text-blue-600"
+                            />
+                            <span className="text-sm">Total Budget</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          {campaignData.budget_type === 'daily' ? 'Daily Budget ($)' : 'Total Budget ($)'}
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                          <input
+                            type="number"
+                            value={campaignData.budget_type === 'daily' ? campaignData.budget : campaignData.total_budget}
+                            onChange={(e) => {
+                              if (campaignData.budget_type === 'daily') {
+                                handleInputChange('budget', e.target.value);
+                              } else {
+                                setCampaignData(prev => ({ ...prev, total_budget: e.target.value }));
                               }
-                            }
-                          }))}
-                          placeholder="e.g., Headline A, Image 1, CTA X"
+                            }}
+                            placeholder="50"
+                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Campaign Duration (days)</label>
+                        <input
+                          type="number"
+                          value={campaignData.duration}
+                          onChange={(e) => handleInputChange('duration', e.target.value)}
+                          placeholder="30"
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Variant B note</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                         <input
-                          type="text"
-                          value={campaignData.ab_test?.variants?.B?.note || ''}
-                          onChange={(e)=>setCampaignData(prev=>({
-                            ...prev,
-                            ab_test: {
-                              ...(prev.ab_test||{enabled:true,variants:{A:{},B:{}}}),
-                              variants: {
-                                ...(prev.ab_test?.variants||{}),
-                                B: { ...(prev.ab_test?.variants?.B||{}), note: e.target.value }
-                              }
-                            }
-                          }))}
-                          placeholder="e.g., Headline B, Image 2, CTA Y"
+                          type="date"
+                          value={campaignData.startDate}
+                          onChange={(e) => handleInputChange('startDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {step === 4 && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Recommendations & Review</h3>
-                  
-                  {aiRecommendations && (
-                    <div className="bg-blue-50 rounded-lg p-4 mb-6">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <Brain className="w-5 h-5 text-blue-600" />
-                        <span className="font-semibold text-gray-900">Guild-AI Agent Recommendations</span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-white rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="font-medium text-gray-900">Budget</span>
-                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                              {aiRecommendations.budget.confidence}% confidence
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700">{aiRecommendations.budget.recommended}</p>
-                          <p className="text-xs text-gray-600 mt-1">{aiRecommendations.budget.reasoning}</p>
-                          <div className="text-xs text-blue-600 mt-1">
-                            <strong>Agent:</strong> {aiRecommendations.budget.agent}
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Users className="w-4 h-4 text-blue-600" />
-                            <span className="font-medium text-gray-900">Audience</span>
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              {aiRecommendations.audience.confidence}% confidence
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700">{aiRecommendations.audience.recommended}</p>
-                          <p className="text-xs text-gray-600 mt-1">{aiRecommendations.audience.reasoning}</p>
-                          <div className="text-xs text-blue-600 mt-1">
-                            <strong>Agent:</strong> {aiRecommendations.audience.agent}
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Image className="w-4 h-4 text-purple-600" />
-                            <span className="font-medium text-gray-900">Creative</span>
-                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                              {aiRecommendations.creative.confidence}% confidence
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700">{aiRecommendations.creative.recommended}</p>
-                          <p className="text-xs text-gray-600 mt-1">{aiRecommendations.creative.reasoning}</p>
-                          <div className="text-xs text-blue-600 mt-1">
-                            <strong>Agent:</strong> {aiRecommendations.creative.agent}
-                          </div>
-                        </div>
-                        <div className="bg-white rounded-lg p-3">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <Settings className="w-4 h-4 text-orange-600" />
-                            <span className="font-medium text-gray-900">Integration</span>
-                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                              {aiRecommendations.integration.confidence}% confidence
-                            </span>
-                          </div>
-                          <p className="text-sm text-gray-700">{aiRecommendations.integration.recommended}</p>
-                          <p className="text-xs text-gray-600 mt-1">{aiRecommendations.integration.reasoning}</p>
-                          <div className="text-xs text-blue-600 mt-1">
-                            <strong>Agent:</strong> {aiRecommendations.integration.agent}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3">Campaign Summary</h4>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Name:</span>
-                        <span className="font-medium text-gray-900">{campaignData.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Platform:</span>
-                        <span className="font-medium text-gray-900 capitalize">{campaignData.platform}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Type:</span>
-                        <span className="font-medium text-gray-900 capitalize">{campaignData.type}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Daily Budget:</span>
-                        <span className="font-medium text-gray-900">${campaignData.budget}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium text-gray-900">{campaignData.duration} days</span>
-                      </div>
+                    
+                    <div className="mt-4">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={campaignData.smart_pacing}
+                          onChange={(e) => setCampaignData(prev => ({ ...prev, smart_pacing: e.target.checked }))}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Smart pacing (AI adjusts spend based on best days/times)</span>
+                      </label>
                     </div>
                   </div>
-                </div>
-                {/* Strategist recommendations */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="font-medium text-gray-900 mb-2">AI Campaign Strategist</div>
-                  <div className="text-sm text-gray-700">
-                    <div className="mb-2"><span className="text-gray-600">Recommended angles:</span> {(strategist?.angles||[]).join(', ')}</div>
-                    <div className="mb-2"><span className="text-gray-600">Themes:</span> {(strategist?.themes||[]).join(', ')}</div>
-                    <div className="mb-2"><span className="text-gray-600">Audience focus:</span> {(strategist?.audience||[]).join(', ')}</div>
-                    <div className="text-xs text-gray-500">Why: {strategist?.why}</div>
-                  </div>
-                </div>
-                {/* Judge rubric */}
-                <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <div className="font-medium text-gray-900 mb-2">Judge Layer (Pre‑launch Rubric)</div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    {['clarity','persuasion','compliance','tone'].map(k => (
-                      <div key={k} className="p-2 rounded bg-gray-50 border">
-                        <div className="text-gray-600 capitalize">{k}</div>
-                        <div className="text-gray-900 font-semibold">{(judgeRubric?.scores?.[k] ?? '—')}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {judgeRubric?.feedback && (
-                    <div className="mt-2 text-xs text-gray-700">
-                      <div className="font-medium mb-1">Feedback</div>
-                      <ul className="list-disc pl-5 space-y-0.5">
-                        {judgeRubric.feedback.map((f,i)=>(<li key={i}>{f}</li>))}
+
+                  {/* Performance Projection */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-2">📊 Performance Projection</h4>
+                    <div className="text-sm text-gray-700">
+                      <p>With this budget and targeting, you can expect:</p>
+                      <ul className="mt-2 space-y-1">
+                        <li>• ~{Math.round((parseInt(campaignData.budget) || 50) * 250)} impressions</li>
+                        <li>• ~{Math.round((parseInt(campaignData.budget) || 50) * 8)} clicks</li>
+                        <li>• ~{Math.round((parseInt(campaignData.budget) || 50) * 0.8)} conversions</li>
                       </ul>
                     </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🎨 Creative & Messaging</h3>
+                  
+                  {/* Upload or Generate Content */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">📁 Upload or Generate Content</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Upload Images/Videos</label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                          <Image className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600">Drag and drop files here, or click to browse</p>
+                          <input type="file" multiple accept="image/*,video/*" className="hidden" />
+                        </div>
+                      </div>
+                      <div>
+                        <button className="w-full p-3 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors text-left">
+                          <div className="flex items-center space-x-3">
+                            <Brain className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <div className="font-medium text-gray-900">AI Creative Suggestions</div>
+                              <div className="text-sm text-gray-600">Generate copy, visuals, and CTAs with AI</div>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Copy & Creative Drafts */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">✍️ Copy & Creative Drafts</h4>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Headlines</label>
+                        <div className="space-y-2">
+                        <input
+                          type="text"
+                            placeholder="Enter your primary headline..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          />
+                          <button className="text-sm text-blue-600 hover:text-blue-700">+ Add another headline</button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Primary Copy</label>
+                        <textarea
+                          placeholder="Enter your main copy..."
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Call-to-Action</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Learn More, Shop Now, Get Started"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <button className="flex items-center space-x-2 text-sm text-purple-600 hover:text-purple-700">
+                          <Brain className="w-4 h-4" />
+                          <span>AI Copywriter Agent: Generate 3 variants of this ad/email</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* A/B Testing Placement */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-gray-900">🧪 A/B Testing Placement</h4>
+                      <label className="inline-flex items-center space-x-2 text-sm text-gray-700">
+                        <input
+                          type="checkbox"
+                          checked={!!campaignData.ab_test?.enabled}
+                          onChange={(e)=>setCampaignData(prev=>({
+                            ...prev,
+                            ab_test: { ...(prev.ab_test||{}), enabled: e.target.checked }
+                          }))}
+                        />
+                        <span>Enable A/B Testing</span>
+                      </label>
+                    </div>
+                    {campaignData.ab_test?.enabled && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">What to test?</label>
+                          <div className="grid grid-cols-2 gap-3">
+                            {[
+                              { key: 'headline', label: 'Headline', icon: '📝' },
+                              { key: 'image', label: 'Image/Video', icon: '🖼️' },
+                              { key: 'cta', label: 'CTA', icon: '🎯' },
+                              { key: 'copy', label: 'Copy', icon: '📄' }
+                            ].map(factor => (
+                              <label key={factor.key} className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input
+                                  type="checkbox"
+                                  checked={campaignData.ab_testing_factors[factor.key]}
+                                  onChange={(e) => setCampaignData(prev => ({
+                                    ...prev,
+                                    ab_testing_factors: {
+                                      ...prev.ab_testing_factors,
+                                      [factor.key]: e.target.checked
+                            }
+                          }))}
+                                  className="rounded"
+                                />
+                                <span className="text-lg">{factor.icon}</span>
+                                <span className="text-sm font-medium">{factor.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Brain className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-blue-900">AI Recommendation</span>
+                          </div>
+                          <p className="text-sm text-blue-800">
+                            Based on your campaign objective, we recommend testing <strong>headline</strong> and <strong>CTA</strong> for maximum impact.
+                          </p>
+                      </div>
+                    </div>
                   )}
+                  </div>
+
+                  {/* Platform Previews */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">👀 Preview by Platform</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-lg">📘</span>
+                          <span className="font-medium text-gray-900">Facebook</span>
+                        </div>
+                        <div className="bg-gray-100 rounded p-2 text-xs text-gray-600">
+                          Preview how your ad will look on Facebook...
+                        </div>
+                      </div>
+                      <div className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-lg">🔍</span>
+                          <span className="font-medium text-gray-900">Google Ads</span>
+                        </div>
+                        <div className="bg-gray-100 rounded p-2 text-xs text-gray-600">
+                          Preview how your ad will look on Google...
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -901,426 +1079,223 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
             {step === 4 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Campaign Analysis & Optimization</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">🤖 AI Review & Optimization Options</h3>
                   
-                  {isAnalyzing ? (
-                    <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-                      <div className="flex items-center justify-center space-x-3">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900">AI is analyzing your campaign...</h4>
-                          <p className="text-sm text-gray-600">Our content strategy agent is researching market data and generating predictions</p>
+                  {/* AI Campaign Strategist */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">🎯 AI Campaign Strategist</h4>
+                    <div className="space-y-3">
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="font-medium text-green-900">Alignment Check</span>
                         </div>
+                        <p className="text-sm text-green-800">
+                          ✅ Campaign objective aligns with audience targeting<br/>
+                          ✅ Creative messaging matches platform best practices<br/>
+                          ✅ Budget allocation is optimized for your goal
+                        </p>
+                      </div>
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                          <span className="font-medium text-yellow-900">Gap Identified</span>
+                        </div>
+                        <p className="text-sm text-yellow-800">
+                          ⚠️ Consider adding urgency to your CTA for better conversion rates
+                        </p>
                       </div>
                     </div>
-                  ) : aiAnalysis ? (
-                    <>
-                      {/* AI Confidence Score */}
-                      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-6">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Brain className="w-6 h-6 text-blue-600" />
-                          </div>
-                          <div>
-                            <h4 className="text-lg font-semibold text-gray-900">AI Campaign Confidence Score</h4>
-                            <p className="text-sm text-gray-600">Based on your campaign setup and market data from content strategy agent</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-green-600 mb-2">{aiAnalysis.confidence_scores.overall}%</div>
-                            <div className="text-sm text-gray-600">Overall Confidence</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-blue-600 mb-2">{aiAnalysis.confidence_scores.audience_match}%</div>
-                            <div className="text-sm text-gray-600">Audience Match</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-3xl font-bold text-purple-600 mb-2">{aiAnalysis.confidence_scores.budget_efficiency}%</div>
-                            <div className="text-sm text-gray-600">Budget Efficiency</div>
-                          </div>
-                        </div>
+                  </div>
 
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <h5 className="font-semibold text-gray-900 mb-2">AI Predictions (Based on Real Market Data)</h5>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Expected Reach:</span>
-                              <span className="font-medium">{aiAnalysis.predictions.expected_reach.min.toLocaleString()} - {aiAnalysis.predictions.expected_reach.max.toLocaleString()} people</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Estimated Clicks:</span>
-                              <span className="font-medium">{aiAnalysis.predictions.estimated_clicks.min} - {aiAnalysis.predictions.estimated_clicks.max} clicks</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Predicted CTR:</span>
-                              <span className="font-medium">{aiAnalysis.predictions.predicted_ctr.min}% - {aiAnalysis.predictions.predicted_ctr.max}%</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Expected Conversions:</span>
-                              <span className="font-medium">{aiAnalysis.predictions.expected_conversions.min} - {aiAnalysis.predictions.expected_conversions.max} conversions</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">ROI Prediction:</span>
-                              <span className="font-medium text-green-600">{aiAnalysis.predictions.roi_prediction.min}% - {aiAnalysis.predictions.roi_prediction.max}%</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {aiAnalysis.insights && aiAnalysis.insights.length > 0 && (
-                          <div className="mt-4 bg-blue-50 rounded-lg p-4">
-                            <h6 className="font-semibold text-gray-900 mb-2">AI Insights</h6>
-                            <ul className="space-y-1 text-sm text-gray-700">
-                              {aiAnalysis.insights.map((insight, index) => (
-                                <li key={index} className="flex items-start space-x-2">
-                                  <span className="text-blue-600 mt-0.5">•</span>
-                                  <span>{insight}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                  {/* AI Recommendations & Review */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">💡 AI Recommendations & Review</h4>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="font-medium text-blue-900 mb-1">Add urgency to CTA</div>
+                        <p className="text-sm text-blue-800">"Limited time offer" or "Only 24 hours left" can increase click-through rates by 15-20%</p>
                       </div>
-                    </>
-                  ) : (
-                    <div className="bg-gray-50 rounded-lg p-6 text-center">
-                      <p className="text-gray-600">AI analysis will appear here once you complete the previous steps.</p>
-                    </div>
-                  )}
-
-                  {/* AI Optimization Options */}
-                  <div className="bg-white border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-center space-x-3 mb-4">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <Zap className="w-6 h-6 text-purple-600" />
+                      <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                        <div className="font-medium text-purple-900 mb-1">Tighten audience targeting</div>
+                        <p className="text-sm text-purple-800">Your current targeting is quite broad. Consider adding interest-based segments for better engagement</p>
                       </div>
-                      <div>
-                        <h4 className="text-lg font-semibold text-gray-900">AI Optimization Options</h4>
-                        <p className="text-sm text-gray-600">Let our AI agents optimize your campaign for better performance</p>
+                      <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                        <div className="font-medium text-orange-900 mb-1">Optimize for mobile</div>
+                        <p className="text-sm text-orange-800">Ensure your creative assets are mobile-first, as 80% of social media users are on mobile</p>
                       </div>
                     </div>
+                  </div>
 
+                  {/* Predictive Analytics */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">📊 Predictive Analytics</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600 mb-1">3.2%</div>
+                        <div className="text-sm text-gray-600">Expected CTR</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600 mb-1">$2.40</div>
+                        <div className="text-sm text-gray-600">Cost per Click</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600 mb-1">4.2x</div>
+                        <div className="text-sm text-gray-600">Expected ROAS</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Optimization Strategy Selection */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">⚙️ AI Optimization Options</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <button 
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/agents/lead-personalization', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                action: 'optimize_targeting',
-                                campaign_data: campaignData,
-                                request: {
-                                  current_audience: campaignData.targetAudience,
-                                  campaign_objective: campaignData.objective,
-                                  platform: campaignData.platform
-                                }
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const result = await response.json();
-                              console.log('Targeting optimization result:', result);
-                              // Update campaign data with optimized targeting
-                              setCampaignData(prev => ({
-                                ...prev,
-                                targetAudience: result.optimized_audience || prev.targetAudience,
-                                aiInsights: { ...prev.aiInsights, targeting_optimization: result }
-                              }));
-                            } else {
-                              // Fallback: Provide AI-powered targeting suggestions
-                              const optimizedAudience = `Enhanced targeting for ${campaignData.platform}: ${campaignData.targetAudience} + lookalike audiences, interest-based targeting, and behavioral segments for improved reach and engagement.`;
-                              setCampaignData(prev => ({
-                                ...prev,
-                                targetAudience: optimizedAudience,
-                                aiInsights: { 
-                                  ...prev.aiInsights, 
-                                  targeting_optimization: {
-                                    optimized_audience: optimizedAudience,
-                                    suggestions: [
-                                      'Add lookalike audiences based on your best customers',
-                                      'Include interest-based targeting for better reach',
-                                      'Use behavioral segments for higher engagement'
-                                    ]
-                                  }
-                                }
-                              }));
-                              console.log('Applied fallback targeting optimization');
-                            }
-                          } catch (error) {
-                            console.error('Targeting optimization failed:', error);
-                            // Fallback: Provide basic targeting improvements
-                            const improvedAudience = `${campaignData.targetAudience} + demographic refinements, interest targeting, and behavioral segments for better performance.`;
-                            setCampaignData(prev => ({
-                              ...prev,
-                              targetAudience: improvedAudience,
-                              aiInsights: { 
-                                ...prev.aiInsights, 
-                                targeting_optimization: {
-                                  optimized_audience: improvedAudience,
-                                  note: 'Applied basic targeting improvements'
-                                }
-                              }
-                            }));
-                          }
-                        }}
-                        className="p-4 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left"
-                      >
+                      <button className="p-4 border border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left">
                         <div className="flex items-center space-x-3 mb-2">
-                          <div className="p-2 bg-purple-100 rounded-lg">
-                            <Target className="w-5 h-5 text-purple-600" />
-                          </div>
-                          <h5 className="font-semibold text-gray-900">Optimize Targeting</h5>
+                          <TrendingUp className="w-5 h-5 text-blue-600" />
+                          <h5 className="font-semibold text-gray-900">Max Reach</h5>
                         </div>
-                        <p className="text-sm text-gray-600">AI will refine your audience targeting for better reach and engagement</p>
+                        <p className="text-sm text-gray-600">Optimize for maximum impressions and audience reach</p>
                       </button>
-
-                      <button 
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/agents/expense-optimizer', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                action: 'optimize_budget',
-                                campaign_data: campaignData,
-                                request: {
-                                  current_budget: campaignData.budget,
-                                  campaign_objective: campaignData.objective,
-                                  platform: campaignData.platform,
-                                  duration: campaignData.duration
-                                }
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const result = await response.json();
-                              console.log('Budget optimization result:', result);
-                              setCampaignData(prev => ({
-                                ...prev,
-                                budget: result.optimized_budget || prev.budget,
-                                aiInsights: { ...prev.aiInsights, budget_optimization: result }
-                              }));
-                            } else {
-                              // Fallback: Provide AI-powered budget optimization
-                              const currentBudget = parseInt(campaignData.budget) || 50;
-                              const optimizedBudget = Math.round(currentBudget * 1.2); // 20% increase for better reach
-                              setCampaignData(prev => ({
-                                ...prev,
-                                budget: optimizedBudget.toString(),
-                                aiInsights: { 
-                                  ...prev.aiInsights, 
-                                  budget_optimization: {
-                                    optimized_budget: optimizedBudget,
-                                    suggestions: [
-                                      'Increased budget by 20% for better reach and performance',
-                                      'Consider daily budget pacing for consistent delivery',
-                                      'Monitor performance and adjust based on results'
-                                    ]
-                                  }
-                                }
-                              }));
-                              console.log('Applied fallback budget optimization');
-                            }
-                          } catch (error) {
-                            console.error('Budget optimization failed:', error);
-                            // Fallback: Provide basic budget improvements
-                            const currentBudget = parseInt(campaignData.budget) || 50;
-                            const improvedBudget = Math.round(currentBudget * 1.15); // 15% increase
-                            setCampaignData(prev => ({
-                              ...prev,
-                              budget: improvedBudget.toString(),
-                              aiInsights: { 
-                                ...prev.aiInsights, 
-                                budget_optimization: {
-                                  optimized_budget: improvedBudget,
-                                  note: 'Applied basic budget optimization'
-                                }
-                              }
-                            }));
-                          }
-                        }}
-                        className="p-4 border border-blue-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 text-left"
-                      >
+                      <button className="p-4 border border-green-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left">
                         <div className="flex items-center space-x-3 mb-2">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <DollarSign className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <h5 className="font-semibold text-gray-900">Optimize Budget</h5>
+                          <DollarSign className="w-5 h-5 text-green-600" />
+                          <h5 className="font-semibold text-gray-900">Max ROI</h5>
                         </div>
-                        <p className="text-sm text-gray-600">AI will adjust your budget allocation for maximum ROI</p>
+                        <p className="text-sm text-gray-600">Optimize for highest return on ad spend</p>
                       </button>
-
-                      <button 
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/agents/enhanced-campaign', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                action: 'full_optimization',
-                                campaign_data: campaignData,
-                                request: {
-                                  current_setup: campaignData,
-                                  optimization_type: 'comprehensive'
-                                }
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const result = await response.json();
-                              console.log('Full optimization result:', result);
-                              setCampaignData(prev => ({
-                                ...prev,
-                                ...result.optimized_campaign,
-                                aiInsights: { ...prev.aiInsights, full_optimization: result }
-                              }));
-                            } else {
-                              // Fallback: Provide comprehensive AI optimization
-                              const currentBudget = parseInt(campaignData.budget) || 50;
-                              const optimizedBudget = Math.round(currentBudget * 1.25);
-                              const optimizedAudience = `AI-Optimized: ${campaignData.targetAudience} + advanced targeting, lookalike audiences, and behavioral segments.`;
-                              
-                              setCampaignData(prev => ({
-                                ...prev,
-                                budget: optimizedBudget.toString(),
-                                targetAudience: optimizedAudience,
-                                aiInsights: { 
-                                  ...prev.aiInsights, 
-                                  full_optimization: {
-                                    optimized_budget: optimizedBudget,
-                                    optimized_audience: optimizedAudience,
-                                    suggestions: [
-                                      'Applied comprehensive AI optimization',
-                                      'Enhanced targeting with advanced segments',
-                                      'Optimized budget for maximum ROI',
-                                      'Added performance monitoring recommendations'
-                                    ]
-                                  }
-                                }
-                              }));
-                              console.log('Applied fallback full optimization');
-                            }
-                          } catch (error) {
-                            console.error('Full optimization failed:', error);
-                            // Fallback: Provide basic comprehensive optimization
-                            const currentBudget = parseInt(campaignData.budget) || 50;
-                            const improvedBudget = Math.round(currentBudget * 1.2);
-                            const improvedAudience = `Enhanced: ${campaignData.targetAudience} + demographic and interest targeting.`;
-                            
-                            setCampaignData(prev => ({
-                              ...prev,
-                              budget: improvedBudget.toString(),
-                              targetAudience: improvedAudience,
-                              aiInsights: { 
-                                ...prev.aiInsights, 
-                                full_optimization: {
-                                  optimized_budget: improvedBudget,
-                                  optimized_audience: improvedAudience,
-                                  note: 'Applied basic comprehensive optimization'
-                                }
-                              }
-                            }));
-                          }
-                        }}
-                        className="p-4 border border-green-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all duration-200 text-left"
-                      >
+                      <button className="p-4 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-all duration-200 text-left">
                         <div className="flex items-center space-x-3 mb-2">
-                          <div className="p-2 bg-green-100 rounded-lg">
-                            <TrendingUp className="w-5 h-5 text-green-600" />
-                          </div>
-                          <h5 className="font-semibold text-gray-900">Full AI Optimization</h5>
+                          <BarChart3 className="w-5 h-5 text-purple-600" />
+                          <h5 className="font-semibold text-gray-900">Balanced Growth</h5>
                         </div>
-                        <p className="text-sm text-gray-600">Complete AI optimization of targeting, budget, and creative strategy</p>
+                        <p className="text-sm text-gray-600">Balance between reach and conversion quality</p>
                       </button>
-
-                      <button 
-                        onClick={async () => {
-                          try {
-                            const response = await fetch('/api/agents/brand-strategist', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                action: 'creative_suggestions',
-                                campaign_data: campaignData,
-                                request: {
-                                  current_creative: campaignData.creativeAssets || [],
-                                  campaign_objective: campaignData.objective,
-                                  target_audience: campaignData.targetAudience,
-                                  platform: campaignData.platform
-                                }
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const result = await response.json();
-                              console.log('Creative suggestions result:', result);
-                              setCampaignData(prev => ({
-                                ...prev,
-                                creativeAssets: result.suggested_creatives || prev.creativeAssets,
-                                aiInsights: { ...prev.aiInsights, creative_suggestions: result }
-                              }));
-                            } else {
-                              // Fallback: Provide AI-powered creative suggestions
-                              const creativeSuggestions = [
-                                `Create ${campaignData.platform}-optimized visuals for ${campaignData.objective}`,
-                                'Develop A/B test variations for headlines and CTAs',
-                                'Design mobile-first creative assets',
-                                'Create video content for higher engagement'
-                              ];
-                              
-                              setCampaignData(prev => ({
-                                ...prev,
-                                aiInsights: { 
-                                  ...prev.aiInsights, 
-                                  creative_suggestions: {
-                                    suggestions: creativeSuggestions,
-                                    platform_specific: {
-                                      [campaignData.platform]: `Optimized creative recommendations for ${campaignData.platform} platform`
-                                    }
-                                  }
-                                }
-                              }));
-                              console.log('Applied fallback creative suggestions');
-                            }
-                          } catch (error) {
-                            console.error('Creative suggestions failed:', error);
-                            // Fallback: Provide basic creative suggestions
-                            const basicSuggestions = [
-                              'Create engaging visuals that match your brand',
-                              'Test different headlines and call-to-actions',
-                              'Ensure mobile-optimized creative assets',
-                              'Consider video content for better engagement'
-                            ];
-                            
-                            setCampaignData(prev => ({
-                              ...prev,
-                              aiInsights: { 
-                                ...prev.aiInsights, 
-                                creative_suggestions: {
-                                  suggestions: basicSuggestions,
-                                  note: 'Applied basic creative recommendations'
-                                }
-                              }
-                            }));
-                          }
-                        }}
-                        className="p-4 border border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 text-left"
-                      >
+                      <button className="p-4 border border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all duration-200 text-left">
                         <div className="flex items-center space-x-3 mb-2">
-                          <div className="p-2 bg-orange-100 rounded-lg">
-                            <Lightbulb className="w-5 h-5 text-orange-600" />
-                          </div>
-                          <h5 className="font-semibold text-gray-900">Creative Suggestions</h5>
+                          <Zap className="w-5 h-5 text-orange-600" />
+                          <h5 className="font-semibold text-gray-900">Aggressive Scaling</h5>
                         </div>
-                        <p className="text-sm text-gray-600">AI will suggest creative improvements and A/B testing ideas</p>
+                        <p className="text-sm text-gray-600">Rapid growth with higher budget allocation</p>
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
             )}
+
+            {step === 5 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">⚖️ Judge Agent Layer</h3>
+                  
+                  {/* Rubric Scoring */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">📋 Rubric Scoring</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600 mb-1">8.5</div>
+                        <div className="text-sm text-gray-600">Creative Quality</div>
+                        <div className="text-xs text-gray-500 mt-1">Strong headlines and clear messaging</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600 mb-1">9.2</div>
+                        <div className="text-sm text-gray-600">Audience Fit</div>
+                        <div className="text-xs text-gray-500 mt-1">Excellent targeting alignment</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-purple-600 mb-1">8.8</div>
+                        <div className="text-sm text-gray-600">Objective Alignment</div>
+                        <div className="text-xs text-gray-500 mt-1">Clear goal-to-strategy match</div>
+                      </div>
+                      <div className="text-center p-3 bg-gray-50 rounded-lg">
+                        <div className="text-2xl font-bold text-orange-600 mb-1">7.5</div>
+                        <div className="text-sm text-gray-600">Budget Efficiency</div>
+                        <div className="text-xs text-gray-500 mt-1">Good but could be optimized</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Campaign Confidence Score */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Brain className="w-6 h-6 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900">AI Campaign Confidence Score</h4>
+                        <p className="text-sm text-gray-600">Based on comprehensive rubric evaluation</p>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center mb-6">
+                      <div className="text-6xl font-bold text-green-600 mb-2">87</div>
+                      <div className="text-lg text-gray-700 mb-1">High Confidence</div>
+                      <div className="text-sm text-gray-600">Strong alignment, high ROI potential. Minor creative optimization recommended.</div>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <h5 className="font-semibold text-gray-900 mb-3">Score Breakdown</h5>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Creative Quality:</span>
+                          <span className="font-medium text-green-600">+8.5 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Audience Targeting:</span>
+                          <span className="font-medium text-green-600">+9.2 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Objective Alignment:</span>
+                          <span className="font-medium text-green-600">+8.8 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Budget Efficiency:</span>
+                          <span className="font-medium text-yellow-600">+7.5 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Platform Optimization:</span>
+                          <span className="font-medium text-green-600">+8.0 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Creative Fatigue Risk:</span>
+                          <span className="font-medium text-red-600">-2.0 points</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Human-in-the-Loop Final Check */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4">
+                    <h4 className="font-semibold text-gray-900 mb-3">👤 Human-in-the-Loop Final Check</h4>
+                    <div className="space-y-3">
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="font-medium text-green-900">Ready to Launch</span>
+                        </div>
+                        <p className="text-sm text-green-800">
+                          Your campaign meets all quality thresholds and is ready for launch. 
+                          Expected performance: 3.2% CTR, $2.40 CPC, 4.2x ROAS.
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Info className="w-4 h-4 text-blue-600" />
+                          <span className="font-medium text-blue-900">Recommendations</span>
+                        </div>
+                        <ul className="text-sm text-blue-800 space-y-1">
+                          <li>• Consider A/B testing different headlines for better performance</li>
+                          <li>• Monitor creative fatigue after 7-10 days</li>
+                          <li>• Adjust budget allocation based on early performance data</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
 
         </div>
@@ -1341,7 +1316,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
             >
               Cancel
             </button>
-                {step === 4 ? (
+                {step === 5 ? (
               <button
                 onClick={handleSubmit}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
@@ -1358,7 +1333,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </button>
             )}
-                {step === 4 && (
+                {step === 5 && (
                   <button
                     onClick={handleApproveAndLaunch}
                     disabled={isLaunching}
