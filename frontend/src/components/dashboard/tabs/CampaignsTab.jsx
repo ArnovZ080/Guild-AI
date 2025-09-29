@@ -63,6 +63,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
   const [filterBudgetRange, setFilterBudgetRange] = useState([0, 100000]);
   const [filterDurationRange, setFilterDurationRange] = useState([0, 365]);
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
+  const [attribOpenForId, setAttribOpenForId] = useState(null);
+
+  // Lightweight Tooltip component
+  const Tooltip = ({ label, children }) => (
+    <span className="relative group inline-flex items-center">
+      {children}
+      <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap text-xs bg-gray-900 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+        {label}
+      </span>
+    </span>
+  );
 
   // Campaign action handlers
   const handleCampaignAction = (action, campaign) => {
@@ -498,9 +509,19 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     {campaign.status || 'Unknown'}
                 </span>
                 <div className="flex items-center space-x-2 text-xs">
-                  <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200" title="First-touch attribution: the first campaign interaction that introduced a user">First-touch: {campaign.attributed_first || 0}</span>
-                  <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200" title="Last-touch attribution: the final campaign interaction before conversion">Last-touch: {campaign.attributed_last || 0}</span>
-                  <Info className="w-3 h-3 text-gray-500" title="Attribution 101: First-touch gives credit to the initial interaction; Last-touch to the final interaction before conversion." />
+                  <Tooltip label="First-touch attribution: the first campaign interaction that introduced a user">
+                    <span className="px-2 py-1 rounded bg-purple-50 text-purple-700 border border-purple-200">First-touch: {campaign.attributed_first || 0}</span>
+                  </Tooltip>
+                  <Tooltip label="Last-touch attribution: the final campaign interaction before conversion">
+                    <span className="px-2 py-1 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Last-touch: {campaign.attributed_last || 0}</span>
+                  </Tooltip>
+                  <button
+                    onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
+                    className="p-1 text-gray-500 hover:text-gray-700"
+                    title="View attribution details"
+                  >
+                    <Info className="w-3 h-3" />
+                  </button>
                 </div>
                   <div className="relative">
                     <button 
@@ -568,8 +589,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </span>
                   </div>
                   <div className="hidden md:flex items-center space-x-3 text-sm text-gray-700">
-                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Lead (CPL): your average cost for generating one lead">Cost per Lead (CPL): {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
-                    <span className="px-2 py-1 bg-gray-100 rounded" title="Cost per Acquisition (CPA): your average cost for acquiring one customer">Cost per Acquisition (CPA): {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
+                    <Tooltip label="Cost per Lead (CPL): your average cost for generating one lead">
+                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Lead (CPL): {campaign.cpl ? `$${campaign.cpl}` : '—'}</span>
+                    </Tooltip>
+                    <Tooltip label="Cost per Acquisition (CPA): your average cost for acquiring one customer">
+                      <span className="px-2 py-1 bg-gray-100 rounded">Cost per Acquisition (CPA): {campaign.cpa ? `$${campaign.cpa}` : '—'}</span>
+                    </Tooltip>
                   </div>
                 </div>
                 <div className="w-40">
@@ -581,6 +606,29 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                   </div>
                 </div>
               </div>
+
+              {/* Attribution Details Drawer */}
+              {attribOpenForId === (campaign.campaign_id || campaign.id) && (
+                <div className="mb-4 p-4 border border-purple-200 rounded-lg bg-purple-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-purple-900">Attribution details</div>
+                    <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                    {['facebook','instagram','google','tiktok','linkedin','twitter','email'].map(ch => (
+                      <div key={ch} className="bg-white border border-purple-100 rounded p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="capitalize text-gray-800">{ch}</span>
+                          <span className="text-xs text-gray-500">by channel</span>
+                        </div>
+                        <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
+                        <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
+                        <div className="mt-1 text-xs text-gray-500">Multi-touch (placeholder): —</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Engagement Metrics */}
               {(campaign.likes || campaign.comments || campaign.shares || campaign.opens || campaign.clicks || campaign.unsubscribe_rate || campaign.bounce_rate) && (
