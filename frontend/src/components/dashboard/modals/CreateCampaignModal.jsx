@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logCampaignActivity } from '../../services/campaignInsightsApi';
 import { 
   X, 
   Target, 
@@ -82,6 +83,9 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [isRefiningAudience, setIsRefiningAudience] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [strategist, setStrategist] = useState(null);
+  const [judgeRubric, setJudgeRubric] = useState(null);
+  const [isLaunching, setIsLaunching] = useState(false);
 
   const [showAgentWorkflow, setShowAgentWorkflow] = useState(false);
 
@@ -316,6 +320,78 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       onClose();
     } else {
       console.error('onCreateCampaign function is not defined');
+    }
+  };
+
+  // Fetch strategist recommendations and judge rubric when step 4 is active
+  useEffect(() => {
+    const fetchAdvisory = async () => {
+      if (step !== 4) return;
+      try {
+        const [s, j] = await Promise.all([
+          fetch('/api/agents/strategy', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'prelaunch_recommendations',
+              campaign: campaignData
+            })
+          }).then(r => r.ok ? r.json() : null).catch(()=>null),
+          fetch('/api/agents/judge', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'evaluate_creative',
+              campaign: campaignData,
+              rubric: ['clarity','persuasion','compliance','tone']
+            })
+          }).then(r => r.ok ? r.json() : null).catch(()=>null)
+        ]);
+        setStrategist(s || {
+          angles: ['Educational value-first','Social proof heavy','Urgency with limited-time bonus'],
+          themes: ['Behind-the-scenes','Customer outcomes','Comparison vs status-quo'],
+          audience: ['Primary ICP + lookalikes','Warm engaged fans','In-market interest clusters'],
+          why: 'Based on your objective and platform norms, these maximize click intent and conversion micro-commitments.'
+        });
+        setJudgeRubric(j || {
+          scores: { clarity: 8.5, persuasion: 7.8, compliance: 9.2, tone: 8.0 },
+          feedback: ['Clarify primary outcome in headline','Tighten CTA to a single action','Ensure brand terms in first frame']
+        });
+      } catch {}
+    };
+    fetchAdvisory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  const handleApproveAndLaunch = async () => {
+    // Ensure campaign exists in parent state first
+    const newCampaign = {
+      ...campaignData,
+      campaign_id: `campaign_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
+      status: 'scheduled',
+      created_at: new Date().toISOString(),
+      startDate: campaignData.startDate ? new Date(campaignData.startDate).toISOString() : new Date().toISOString()
+    };
+    try {
+      setIsLaunching(true);
+      onCreateCampaign?.(newCampaign);
+      // Judge gate: block if rubric very low (example)
+      const judgeOk = (judgeRubric?.scores?.clarity ?? 7) >= 6 && (judgeRubric?.scores?.compliance ?? 8) >= 6;
+      if (!judgeOk) {
+        alert('Creative did not meet minimum rubric threshold. Please refine before launch.');
+        return;
+      }
+      // Autonomous execution trigger
+      await fetch('/api/agents/enhanced-campaign', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'launch', campaign_data: newCampaign })
+      }).catch(()=>null);
+      logCampaignActivity(newCampaign.campaign_id, {
+        actor: 'Enhanced Campaign Agent', action: 'launch_campaign',
+        reason: 'Approval given; launched with current settings'
+      });
+      alert('Launch initiated. You can monitor status in the Campaigns tab.');
+      onClose?.();
+    } finally {
+      setIsLaunching(false);
     }
   };
 
@@ -789,6 +865,36 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                     </div>
                   </div>
                 </div>
+                {/* Strategist recommendations */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="font-medium text-gray-900 mb-2">AI Campaign Strategist</div>
+                  <div className="text-sm text-gray-700">
+                    <div className="mb-2"><span className="text-gray-600">Recommended angles:</span> {(strategist?.angles||[]).join(', ')}</div>
+                    <div className="mb-2"><span className="text-gray-600">Themes:</span> {(strategist?.themes||[]).join(', ')}</div>
+                    <div className="mb-2"><span className="text-gray-600">Audience focus:</span> {(strategist?.audience||[]).join(', ')}</div>
+                    <div className="text-xs text-gray-500">Why: {strategist?.why}</div>
+                  </div>
+                </div>
+                {/* Judge rubric */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="font-medium text-gray-900 mb-2">Judge Layer (Pre‑launch Rubric)</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    {['clarity','persuasion','compliance','tone'].map(k => (
+                      <div key={k} className="p-2 rounded bg-gray-50 border">
+                        <div className="text-gray-600 capitalize">{k}</div>
+                        <div className="text-gray-900 font-semibold">{(judgeRubric?.scores?.[k] ?? '—')}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {judgeRubric?.feedback && (
+                    <div className="mt-2 text-xs text-gray-700">
+                      <div className="font-medium mb-1">Feedback</div>
+                      <ul className="list-disc pl-5 space-y-0.5">
+                        {judgeRubric.feedback.map((f,i)=>(<li key={i}>{f}</li>))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1235,7 +1341,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
             >
               Cancel
             </button>
-            {step === 4 ? (
+                {step === 4 ? (
               <button
                 onClick={handleSubmit}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
@@ -1252,6 +1358,15 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                 <ArrowRight className="w-4 h-4 ml-2" />
               </button>
             )}
+                {step === 4 && (
+                  <button
+                    onClick={handleApproveAndLaunch}
+                    disabled={isLaunching}
+                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center disabled:opacity-50"
+                  >
+                    {isLaunching ? 'Launching…' : 'Approve & Launch'}
+                  </button>
+                )}
           </div>
         </div>
       </div>

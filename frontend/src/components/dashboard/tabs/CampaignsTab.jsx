@@ -105,6 +105,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [filterDurationRange, setFilterDurationRange] = useState([0, 365]);
   const [sortByPerformance, setSortByPerformance] = useState('none'); // none|best|worst
   const [attribOpenForId, setAttribOpenForId] = useState(null);
+  const [showCampaignDetails, setShowCampaignDetails] = useState(false);
   const [showAnomalies, setShowAnomalies] = useState(true);
   const [benchmarks, setBenchmarks] = useState(null);
   const [emailBenchmarks, setEmailBenchmarks] = useState(null);
@@ -675,8 +676,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <div className="hidden md:flex items-center space-x-2">
               <button onClick={()=>setFilterPlatform2('all')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='all'?'bg-gray-800 text-white':'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>All</button>
               <button onClick={()=>setFilterPlatform2('email')} className={`px-2 py-1 rounded text-sm ${filterPlatform2==='email'?'bg-purple-700 text-white':'bg-purple-100 text-purple-800 hover:bg-purple-200'}`}>Email</button>
-              <button onClick={onRefreshCampaigns} className="ml-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh campaigns data">
-                <RefreshCw className="w-4 h-4" />
+              <button onClick={async ()=>{ try { setIsRefreshingCampaigns(true); await onRefreshCampaigns?.(); } finally { setTimeout(()=>setIsRefreshingCampaigns(false), 300);} }} className="ml-2 p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors" title="Refresh campaigns data">
+                <RefreshCw className={`w-4 h-4 ${isRefreshingCampaigns ? 'animate-spin' : ''}`} />
               </button>
             </div>
           </div>
@@ -746,8 +747,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
         )}
 
-        {/* Campaign List */}
-        <div className="space-y-4">
+        {/* Campaign Details Header + Toggle */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-2">
+            <Target className="w-4 h-4 text-gray-700" />
+            <span className="font-semibold text-gray-900">Campaign Details</span>
+          </div>
+          <button
+            onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+          >
+            {showCampaignDetails ? 'Hide details' : 'Show details'}
+          </button>
+        </div>
+
+        {/* Campaign List (collapsible, scrollable) */}
+        {showCampaignDetails && (
+        <div className="space-y-4 max-h-[1100px] overflow-y-auto pr-1">
           {filteredCampaigns
             .filter(c => filterPlatform2==='all' || (c?.platform||'').toLowerCase()===filterPlatform2)
             .filter(c => {
@@ -1320,6 +1336,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             );
           })}
         </div>
+        )}
 
         {filteredCampaigns.length === 0 && (
           <div className="text-center py-12">
