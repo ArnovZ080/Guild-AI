@@ -522,7 +522,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                 <div className="flex items-center space-x-4">
                   <div className="text-2xl">{getPlatformIcon(campaign.platform)}</div>
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{campaign.name || 'Unnamed Campaign'}</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                      <span>{campaign.name || 'Unnamed Campaign'}</span>
+                      {campaign?.ab_test?.enabled && (
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-pink-100 text-pink-700 border border-pink-200">A/B</span>
+                      )}
+                    </h3>
                     <p className="text-sm text-gray-600 capitalize">{campaign.platform || 'Unknown'} • {campaign.type || 'Campaign'}</p>
                   </div>
                 </div>
