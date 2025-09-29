@@ -42,7 +42,7 @@ import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignMod
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 import AIOptimizeCampaignModal from '../modals/AIOptimizeCampaignModal';
 import EmailTab from './EmailTab';
-import { getBenchmarks, getEmailBenchmarks } from '../../services/campaignInsightsApi';
+import { getBenchmarks, getEmailBenchmarks, loadCampaignAssets } from '../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -111,6 +111,57 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
       if (campaign?.bounce_rate != null && campaign.bounce_rate > eb.bounce_max) reasons.push(`Bounce ${campaign.bounce_rate}% above ${eb.bounce_max}%`);
     }
     return reasons;
+  };
+
+  // --- Multi-touch attribution calculators (client-side) ---
+  const calcLinearAttribution = (touches = []) => {
+    if (!Array.isArray(touches) || touches.length === 0) return {};
+    const credit = 1 / touches.length;
+    return touches.reduce((acc, ch) => { acc[ch] = (acc[ch]||0) + credit; return acc; }, {});
+  };
+
+  const calcTimeDecayAttribution = (touches = []) => {
+    if (!Array.isArray(touches) || touches.length === 0) return {};
+    // More recent touches get higher weight. Use geometric decay.
+    const decay = 0.5; // 50% decay per step back
+    const weights = touches.map((_, i) => Math.pow(decay, touches.length - 1 - i));
+    const sum = weights.reduce((s,v)=>s+v,0) || 1;
+    return touches.reduce((acc, ch, i) => { acc[ch] = (acc[ch]||0) + (weights[i]/sum); return acc; }, {});
+  };
+
+  const calcPositionBasedAttribution = (touches = []) => {
+    if (!Array.isArray(touches) || touches.length === 0) return {};
+    const firstLast = Math.min(0.8, 0.4 * Math.min(2, touches.length)); // up to 40% to first and last
+    const middleCredit = 1 - (touches.length >= 2 ? firstLast*2 : firstLast);
+    const result = {};
+    if (touches.length === 1) {
+      result[touches[0]] = 1;
+      return result;
+    }
+    const first = touches[0];
+    const last = touches[touches.length-1];
+    result[first] = (result[first]||0) + firstLast;
+    result[last] = (result[last]||0) + firstLast;
+    const middles = touches.slice(1, -1);
+    if (middles.length > 0) {
+      const each = middleCredit / middles.length;
+      middles.forEach(ch => { result[ch] = (result[ch]||0) + each; });
+    }
+    return result;
+  };
+
+  const buildAttributionSummary = (campaign) => {
+    // touches input expected: ordered array of channel keys for a converting journey
+    const touches = campaign?.mta_touches || [];
+    const linear = calcLinearAttribution(touches);
+    const timeDecay = calcTimeDecayAttribution(touches);
+    const position = calcPositionBasedAttribution(touches);
+    const sumCredits = (map) => Object.values(map).reduce((s,v)=>s+v,0);
+    return {
+      linear: { credits: linear, total: sumCredits(linear) },
+      timeDecay: { credits: timeDecay, total: sumCredits(timeDecay) },
+      position: { credits: position, total: sumCredits(position) }
+    };
   };
 
   const isAnomalyDismissed = (campaignId) => {
@@ -211,10 +262,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
     return { platform, spend: v.spend, conversions: v.conversions, cpa, ctr };
   }).sort((a,b) => (a.cpa ?? Infinity) - (b.cpa ?? Infinity));
 
+  // Normalize display status using dates if missing/misaligned
+  const normalizeStatus = (c) => {
+    const status = (c?.status || '').toLowerCase();
+    const s = c?.startDate ? new Date(c.startDate) : (c?.start_date ? new Date(c.start_date) : null);
+    const e = c?.endDate ? new Date(c.endDate) : (c?.end_date ? new Date(c.end_date) : null);
+    const now = new Date();
+    if (status === 'paused' || status === 'active' || status === 'scheduled' || status === 'completed') return status;
+    if (s && now < s) return 'scheduled';
+    if (e && now > e) return 'completed';
+    return 'active';
+  };
+
   // Filter campaigns with null checks
   const filteredCampaigns = (campaigns || []).filter(campaign => {
     if (!campaign) return false;
-    const matchesStatus = filterStatus === 'all' || campaign.status === filterStatus;
+    const displayStatus = normalizeStatus(campaign);
+    const matchesStatus = filterStatus === 'all' || displayStatus === filterStatus;
     const matchesSearch = (campaign.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (campaign.platform || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -770,7 +834,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     </button>
                     {openMenuForId === (campaign.campaign_id || campaign.id) && (
                       <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                        <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || {}); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
+                        <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || loadCampaignAssets(campaign.campaign_id || campaign.id)); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
                         <div className="border-t border-gray-200"></div>
@@ -973,23 +1037,49 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign }) =>
                     <div className="font-medium text-purple-900">Attribution details</div>
                     <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                    {([campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter','email']).map(ch => (
-                      <div key={ch} className="bg-white border border-purple-100 rounded p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="capitalize text-gray-800">{ch}</span>
-                          <span className="text-xs text-gray-500">by channel</span>
+                  {(() => {
+                    const channels = [campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter'];
+                    const summary = buildAttributionSummary(campaign);
+                    return (
+                      <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {channels.map(ch => (
+                            <div key={ch} className="bg-white border border-purple-100 rounded p-3">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="capitalize text-gray-800">{ch}</span>
+                                <span className="text-xs text-gray-500">by channel</span>
+                              </div>
+                              <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
+                              <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
+                              <div className="mt-1 text-xs text-gray-700">
+                                <div className="flex items-center justify-between"><span>Linear</span><span>{(summary.linear.credits[ch]||0).toFixed(2)}</span></div>
+                                <div className="flex items-center justify-between"><span>Time-decay</span><span>{(summary.timeDecay.credits[ch]||0).toFixed(2)}</span></div>
+                                <div className="flex items-center justify-between"><span>Position</span><span>{(summary.position.credits[ch]||0).toFixed(2)}</span></div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
-                        <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
-                        <div className="mt-1 text-xs text-gray-500">
-                          <Tooltip label="Multi-touch distributes credit across touches (e.g., linear, time-decay). We’ll enable this once telemetry is wired.">
-                            <span>Multi-touch (placeholder): —</span>
-                          </Tooltip>
+                        <div className="bg-white border border-purple-100 rounded p-3">
+                          <div className="font-medium text-gray-900 mb-1">Totals</div>
+                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
+                            <div className="p-2 bg-purple-50 rounded border">
+                              <div className="font-semibold">{summary.linear.total.toFixed(2)}</div>
+                              <div>Linear total</div>
+                            </div>
+                            <div className="p-2 bg-purple-50 rounded border">
+                              <div className="font-semibold">{summary.timeDecay.total.toFixed(2)}</div>
+                              <div>Time-decay total</div>
+                            </div>
+                            <div className="p-2 bg-purple-50 rounded border">
+                              <div className="font-semibold">{summary.position.total.toFixed(2)}</div>
+                              <div>Position-based total</div>
+                            </div>
+                          </div>
                         </div>
+                        <div className="text-xs text-gray-500">Note: Totals represent relative credit across touches for a typical converting journey. Connect telemetry to replace sample touches.</div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()}
                 </div>
               )}
 

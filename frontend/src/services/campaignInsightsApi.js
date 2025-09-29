@@ -22,4 +22,29 @@ export async function getEmailBenchmarks() {
   };
 }
 
+// Simple local persistence for campaign assets (placeholder for backend wiring)
+const ASSETS_STORE_KEY = 'guild_campaign_assets_store';
+
+export function loadCampaignAssets(campaignId) {
+  try {
+    const raw = localStorage.getItem(ASSETS_STORE_KEY);
+    const db = raw ? JSON.parse(raw) : {};
+    return db[campaignId] || { copy: [], images: [], videos: [], emails: [] };
+  } catch {
+    return { copy: [], images: [], videos: [], emails: [] };
+  }
+}
+
+export function saveCampaignAssets(campaignId, assets) {
+  try {
+    const raw = localStorage.getItem(ASSETS_STORE_KEY);
+    const db = raw ? JSON.parse(raw) : {};
+    db[campaignId] = assets;
+    localStorage.setItem(ASSETS_STORE_KEY, JSON.stringify(db));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 
