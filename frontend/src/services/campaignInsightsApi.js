@@ -1,38 +1,25 @@
 // Lightweight frontend-only insights stub for thresholds/benchmarks.
 // Replace with real agent-backed endpoints when available.
 
+// Agent-backed endpoints
 export async function getBenchmarks() {
-  // Simulate fetch with a short delay
-  await new Promise(r => setTimeout(r, 50));
-  return {
-    ctr_min: 1.2,      // %
-    roas_min: 2.5,     // x
-    cpa_max: 60        // USD
-  };
+  const res = await fetch('/api/agents/benchmarks');
+  if (!res.ok) throw new Error('Failed to fetch benchmarks');
+  const data = await res.json();
+  return data.ads;
 }
 
 export async function getEmailBenchmarks() {
-  await new Promise(r => setTimeout(r, 50));
-  return {
-    delivery_min: 97,     // % delivered/sent
-    open_rate_min: 22,    // %
-    click_rate_min: 2.5,  // % CTR on email
-    unsubscribe_max: 0.4, // %
-    bounce_max: 1.0       // %
-  };
+  const res = await fetch('/api/agents/benchmarks');
+  if (!res.ok) throw new Error('Failed to fetch email benchmarks');
+  const data = await res.json();
+  return data.email;
 }
 
-// Competitive benchmarks per platform (stubbed averages)
 export async function getCompetitiveBenchmarks() {
-  await new Promise(r => setTimeout(r, 50));
-  return {
-    facebook: { cpa_avg: 40, ctr_avg: 1.5, roas_avg: 2.8 },
-    instagram: { cpa_avg: 45, ctr_avg: 1.7, roas_avg: 3.0 },
-    google: { cpa_avg: 55, ctr_avg: 2.5, roas_avg: 3.2 },
-    tiktok: { cpa_avg: 35, ctr_avg: 2.2, roas_avg: 2.6 },
-    linkedin: { cpa_avg: 80, ctr_avg: 0.9, roas_avg: 2.2 },
-    twitter: { cpa_avg: 50, ctr_avg: 1.2, roas_avg: 2.0 }
-  };
+  const res = await fetch('/api/agents/competitive');
+  if (!res.ok) throw new Error('Failed to fetch competitive benchmarks');
+  return await res.json();
 }
 
 // Simple local persistence for campaign assets (placeholder for backend wiring)
@@ -77,25 +64,21 @@ export function saveAnomalyThresholds(thresholds) {
   } catch { return false; }
 }
 
-// A/B results persistence
-const AB_RESULTS_KEY = 'guild_campaign_ab_results';
-
-export function loadABResults(campaignId) {
-  try {
-    const raw = localStorage.getItem(AB_RESULTS_KEY);
-    const db = raw ? JSON.parse(raw) : {};
-    return db[campaignId] || null;
-  } catch { return null; }
+// A/B results via backend
+export async function loadABResults(campaignId) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/ab_results`);
+  if (!res.ok) return null;
+  const data = await res.json();
+  return Object.keys(data).length ? data : null;
 }
 
-export function saveABResults(campaignId, results) {
-  try {
-    const raw = localStorage.getItem(AB_RESULTS_KEY);
-    const db = raw ? JSON.parse(raw) : {};
-    db[campaignId] = results;
-    localStorage.setItem(AB_RESULTS_KEY, JSON.stringify(db));
-    return true;
-  } catch { return false; }
+export async function saveABResults(campaignId, results) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/ab_results`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(results)
+  });
+  return res.ok;
 }
 
 export function computeABWinner(results) {
@@ -110,39 +93,31 @@ export function computeABWinner(results) {
   return null;
 }
 
-// Sentiment analysis stub for comments/replies
+// Sentiment analysis via agent endpoint
 export async function analyzeSentiment(texts = []) {
-  await new Promise(r => setTimeout(r, 60));
-  const scores = texts.map(t => {
-    const s = (t || '').toLowerCase();
-    if (s.includes('love') || s.includes('great') || s.includes('amazing')) return 0.8;
-    if (s.includes('bad') || s.includes('hate') || s.includes('terrible')) return 0.2;
-    return 0.5;
+  const res = await fetch('/api/agents/sentiment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ texts })
   });
-  const avg = scores.length ? scores.reduce((a,b)=>a+b,0)/scores.length : 0.5;
-  return { average: avg, distribution: { positive: scores.filter(x=>x>0.66).length, neutral: scores.filter(x=>x>=0.33 && x<=0.66).length, negative: scores.filter(x=>x<0.33).length } };
+  if (!res.ok) throw new Error('Failed to analyze sentiment');
+  return await res.json();
 }
 
-// Workflow activity log (local persistence for transparency)
-const ACTIVITY_KEY = 'guild_campaign_activity_log';
-
-export function logCampaignActivity(campaignId, entry) {
-  try {
-    const raw = localStorage.getItem(ACTIVITY_KEY);
-    const db = raw ? JSON.parse(raw) : {};
-    if (!db[campaignId]) db[campaignId] = [];
-    db[campaignId].push({ ...entry, ts: new Date().toISOString() });
-    localStorage.setItem(ACTIVITY_KEY, JSON.stringify(db));
-    return true;
-  } catch { return false; }
+// Workflow activity log via backend
+export async function logCampaignActivity(campaignId, entry) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/activity`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry)
+  });
+  return res.ok;
 }
 
-export function loadCampaignActivity(campaignId) {
-  try {
-    const raw = localStorage.getItem(ACTIVITY_KEY);
-    const db = raw ? JSON.parse(raw) : {};
-    return db[campaignId] || [];
-  } catch { return []; }
+export async function loadCampaignActivity(campaignId) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/activity`);
+  if (!res.ok) return [];
+  return await res.json();
 }
 
 
