@@ -4,6 +4,7 @@ import CampaignEmailAnalyticsModal from '../../dashboard/modals/CampaignEmailAna
 import ComposeEmailModal from '../../dashboard/modals/ComposeEmailModal.jsx';
 import EditEmailCampaignModal from '../../dashboard/modals/EditEmailCampaignModal.jsx';
 import WorkflowViewerModal from '../../dashboard/modals/WorkflowViewerModal.jsx';
+import AICreateEmailCampaignModal from '../../dashboard/modals/AICreateEmailCampaignModal.jsx';
 import { ContentIntelligenceAPIService, publishCampaignsUpdate, useInsightAnalysis } from '../../../services/contentIntelligenceApi';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 
@@ -102,6 +103,7 @@ const EmailTab = ({ emailData, campaigns }) => {
   const [showAnalytics, setShowAnalytics] = useState(null); // campaignId
   const [editCampaign, setEditCampaign] = useState(null);
   const [showWorkflow, setShowWorkflow] = useState(false);
+  const [showAICreate, setShowAICreate] = useState(false);
   const [processingId, setProcessingId] = useState(null);
 
   const api = new ContentIntelligenceAPIService();
@@ -123,7 +125,7 @@ const EmailTab = ({ emailData, campaigns }) => {
     <div className="space-y-6">
       <TopBar
         metrics={topMetrics}
-        onNewCampaign={()=>{ setEditCampaign({}); }}
+        onNewCampaign={()=>{ setShowAICreate(true); }}
         onCompose={()=>{ setShowCompose(true); }}
         onSettings={()=>{ setShowWorkflow(true); }}
       />
@@ -293,6 +295,7 @@ const EmailTab = ({ emailData, campaigns }) => {
       <CampaignEmailAnalyticsModal open={!!showAnalytics} campaignId={showAnalytics} onClose={()=>setShowAnalytics(null)} />
       <EditEmailCampaignModal open={!!editCampaign} campaign={editCampaign} onClose={()=>setEditCampaign(null)} />
       <WorkflowViewerModal open={showWorkflow} onClose={()=>setShowWorkflow(false)} steps={[]} />
+      <AICreateEmailCampaignModal isOpen={showAICreate} onClose={()=>setShowAICreate(false)} onCreateCampaign={()=>{ /* refresh if needed */ }} />
     </div>
   );
 };
