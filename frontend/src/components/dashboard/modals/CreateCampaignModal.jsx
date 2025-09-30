@@ -81,6 +81,11 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       image: false,
       cta: false,
       copy: false
+    },
+    // Variant-specific fields for A/B inputs
+    ab_variants: {
+      A: { headline: '', copy: '', cta: '', assets: [] },
+      B: { headline: '', copy: '', cta: '', assets: [] }
     }
   };
   const [campaignData, setCampaignData] = useState(initialCampaignData);
@@ -120,6 +125,18 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [isLaunching, setIsLaunching] = useState(false);
 
   const [showAgentWorkflow, setShowAgentWorkflow] = useState(false);
+
+  // Scroll container ref to jump to top on step change
+  const contentRef = React.useRef(null);
+  useEffect(() => {
+    try {
+      if (contentRef?.current) {
+        contentRef.current.scrollTop = 0;
+      } else {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+    } catch {}
+  }, [step]);
 
   // Real AI agent workflow based on Guild-AI agents
   useEffect(() => {
@@ -565,7 +582,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
 
         <div className="flex flex-1">
           {/* Main Content */}
-          <div className="flex-1 p-6 overflow-y-auto" style={{maxHeight: 'calc(95vh - 300px)'}}>
+          <div ref={contentRef} className="flex-1 p-6 overflow-y-auto" style={{maxHeight: 'calc(95vh - 300px)'}}>
             {step === 1 && (
               <div className="space-y-6">
                 <div>
@@ -1033,6 +1050,87 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                                 <span className="text-sm font-medium">{factor.label}</span>
                               </label>
                             ))}
+                          </div>
+                        </div>
+                        {/* Variant Inputs dynamically for selected factors */}
+                        <div className="border-t pt-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="p-3 rounded border">
+                              <div className="font-semibold text-gray-900 mb-2">Variant A</div>
+                              {campaignData.ab_testing_factors.headline && (
+                                <div className="mb-3">
+                                  <label className="block text-xs text-gray-600 mb-1">Headline A</label>
+                                  <input type="text" value={campaignData.ab_variants.A.headline}
+                                    onChange={e=>setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, A: { ...prev.ab_variants.A, headline: e.target.value } } }))}
+                                    className="w-full px-3 py-2 border rounded" placeholder="Enter headline for Variant A" />
+                                </div>
+                              )}
+                              {campaignData.ab_testing_factors.copy && (
+                                <div className="mb-3">
+                                  <label className="block text-xs text-gray-600 mb-1">Primary Copy A</label>
+                                  <textarea rows={3} value={campaignData.ab_variants.A.copy}
+                                    onChange={e=>setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, A: { ...prev.ab_variants.A, copy: e.target.value } } }))}
+                                    className="w-full px-3 py-2 border rounded" placeholder="Enter copy for Variant A" />
+                                </div>
+                              )}
+                              {campaignData.ab_testing_factors.cta && (
+                                <div className="mb-3">
+                                  <label className="block text-xs text-gray-600 mb-1">CTA A</label>
+                                  <input type="text" value={campaignData.ab_variants.A.cta}
+                                    onChange={e=>setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, A: { ...prev.ab_variants.A, cta: e.target.value } } }))}
+                                    className="w-full px-3 py-2 border rounded" placeholder="e.g., Get Started" />
+                                </div>
+                              )}
+                              {campaignData.ab_testing_factors.image && (
+                                <div className="mb-1">
+                                  <label className="block text-xs text-gray-600 mb-1">Assets A</label>
+                                  <input type="file" accept="image/*,video/*" multiple
+                                    onChange={e=>{
+                                      const files = Array.from(e.target.files||[]);
+                                      setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, A: { ...prev.ab_variants.A, assets: files } } }));
+                                    }} className="w-full px-3 py-2 border rounded" />
+                                  <div className="text-[11px] text-gray-500 mt-1">Upload or select assets specific to Variant A</div>
+                                </div>
+                              )}
+                            </div>
+                            <div className="p-3 rounded border">
+                              <div className="font-semibold text-gray-900 mb-2">Variant B</div>
+                              {campaignData.ab_testing_factors.headline && (
+                                <div className="mb-3">
+                                  <label className="block text-xs text-gray-600 mb-1">Headline B</label>
+                                  <input type="text" value={campaignData.ab_variants.B.headline}
+                                    onChange={e=>setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, B: { ...prev.ab_variants.B, headline: e.target.value } } }))}
+                                    className="w-full px-3 py-2 border rounded" placeholder="Enter headline for Variant B" />
+                                </div>
+                              )}
+                              {campaignData.ab_testing_factors.copy && (
+                                <div className="mb-3">
+                                  <label className="block text-xs text-gray-600 mb-1">Primary Copy B</label>
+                                  <textarea rows={3} value={campaignData.ab_variants.B.copy}
+                                    onChange={e=>setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, B: { ...prev.ab_variants.B, copy: e.target.value } } }))}
+                                    className="w-full px-3 py-2 border rounded" placeholder="Enter copy for Variant B" />
+                                </div>
+                              )}
+                              {campaignData.ab_testing_factors.cta && (
+                                <div className="mb-3">
+                                  <label className="block text-xs text-gray-600 mb-1">CTA B</label>
+                                  <input type="text" value={campaignData.ab_variants.B.cta}
+                                    onChange={e=>setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, B: { ...prev.ab_variants.B, cta: e.target.value } } }))}
+                                    className="w-full px-3 py-2 border rounded" placeholder="e.g., Learn More" />
+                                </div>
+                              )}
+                              {campaignData.ab_testing_factors.image && (
+                                <div className="mb-1">
+                                  <label className="block text-xs text-gray-600 mb-1">Assets B</label>
+                                  <input type="file" accept="image/*,video/*" multiple
+                                    onChange={e=>{
+                                      const files = Array.from(e.target.files||[]);
+                                      setCampaignData(prev=>({ ...prev, ab_variants: { ...prev.ab_variants, B: { ...prev.ab_variants.B, assets: files } } }));
+                                    }} className="w-full px-3 py-2 border rounded" />
+                                  <div className="text-[11px] text-gray-500 mt-1">Upload or select assets specific to Variant B</div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
