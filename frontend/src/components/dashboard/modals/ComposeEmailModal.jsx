@@ -12,6 +12,8 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
   const [segment, setSegment] = useState(defaultSegmentId || 'all');
   const [sending, setSending] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [compliance, setCompliance] = useState(null);
+  const [checking, setChecking] = useState(false);
   const api = new ContentIntelligenceAPIService();
 
   if (!open) return null;
@@ -24,6 +26,16 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
       onClose();
     } finally {
       setSending(false);
+    }
+  };
+
+  const checkCompliance = async () => {
+    setChecking(true);
+    try {
+      const result = await api.getEmailCompliance({ to, cc, bcc, subject, body });
+      setCompliance(result?.data || { pass: true, issues: [] });
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -63,12 +75,27 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
             <div className="mt-1 text-xs text-gray-500">Tip: Keep paragraphs short. Use one clear CTA.</div>
           </div>
         </div>
-        <div className="p-4 border-t flex justify-between items-center space-x-2">
-          <button onClick={()=>setShowAssistant(true)} className="px-3 py-2 border rounded text-sm">Let an Agent write your email</button>
-          <div className="flex items-center space-x-2">
-            <button onClick={onClose} className="px-3 py-2 border rounded">Cancel</button>
-            <button onClick={send} disabled={sending || !subject.trim() || !body.trim()} className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">{sending?'Sending...':'Send'}</button>
+        <div className="p-4 border-t space-y-3">
+          <div className="flex items-center justify-between">
+            <button onClick={()=>setShowAssistant(true)} className="px-3 py-2 border rounded text-sm">Let an Agent write your email</button>
+            <div className="flex items-center space-x-2">
+              <button onClick={checkCompliance} disabled={checking} className="px-3 py-2 border rounded text-sm">{checking?'Checking...':'Check Compliance'}</button>
+              <button onClick={onClose} className="px-3 py-2 border rounded">Cancel</button>
+              <button onClick={send} disabled={sending || !subject.trim() || !body.trim()} className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">{sending?'Sending...':'Send'}</button>
+            </div>
           </div>
+          {compliance && (
+            <div className={`rounded border p-3 ${compliance.pass?'border-green-200 bg-green-50':'border-yellow-200 bg-yellow-50'}`}>
+              <div className="text-sm font-medium">Send Readiness: {compliance.pass ? 'Pass' : 'Needs Attention'}</div>
+              {(compliance.issues||[]).length>0 && (
+                <ul className="mt-2 list-disc pl-5 text-xs text-gray-700">
+                  {compliance.issues.map(issue => (
+                    <li key={issue.id}><span className="font-medium capitalize">{issue.label}</span>: {issue.why}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <ChatEmailComposeAssistantModal

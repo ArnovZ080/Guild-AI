@@ -132,6 +132,7 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   controlEmailCampaign: '/content/control-email-campaign',
   getEmailABTests: '/content/email-abtests',
   getBestSendTimes: '/content/email-best-send-times',
+  getEmailCompliance: '/content/email-compliance',
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
@@ -294,6 +295,14 @@ export class ContentIntelligenceAPIService {
   async getBestSendTimes(segmentId) {
     const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getBestSendTimes}?segment_id=${encodeURIComponent(segmentId || '')}`);
     return result || this.getMockBestSendTimes(segmentId);
+  }
+
+  async getEmailCompliance(payload) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailCompliance, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    return result || this.getMockEmailCompliance(payload);
   }
 
   async getCreativeAssets() {
@@ -640,6 +649,104 @@ export class ContentIntelligenceAPIService {
         }
       }
     };
+  }
+
+  getMockEmailInbox(filters) {
+    const now = Date.now();
+    const makeMsg = (i) => ({
+      id: `msg_${i}`,
+      from: i % 2 ? 'support@yourapp.com' : 'jane@acme.com',
+      to: i % 3 ? 'you@brand.com' : 'team@brand.com',
+      subject: i % 2 ? 'Question about pricing' : 'Your weekly newsletter',
+      snippet: 'Just checking if your Pro plan includes...',
+      received_at: new Date(now - i * 3600_000).toISOString(),
+      tags: i % 2 ? ['support','inbound'] : ['newsletter'],
+      provider: i % 2 ? 'Gmail' : 'SendGrid',
+      thread_id: `thread_${Math.floor(i/2)}`,
+      status: 'unread'
+    });
+    return { data: { inbox: Array.from({ length: 12 }).map((_,i)=>makeMsg(i)) } };
+  }
+
+  getMockEmailCampaigns() {
+    const mk = (i) => ({
+      campaign_id: `email_cmp_${i}`,
+      name: i===0? 'Welcome Series' : i===1? 'Black Friday Promo' : 'Newsletter October',
+      objective: i===1? 'Drive Sales':'Engagement',
+      status: i===0? 'running' : i===1? 'scheduled':'completed',
+      progress: i===0? 62: i===1? 0: 100,
+      sent: i===0? 4200: 0,
+      delivered: i===0? 4100: 0,
+      open_rate: i===0? 34.2: i===1? null: 41.8,
+      click_rate: i===0? 4.8: i===1? null: 6.2,
+      unsubscribe_rate: i===0? 0.3: 0.2,
+      bounce_rate: i===0? 0.7: 0.4,
+      emails_in_sequence: i===0? 5: 1,
+      platform: 'email',
+      scheduled_at: i===1? new Date(Date.now()+36e5).toISOString() : null
+    });
+    return { data: { campaigns: [0,1,2].map(mk) } };
+  }
+
+  getMockEmailTemplates() {
+    const tm = (id, name, type) => ({ id, name, type, last_used: new Date(Date.now()-id*86_400_000).toISOString(), performance: { avg_open: 38.2, avg_click: 5.4 } });
+    return { data: { templates: [tm(1,'Newsletter Clean','newsletter'), tm(2,'Promo Highlight','promo'), tm(3,'Onboarding Step','nurture')] } };
+  }
+
+  getMockEmailSegments() {
+    const sg = (id, name, count, engagement) => ({ id: `seg_${id}`, name, count, engagement, recent_activity: 'Open + Click' });
+    return { data: { segments: [
+      sg(1,'New Subscribers (30d)', 823, 0.62),
+      sg(2,'Inactive >90d', 312, 0.18),
+      sg(3,'VIP Buyers', 97, 0.84),
+      sg(4,'Active Customers', 1290, 0.55)
+    ] } };
+  }
+
+  getMockEmailAnalytics(campaignId) {
+    return { data: {
+      campaign_id: campaignId,
+      metrics: {
+        delivered: 4100, opens: 1400, clicks: 200, bounces: 28, unsubscribes: 11,
+        open_rate: 34.1, click_rate: 4.9, bounce_rate: 0.7, unsubscribe_rate: 0.27,
+      },
+      timeline: Array.from({length:24}).map((_,h)=>({ hour: h, opens: Math.max(0, Math.round(80 - Math.abs(12-h)*6)), clicks: Math.max(0, Math.round(20 - Math.abs(12-h)*2)) })),
+      heatmap: [
+        { area: 'Hero CTA', clicks: 112 },
+        { area: 'Feature Link', clicks: 56 },
+        { area: 'Footer Social', clicks: 18 }
+      ]
+    } };
+  }
+
+  getMockEmailABTests(campaignId) {
+    return { data: {
+      campaign_id: campaignId,
+      variants: [
+        { id: 'A', subject: 'Unlock 30% off today', open_rate: 35.2, click_rate: 5.1 },
+        { id: 'B', subject: 'Your exclusive 30% savings inside', open_rate: 31.9, click_rate: 6.0 }
+      ],
+      winner: 'A'
+    } };
+  }
+
+  getMockBestSendTimes(segmentId) {
+    return { data: {
+      segment_id: segmentId || 'all',
+      suggestions: [
+        { day: 'Tuesday', hour_local: 10, confidence: 0.82 },
+        { day: 'Thursday', hour_local: 9, confidence: 0.78 },
+        { day: 'Sunday', hour_local: 17, confidence: 0.63 }
+      ]
+    } };
+  }
+
+  getMockEmailCompliance(payload) {
+    const issues = [];
+    if (!/unsubscribe|opt\s?-?out/i.test(payload.body||'')) issues.push({ id: 'unsubscribe', level: 'warning', label: 'Unsubscribe link missing', why: 'Compliance requires visible opt-out.' });
+    if (!/privacy|policy|address/i.test(payload.body||'')) issues.push({ id: 'footer', level: 'info', label: 'Footer details incomplete', why: 'Add company address or privacy link.' });
+    if ((payload.subject||'').length > 120) issues.push({ id: 'subject_length', level: 'info', label: 'Subject may be too long', why: 'Deliverability may suffer with very long subjects.' });
+    return { data: { pass: issues.length===0, issues } };
   }
 
   getMockEmailPerformance(period) {
