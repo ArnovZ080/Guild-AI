@@ -6,6 +6,8 @@ import EditEmailCampaignModal from '../../dashboard/modals/EditEmailCampaignModa
 import WorkflowViewerModal from '../../dashboard/modals/WorkflowViewerModal.jsx';
 import AICreateEmailCampaignModal from '../../dashboard/modals/AICreateEmailCampaignModal.jsx';
 import { ContentIntelligenceAPIService, publishCampaignsUpdate, useInsightAnalysis } from '../../../services/contentIntelligenceApi';
+import ABTestSetupModal from '../../dashboard/modals/ABTestSetupModal.jsx';
+import ContactDrawer from '../../dashboard/modals/ContactDrawer.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 
 const Section = ({ title, defaultOpen = true, children, right }) => {
@@ -105,6 +107,8 @@ const EmailTab = ({ emailData, campaigns }) => {
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [showAICreate, setShowAICreate] = useState(false);
   const [processingId, setProcessingId] = useState(null);
+  const [showABTest, setShowABTest] = useState(null); // campaignId
+  const [contactEmail, setContactEmail] = useState(null);
 
   const api = new ContentIntelligenceAPIService();
 
@@ -168,6 +172,7 @@ const EmailTab = ({ emailData, campaigns }) => {
                   <td className="py-2 pr-4">
                     <div className="flex items-center space-x-2">
                       <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowAnalytics(c.campaign_id||c.id)}><BarChart3 className="w-3 h-3 mr-1"/>Analytics</button>
+                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowABTest(c.campaign_id||c.id)}>A/B Test</button>
                       {c.status==='paused' ? (
                         <button title="Resume sending this campaign" className={`px-2 py-1 border rounded flex items-center ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'resume')}><Play className="w-3 h-3 mr-1"/>Resume</button>
                       ) : (
@@ -198,7 +203,7 @@ const EmailTab = ({ emailData, campaigns }) => {
               <div className="text-xs text-gray-600 mt-0.5">From {msg.from} • {msg.provider}</div>
               <div className="text-xs text-gray-700 mt-1 line-clamp-2">{msg.snippet}</div>
               <div className="mt-2 flex items-center space-x-2">
-                <button className="px-2 py-1 border rounded text-xs">Open</button>
+                <button className="px-2 py-1 border rounded text-xs" onClick={()=>setContactEmail(msg.from)}>Open</button>
                 <button className="px-2 py-1 border rounded text-xs">Reply (AI)</button>
                 <button className="px-2 py-1 border rounded text-xs">Assign</button>
               </div>
@@ -222,7 +227,7 @@ const EmailTab = ({ emailData, campaigns }) => {
                 <button className="px-2 py-1 border rounded text-xs">Edit</button>
                 <button className="px-2 py-1 border rounded text-xs">Repurpose</button>
                 <button className="px-2 py-1 border rounded text-xs">Analytics</button>
-              </div>
+          </div>
             </div>
           ))}
         </div>
@@ -237,7 +242,7 @@ const EmailTab = ({ emailData, campaigns }) => {
               <div className="mt-2 flex items-center space-x-2">
                 <button className="px-2 py-1 border rounded text-xs flex items-center"><Eye className="w-3 h-3 mr-1"/>View</button>
                 <button className="px-2 py-1 border rounded text-xs">Micro-campaign</button>
-              </div>
+          </div>
             </div>
           ))}
         </div>
@@ -288,7 +293,7 @@ const EmailTab = ({ emailData, campaigns }) => {
           {(!aiSuggestions || aiSuggestions.length===0) && (
             <div className="text-sm text-gray-700">No suggestions yet. Suggestions appear as agents analyze performance.</div>
           )}
-        </div>
+      </div>
       </Section>
 
       <ComposeEmailModal open={showCompose} onClose={()=>setShowCompose(false)} onSent={()=>{}} />
@@ -296,6 +301,8 @@ const EmailTab = ({ emailData, campaigns }) => {
       <EditEmailCampaignModal open={!!editCampaign} campaign={editCampaign} onClose={()=>setEditCampaign(null)} />
       <WorkflowViewerModal open={showWorkflow} onClose={()=>setShowWorkflow(false)} steps={[]} />
       <AICreateEmailCampaignModal isOpen={showAICreate} onClose={()=>setShowAICreate(false)} onCreateCampaign={()=>{ /* refresh if needed */ }} />
+      <ABTestSetupModal open={!!showABTest} onClose={()=>setShowABTest(null)} campaignId={showABTest} onSaved={()=>{}} />
+      <ContactDrawer open={!!contactEmail} onClose={()=>setContactEmail(null)} email={contactEmail} />
     </div>
   );
 };

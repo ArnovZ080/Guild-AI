@@ -133,6 +133,9 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   getEmailABTests: '/content/email-abtests',
   getBestSendTimes: '/content/email-best-send-times',
   getEmailCompliance: '/content/email-compliance',
+  getContactProfile: '/content/contact-profile',
+  getContactTimeline: '/content/contact-timeline',
+  getPersonalizationSuggestions: '/content/personalization-suggestions',
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
@@ -303,6 +306,21 @@ export class ContentIntelligenceAPIService {
       body: JSON.stringify(payload)
     });
     return result || this.getMockEmailCompliance(payload);
+  }
+
+  async getContactProfile(email) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getContactProfile}?email=${encodeURIComponent(email)}`);
+    return result || this.getMockContactProfile(email);
+  }
+
+  async getContactTimeline(email) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getContactTimeline}?email=${encodeURIComponent(email)}`);
+    return result || this.getMockContactTimeline(email);
+  }
+
+  async getPersonalizationSuggestions(email) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getPersonalizationSuggestions}?email=${encodeURIComponent(email)}`);
+    return result || this.getMockPersonalizationSuggestions(email);
   }
 
   async getCreativeAssets() {
@@ -747,6 +765,26 @@ export class ContentIntelligenceAPIService {
     if (!/privacy|policy|address/i.test(payload.body||'')) issues.push({ id: 'footer', level: 'info', label: 'Footer details incomplete', why: 'Add company address or privacy link.' });
     if ((payload.subject||'').length > 120) issues.push({ id: 'subject_length', level: 'info', label: 'Subject may be too long', why: 'Deliverability may suffer with very long subjects.' });
     return { data: { pass: issues.length===0, issues } };
+  }
+
+  getMockContactProfile(email) {
+    return { data: { email, name: 'Jane Doe', company: 'Acme Inc', role: 'Operations Manager', location: 'Austin, TX', segments: ['Active Customers','VIP Buyers'], engagement_score: 0.78, last_activity: new Date(Date.now()-86400000).toISOString() } };
+  }
+
+  getMockContactTimeline(email) {
+    return { data: { email, events: [
+      { ts: new Date(Date.now()-3*86400000).toISOString(), type: 'email_sent', subject: 'Welcome to Acme' },
+      { ts: new Date(Date.now()-2*86400000).toISOString(), type: 'open', subject: 'Welcome to Acme' },
+      { ts: new Date(Date.now()-2*86400000+3600000).toISOString(), type: 'click', subject: 'Welcome to Acme', details: 'Clicked: Get Started' },
+      { ts: new Date(Date.now()-1*86400000).toISOString(), type: 'email_sent', subject: 'Product Tips' },
+    ] } };
+  }
+
+  getMockPersonalizationSuggestions(email) {
+    return { data: { email, suggestions: [
+      { id: 'p1', field: 'subject', text: 'Jane, quick idea to save you time in Ops' , why: 'Personalized subject with role reference increases opens' },
+      { id: 'p2', field: 'body', text: 'Reference Acme’s recent onboarding milestone to build relevance', why: 'Context from timeline indicates onboarding' }
+    ] } };
   }
 
   getMockEmailPerformance(period) {
