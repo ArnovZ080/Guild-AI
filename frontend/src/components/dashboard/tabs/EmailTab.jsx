@@ -17,15 +17,15 @@ import { ContentIntelligenceAPIService as CIAService } from '../../../services/c
 const Section = ({ title, defaultOpen = true, children, right }) => {
   const [open, setOpen] = useState(!!defaultOpen);
   return (
-    <div className="bg-white rounded-lg shadow-lg">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+    <div className="bg-white/90 rounded-xl shadow-md border border-gray-200">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <button onClick={()=>setOpen(!open)} className="text-sm font-semibold text-gray-900">{open ? '▾' : '▸'} {title}</button>
         </div>
         <div className="flex items-center space-x-2">{right}</div>
       </div>
       {open && (
-        <div className="p-4">{children}</div>
+        <div className="p-5">{children}</div>
       )}
     </div>
   );
@@ -40,7 +40,7 @@ const MetricCard = ({ label, value, trend, color }) => (
 );
 
 const TopBar = ({ onNewCampaign, onCompose, onSettings, metrics }) => (
-  <div className="bg-white rounded-lg shadow-lg p-4 flex items-center justify-between">
+  <div className="bg-white/90 rounded-xl shadow-md border border-gray-200 p-4 flex items-center justify-between">
     <div className="flex items-center space-x-2">
       <Mail className="w-5 h-5 text-blue-600" />
       <span className="font-semibold">Emails Command Center</span>
@@ -52,9 +52,9 @@ const TopBar = ({ onNewCampaign, onCompose, onSettings, metrics }) => (
       <MetricCard label="Revenue" value={metrics.revenue} trend={null} color="bg-purple-50" />
     </div>
     <div className="flex items-center space-x-2">
-      <button onClick={onNewCampaign} className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm flex items-center"><Plus className="w-4 h-4 mr-1"/>New Campaign</button>
-      <button onClick={onCompose} className="px-3 py-2 bg-gray-900 text-white rounded-md text-sm">Compose</button>
-      <button onClick={onSettings} className="p-2 border rounded-md"><Settings className="w-4 h-4"/></button>
+      <button onClick={onNewCampaign} className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm flex items-center shadow-sm hover:shadow"><Plus className="w-4 h-4 mr-1"/>New Campaign</button>
+      <button onClick={onCompose} className="px-3 py-2 bg-purple-600 text-white rounded-md text-sm shadow-sm hover:shadow">Compose</button>
+      <button onClick={onSettings} className="p-2 border border-gray-300 rounded-md hover:bg-gray-50"><Settings className="w-4 h-4"/></button>
     </div>
   </div>
 );
@@ -204,20 +204,24 @@ const EmailTab = ({ emailData, campaigns }) => {
                   <td className="py-2 pr-4">{c.open_rate!=null? `${c.open_rate}%` : '-'}</td>
                   <td className="py-2 pr-4">{c.click_rate!=null? `${c.click_rate}%` : '-'}</td>
                   <td className="py-2 pr-4">{c.unsubscribe_rate!=null? `${c.unsubscribe_rate}%` : '-'}</td>
-                  <td className="py-2 pr-4">
-                    <div className="flex items-center space-x-2">
-                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowAnalytics(c.campaign_id||c.id)}><BarChart3 className="w-3 h-3 mr-1"/>Analytics</button>
-                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowABTest(c.campaign_id||c.id)}>A/B Test</button>
-                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowFollowups(c.campaign_id||c.id)}>Follow-ups</button>
-                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowRevenue(c.campaign_id||c.id)}>Revenue</button>
-                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowJourney(c.campaign_id||c.id)}>Journey</button>
+                  <td className="py-3 pr-4">
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        <button className="px-2.5 py-1.5 bg-blue-600 text-white rounded-md text-xs shadow-sm flex items-center" onClick={()=>setShowAnalytics(c.campaign_id||c.id)}><BarChart3 className="w-3 h-3 mr-1"/>Analytics</button>
+                        <button className="px-2.5 py-1.5 bg-purple-600 text-white rounded-md text-xs shadow-sm" onClick={()=>setShowABTest(c.campaign_id||c.id)}>A/B Test</button>
+                        <button className="px-2.5 py-1.5 bg-indigo-600 text-white rounded-md text-xs shadow-sm" onClick={()=>setShowFollowups(c.campaign_id||c.id)}>Follow-ups</button>
+                        <button className="px-2.5 py-1.5 bg-emerald-600 text-white rounded-md text-xs shadow-sm" onClick={()=>setShowRevenue(c.campaign_id||c.id)}>Revenue</button>
+                        <button className="px-2.5 py-1.5 bg-amber-600 text-white rounded-md text-xs shadow-sm" onClick={()=>setShowJourney(c.campaign_id||c.id)}>Journey</button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                       {c.status==='paused' ? (
-                        <button title="Resume sending this campaign" className={`px-2 py-1 border rounded flex items-center ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'resume')}><Play className="w-3 h-3 mr-1"/>Resume</button>
+                        <button title="Resume sending this campaign" className={`px-2.5 py-1.5 bg-gray-800 text-white rounded-md text-xs ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'resume')}><Play className="w-3 h-3 inline mr-1"/>Resume</button>
                       ) : (
-                        <button title="Pause further sends" className={`px-2 py-1 border rounded flex items-center ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'pause')}><Pause className="w-3 h-3 mr-1"/>Pause</button>
+                        <button title="Pause further sends" className={`px-2.5 py-1.5 bg-gray-600 text.white rounded-md text-xs ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'pause')}><Pause className="w-3 h-3 inline mr-1"/>Pause</button>
                       )}
-                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setEditCampaign(c)}>Edit</button>
-                      <button title="Cancel campaign (no further sends)" className={`px-2 py-1 border rounded flex items-center text-red-600 ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'cancel')}><Trash2 className="w-3 h-3 mr-1"/>Cancel</button>
+                      <button className="px-2.5 py-1.5 bg-slate-200 text-slate-900 rounded-md text-xs" onClick={()=>setEditCampaign(c)}>Edit</button>
+                      <button title="Cancel campaign (no further sends)" className={`px-2.5 py-1.5 bg-red-50 text-red-700 border border-red-200 rounded-md text-xs ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'cancel')}><Trash2 className="w-3 h-3 inline mr-1"/>Cancel</button>
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -231,9 +235,9 @@ const EmailTab = ({ emailData, campaigns }) => {
         {!inboxLoading && !inboxData?.data?.inbox?.length && (
           <div className="text-sm text-gray-600">No messages yet. Connect your email providers in Settings.</div>
         )}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(inboxData?.data?.inbox||[]).slice(0,8).map(msg => (
-            <div key={msg.id} className="border rounded p-3 text-sm">
+            <div key={msg.id} className="border border-gray-200 rounded-xl p-4 text-sm bg-white hover:shadow-sm transition-shadow">
               <div className="flex items-center justify-between">
                 <div className="font-medium truncate max-w-[70%]" title={msg.subject}>{msg.subject}</div>
                 <div className="text-xs text-gray-500">{new Date(msg.received_at).toLocaleString()}</div>
@@ -241,9 +245,9 @@ const EmailTab = ({ emailData, campaigns }) => {
               <div className="text-xs text-gray-600 mt-0.5">From {msg.from} • {msg.provider}</div>
               <div className="text-xs text-gray-700 mt-1 line-clamp-2">{msg.snippet}</div>
               <div className="mt-2 flex items-center space-x-2">
-                <button className="px-2 py-1 border rounded text-xs" onClick={()=>setContactEmail(msg.from)}>Open</button>
-                <button className="px-2 py-1 border rounded text-xs">Reply (AI)</button>
-                <button className="px-2 py-1 border rounded text-xs">Assign</button>
+                <button className="px-2.5 py-1.5 bg-blue-600 text-white rounded-md text-xs" onClick={()=>setContactEmail(msg.from)}>Open</button>
+                <button className="px-2.5 py-1.5 bg-purple-600 text-white rounded-md text-xs">Reply (AI)</button>
+                <button className="px-2.5 py-1.5 bg-slate-200 text-slate-900 rounded-md text-xs">Assign</button>
               </div>
             </div>
           ))}
