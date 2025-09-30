@@ -40,6 +40,9 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
   const [budgetRange, setBudgetRange] = useState({ min: 50, max: 200 });
   const [timeframe, setTimeframe] = useState({ start: '', end: '' });
   const [pacing, setPacing] = useState('even'); // even | frontloaded
+  const [dynamicBudgetRec, setDynamicBudgetRec] = useState(null);
+  const [roiForecast, setRoiForecast] = useState(null);
+  const [showAssumptions, setShowAssumptions] = useState(false);
   // Audience and Location (refine like CreateCampaignModal style)
   const [isRefiningAudience, setIsRefiningAudience] = useState(false);
   const [audienceText, setAudienceText] = useState('');
@@ -156,6 +159,17 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
       };
       
       setBlueprint(finalBlueprint);
+      // Auto-call dynamic recommendation and show a chip summary
+      try {
+        const resp = await fetch('/api/agents/budget/dynamic-recommendation', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaign_data: {
+            platform: 'mixed', objective: resolvedGoal, duration: 30,
+            total_budget: budgetRange.max, audience: { description: audienceText }
+          }})
+        });
+        if (resp.ok) setDynamicBudgetRec(await resp.json());
+      } catch {}
       return finalBlueprint;
     } catch (error) {
       console.error('Blueprint generation failed:', error);
@@ -318,6 +332,17 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
       });
 
       setOptimization(contentResult);
+      // Fetch ROI forecast to display on confidence step later
+      try {
+        const resp = await fetch('/api/agents/roi/forecast', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ campaign_data: {
+            platform: 'mixed', objective: resolvedGoal, duration: 30,
+            total_budget: budgetRange.max, audience: { description: audienceText }
+          }})
+        });
+        if (resp.ok) setRoiForecast(await resp.json());
+      } catch {}
       return contentResult;
     } catch (error) {
       console.error('Optimization generation failed:', error);
@@ -603,6 +628,12 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
                 <div className="font-medium text-gray-900">AI-Generated Campaign Blueprint</div>
               </div>
               <div className="text-sm text-gray-700">Audience: derived from onboarding • Segments prioritized by Customer Intelligence Agent. Channels selected by Business Intelligence Agent based on goal.</div>
+              {dynamicBudgetRec && (
+                <div className="flex items-center space-x-2 text-xs text-gray-700">
+                  <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">AI Budget</span>
+                  <span>Daily ${dynamicBudgetRec.daily_budget_recommended} • {dynamicBudgetRec.pacing} pacing</span>
+                </div>
+              )}
               {blueprintLoading ? (
                 <div className="flex items-center justify-center p-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -774,6 +805,26 @@ const AIWorkflowCreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) =>
                       <CheckCircle className="w-5 h-5 text-green-700" />
                       <div className="text-gray-900 font-medium">AI Confidence Score: {judge.score}/100</div>
                     </div>
+                  </div>
+                  <div className="p-4 border rounded">
+                    <div className="text-xs text-gray-500 mb-1">ROI Forecast</div>
+                    {roiForecast ? (
+                      <div className="text-sm text-gray-800">
+                        <div>ROAS: <span className="font-medium">{roiForecast.expected_roas_range?.min}–{roiForecast.expected_roas_range?.max}x</span></div>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          <div>CPL: <span className="font-medium">${roiForecast.expected_cpl_cpa?.cpl}</span></div>
+                          <div>CPA: <span className="font-medium">${roiForecast.expected_cpl_cpa?.cpa}</span></div>
+                        </div>
+                        <button type="button" onClick={()=>setShowAssumptions(v=>!v)} className="mt-1 text-xs text-blue-600">{showAssumptions ? 'Hide' : 'Show'} assumptions</button>
+                        {showAssumptions && (
+                          <ul className="list-disc ml-5 text-xs text-gray-600 mt-1">
+                            {(roiForecast.assumptions||[]).map((a,i)=>(<li key={i}>{a}</li>))}
+                          </ul>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">Forecast will appear here when available.</div>
+                    )}
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 border rounded">

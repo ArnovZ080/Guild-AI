@@ -126,6 +126,10 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [isLaunching, setIsLaunching] = useState(false);
 
   const [showAgentWorkflow, setShowAgentWorkflow] = useState(false);
+  const [dynamicBudgetEnabled, setDynamicBudgetEnabled] = useState(false);
+  const [dynamicBudgetRec, setDynamicBudgetRec] = useState(null);
+  const [roiForecast, setRoiForecast] = useState(null);
+  const [showAssumptions, setShowAssumptions] = useState(false);
 
   // Scroll container ref to jump to top on step change
   const contentRef = React.useRef(null);
@@ -247,6 +251,42 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     }
   };
 
+  // Fetch ROI forecast on entering Judge/Confidence step
+  useEffect(() => {
+    const fetchRoi = async () => {
+      if (step !== 5) return;
+      try {
+        const resp = await fetch('/api/agents/roi/forecast', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaign_data: {
+              platform: campaignData.platform,
+              objective: campaignData.objective,
+              duration: Number(campaignData.duration)||undefined,
+              budget: campaignData.budget_type === 'daily' ? Number(campaignData.budget)||undefined : undefined,
+              total_budget: campaignData.budget_type === 'total' ? Number(campaignData.total_budget)||undefined : undefined,
+              geo: campaignData?.geo_targeting?.country || undefined,
+              audience: { description: campaignData.targetAudience }
+            },
+            performance_priors: {}
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          setRoiForecast(data);
+          try { logCampaignActivity(campaignData.campaign_id || 'new', { actor: 'Financial Intelligence Agent', action: 'roi_forecast_generated', reason: 'Forecast displayed on confidence step' }); } catch {}
+        } else {
+          setRoiForecast(null);
+        }
+      } catch {
+        setRoiForecast(null);
+      }
+    };
+    fetchRoi();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
   const triggerAIAnalysis = async () => {
     setIsAnalyzing(true);
     try {
@@ -362,15 +402,45 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       roas: 0
     };
     
-    console.log('New campaign to create:', newCampaign);
-    
-    if (onCreateCampaign) {
-      console.log('Calling onCreateCampaign...');
-      onCreateCampaign(newCampaign);
-      try { logCampaignActivity(newCampaign.campaign_id, { actor: 'User', action: 'create_campaign', reason: 'Initial creation with settings including A/B variants' }); } catch {}
-      onClose();
+    const proceed = async () => {
+      console.log('New campaign to create:', newCampaign);
+      if (onCreateCampaign) {
+        onCreateCampaign(newCampaign);
+        try { logCampaignActivity(newCampaign.campaign_id, { actor: 'User', action: 'create_campaign', reason: 'Initial creation with settings including A/B variants' }); } catch {}
+        onClose();
+      } else {
+        console.error('onCreateCampaign function is not defined');
+      }
+    };
+
+    if (dynamicBudgetEnabled) {
+      // Merge auto-allocation plan before creating
+      (async () => {
+        try {
+          const resp = await fetch('/api/agents/budget/auto-allocate', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ campaign_data: {
+              platform: newCampaign.platform,
+              objective: newCampaign.objective,
+              duration: Number(newCampaign.duration)||undefined,
+              budget: newCampaign.budget_type === 'daily' ? Number(newCampaign.budget)||undefined : undefined,
+              total_budget: newCampaign.budget_type === 'total' ? Number(newCampaign.total_budget)||undefined : undefined,
+              geo: newCampaign?.geo_targeting?.country || undefined,
+              audience: { description: newCampaign.targetAudience }
+            }})
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const plan = data?.plan || {};
+            newCampaign.smart_pacing = plan.pacing === 'smart' || newCampaign.smart_pacing;
+            if (newCampaign.budget_type === 'daily' && plan.daily_budget) newCampaign.budget = plan.daily_budget;
+            try { logCampaignActivity(newCampaign.campaign_id, { actor: 'Budget Optimizers', action: 'auto_allocate_budget', reason: (plan.rationale||[]).join(' • ') }); } catch {}
+          }
+        } catch {}
+        await proceed();
+      })();
     } else {
-      console.error('onCreateCampaign function is not defined');
+      proceed();
     }
   };
 
@@ -423,6 +493,29 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     };
     try {
       setIsLaunching(true);
+      if (dynamicBudgetEnabled) {
+        try {
+          const resp = await fetch('/api/agents/budget/auto-allocate', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ campaign_data: {
+              platform: newCampaign.platform,
+              objective: newCampaign.objective,
+              duration: Number(newCampaign.duration)||undefined,
+              budget: newCampaign.budget_type === 'daily' ? Number(newCampaign.budget)||undefined : undefined,
+              total_budget: newCampaign.budget_type === 'total' ? Number(newCampaign.total_budget)||undefined : undefined,
+              geo: newCampaign?.geo_targeting?.country || undefined,
+              audience: { description: newCampaign.targetAudience }
+            }})
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const plan = data?.plan || {};
+            newCampaign.smart_pacing = plan.pacing === 'smart' || newCampaign.smart_pacing;
+            if (newCampaign.budget_type === 'daily' && plan.daily_budget) newCampaign.budget = plan.daily_budget;
+            try { logCampaignActivity(newCampaign.campaign_id, { actor: 'Budget Optimizers', action: 'auto_allocate_budget', reason: (plan.rationale||[]).join(' • ') }); } catch {}
+          }
+        } catch {}
+      }
       onCreateCampaign?.(newCampaign);
       // Judge gate: block if rubric very low (example)
       const judgeOk = (judgeRubric?.scores?.clarity ?? 7) >= 6 && (judgeRubric?.scores?.compliance ?? 8) >= 6;
@@ -842,6 +935,65 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                   {/* Budget & Duration */}
                   <div className="bg-white border border-gray-200 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-3">💰 Budget & Duration</h4>
+                    <div className="mb-3 p-3 rounded border bg-gray-50">
+                      <label className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          checked={dynamicBudgetEnabled}
+                          onChange={async (e) => {
+                            const enabled = e.target.checked;
+                            setDynamicBudgetEnabled(enabled);
+                            if (enabled) {
+                              try {
+                                const resp = await fetch('/api/agents/budget/dynamic-recommendation', {
+                                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({
+                                    campaign_data: {
+                                      platform: campaignData.platform,
+                                      objective: campaignData.objective,
+                                      duration: Number(campaignData.duration)||undefined,
+                                      budget: campaignData.budget_type === 'daily' ? Number(campaignData.budget)||undefined : undefined,
+                                      total_budget: campaignData.budget_type === 'total' ? Number(campaignData.total_budget)||undefined : undefined,
+                                      geo: campaignData?.geo_targeting?.country || undefined,
+                                      audience: { description: campaignData.targetAudience }
+                                    }
+                                  })
+                                });
+                                if (resp.ok) {
+                                  const rec = await resp.json();
+                                  setDynamicBudgetRec(rec);
+                                } else {
+                                  setDynamicBudgetRec(null);
+                                }
+                              } catch {
+                                setDynamicBudgetRec(null);
+                              }
+                            } else {
+                              setDynamicBudgetRec(null);
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700">Enable dynamic budget allocation (AI auto-allocates and explains why)</span>
+                      </label>
+                      {dynamicBudgetEnabled && (
+                        <div className="mt-3 text-sm text-gray-700">
+                          {dynamicBudgetRec ? (
+                            <div className="space-y-1">
+                              <div><span className="font-medium">Recommended daily:</span> ${dynamicBudgetRec.daily_budget_recommended}</div>
+                              <div><span className="font-medium">Pacing:</span> {dynamicBudgetRec.pacing}</div>
+                              <div className="text-xs text-gray-600">Why:
+                                <ul className="list-disc ml-5 mt-1 space-y-0.5">
+                                  {(dynamicBudgetRec.rationale||[]).map((r,i)=>(<li key={i}>{r}</li>))}
+                                </ul>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">Fetching recommendation…</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Budget Type</label>
@@ -1365,6 +1517,32 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                         </ul>
                       </div>
                     </div>
+                  </div>
+                  {/* ROI Forecast */}
+                  <div className="bg-white border border-gray-200 rounded-lg p-4 mt-6">
+                    <h4 className="font-semibold text-gray-900 mb-3">💹 ROI Forecast</h4>
+                    {roiForecast ? (
+                      <div className="text-sm text-gray-800 space-y-2">
+                        <div>
+                          <span className="text-gray-600">Expected ROAS:</span> <span className="font-medium">{roiForecast.expected_roas_range?.min}–{roiForecast.expected_roas_range?.max}x</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div><span className="text-gray-600">CPL:</span> <span className="font-medium">${roiForecast.expected_cpl_cpa?.cpl}</span></div>
+                          <div><span className="text-gray-600">CPA:</span> <span className="font-medium">${roiForecast.expected_cpl_cpa?.cpa}</span></div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Expected Profit:</span> <span className="font-medium">${roiForecast.expected_profit_range?.min}–${roiForecast.expected_profit_range?.max}</span>
+                        </div>
+                        <button type="button" onClick={()=>setShowAssumptions(v=>!v)} className="text-xs text-blue-600">{showAssumptions ? 'Hide' : 'Show'} assumptions (why)</button>
+                        {showAssumptions && (
+                          <ul className="list-disc ml-5 text-xs text-gray-600 mt-1">
+                            {(roiForecast.assumptions||[]).map((a,i)=>(<li key={i}>{a}</li>))}
+                          </ul>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">Forecast will appear here based on your inputs.</div>
+                    )}
                   </div>
                 </div>
               </div>

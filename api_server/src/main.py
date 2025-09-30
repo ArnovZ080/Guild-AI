@@ -51,6 +51,7 @@ async def startup_event():
 from .routes import agents, oauth, document_processing, auth, subscription, credits
 from .routes import execution_layer, connectors, onboarding, workspace
 from .routes import agents_available
+from .routes import campaign_agents
 
 # Include routers
 app.include_router(agents.router)
@@ -64,6 +65,8 @@ app.include_router(connectors.router)
 app.include_router(onboarding.router)
 app.include_router(workspace.router)
 app.include_router(agents_available.router)
+# Batch A: campaign-related agent endpoints
+app.include_router(campaign_agents.router)
 # app.include_router(business_metrics.router)  # Module doesn't exist
 
 # Comment out other routes that depend on database
