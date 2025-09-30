@@ -112,6 +112,18 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   
   // Get email marketing performance from all email providers
   getEmailPerformance: '/content/email-performance',
+  // Emails: unified inbox and campaign management
+  getEmailInbox: '/content/email-inbox',
+  getEmailCampaigns: '/content/email-campaigns',
+  getEmailTemplates: '/content/email-templates',
+  getEmailSegments: '/content/email-segments',
+  getEmailAnalytics: '/content/email-analytics',
+  sendEmail: '/content/send-email',
+  createEmailCampaign: '/content/create-email-campaign',
+  updateEmailCampaign: '/content/update-email-campaign',
+  controlEmailCampaign: '/content/control-email-campaign',
+  getEmailABTests: '/content/email-abtests',
+  getBestSendTimes: '/content/email-best-send-times',
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
@@ -202,6 +214,78 @@ export class ContentIntelligenceAPIService {
   async getEmailPerformance(period = '30d') {
     const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailPerformance}?period=${period}`);
     return result || this.getMockEmailPerformance(period);
+  }
+
+  async getEmailInbox(filters = {}) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailInbox, {
+      method: 'POST',
+      body: JSON.stringify(filters)
+    });
+    return result || this.getMockEmailInbox(filters);
+  }
+
+  async getEmailCampaigns(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const endpoint = query ? `${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailCampaigns}?${query}` : CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailCampaigns;
+    const result = await this.request(endpoint);
+    return result || this.getMockEmailCampaigns();
+  }
+
+  async getEmailTemplates() {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailTemplates);
+    return result || this.getMockEmailTemplates();
+  }
+
+  async getEmailSegments() {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailSegments);
+    return result || this.getMockEmailSegments();
+  }
+
+  async getEmailAnalytics(campaignId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailAnalytics}?campaign_id=${encodeURIComponent(campaignId)}`);
+    return result || this.getMockEmailAnalytics(campaignId);
+  }
+
+  async sendEmail(payload) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.sendEmail, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    return result || { success: true, id: `mock_email_${Date.now()}` };
+  }
+
+  async createEmailCampaign(payload) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.createEmailCampaign, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    return result || { success: true, campaign_id: `mock_campaign_${Date.now()}` };
+  }
+
+  async updateEmailCampaign(campaignId, updates) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.updateEmailCampaign, {
+      method: 'POST',
+      body: JSON.stringify({ campaign_id: campaignId, updates })
+    });
+    return result || { success: true };
+  }
+
+  async controlEmailCampaign(campaignId, action) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.controlEmailCampaign, {
+      method: 'POST',
+      body: JSON.stringify({ campaign_id: campaignId, action })
+    });
+    return result || { success: true, action };
+  }
+
+  async getEmailABTests(campaignId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailABTests}?campaign_id=${encodeURIComponent(campaignId)}`);
+    return result || this.getMockEmailABTests(campaignId);
+  }
+
+  async getBestSendTimes(segmentId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getBestSendTimes}?segment_id=${encodeURIComponent(segmentId || '')}`);
+    return result || this.getMockBestSendTimes(segmentId);
   }
 
   async getCreativeAssets() {
@@ -523,6 +607,29 @@ export class ContentIntelligenceAPIService {
             created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString()
           }
         ]
+      }
+    };
+  }
+
+  getMockEmailPerformance(period = '30d') {
+    return {
+      success: true,
+      data: {
+        period,
+        email_metrics: {
+          open_rate: 42.3,
+          click_rate: 5.8,
+          conversion_rate: 3.1,
+          bounce_rate: 0.6,
+          unsubscribe_rate: 0.3,
+          deliverability: 97.8,
+          revenue: 4280
+        },
+        trends: {
+          open_rate_trend: '+4.1',
+          click_rate_trend: '+1.2',
+          conversion_rate_trend: '+0.6'
+        }
       }
     };
   }
@@ -1033,6 +1140,119 @@ export const useContentActions = () => {
   return { executeAction, createContent, scheduleContent, executing, error };
 };
 
+// Email-specific hooks
+export const useUnifiedInbox = (filters = {}) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchInbox = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getEmailInbox(filters);
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [JSON.stringify(filters)]);
+
+  useEffect(() => { fetchInbox(); }, [fetchInbox]);
+  return { data, loading, error, refetch: fetchInbox };
+};
+
+export const useEmailCampaigns = (params = {}) => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchCampaigns = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getEmailCampaigns(params);
+      setData(result?.data?.campaigns || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [JSON.stringify(params)]);
+
+  useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+  return { campaigns: data, loading, error, refetch: fetchCampaigns };
+};
+
+export const useEmailTemplates = () => {
+  const [templates, setTemplates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchTemplates = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getEmailTemplates();
+      setTemplates(result?.data?.templates || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+  return { templates, loading, error, refetch: fetchTemplates };
+};
+
+export const useEmailSegments = () => {
+  const [segments, setSegments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const apiService = new ContentIntelligenceAPIService();
+
+  const fetchSegments = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getEmailSegments();
+      setSegments(result?.data?.segments || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchSegments(); }, [fetchSegments]);
+  return { segments, loading, error, refetch: fetchSegments };
+};
+
+export const useEmailBestSendTimes = (segmentId) => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const apiService = new ContentIntelligenceAPIService();
+  const fetcher = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await apiService.getBestSendTimes(segmentId);
+      setData(result);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [segmentId]);
+  useEffect(() => { fetcher(); }, [fetcher]);
+  return { data, loading, error, refetch: fetcher };
+};
 // Real-time hooks with WebSocket integration
 export const useRealtimeContentAnalysis = () => {
   const [data, setData] = useState(null);
