@@ -95,6 +95,14 @@ class ContentIntelligenceWebSocket {
 
 // Global WebSocket instance
 const contentIntelligenceWS = new ContentIntelligenceWebSocket();
+// Local publisher to broadcast updates to listeners (used for optimistic UI sync)
+export const publishCampaignsUpdate = (payload) => {
+  try {
+    contentIntelligenceWS.notifyListeners('campaigns_update', payload);
+  } catch (e) {
+    console.warn('Failed to publish campaigns_update locally', e);
+  }
+};
 
 // API Service Extensions for Content Intelligence
 export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {

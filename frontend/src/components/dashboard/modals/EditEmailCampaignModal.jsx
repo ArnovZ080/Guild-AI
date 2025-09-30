@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
+import { ContentIntelligenceAPIService, publishCampaignsUpdate } from '../../../services/contentIntelligenceApi';
 
 const EditEmailCampaignModal = ({ open, onClose, campaign }) => {
   const [name, setName] = useState(campaign?.name || '');
@@ -21,6 +21,8 @@ const EditEmailCampaignModal = ({ open, onClose, campaign }) => {
     setSaving(true);
     try {
       await api.updateEmailCampaign(campaign?.campaign_id || campaign?.id, { name, objective, status });
+      // Broadcast update so Campaigns tab (useRealtimeActiveCampaigns) refreshes
+      publishCampaignsUpdate({ action: 'update', campaign: { ...(campaign||{}), name, objective, status } });
       onClose(true);
     } finally {
       setSaving(false);
