@@ -1132,16 +1132,16 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                     <h4 className="font-semibold text-gray-900 mb-3">📊 Predictive Analytics</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600 mb-1">3.2%</div>
+                        <div className="text-2xl font-bold text-blue-600 mb-1">{aiAnalysis?.predictions?.predicted_ctr?.min ? `${aiAnalysis.predictions.predicted_ctr.min}%–${aiAnalysis.predictions.predicted_ctr.max}%` : '—'}</div>
                         <div className="text-sm text-gray-600">Expected CTR</div>
                       </div>
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600 mb-1">$2.40</div>
-                        <div className="text-sm text-gray-600">Cost per Click</div>
+                        <div className="text-2xl font-bold text-green-600 mb-1">{aiAnalysis?.predictions?.roi_prediction?.min ? `${aiAnalysis.predictions.roi_prediction.min}–${aiAnalysis.predictions.roi_prediction.max}x` : '—'}</div>
+                        <div className="text-sm text-gray-600">Expected ROAS</div>
                       </div>
                       <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600 mb-1">4.2x</div>
-                        <div className="text-sm text-gray-600">Expected ROAS</div>
+                        <div className="text-2xl font-bold text-purple-600 mb-1">{aiAnalysis?.predictions?.expected_conversions?.min ? `${aiAnalysis.predictions.expected_conversions.min}–${aiAnalysis.predictions.expected_conversions.max}` : '—'}</div>
+                        <div className="text-sm text-gray-600">Expected Conversions</div>
                       </div>
                     </div>
                   </div>
@@ -1189,34 +1189,30 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">⚖️ Judge Agent Layer</h3>
                   
-                  {/* Rubric Scoring */}
+                  {/* Rubric Scoring (dynamic) */}
                   <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
                     <h4 className="font-semibold text-gray-900 mb-3">📋 Rubric Scoring</h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-green-600 mb-1">8.5</div>
-                        <div className="text-sm text-gray-600">Creative Quality</div>
-                        <div className="text-xs text-gray-500 mt-1">Strong headlines and clear messaging</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600 mb-1">9.2</div>
-                        <div className="text-sm text-gray-600">Audience Fit</div>
-                        <div className="text-xs text-gray-500 mt-1">Excellent targeting alignment</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-600 mb-1">8.8</div>
-                        <div className="text-sm text-gray-600">Objective Alignment</div>
-                        <div className="text-xs text-gray-500 mt-1">Clear goal-to-strategy match</div>
-                      </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-600 mb-1">7.5</div>
-                        <div className="text-sm text-gray-600">Budget Efficiency</div>
-                        <div className="text-xs text-gray-500 mt-1">Good but could be optimized</div>
-                      </div>
+                      {Object.entries(judgeRubric?.scores || { clarity: 0, persuasion: 0, compliance: 0, tone: 0 }).map(([key, val]) => (
+                        <div key={key} className="text-center p-3 bg-gray-50 rounded-lg">
+                          <div className={`text-2xl font-bold mb-1 ${Number(val) >= 8 ? 'text-green-600' : Number(val) >= 6 ? 'text-yellow-600' : 'text-red-600'}`}>{Number(val).toFixed(1)}</div>
+                          <div className="text-sm text-gray-600 capitalize">{key.replace('_',' ')}</div>
+                        </div>
+                      ))}
                     </div>
+                    {Array.isArray(judgeRubric?.feedback) && judgeRubric.feedback.length > 0 && (
+                      <div className="mt-3 text-sm text-gray-700">
+                        <div className="font-medium mb-1">Recommendations (why):</div>
+                        <ul className="list-disc ml-5 space-y-1">
+                          {judgeRubric.feedback.map((f, i) => (
+                            <li key={i} className="text-gray-700">{f}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
 
-                  {/* AI Campaign Confidence Score */}
+                  {/* AI Campaign Confidence Score (computed) */}
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-6">
                     <div className="flex items-center space-x-3 mb-4">
                       <div className="p-2 bg-blue-100 rounded-lg">
@@ -1228,41 +1224,19 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
                       </div>
                     </div>
                     
-                    <div className="text-center mb-6">
-                      <div className="text-6xl font-bold text-green-600 mb-2">87</div>
-                      <div className="text-lg text-gray-700 mb-1">High Confidence</div>
-                      <div className="text-sm text-gray-600">Strong alignment, high ROI potential. Minor creative optimization recommended.</div>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <h5 className="font-semibold text-gray-900 mb-3">Score Breakdown</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Creative Quality:</span>
-                          <span className="font-medium text-green-600">+8.5 points</span>
+                    {(() => {
+                      const s = judgeRubric?.scores || {};
+                      const keys = ['clarity','persuasion','compliance','tone'];
+                      const avg = keys.length ? (keys.reduce((a,k)=> a + (Number(s[k])||0), 0) / keys.length) : 0;
+                      const label = avg >= 8 ? 'High Confidence' : avg >= 6.5 ? 'Moderate Confidence' : 'Needs Work';
+                      return (
+                        <div className="text-center mb-6">
+                          <div className={`text-6xl font-bold mb-2 ${avg>=8?'text-green-600':avg>=6.5?'text-yellow-600':'text-red-600'}`}>{Math.round(avg*10)}</div>
+                          <div className="text-lg text-gray-700 mb-1">{label}</div>
+                          <div className="text-sm text-gray-600">Average rubric score across dimensions</div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Audience Targeting:</span>
-                          <span className="font-medium text-green-600">+9.2 points</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Objective Alignment:</span>
-                          <span className="font-medium text-green-600">+8.8 points</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Budget Efficiency:</span>
-                          <span className="font-medium text-yellow-600">+7.5 points</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Platform Optimization:</span>
-                          <span className="font-medium text-green-600">+8.0 points</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Creative Fatigue Risk:</span>
-                          <span className="font-medium text-red-600">-2.0 points</span>
-                        </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
 
                   {/* Human-in-the-Loop Final Check */}
