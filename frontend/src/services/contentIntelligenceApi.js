@@ -138,11 +138,11 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   getPersonalizationSuggestions: '/content/personalization-suggestions',
   getVariantSuggestions: '/content/email-variant-suggestions',
   setTrafficAllocation: '/content/email-traffic-allocation',
-  getDeliverabilityHealth: '/content/email-deliverability'
-  ,getFollowupsPlan: '/content/email-followups-plan'
-  ,saveFollowupsPlan: '/content/email-followups-save'
-  ,getEmailRevenueAttribution: '/content/email-revenue'
-  ,getJourneyMiniMap: '/content/email-journey'
+  getDeliverabilityHealth: '/content/email-deliverability',
+  getFollowupsPlan: '/content/email-followups-plan',
+  saveFollowupsPlan: '/content/email-followups-save',
+  getEmailRevenueAttribution: '/content/email-revenue',
+  getJourneyMiniMap: '/content/email-journey',
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
