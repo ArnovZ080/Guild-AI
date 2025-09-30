@@ -76,6 +76,7 @@ const EmailTab = ({ emailData, campaigns }) => {
   const { getInsightAnalysis } = useInsightAnalysis();
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [deliverability, setDeliverability] = useState(null);
+  const [applyingTimes, setApplyingTimes] = useState(false);
 
   const mergedCampaigns = useMemo(() => {
     const fromProp = Array.isArray(campaigns) ? campaigns.filter(c => (c?.platform || '').toLowerCase() === 'email') : [];
@@ -129,6 +130,27 @@ const EmailTab = ({ emailData, campaigns }) => {
       publishCampaignsUpdate({ action: 'update', campaign: { ...campaign, status: nextStatus } });
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  const applyBestTimes = async (segmentId) => {
+    if (!bestTimes?.data?.suggestions || (mergedCampaigns||[]).length===0) return;
+    setApplyingTimes(true);
+    try {
+      // Simple rule: take top suggestion and apply its weekday/hour to scheduled email campaigns
+      const top = bestTimes.data.suggestions[0];
+      if (!top) return;
+      const targets = (mergedCampaigns||[]).filter(c => (c.platform||'').toLowerCase()==='email' && (c.status||'scheduled')==='scheduled');
+      const weekdayToIdx = { Sunday:0, Monday:1, Tuesday:2, Wednesday:3, Thursday:4, Friday:5, Saturday:6 };
+      const dayIdx = weekdayToIdx[top.day] ?? 2;
+      const now = new Date();
+      const diff = (dayIdx - now.getDay() + 7) % 7;
+      const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()+diff, top.hour_local, 0, 0, 0);
+      for (const c of targets) {
+        await api.updateEmailCampaign(c.campaign_id||c.id, { scheduled_at: targetDate.toISOString(), note: 'Applied best send time based on historical engagement' });
+      }
+    } finally {
+      setApplyingTimes(false);
     }
   };
 
@@ -249,6 +271,7 @@ const EmailTab = ({ emailData, campaigns }) => {
               <div className="mt-2 flex items-center space-x-2">
                 <button className="px-2 py-1 border rounded text-xs flex items-center"><Eye className="w-3 h-3 mr-1"/>View</button>
                 <button className="px-2 py-1 border rounded text-xs">Micro-campaign</button>
+                <button title="Apply best send time recommendations to scheduled email campaigns" onClick={()=>applyBestTimes(s.id)} disabled={applyingTimes} className="px-2 py-1 border rounded text-xs">{applyingTimes?'Applying…':'Apply best times'}</button>
           </div>
             </div>
           ))}
