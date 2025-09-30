@@ -28,7 +28,7 @@ import {
   Info,
   HelpCircle
 } from 'lucide-react';
-import { logCampaignActivity } from '../../../services/campaignInsightsApi';
+
 
 const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [step, setStep] = useState(1);
