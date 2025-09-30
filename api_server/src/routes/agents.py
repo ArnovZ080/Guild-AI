@@ -404,6 +404,7 @@ async def analyze_sentiment_endpoint(req: SentimentRequest):
 # Lightweight server-side persistence for campaign activity and AB results (in-memory fallback)
 _activity_log: Dict[str, List[Dict[str, Any]]] = {}
 _ab_results: Dict[str, Dict[str, Any]] = {}
+_attribution: Dict[str, List[str]] = {}
 
 
 @router.post("/campaigns/{campaign_id}/activity")
@@ -428,3 +429,15 @@ async def save_ab_results(campaign_id: str, results: Dict[str, Any]):
 @router.get("/campaigns/{campaign_id}/ab_results")
 async def load_ab_results(campaign_id: str):
     return _ab_results.get(campaign_id, {})
+
+
+@router.post("/campaigns/{campaign_id}/attribution")
+async def save_attribution(campaign_id: str, touches: List[str]):
+    # touches should be an ordered list of channel keys
+    _attribution[campaign_id] = touches
+    return {"success": True}
+
+
+@router.get("/campaigns/{campaign_id}/attribution")
+async def get_attribution(campaign_id: str):
+    return {"touches": _attribution.get(campaign_id, [])}

@@ -81,7 +81,7 @@ const SentimentBlock = ({ comments = [] }) => {
     </div>
   );
 };
-import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity } from '../../../services/campaignInsightsApi';
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity, loadAttribution } from '../../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRefreshCampaigns }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -260,8 +260,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   };
 
   const buildAttributionSummary = (campaign) => {
-    // touches input expected: ordered array of channel keys for a converting journey
-    const touches = campaign?.mta_touches || [];
+    // Fetch server-provided touches if available (fallback to campaign embedded)
+    const cid = campaign?.campaign_id || campaign?.id;
+    const [serverTouches, setServerTouches] = React.useState(null);
+    React.useEffect(()=>{
+      let mounted = true;
+      (async()=>{
+        if (!cid) return;
+        try {
+          const res = await loadAttribution(cid);
+          if (mounted && res && Array.isArray(res.touches)) setServerTouches(res.touches);
+        } catch {}
+      })();
+      return ()=>{ mounted=false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cid]);
+
+    const touches = (serverTouches && serverTouches.length ? serverTouches : (campaign?.mta_touches || []));
     const linear = calcLinearAttribution(touches);
     const timeDecay = calcTimeDecayAttribution(touches);
     const position = calcPositionBasedAttribution(touches);

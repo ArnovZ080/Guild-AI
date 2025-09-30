@@ -120,4 +120,20 @@ export async function loadCampaignActivity(campaignId) {
   return await res.json();
 }
 
+// Attribution via backend
+export async function loadAttribution(campaignId) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/attribution`);
+  if (!res.ok) return { touches: [] };
+  return await res.json();
+}
+
+export async function saveAttribution(campaignId, touches) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/attribution`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(touches)
+  });
+  return res.ok;
+}
+
 
