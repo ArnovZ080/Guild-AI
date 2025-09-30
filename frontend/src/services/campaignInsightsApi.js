@@ -47,6 +47,22 @@ export function saveCampaignAssets(campaignId, assets) {
   }
 }
 
+// Server-backed assets for shared library
+export async function fetchLibraryAssets() {
+  const res = await fetch('/api/workspace/assets');
+  if (!res.ok) return [];
+  return await res.json();
+}
+
+export async function uploadLibraryAsset(formData) {
+  const res = await fetch('/api/workspace/assets', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  return await res.json();
+}
+
 // Anomaly thresholds persistence
 const THRESHOLDS_KEY = 'guild_campaign_thresholds';
 
