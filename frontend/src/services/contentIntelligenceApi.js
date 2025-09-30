@@ -139,6 +139,10 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   getVariantSuggestions: '/content/email-variant-suggestions',
   setTrafficAllocation: '/content/email-traffic-allocation',
   getDeliverabilityHealth: '/content/email-deliverability'
+  ,getFollowupsPlan: '/content/email-followups-plan'
+  ,saveFollowupsPlan: '/content/email-followups-save'
+  ,getEmailRevenueAttribution: '/content/email-revenue'
+  ,getJourneyMiniMap: '/content/email-journey'
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
@@ -343,6 +347,26 @@ export class ContentIntelligenceAPIService {
   async getDeliverabilityHealth() {
     const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getDeliverabilityHealth);
     return result || this.getMockDeliverabilityHealth();
+  }
+
+  async getFollowupsPlan(campaignId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getFollowupsPlan}?campaign_id=${encodeURIComponent(campaignId)}`);
+    return result || this.getMockFollowupsPlan(campaignId);
+  }
+
+  async saveFollowupsPlan(campaignId, plan) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.saveFollowupsPlan, { method: 'POST', body: JSON.stringify({ campaign_id: campaignId, plan }) });
+    return result || { success: true };
+  }
+
+  async getEmailRevenueAttribution(campaignId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getEmailRevenueAttribution}?campaign_id=${encodeURIComponent(campaignId)}`);
+    return result || this.getMockEmailRevenueAttribution(campaignId);
+  }
+
+  async getJourneyMiniMap(campaignId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getJourneyMiniMap}?campaign_id=${encodeURIComponent(campaignId)}`);
+    return result || this.getMockJourneyMiniMap(campaignId);
   }
 
   async getCreativeAssets() {
@@ -825,6 +849,31 @@ export class ContentIntelligenceAPIService {
       bounce_rate: { rate: 0.9, trend: 'down' },
       sender_score: 88
     } };
+  }
+
+  getMockFollowupsPlan(campaignId) {
+    return { data: { campaign_id: campaignId, rules: [
+      { id: 'r1', when: 'unopened_48h', action: 'resend_subject_variant', details: 'Use Variant B', reason: 'Increase open probability for non-openers' },
+      { id: 'r2', when: 'clicked_no_convert_72h', action: 'send_resource', details: 'Send case study link', reason: 'Nurture interest to conversion' }
+    ] } };
+  }
+
+  getMockEmailRevenueAttribution(campaignId) {
+    return { data: { campaign_id: campaignId, total_revenue: 4280, orders: 37, model: 'last_touch', breakdown: [
+      { segment: 'VIP Buyers', revenue: 1900 },
+      { segment: 'Active Customers', revenue: 1600 },
+      { segment: 'New Subscribers', revenue: 780 }
+    ] } };
+  }
+
+  getMockJourneyMiniMap(campaignId) {
+    return { data: { campaign_id: campaignId, funnel: [
+      { stage: 'Sent', count: 4100 },
+      { stage: 'Opened', count: 1400 },
+      { stage: 'Clicked', count: 200 },
+      { stage: 'Visited Site', count: 150 },
+      { stage: 'Purchased', count: 40 }
+    ], largest_drop: { from: 'Opened', to: 'Clicked', reason: 'CTA placement below fold; low contrast' } } };
   }
 
   getMockEmailPerformance(period) {

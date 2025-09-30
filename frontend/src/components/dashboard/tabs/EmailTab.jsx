@@ -8,6 +8,9 @@ import AICreateEmailCampaignModal from '../../dashboard/modals/AICreateEmailCamp
 import { ContentIntelligenceAPIService, publishCampaignsUpdate, useInsightAnalysis } from '../../../services/contentIntelligenceApi';
 import ABTestSetupModal from '../../dashboard/modals/ABTestSetupModal.jsx';
 import ContactDrawer from '../../dashboard/modals/ContactDrawer.jsx';
+import FollowupsBuilderModal from '../../dashboard/modals/FollowupsBuilderModal.jsx';
+import RevenueAttributionModal from '../../dashboard/modals/RevenueAttributionModal.jsx';
+import CustomerJourneyMiniMapModal from '../../dashboard/modals/CustomerJourneyMiniMapModal.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 import { ContentIntelligenceAPIService as CIAService } from '../../../services/contentIntelligenceApi';
 
@@ -117,6 +120,9 @@ const EmailTab = ({ emailData, campaigns }) => {
   const [processingId, setProcessingId] = useState(null);
   const [showABTest, setShowABTest] = useState(null); // campaignId
   const [contactEmail, setContactEmail] = useState(null);
+  const [showFollowups, setShowFollowups] = useState(null);
+  const [showRevenue, setShowRevenue] = useState(null);
+  const [showJourney, setShowJourney] = useState(null);
 
   const api = new ContentIntelligenceAPIService();
 
@@ -202,6 +208,9 @@ const EmailTab = ({ emailData, campaigns }) => {
                     <div className="flex items-center space-x-2">
                       <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowAnalytics(c.campaign_id||c.id)}><BarChart3 className="w-3 h-3 mr-1"/>Analytics</button>
                       <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowABTest(c.campaign_id||c.id)}>A/B Test</button>
+                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowFollowups(c.campaign_id||c.id)}>Follow-ups</button>
+                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowRevenue(c.campaign_id||c.id)}>Revenue</button>
+                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowJourney(c.campaign_id||c.id)}>Journey</button>
                       {c.status==='paused' ? (
                         <button title="Resume sending this campaign" className={`px-2 py-1 border rounded flex items-center ${processingId===(c.campaign_id||c.id)?'opacity-50':''}`} disabled={processingId===(c.campaign_id||c.id)} onClick={()=>controlCampaign(c,'resume')}><Play className="w-3 h-3 mr-1"/>Resume</button>
                       ) : (
@@ -362,6 +371,9 @@ const EmailTab = ({ emailData, campaigns }) => {
       <AICreateEmailCampaignModal isOpen={showAICreate} onClose={()=>setShowAICreate(false)} onCreateCampaign={()=>{ /* refresh if needed */ }} />
       <ABTestSetupModal open={!!showABTest} onClose={()=>setShowABTest(null)} campaignId={showABTest} onSaved={()=>{}} />
       <ContactDrawer open={!!contactEmail} onClose={()=>setContactEmail(null)} email={contactEmail} />
+      <FollowupsBuilderModal open={!!showFollowups} onClose={()=>setShowFollowups(null)} campaignId={showFollowups} onSaved={()=>{}} />
+      <RevenueAttributionModal open={!!showRevenue} onClose={()=>setShowRevenue(null)} campaignId={showRevenue} />
+      <CustomerJourneyMiniMapModal open={!!showJourney} onClose={()=>setShowJourney(null)} campaignId={showJourney} />
     </div>
   );
 };
