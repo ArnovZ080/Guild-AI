@@ -127,6 +127,75 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [learningRecs, setLearningRecs] = useState([]);
   const [activityOpenForId, setActivityOpenForId] = useState(null);
   const [activityByCampaign, setActivityByCampaign] = useState({});
+
+  // Attribution summary as a component to avoid using hooks in plain helpers
+  const AttributionSummaryPanel = ({ campaign }) => {
+    const cid = campaign?.campaign_id || campaign?.id;
+    const [serverTouches, setServerTouches] = React.useState([]);
+    React.useEffect(()=>{
+      let mounted = true;
+      (async()=>{
+        try {
+          if (!cid) return;
+          const res = await loadAttribution(cid);
+          if (mounted && res && Array.isArray(res.touches)) setServerTouches(res.touches);
+        } catch {}
+      })();
+      return ()=>{ mounted=false; };
+    }, [cid]);
+
+    const touches = (serverTouches && serverTouches.length ? serverTouches : (campaign?.mta_touches || []));
+    const linear = calcLinearAttribution(touches);
+    const timeDecay = calcTimeDecayAttribution(touches);
+    const position = calcPositionBasedAttribution(touches);
+    const sumCredits = (map) => Object.values(map).reduce((s,v)=>s+v,0);
+    const summary = {
+      linear: { credits: linear, total: sumCredits(linear) },
+      timeDecay: { credits: timeDecay, total: sumCredits(timeDecay) },
+      position: { credits: position, total: sumCredits(position) }
+    };
+
+    const channels = [campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter'];
+    return (
+      <div className="space-y-3 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {channels.map(ch => (
+            <div key={ch} className="bg-white border border-purple-100 rounded p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="capitalize text-gray-800">{ch}</span>
+                <span className="text-xs text-gray-500">by channel</span>
+              </div>
+              <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
+              <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
+              <div className="mt-1 text-xs text-gray-700">
+                <div className="flex items-center justify-between"><span>Linear</span><span>{(summary.linear.credits[ch]||0).toFixed(2)}</span></div>
+                <div className="flex items-center justify-between"><span>Time-decay</span><span>{(summary.timeDecay.credits[ch]||0).toFixed(2)}</span></div>
+                <div className="flex items-center justify-between"><span>Position</span><span>{(summary.position.credits[ch]||0).toFixed(2)}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white border border-purple-100 rounded p-3">
+          <div className="font-medium text-gray-900 mb-1">Totals</div>
+          <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
+            <div className="p-2 bg-purple-50 rounded border">
+              <div className="font-semibold">{summary.linear.total.toFixed(2)}</div>
+              <div>Linear total</div>
+            </div>
+            <div className="p-2 bg-purple-50 rounded border">
+              <div className="font-semibold">{summary.timeDecay.total.toFixed(2)}</div>
+              <div>Time-decay total</div>
+            </div>
+            <div className="p-2 bg-purple-50 rounded border">
+              <div className="font-semibold">{summary.position.total.toFixed(2)}</div>
+              <div>Position-based total</div>
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500">Note: Totals represent relative credit across touches for a typical converting journey. Connect telemetry to replace sample touches.</div>
+      </div>
+    );
+  };
   const [abResults, setAbResults] = useState({}); // cache server-fetched A/B results by campaignId
 
   // Persist anomaly toggle for reliability across renders/navigation
@@ -1136,10 +1205,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     </div>
                     <button
                       onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
-                      className="p-1 text-gray-500 hover:text-gray-700"
-                      title="View attribution details"
+                      className="p-1 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md ml-2 flex items-center"
+                      title="View full attribution breakdown: linear, time-decay, position-based"
                     >
-                      <Info className="w-3 h-3" />
+                      <Info className="w-4 h-4 mr-1" />
+                      <span className="text-[11px]">Info</span>
                     </button>
                   </div>
                 )}
@@ -1366,49 +1436,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     <div className="font-medium text-purple-900">Attribution details</div>
                     <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
                   </div>
-                  {(() => {
-                    const channels = [campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter'];
-                    const summary = buildAttributionSummary(campaign);
-                    return (
-                      <div className="space-y-3 text-sm">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {channels.map(ch => (
-                            <div key={ch} className="bg-white border border-purple-100 rounded p-3">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="capitalize text-gray-800">{ch}</span>
-                                <span className="text-xs text-gray-500">by channel</span>
-                              </div>
-                              <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
-                              <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
-                              <div className="mt-1 text-xs text-gray-700">
-                                <div className="flex items-center justify-between"><span>Linear</span><span>{(summary.linear.credits[ch]||0).toFixed(2)}</span></div>
-                                <div className="flex items-center justify-between"><span>Time-decay</span><span>{(summary.timeDecay.credits[ch]||0).toFixed(2)}</span></div>
-                                <div className="flex items-center justify-between"><span>Position</span><span>{(summary.position.credits[ch]||0).toFixed(2)}</span></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="bg-white border border-purple-100 rounded p-3">
-                          <div className="font-medium text-gray-900 mb-1">Totals</div>
-                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
-                            <div className="p-2 bg-purple-50 rounded border">
-                              <div className="font-semibold">{summary.linear.total.toFixed(2)}</div>
-                              <div>Linear total</div>
-                            </div>
-                            <div className="p-2 bg-purple-50 rounded border">
-                              <div className="font-semibold">{summary.timeDecay.total.toFixed(2)}</div>
-                              <div>Time-decay total</div>
-                            </div>
-                            <div className="p-2 bg-purple-50 rounded border">
-                              <div className="font-semibold">{summary.position.total.toFixed(2)}</div>
-                              <div>Position-based total</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500">Note: Totals represent relative credit across touches for a typical converting journey. Connect telemetry to replace sample touches.</div>
-                      </div>
-                    );
-                  })()}
+                  <AttributionSummaryPanel campaign={campaign} />
                 </div>
               )}
 
