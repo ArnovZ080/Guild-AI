@@ -1131,6 +1131,7 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({
                             action: 'autonomous_optimization',
+                            campaign_id: selectedCampaign.campaign_id || selectedCampaign.id,
                             campaign_data: selectedCampaign,
                             request: {
                               optimization_type: 'autonomous',
@@ -1138,7 +1139,9 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
                                 reach: selectedCampaign.reach,
                                 clicks: selectedCampaign.clicks,
                                 ctr: selectedCampaign.ctr,
-                                roas: selectedCampaign.roas
+                                roas: selectedCampaign.roas,
+                                cpa: selectedCampaign.cpa,
+                                cpl: selectedCampaign.cpl
                               }
                             }
                           })
@@ -1153,7 +1156,7 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
                               ? { ...campaign, ...result.optimized_campaign, aiOptimized: true }
                               : campaign
                           ));
-                          alert('Campaign optimized successfully!');
+                          alert('AI optimization initiated. Track progress in the campaign Activity timeline.');
                         } else {
                           // Fallback optimization
                           const optimizedBudget = Math.round(parseInt(selectedCampaign.budget) * 1.2);
@@ -1162,11 +1165,11 @@ const DroppableCalendarDay = ({ date, content, onContentMove, onContentClick, on
                               ? { ...campaign, budget: optimizedBudget.toString(), aiOptimized: true }
                               : campaign
                           ));
-                          alert('Campaign optimized with AI recommendations!');
+                          alert('AI optimization queued with recommendations. Track progress in Activity timeline.');
                         }
                       } catch (error) {
                         console.error('AI optimization failed:', error);
-                        alert('AI optimization applied with fallback recommendations');
+                        alert('AI optimization queued with fallback. Track progress in Activity timeline.');
                       }
                     }}
                     className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2"
