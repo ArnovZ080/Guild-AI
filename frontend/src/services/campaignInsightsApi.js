@@ -97,6 +97,16 @@ export async function saveABResults(campaignId, results) {
   return res.ok;
 }
 
+export async function ingestABResults(campaignId, payload) {
+  const res = await fetch(`/api/agents/campaigns/${encodeURIComponent(campaignId)}/ab_ingest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('Failed to ingest A/B results');
+  return await res.json();
+}
+
 export function computeABWinner(results) {
   if (!results) return null;
   const a = results.A || {};

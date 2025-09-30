@@ -435,6 +435,53 @@ async def load_ab_results(campaign_id: str):
     return _ab_results.get(campaign_id, {})
 
 
+def _normalize_ab_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+    # Accepts various shapes; normalizes to { A: { ctr, conversions }, B: { ... } }
+    def pick(side: Any) -> Dict[str, Any]:
+        if not isinstance(side, dict):
+            return {}
+        ctr = side.get("ctr") or side.get("click_through_rate") or side.get("click_rate")
+        conv = side.get("conversions") or side.get("purchases") or side.get("leads")
+        try:
+            ctr = float(ctr) if ctr is not None else None
+        except Exception:
+            ctr = None
+        try:
+            conv = int(conv) if conv is not None else None
+        except Exception:
+            try:
+                conv = int(float(conv)) if conv is not None else None
+            except Exception:
+                conv = None
+        result: Dict[str, Any] = {}
+        if ctr is not None:
+            result["ctr"] = ctr
+        if conv is not None:
+            result["conversions"] = conv
+        return result
+    out: Dict[str, Any] = {}
+    if "A" in payload or "B" in payload:
+        out["A"] = pick(payload.get("A"))
+        out["B"] = pick(payload.get("B"))
+    else:
+        # Maybe keys like variant_a / variant_b
+        out["A"] = pick(payload.get("variant_a", {}))
+        out["B"] = pick(payload.get("variant_b", {}))
+    return out
+
+
+@router.post("/campaigns/{campaign_id}/ab_ingest")
+async def ingest_ab_results(campaign_id: str, payload: Dict[str, Any]):
+    try:
+        normalized = _normalize_ab_payload(payload)
+        existing = _ab_results.get(campaign_id, {})
+        merged = { **existing, **normalized }
+        _ab_results[campaign_id] = merged
+        return { "success": True, "ab_results": merged }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid A/B payload: {str(e)}")
+
+
 @router.post("/campaigns/{campaign_id}/attribution")
 async def save_attribution(campaign_id: str, touches: List[str]):
     # touches should be an ordered list of channel keys
