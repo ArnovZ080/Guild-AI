@@ -27,12 +27,12 @@ const CampaignEmailAnalyticsModal = ({ campaignId, open, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
           <div className="font-semibold">Campaign Analytics</div>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100"><X className="w-4 h-4"/></button>
         </div>
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 overflow-y-auto">
           {loading ? (
             <div className="text-sm text-gray-600">Loading...</div>
           ) : (
@@ -67,7 +67,7 @@ const CampaignEmailAnalyticsModal = ({ campaignId, open, onClose }) => {
             </>
           )}
         </div>
-        <div className="p-4 border-t flex justify-end">
+        <div className="p-4 border-t flex justify-end sticky bottom-0 bg-white rounded-b-xl">
           <button onClick={onClose} className="px-3 py-2 border rounded">Close</button>
         </div>
       </div>

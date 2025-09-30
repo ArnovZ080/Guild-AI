@@ -65,12 +65,12 @@ const ABTestSetupModal = ({ open, onClose, campaignId, onSaved }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
           <div className="font-semibold">A/B Test Setup</div>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100"><X className="w-4 h-4"/></button>
         </div>
-        <div className="p-4 space-y-4 text-sm">
+        <div className="p-4 space-y-4 text-sm overflow-y-auto">
           {variants.map((v, idx) => (
             <div key={v.id} className="border rounded p-3">
               <div className="font-medium mb-2">Variant {v.id}</div>
@@ -126,7 +126,7 @@ const ABTestSetupModal = ({ open, onClose, campaignId, onSaved }) => {
             </div>
           </div>
         </div>
-        <div className="p-4 border-t flex justify-end">
+        <div className="p-4 border-t flex justify-end sticky bottom-0 bg-white rounded-b-xl">
           <button onClick={save} disabled={loading} className="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
         </div>
       </div>

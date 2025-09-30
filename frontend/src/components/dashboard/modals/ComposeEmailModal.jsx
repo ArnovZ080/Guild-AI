@@ -41,12 +41,12 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
           <div className="font-semibold">Compose Email</div>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100"><X className="w-4 h-4"/></button>
         </div>
-        <div className="p-4 space-y-3 text-sm">
+        <div className="p-4 space-y-3 text-sm overflow-y-auto">
           <div>
             <label className="block text-gray-700 mb-1">Segment</label>
             <input value={segment} onChange={e=>setSegment(e.target.value)} className="w-full border rounded px-2 py-1" placeholder="segment id or 'all'" />
@@ -75,7 +75,7 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
             <div className="mt-1 text-xs text-gray-500">Tip: Keep paragraphs short. Use one clear CTA.</div>
           </div>
         </div>
-        <div className="p-4 border-t space-y-3">
+        <div className="p-4 border-t space-y-3 sticky bottom-0 bg-white rounded-b-xl">
           <div className="flex items-center justify-between">
             <button onClick={()=>setShowAssistant(true)} className="px-3 py-2 border rounded text-sm">Let an Agent write your email</button>
             <div className="flex items-center space-x-2">
