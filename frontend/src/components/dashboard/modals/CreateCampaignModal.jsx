@@ -28,6 +28,7 @@ import {
   Info,
   HelpCircle
 } from 'lucide-react';
+import { logCampaignActivity } from '../../../services/campaignInsightsApi';
 
 const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [step, setStep] = useState(1);
@@ -366,6 +367,7 @@ const CreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     if (onCreateCampaign) {
       console.log('Calling onCreateCampaign...');
       onCreateCampaign(newCampaign);
+      try { logCampaignActivity(newCampaign.campaign_id, { actor: 'User', action: 'create_campaign', reason: 'Initial creation with settings including A/B variants' }); } catch {}
       onClose();
     } else {
       console.error('onCreateCampaign function is not defined');

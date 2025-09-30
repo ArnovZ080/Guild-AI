@@ -1111,10 +1111,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
                     {openMenuForId === (campaign.campaign_id || campaign.id) && (
-                      <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                         <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || loadCampaignAssets(campaign.campaign_id || campaign.id)); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
+                        <button onClick={() => { setOpenMenuForId(null); setSelectedCampaign(campaign); setShowAnalyticsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Performance Analytics</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
-                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
                         <div className="border-t border-gray-200"></div>
                         <button onClick={() => { setOpenMenuForId(null); if (window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.')) { handleLocalDelete(campaign.id || campaign.campaign_id); } }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
                       </div>
