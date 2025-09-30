@@ -9,6 +9,7 @@ import { ContentIntelligenceAPIService, publishCampaignsUpdate, useInsightAnalys
 import ABTestSetupModal from '../../dashboard/modals/ABTestSetupModal.jsx';
 import ContactDrawer from '../../dashboard/modals/ContactDrawer.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
+import { ContentIntelligenceAPIService as CIAService } from '../../../services/contentIntelligenceApi';
 
 const Section = ({ title, defaultOpen = true, children, right }) => {
   const [open, setOpen] = useState(!!defaultOpen);
@@ -74,6 +75,7 @@ const EmailTab = ({ emailData, campaigns }) => {
   const { data: bestTimes } = useEmailBestSendTimes(bestTimesSeg);
   const { getInsightAnalysis } = useInsightAnalysis();
   const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [deliverability, setDeliverability] = useState(null);
 
   const mergedCampaigns = useMemo(() => {
     const fromProp = Array.isArray(campaigns) ? campaigns.filter(c => (c?.platform || '').toLowerCase() === 'email') : [];
@@ -100,6 +102,11 @@ const EmailTab = ({ emailData, campaigns }) => {
     };
     run();
   }, [getInsightAnalysis]);
+
+  React.useEffect(() => {
+    const api2 = new CIAService();
+    api2.getDeliverabilityHealth().then(res => setDeliverability(res?.data || null)).catch(()=>{});
+  }, []);
 
   const [showCompose, setShowCompose] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(null); // campaignId
@@ -270,6 +277,35 @@ const EmailTab = ({ emailData, campaigns }) => {
             <div className="text-2xl font-semibold">{(emailMetrics.unsubscribe_rate ?? 0.3)}%</div>
           </div>
         </div>
+        {deliverability && (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div className={`border rounded p-3 ${deliverability.spf?.status==='pass'?'bg-green-50 border-green-200':'bg-yellow-50 border-yellow-200'}`}>
+              <div className="font-medium">SPF: {deliverability.spf?.status}</div>
+              <div className="text-xs text-gray-700">{deliverability.spf?.record}</div>
+            </div>
+            <div className={`border rounded p-3 ${deliverability.dkim?.status==='pass'?'bg-green-50 border-green-200':'bg-yellow-50 border-yellow-200'}`}>
+              <div className="font-medium">DKIM: {deliverability.dkim?.status}</div>
+              <div className="text-xs text-gray-700">Selector {deliverability.dkim?.selector} @ {deliverability.dkim?.domain}</div>
+            </div>
+            <div className={`border rounded p-3 ${deliverability.dmarc?.status==='pass'?'bg-green-50 border-green-200':'bg-yellow-50 border-yellow-200'}`}>
+              <div className="font-medium">DMARC: {deliverability.dmarc?.status}</div>
+              <div className="text-xs text-gray-700">{deliverability.dmarc?.policy}</div>
+              {deliverability.dmarc?.why && <div className="text-xs text-gray-600 mt-1">Why: {deliverability.dmarc.why}</div>}
+            </div>
+            <div className="border rounded p-3">
+              <div className="font-medium">Spam Complaints</div>
+              <div className="text-xs text-gray-700">Rate {deliverability.spam_complaints?.rate}% • Trend {deliverability.spam_complaints?.trend}</div>
+            </div>
+            <div className="border rounded p-3">
+              <div className="font-medium">Bounce Rate</div>
+              <div className="text-xs text-gray-700">{deliverability.bounce_rate?.rate}% • Trend {deliverability.bounce_rate?.trend}</div>
+            </div>
+            <div className="border rounded p-3">
+              <div className="font-medium">Sender Score</div>
+              <div className="text-xs text-gray-700">{deliverability.sender_score}</div>
+            </div>
+          </div>
+        )}
       </Section>
 
       <Section title="AI Recommendations Hub" defaultOpen={false}>

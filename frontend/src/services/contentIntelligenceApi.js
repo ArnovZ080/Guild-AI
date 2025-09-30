@@ -138,6 +138,7 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   getPersonalizationSuggestions: '/content/personalization-suggestions',
   getVariantSuggestions: '/content/email-variant-suggestions',
   setTrafficAllocation: '/content/email-traffic-allocation',
+  getDeliverabilityHealth: '/content/email-deliverability'
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
@@ -337,6 +338,11 @@ export class ContentIntelligenceAPIService {
       method: 'POST', body: JSON.stringify({ campaign_id: campaignId, allocation })
     });
     return result || { success: true };
+  }
+
+  async getDeliverabilityHealth() {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getDeliverabilityHealth);
+    return result || this.getMockDeliverabilityHealth();
   }
 
   async getCreativeAssets() {
@@ -808,6 +814,17 @@ export class ContentIntelligenceAPIService {
       { id: 'vs1', subject: 'Unlock time back each week with a 5‑minute workflow', body: 'Hi {{first_name}}, here’s a quick win we spotted…' },
       { id: 'vs2', subject: '{{first_name}}, cut email busywork in half this month', body: 'Noticed your team is scaling—this helps keep quality high…' }
     ] } };
+  }
+
+  getMockDeliverabilityHealth() {
+    return { data: {
+      spf: { status: 'pass', record: 'v=spf1 include:sendgrid.net ~all' },
+      dkim: { status: 'pass', selector: 's1', domain: 'brand.com' },
+      dmarc: { status: 'warning', policy: 'p=none; rua=mailto:dmarc@brand.com', why: 'Policy set to none; consider p=quarantine' },
+      spam_complaints: { rate: 0.12, trend: 'up' },
+      bounce_rate: { rate: 0.9, trend: 'down' },
+      sender_score: 88
+    } };
   }
 
   getMockEmailPerformance(period) {
