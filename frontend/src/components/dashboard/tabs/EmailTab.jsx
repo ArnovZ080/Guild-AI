@@ -1,5 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Mail, Plus, Settings, BarChart3, Pause, Play, Trash2, Eye, Calendar } from 'lucide-react';
+import CampaignEmailAnalyticsModal from '../../dashboard/modals/CampaignEmailAnalyticsModal.jsx';
+import ComposeEmailModal from '../../dashboard/modals/ComposeEmailModal.jsx';
+import EditEmailCampaignModal from '../../dashboard/modals/EditEmailCampaignModal.jsx';
+import WorkflowViewerModal from '../../dashboard/modals/WorkflowViewerModal.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 
 const Section = ({ title, defaultOpen = true, children, right }) => {
@@ -71,19 +75,24 @@ const EmailTab = ({ emailData, campaigns }) => {
     return [...fromProp, ...fromHook];
   }, [campaigns, emailCampaigns]);
 
+  const [showCompose, setShowCompose] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(null); // campaignId
+  const [editCampaign, setEditCampaign] = useState(null);
+  const [showWorkflow, setShowWorkflow] = useState(false);
+
   return (
     <div className="space-y-6">
       <TopBar
         metrics={topMetrics}
-        onNewCampaign={()=>{ /* open modal */ }}
-        onCompose={()=>{ /* open modal */ }}
-        onSettings={()=>{ /* open modal */ }}
+        onNewCampaign={()=>{ setEditCampaign({}); }}
+        onCompose={()=>{ setShowCompose(true); }}
+        onSettings={()=>{ setShowWorkflow(true); }}
       />
 
       <Section title="Active Campaigns" defaultOpen right={
         <div className="flex items-center space-x-2 text-sm">
-          <button className="px-2 py-1 border rounded">View Analytics</button>
-          <button className="px-2 py-1 border rounded flex items-center"><Calendar className="w-3 h-3 mr-1"/>Calendar</button>
+          <button className="px-2 py-1 border rounded" onClick={()=>setShowAnalytics(mergedCampaigns?.[0]?.campaign_id || mergedCampaigns?.[0]?.id)}>View Analytics</button>
+          <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowWorkflow(true)}><Calendar className="w-3 h-3 mr-1"/>Calendar</button>
         </div>
       }>
         <div className="overflow-x-auto">
@@ -117,12 +126,13 @@ const EmailTab = ({ emailData, campaigns }) => {
                   <td className="py-2 pr-4">{c.unsubscribe_rate!=null? `${c.unsubscribe_rate}%` : '-'}</td>
                   <td className="py-2 pr-4">
                     <div className="flex items-center space-x-2">
-                      <button className="px-2 py-1 border rounded flex items-center"><BarChart3 className="w-3 h-3 mr-1"/>Analytics</button>
+                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setShowAnalytics(c.campaign_id||c.id)}><BarChart3 className="w-3 h-3 mr-1"/>Analytics</button>
                       {c.status==='paused' ? (
                         <button className="px-2 py-1 border rounded flex items-center"><Play className="w-3 h-3 mr-1"/>Resume</button>
                       ) : (
                         <button className="px-2 py-1 border rounded flex items-center"><Pause className="w-3 h-3 mr-1"/>Pause</button>
                       )}
+                      <button className="px-2 py-1 border rounded flex items-center" onClick={()=>setEditCampaign(c)}>Edit</button>
                       <button className="px-2 py-1 border rounded flex items-center text-red-600"><Trash2 className="w-3 h-3 mr-1"/>Cancel</button>
                     </div>
                   </td>
@@ -196,6 +206,11 @@ const EmailTab = ({ emailData, campaigns }) => {
       <Section title="AI Recommendations Hub" defaultOpen={false}>
         <div className="text-sm text-gray-700">Suggestions will surface here via agents with reasons and expected ROI.</div>
       </Section>
+
+      <ComposeEmailModal open={showCompose} onClose={()=>setShowCompose(false)} onSent={()=>{}} />
+      <CampaignEmailAnalyticsModal open={!!showAnalytics} campaignId={showAnalytics} onClose={()=>setShowAnalytics(null)} />
+      <EditEmailCampaignModal open={!!editCampaign} campaign={editCampaign} onClose={()=>setEditCampaign(null)} />
+      <WorkflowViewerModal open={showWorkflow} onClose={()=>setShowWorkflow(false)} steps={[]} />
     </div>
   );
 };
