@@ -125,6 +125,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     } catch { return {}; }
   });
   const [learningRecs, setLearningRecs] = useState([]);
+  const [activityOpenForId, setActivityOpenForId] = useState(null);
+  const [activityByCampaign, setActivityByCampaign] = useState({});
   const [abResults, setAbResults] = useState({}); // cache server-fetched A/B results by campaignId
 
   // Persist anomaly toggle for reliability across renders/navigation
@@ -148,6 +150,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     })();
     return () => { mounted = false; };
   }, []);
+  const toggleActivity = async (cid) => {
+    if (!cid) return;
+    const open = activityOpenForId === cid ? null : cid;
+    setActivityOpenForId(open);
+    if (open && !activityByCampaign[cid]) {
+      try {
+        const items = await loadCampaignActivity(cid);
+        setActivityByCampaign(prev => ({ ...prev, [cid]: items || [] }));
+      } catch {}
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -1140,6 +1153,29 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               </div>
               );
             })()}
+
+            {/* Activity Timeline */}
+            <div className="mb-3">
+              <button onClick={()=>toggleActivity(campaign.campaign_id||campaign.id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">{activityOpenForId === (campaign.campaign_id||campaign.id) ? 'Hide' : 'Show'} Activity</button>
+            </div>
+            {activityOpenForId === (campaign.campaign_id||campaign.id) && (
+              <div className="mb-4 border rounded p-3 bg-white">
+                <div className="text-xs text-gray-500 mb-2">Full transparency: actions taken by agents and users</div>
+                <ul className="space-y-2">
+                  {(activityByCampaign[campaign.campaign_id||campaign.id] || []).map((e,i)=> (
+                    <li key={i} className="text-xs flex items-start">
+                      <span className="w-28 text-gray-500">{new Date(e.ts||Date.now()).toLocaleString()}</span>
+                      <span className="mx-2 text-gray-400">•</span>
+                      <span className="text-gray-800">{e.actor}: {e.action}</span>
+                      {e.reason && <span className="ml-2 text-gray-600">— {e.reason}</span>}
+                    </li>
+                  ))}
+                  {(!activityByCampaign[campaign.campaign_id||campaign.id] || activityByCampaign[campaign.campaign_id||campaign.id].length===0) && (
+                    <li className="text-xs text-gray-500">No activity yet.</li>
+                  )}
+                </ul>
+              </div>
+            )}
 
             {/* Campaign Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
