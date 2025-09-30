@@ -127,6 +127,18 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [learningRecs, setLearningRecs] = useState([]);
   const [activityOpenForId, setActivityOpenForId] = useState(null);
   const [activityByCampaign, setActivityByCampaign] = useState({});
+  const [nextBestByCampaign, setNextBestByCampaign] = useState({});
+  const [microByCampaign, setMicroByCampaign] = useState({});
+  const [expandedNextBestForId, setExpandedNextBestForId] = useState(null);
+  const [expandedMicroForId, setExpandedMicroForId] = useState(null);
+  // Global sections below Campaign Details (independent containers)
+  const [showNextBestSection, setShowNextBestSection] = useState(false);
+  const [nextBestGlobal, setNextBestGlobal] = useState(null);
+  const [nextBestFilters, setNextBestFilters] = useState({ b2bOnly: false, channels: '' });
+  const [showMicroSection, setShowMicroSection] = useState(false);
+  const [microGlobal, setMicroGlobal] = useState(null);
+  const [activityFilter, setActivityFilter] = useState('all'); // all|errors|budget
+  const [expandedActivityIndexByCampaign, setExpandedActivityIndexByCampaign] = useState({});
 
   // Attribution summary as a component to avoid using hooks in plain helpers
   const AttributionSummaryPanel = ({ campaign }) => {
@@ -611,6 +623,111 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     const totalDays = end ? Math.max(1, Math.floor((end - start) / (1000*60*60*24)) + 1) : null;
     const pct = totalDays ? Math.min(100, Math.max(0, Math.round((daysElapsed / totalDays) * 100))) : null;
     return { daysElapsed, totalDays, pct };
+  };
+
+  const fetchNextBest = async (cid, context) => {
+    try {
+      const resp = await fetch('/api/agents/next-best', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_context: context || {}, campaign_performance: {} })
+      });
+      const data = resp.ok ? await resp.json() : { ideas: [], confidence: 0 };
+      setNextBestByCampaign(prev => ({ ...prev, [cid]: data }));
+    } catch {
+      setNextBestByCampaign(prev => ({ ...prev, [cid]: { ideas: [], confidence: 0 } }));
+    }
+  };
+
+  const fetchNextBestGlobal = async (context) => {
+    try {
+      const resp = await fetch('/api/agents/next-best', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_context: context || {}, campaign_performance: {} })
+      });
+      const data = resp.ok ? await resp.json() : { ideas: [], confidence: 0 };
+      setNextBestGlobal(data);
+    } catch {
+      setNextBestGlobal({ ideas: [], confidence: 0 });
+    }
+  };
+
+  const fetchMicroCampaigns = async (cid, context) => {
+    try {
+      const resp = await fetch('/api/agents/micro-campaigns', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_context: context || {}, campaign_performance: {} })
+      });
+      const data = resp.ok ? await resp.json() : { segments: [], plan: {} };
+      setMicroByCampaign(prev => ({ ...prev, [cid]: data }));
+    } catch {
+      setMicroByCampaign(prev => ({ ...prev, [cid]: { segments: [], plan: {} } }));
+    }
+  };
+
+  const fetchMicroGlobal = async (context) => {
+    try {
+      const resp = await fetch('/api/agents/micro-campaigns', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_context: context || {}, campaign_performance: {} })
+      });
+      const data = resp.ok ? await resp.json() : { segments: [], plan: {} };
+      setMicroGlobal(data);
+    } catch {
+      setMicroGlobal({ segments: [], plan: {} });
+    }
+  };
+
+  const activateRecommendation = async (idea) => {
+    try {
+      const campaign_data = {
+        platform: (idea.platform || (Array.isArray(idea.channels) && idea.channels[0]) || (Array.isArray(idea.suggested_channels) && idea.suggested_channels[0]) || 'tiktok'),
+        objective: idea.title || idea.angle || 'growth_campaign',
+        duration: 30,
+        total_budget: 300,
+        audience: { description: idea.audience || 'auto' },
+      };
+      const channels = idea.channels || idea.suggested_channels || [campaign_data.platform];
+      const schedule = { start: new Date().toISOString() };
+      const resp = await fetch('/api/agents/orchestrate/launch', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaign_data, channels, schedule })
+      });
+      const data = resp.ok ? await resp.json() : null;
+      alert(data ? 'Orchestration started. Agents are creating the campaign now.' : 'Failed to start orchestration.');
+      try { logCampaignActivity('global', { actor: 'Orchestrator Agent', action: 'activate_recommended_campaign', reason: `Activated idea: ${idea.title || idea.angle}`, inputs: { campaign_data, channels }, outputs: { orchestration: data?.id }, status: data? 'started':'error' }); } catch {}
+    } catch (e) {
+      alert('Failed to activate recommendation.');
+    }
+  };
+
+  const activateMicroSegment = async (seg) => {
+    try {
+      const campaign_data = {
+        platform: (seg.channels||[])[0] || 'email',
+        objective: 'micro_campaign',
+        duration: 7,
+        total_budget: 100,
+        audience: { description: `${seg.name}: ${seg.value_prop}` },
+      };
+      const channels = seg.channels || [campaign_data.platform];
+      const schedule = { start: new Date().toISOString() };
+      const resp = await fetch('/api/agents/orchestrate/launch', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaign_data, channels, schedule })
+      });
+      const data = resp.ok ? await resp.json() : null;
+      alert(data ? 'Micro-campaign orchestration started.' : 'Failed to start micro-campaign.');
+      try { logCampaignActivity('global', { actor: 'Orchestrator Agent', action: 'activate_micro_campaign', reason: `Activated segment: ${seg.name}`, inputs: { campaign_data, channels }, outputs: { orchestration: data?.id }, status: data? 'started':'error' }); } catch {}
+    } catch (e) {
+      alert('Failed to activate micro-campaign.');
+    }
+  };
+
+  const filteredActivity = (cid) => {
+    const items = activityByCampaign[cid] || [];
+    if (activityFilter === 'errors') return items.filter(e => (e.status||'').toLowerCase()==='error');
+    if (activityFilter === 'budget') return items.filter(e => (e.action||'').includes('budget'));
+    return items;
   };
 
   return (
@@ -1252,27 +1369,163 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             })()}
 
             {/* Activity Timeline */}
-            <div className="mb-3">
+            <div className="mb-3 flex items-center justify-between">
               <button onClick={()=>toggleActivity(campaign.campaign_id||campaign.id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">{activityOpenForId === (campaign.campaign_id||campaign.id) ? 'Hide' : 'Show'} Activity</button>
+              {activityOpenForId === (campaign.campaign_id||campaign.id) && (
+                <div className="text-xs flex items-center space-x-2">
+                  <span className="text-gray-500">Filter:</span>
+                  <select value={activityFilter} onChange={(e)=>setActivityFilter(e.target.value)} className="border rounded px-1 py-0.5">
+                    <option value="all">All</option>
+                    <option value="errors">Errors</option>
+                    <option value="budget">Budget ops</option>
+                  </select>
+                </div>
+              )}
             </div>
             {activityOpenForId === (campaign.campaign_id||campaign.id) && (
               <div className="mb-4 border rounded p-3 bg-white">
                 <div className="text-xs text-gray-500 mb-2">Full transparency: actions taken by agents and users</div>
                 <ul className="space-y-2">
-                  {(activityByCampaign[campaign.campaign_id||campaign.id] || []).map((e,i)=> (
-                    <li key={i} className="text-xs flex items-start">
-                      <span className="w-28 text-gray-500">{new Date(e.ts||Date.now()).toLocaleString()}</span>
-                      <span className="mx-2 text-gray-400">•</span>
-                      <span className="text-gray-800">{e.actor}: {e.action}</span>
-                      {e.reason && <span className="ml-2 text-gray-600">— {e.reason}</span>}
-                    </li>
-                  ))}
-                  {(!activityByCampaign[campaign.campaign_id||campaign.id] || activityByCampaign[campaign.campaign_id||campaign.id].length===0) && (
+                  {filteredActivity(campaign.campaign_id||campaign.id).map((e,i)=> {
+                    const isExpanded = (expandedActivityIndexByCampaign[campaign.campaign_id||campaign.id] === i);
+                    return (
+                      <li key={i} className="text-xs">
+                        <div className="flex items-start">
+                          <span className="w-28 text-gray-500">{new Date(e.ts||Date.now()).toLocaleString()}</span>
+                          <span className="mx-2 text-gray-400">•</span>
+                          <span className="text-gray-800">{e.actor}: {e.action}</span>
+                          {e.reason && <span className="ml-2 text-gray-600">— {e.reason}</span>}
+                          <button onClick={()=>setExpandedActivityIndexByCampaign(prev=>({ ...prev, [campaign.campaign_id||campaign.id]: isExpanded?null:i }))} className="ml-2 text-blue-600">{isExpanded?'Hide':'Details'}</button>
+                        </div>
+                        {isExpanded && (
+                          <div className="ml-32 mt-1 p-2 bg-gray-50 border rounded text-[11px] text-gray-700">
+                            {e.agent && <div><span className="text-gray-500">Agent:</span> {e.agent}</div>}
+                            {e.inputs && <div><span className="text-gray-500">Inputs:</span> <code>{JSON.stringify(e.inputs)}</code></div>}
+                            {e.outputs && <div><span className="text-gray-500">Outputs:</span> <code>{JSON.stringify(e.outputs)}</code></div>}
+                            {e.status && <div><span className="text-gray-500">Status:</span> {e.status}</div>}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                  {filteredActivity(campaign.campaign_id||campaign.id).length===0 && (
                     <li className="text-xs text-gray-500">No activity yet.</li>
                   )}
                 </ul>
               </div>
             )}
+
+            {/* Next Best Campaigns (separate collapsible card) */}
+            <div className="mb-4 border border-gray-200 rounded-lg bg-white">
+              <div className="flex items-center justify-between px-3 py-2 border-b">
+                <div className="flex items-center space-x-2">
+                  <Lightbulb className="w-4 h-4 text-purple-600" />
+                  <span className="text-sm font-medium text-gray-900">Next Best Campaigns</span>
+                </div>
+                <button
+                  onClick={async ()=>{
+                    const id = campaign.campaign_id||campaign.id;
+                    const open = expandedNextBestForId === id ? null : id;
+                    setExpandedNextBestForId(open);
+                    if (open && !nextBestByCampaign[id]) {
+                      await fetchNextBest(id, { industry: campaign.industry||'general', objective: campaign.objective });
+                    }
+                  }}
+                  className="px-2 py-1 text-xs rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+                >{expandedNextBestForId === (campaign.campaign_id||campaign.id) ? 'Hide' : 'Show'}</button>
+              </div>
+              {expandedNextBestForId === (campaign.campaign_id||campaign.id) && (
+                <div className="p-3">
+                  {(() => {
+                    const data = nextBestByCampaign[campaign.campaign_id||campaign.id];
+                    if (!data) return <div className="text-xs text-gray-500">Loading…</div>;
+                    const ideas = data.ideas||[];
+                    if (ideas.length===0) return <div className="text-xs text-gray-500">No suggestions yet.</div>;
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {ideas.map((idea, idx)=> (
+                          <div key={idx} className="p-3 border rounded">
+                            <div className="font-medium text-gray-900">{idea.title}</div>
+                            <div className="text-xs text-gray-700">Angle: {idea.angle}</div>
+                            <div className="text-xs text-gray-700">Audience: {idea.audience}</div>
+                            {Array.isArray(idea.sources) && idea.sources.length>0 && (
+                              <div className="mt-1 text-[11px] text-gray-600">Sources: {idea.sources.map((s,i)=> (<a key={i} href={s} target="_blank" rel="noreferrer" className="text-blue-600 underline">{s}</a>))}</div>
+                            )}
+                            {idea.why && <div className="mt-1 text-[11px] text-gray-600">Why: {idea.why}</div>}
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
+
+            {/* Personalized Micro-campaigns (separate collapsible card) */}
+            <div className="mb-4 border border-gray-200 rounded-lg bg-white">
+              <div className="flex items-center justify-between px-3 py-2 border-b">
+                <div className="flex items-center space-x-2">
+                  <Users className="w-4 h-4 text-emerald-600" />
+                  <span className="text-sm font-medium text-gray-900">Personalized Micro-campaigns</span>
+                </div>
+                <button
+                  onClick={async ()=>{
+                    const id = campaign.campaign_id||campaign.id;
+                    const open = expandedMicroForId === id ? null : id;
+                    setExpandedMicroForId(open);
+                    if (open && !microByCampaign[id]) {
+                      await fetchMicroCampaigns(id, { industry: campaign.industry||'general', audience: campaign.targetAudience });
+                    }
+                  }}
+                  className="px-2 py-1 text-xs rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+                >{expandedMicroForId === (campaign.campaign_id||campaign.id) ? 'Hide' : 'Show'}</button>
+              </div>
+              {expandedMicroForId === (campaign.campaign_id||campaign.id) && (
+                <div className="p-3">
+                  {(() => {
+                    const data = microByCampaign[campaign.campaign_id||campaign.id];
+                    if (!data) return <div className="text-xs text-gray-500">Loading…</div>;
+                    const segments = data.segments||[];
+                    if (segments.length===0) return <div className="text-xs text-gray-500">No segments yet.</div>;
+                    return (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {segments.map((seg, idx)=> (
+                          <div key={idx} className="p-3 border rounded">
+                            <div className="font-medium text-gray-900">{seg.name}</div>
+                            <div className="text-xs text-gray-700">Size: {seg.size ?? '—'}</div>
+                            <div className="text-xs text-gray-700">Channels: {(seg.channels||[]).join(', ')}</div>
+                            <div className="text-xs text-gray-700">Value Prop: {seg.value_prop}</div>
+                            {Array.isArray(seg.suggested_assets) && seg.suggested_assets.length>0 && (
+                              <div className="text-[11px] text-gray-600">Assets: {seg.suggested_assets.join(', ')}</div>
+                            )}
+                            <div className="text-xs text-gray-700">CTA: {seg.CTA}</div>
+                            <div className="mt-2">
+                              <button
+                                onClick={() => {
+                                  const draft = {
+                                    name: `${campaign.name || 'Campaign'} — ${seg.name}`,
+                                    platform: campaign.platform,
+                                    objective: campaign.objective,
+                                    targetAudience: `${seg.name}: ${seg.value_prop}`,
+                                    budget: campaign.budget,
+                                    duration: campaign.duration,
+                                    ab_test: { enabled: true },
+                                    ai_suggestions: ['Drafted from micro-campaign segment']
+                                  };
+                                  onCreateCampaign?.({ ...draft, campaign_id: `draft_${Date.now()}` });
+                                  try { logCampaignActivity(campaign.campaign_id||campaign.id, { actor: 'Lead Personalization Agent', action: 'draft_micro_campaign', reason: `Drafted micro-campaign for segment ${seg.name}` }); } catch {}
+                                }}
+                                className="px-3 py-1.5 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                              >Draft micro-campaign</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
 
             {/* Campaign Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
@@ -1496,7 +1749,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                   )}
                   {campaign.bounce_rate != null && (
                     <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900" title="Bounce Rate: percentage of emails that couldn’t be delivered">{campaign.bounce_rate}%</div>
+                      <div className="text-lg font-semibold text-gray-900" title="Bounce Rate: percentage of emails that couldn't be delivered">{campaign.bounce_rate}%</div>
                       <div className="text-xs text-gray-500">Bounce Rate</div>
                     </div>
                   )}
@@ -1851,6 +2104,112 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
         </div>
       )}
+
+      {/* Next Best Campaigns - independent section below Campaign Details */}
+      <div className="mt-6 bg-white rounded-lg shadow-sm border">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center space-x-2">
+            <Lightbulb className="w-4 h-4 text-purple-600" />
+            <span className="font-semibold text-gray-900">Next Best Campaigns</span>
+            <span className="text-xs text-gray-500">(market_trends_agent + trend_spotter_agent)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <input type="checkbox" className="rounded" checked={nextBestFilters.b2bOnly} onChange={(e)=>setNextBestFilters(p=>({...p,b2bOnly:e.target.checked}))} />
+            <span className="text-xs text-gray-700">B2B only</span>
+            <input type="text" placeholder="Preferred channels e.g. instagram,email" value={nextBestFilters.channels} onChange={(e)=>setNextBestFilters(p=>({...p,channels:e.target.value}))} className="ml-2 px-2 py-1 text-xs border rounded" />
+            <button
+              onClick={async ()=>{ setShowNextBestSection(v=>!v); if (!showNextBestSection) { await fetchNextBestGlobal({ filter_b2b: nextBestFilters.b2bOnly, channels: nextBestFilters.channels }); } }}
+              className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+            >{showNextBestSection ? 'Hide' : 'Show'}</button>
+          </div>
+        </div>
+        {showNextBestSection && (
+          <div className="p-4">
+            <div className="text-xs text-gray-600 mb-3">Purpose: Surface fresh, data-driven campaign concepts from live market and cultural signals. Signals gathered independently, synthesized into plain-language ideas.</div>
+            {!nextBestGlobal ? (
+              <div className="text-xs text-gray-500">Loading…</div>
+            ) : (nextBestGlobal.ideas||[]).length===0 ? (
+              <div className="text-xs text-gray-500">No suggestions yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(nextBestGlobal.ideas||[]).slice(0,5).map((idea, idx)=> (
+                  <div key={idx} className="p-3 border rounded">
+                    <div className="font-medium text-gray-900">{idea.title || 'Untitled idea'}</div>
+                    <div className="text-xs text-gray-700 mt-0.5">Angle: {idea.angle || '—'}</div>
+                    <div className="text-xs text-gray-700">Suggested channels: {(idea.channels||idea.suggested_channels||[]).join(', ') || '—'}</div>
+                    <div className="text-xs text-gray-700 mt-1">Why it matters: {idea.why || 'Relevant based on current trend signals.'}</div>
+                    {Array.isArray(idea.sources) && idea.sources.length>0 && (
+                      <div className="mt-1 text-[11px] text-gray-600">Sources: {idea.sources.map((s,i)=> (<a key={i} href={s} target="_blank" rel="noreferrer" className="text-blue-600 underline">source {i+1}</a>))}</div>
+                    )}
+                    <div className="mt-2 text-xs text-gray-700">Projected effort & cost: {idea.effort_cost || 'Estimated moderate (creative refresh + light ad spend).'}</div>
+                    <div className="mt-2">
+                      <button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">Activate campaign</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Personalized Micro-campaigns - independent section below Next Best */}
+      <div className="mt-4 bg-white rounded-lg shadow-sm border">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center space-x-2">
+            <Users className="w-4 h-4 text-emerald-600" />
+            <span className="font-semibold text-gray-900">Personalized Micro-campaigns</span>
+            <span className="text-xs text-gray-500">(lead_personalization_agent + upsell_cross_sell_agent)</span>
+          </div>
+          <button
+            onClick={async ()=>{ setShowMicroSection(v=>!v); if (!showMicroSection) { await fetchMicroGlobal({}); } }}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+          >{showMicroSection ? 'Hide' : 'Show'}</button>
+        </div>
+        {showMicroSection && (
+          <div className="p-4">
+            <div className="text-xs text-gray-600 mb-3">Purpose: Automatically run small, targeted campaigns for micro-segments to maximize conversions. Default autonomous; optional human-in-the-loop rules.</div>
+            {!microGlobal ? (
+              <div className="text-xs text-gray-500">Loading…</div>
+            ) : (microGlobal.segments||[]).length===0 ? (
+              <div className="text-xs text-gray-500">No segments yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(microGlobal.segments||[]).map((seg, idx)=> (
+                  <div key={idx} className="p-3 border rounded">
+                    <div className="font-medium text-gray-900">Segment: {seg.name}</div>
+                    <div className="text-xs text-gray-700">Channels: {(seg.channels||[]).join(', ')}</div>
+                    <div className="text-xs text-gray-700">Value Prop: {seg.value_prop}</div>
+                    <div className="text-xs text-gray-700">Campaign: {seg.campaign || seg.example || 'Tailored 3-touch sequence based on behavior.'}</div>
+                    <div className="text-xs text-gray-700">Status: {seg.status || 'Pending Approval'}</div>
+                    <div className="text-xs text-gray-700">Results: {seg.results ? JSON.stringify(seg.results) : '—'}</div>
+                    <div className="mt-2 flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          const draft = {
+                            name: `${seg.name} Micro-campaign`,
+                            platform: (seg.channels||[])[0]||'multi',
+                            objective: 'micro_campaign',
+                            targetAudience: `${seg.name}: ${seg.value_prop}`,
+                            budget: 0,
+                            duration: 7,
+                            ab_test: { enabled: false }
+                          };
+                          onCreateCampaign?.({ ...draft, campaign_id: `draft_${Date.now()}` });
+                          try { logCampaignActivity('global', { actor: 'Lead Personalization Agent', action: 'draft_micro_campaign', reason: `Drafted micro-campaign for segment ${seg.name}` }); } catch {}
+                        }}
+                        className="px-3 py-1.5 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                      >Draft micro-campaign</button>
+                      <button onClick={()=>activateMicroSegment(seg)} className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">Activate</button>
+                      <button className="px-3 py-1.5 text-xs rounded border">Set rules…</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Thresholds Settings Modal (global) */}
       {showThresholdsModal && (
