@@ -124,6 +124,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+  const [abResults, setAbResults] = useState({}); // cache server-fetched A/B results by campaignId
 
   // Persist anomaly toggle for reliability across renders/navigation
   useEffect(() => {
@@ -158,6 +159,29 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     })();
     return () => { mounted = false; };
   }, []);
+
+  // Prefetch A/B results for campaigns that have A/B enabled
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = (campaigns || []).filter(c => c?.ab_test?.enabled);
+        for (const c of list) {
+          const cid = c.campaign_id || c.id;
+          if (!cid) continue;
+          if (abResults[cid]) continue;
+          try {
+            const res = await loadABResults(cid);
+            if (!mounted) return;
+            if (res && Object.keys(res).length) {
+              setAbResults(prev => ({ ...prev, [cid]: res }));
+            }
+          } catch {}
+        }
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, [campaigns]);
 
   const handleRefreshInsights = async () => {
     try {
@@ -1071,9 +1095,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               </div>
 
             {/* A/B mini-summary (if present) */}
-            {campaign?.ab_test?.enabled && ((campaign?.ab_results?.A || campaign?.ab_results?.B) || loadABResults(campaign.campaign_id||campaign.id)) && (()=>{
+            {campaign?.ab_test?.enabled && (()=>{
               const cid = campaign.campaign_id||campaign.id;
-              const ab = campaign.ab_results || loadABResults(cid) || {};
+              const ab = campaign.ab_results || abResults[cid] || {};
+              const hasData = !!(ab?.A || ab?.B);
+              if (!hasData) return null;
               const winner = campaign.ab_winner || computeABWinner(ab);
               return (
               <div className="mb-3 text-xs text-gray-700 inline-flex items-center space-x-2">
