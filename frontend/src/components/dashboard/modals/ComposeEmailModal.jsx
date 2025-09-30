@@ -46,7 +46,7 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
         </div>
         <div className="p-4 border-t flex justify-end space-x-2">
           <button onClick={onClose} className="px-3 py-2 border rounded">Cancel</button>
-          <button onClick={send} disabled={sending} className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">{sending?'Sending...':'Send'}</button>
+          <button onClick={send} disabled={sending || !subject.trim() || !body.trim()} className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">{sending?'Sending...':'Send'}</button>
         </div>
       </div>
     </div>

@@ -182,6 +182,29 @@ const EmailTab = ({ emailData, campaigns }) => {
         </div>
       </Section>
 
+      <Section title="Unified Inbox" defaultOpen={false}>
+        {!inboxLoading && !inboxData?.data?.inbox?.length && (
+          <div className="text-sm text-gray-600">No messages yet. Connect your email providers in Settings.</div>
+        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {(inboxData?.data?.inbox||[]).slice(0,8).map(msg => (
+            <div key={msg.id} className="border rounded p-3 text-sm">
+              <div className="flex items-center justify-between">
+                <div className="font-medium truncate max-w-[70%]" title={msg.subject}>{msg.subject}</div>
+                <div className="text-xs text-gray-500">{new Date(msg.received_at).toLocaleString()}</div>
+              </div>
+              <div className="text-xs text-gray-600 mt-0.5">From {msg.from} • {msg.provider}</div>
+              <div className="text-xs text-gray-700 mt-1 line-clamp-2">{msg.snippet}</div>
+              <div className="mt-2 flex items-center space-x-2">
+                <button className="px-2 py-1 border rounded text-xs">Open</button>
+                <button className="px-2 py-1 border rounded text-xs">Reply (AI)</button>
+                <button className="px-2 py-1 border rounded text-xs">Assign</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
       <Section title="Automations & Sequences" defaultOpen={false}>
         <div className="text-sm text-gray-600">Connect CRM automation to view and optimize sequences. Coming next.</div>
       </Section>
