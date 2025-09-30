@@ -677,6 +677,52 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     }
   };
 
+  const activateRecommendation = async (idea) => {
+    try {
+      const campaign_data = {
+        platform: (idea.platform || (Array.isArray(idea.channels) && idea.channels[0]) || (Array.isArray(idea.suggested_channels) && idea.suggested_channels[0]) || 'tiktok'),
+        objective: idea.title || idea.angle || 'growth_campaign',
+        duration: 30,
+        total_budget: 300,
+        audience: { description: idea.audience || 'auto' },
+      };
+      const channels = idea.channels || idea.suggested_channels || [campaign_data.platform];
+      const schedule = { start: new Date().toISOString() };
+      const resp = await fetch('/api/agents/orchestrate/launch', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaign_data, channels, schedule })
+      });
+      const data = resp.ok ? await resp.json() : null;
+      alert(data ? 'Orchestration started. Agents are creating the campaign now.' : 'Failed to start orchestration.');
+      try { logCampaignActivity('global', { actor: 'Orchestrator Agent', action: 'activate_recommended_campaign', reason: `Activated idea: ${idea.title || idea.angle}`, inputs: { campaign_data, channels }, outputs: { orchestration: data?.id }, status: data? 'started':'error' }); } catch {}
+    } catch (e) {
+      alert('Failed to activate recommendation.');
+    }
+  };
+
+  const activateMicroSegment = async (seg) => {
+    try {
+      const campaign_data = {
+        platform: (seg.channels||[])[0] || 'email',
+        objective: 'micro_campaign',
+        duration: 7,
+        total_budget: 100,
+        audience: { description: `${seg.name}: ${seg.value_prop}` },
+      };
+      const channels = seg.channels || [campaign_data.platform];
+      const schedule = { start: new Date().toISOString() };
+      const resp = await fetch('/api/agents/orchestrate/launch', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaign_data, channels, schedule })
+      });
+      const data = resp.ok ? await resp.json() : null;
+      alert(data ? 'Micro-campaign orchestration started.' : 'Failed to start micro-campaign.');
+      try { logCampaignActivity('global', { actor: 'Orchestrator Agent', action: 'activate_micro_campaign', reason: `Activated segment: ${seg.name}`, inputs: { campaign_data, channels }, outputs: { orchestration: data?.id }, status: data? 'started':'error' }); } catch {}
+    } catch (e) {
+      alert('Failed to activate micro-campaign.');
+    }
+  };
+
   const filteredActivity = (cid) => {
     const items = activityByCampaign[cid] || [];
     if (activityFilter === 'errors') return items.filter(e => (e.status||'').toLowerCase()==='error');
@@ -2096,6 +2142,9 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                       <div className="mt-1 text-[11px] text-gray-600">Sources: {idea.sources.map((s,i)=> (<a key={i} href={s} target="_blank" rel="noreferrer" className="text-blue-600 underline">source {i+1}</a>))}</div>
                     )}
                     <div className="mt-2 text-xs text-gray-700">Projected effort & cost: {idea.effort_cost || 'Estimated moderate (creative refresh + light ad spend).'}</div>
+                    <div className="mt-2">
+                      <button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">Activate campaign</button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2151,6 +2200,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                         }}
                         className="px-3 py-1.5 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
                       >Draft micro-campaign</button>
+                      <button onClick={()=>activateMicroSegment(seg)} className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">Activate</button>
                       <button className="px-3 py-1.5 text-xs rounded border">Set rules…</button>
                     </div>
                   </div>
