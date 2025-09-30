@@ -136,6 +136,8 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   getContactProfile: '/content/contact-profile',
   getContactTimeline: '/content/contact-timeline',
   getPersonalizationSuggestions: '/content/personalization-suggestions',
+  getVariantSuggestions: '/content/email-variant-suggestions',
+  setTrafficAllocation: '/content/email-traffic-allocation',
   
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
@@ -321,6 +323,20 @@ export class ContentIntelligenceAPIService {
   async getPersonalizationSuggestions(email) {
     const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getPersonalizationSuggestions}?email=${encodeURIComponent(email)}`);
     return result || this.getMockPersonalizationSuggestions(email);
+  }
+
+  async getVariantSuggestions(context = {}) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getVariantSuggestions, {
+      method: 'POST', body: JSON.stringify(context)
+    });
+    return result || this.getMockVariantSuggestions(context);
+  }
+
+  async setTrafficAllocation(campaignId, allocation) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.setTrafficAllocation, {
+      method: 'POST', body: JSON.stringify({ campaign_id: campaignId, allocation })
+    });
+    return result || { success: true };
   }
 
   async getCreativeAssets() {
@@ -784,6 +800,13 @@ export class ContentIntelligenceAPIService {
     return { data: { email, suggestions: [
       { id: 'p1', field: 'subject', text: 'Jane, quick idea to save you time in Ops' , why: 'Personalized subject with role reference increases opens' },
       { id: 'p2', field: 'body', text: 'Reference Acme’s recent onboarding milestone to build relevance', why: 'Context from timeline indicates onboarding' }
+    ] } };
+  }
+
+  getMockVariantSuggestions(context) {
+    return { data: { suggestions: [
+      { id: 'vs1', subject: 'Unlock time back each week with a 5‑minute workflow', body: 'Hi {{first_name}}, here’s a quick win we spotted…' },
+      { id: 'vs2', subject: '{{first_name}}, cut email busywork in half this month', body: 'Noticed your team is scaling—this helps keep quality high…' }
     ] } };
   }
 
