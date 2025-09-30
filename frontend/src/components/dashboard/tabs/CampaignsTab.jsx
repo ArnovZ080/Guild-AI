@@ -81,7 +81,7 @@ const SentimentBlock = ({ comments = [] }) => {
     </div>
   );
 };
-import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity } from '../../../services/campaignInsightsApi';
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity, loadAttribution, fetchLearningRecommendations } from '../../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRefreshCampaigns }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -124,6 +124,79 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+  const [learningRecs, setLearningRecs] = useState([]);
+  const [activityOpenForId, setActivityOpenForId] = useState(null);
+  const [activityByCampaign, setActivityByCampaign] = useState({});
+
+  // Attribution summary as a component to avoid using hooks in plain helpers
+  const AttributionSummaryPanel = ({ campaign }) => {
+    const cid = campaign?.campaign_id || campaign?.id;
+    const [serverTouches, setServerTouches] = React.useState([]);
+    React.useEffect(()=>{
+      let mounted = true;
+      (async()=>{
+        try {
+          if (!cid) return;
+          const res = await loadAttribution(cid);
+          if (mounted && res && Array.isArray(res.touches)) setServerTouches(res.touches);
+        } catch {}
+      })();
+      return ()=>{ mounted=false; };
+    }, [cid]);
+
+    const touches = (serverTouches && serverTouches.length ? serverTouches : (campaign?.mta_touches || []));
+    const linear = calcLinearAttribution(touches);
+    const timeDecay = calcTimeDecayAttribution(touches);
+    const position = calcPositionBasedAttribution(touches);
+    const sumCredits = (map) => Object.values(map).reduce((s,v)=>s+v,0);
+    const summary = {
+      linear: { credits: linear, total: sumCredits(linear) },
+      timeDecay: { credits: timeDecay, total: sumCredits(timeDecay) },
+      position: { credits: position, total: sumCredits(position) }
+    };
+
+    const channels = [campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter'];
+    return (
+      <div className="space-y-3 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {channels.map(ch => (
+            <div key={ch} className="bg-white border border-purple-100 rounded p-3">
+              <div className="flex items-center justify-between mb-1">
+                <span className="capitalize text-gray-800">{ch}</span>
+                <span className="text-xs text-gray-500">by channel</span>
+              </div>
+              <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
+              <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
+              <div className="mt-1 text-xs text-gray-700">
+                <div className="flex items-center justify-between"><span>Linear</span><span>{(summary.linear.credits[ch]||0).toFixed(2)}</span></div>
+                <div className="flex items-center justify-between"><span>Time-decay</span><span>{(summary.timeDecay.credits[ch]||0).toFixed(2)}</span></div>
+                <div className="flex items-center justify-between"><span>Position</span><span>{(summary.position.credits[ch]||0).toFixed(2)}</span></div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="bg-white border border-purple-100 rounded p-3">
+          <div className="font-medium text-gray-900 mb-1">Totals</div>
+          <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
+            <div className="p-2 bg-purple-50 rounded border">
+              <div className="font-semibold">{summary.linear.total.toFixed(2)}</div>
+              <div>Linear total</div>
+            </div>
+            <div className="p-2 bg-purple-50 rounded border">
+              <div className="font-semibold">{summary.timeDecay.total.toFixed(2)}</div>
+              <div>Time-decay total</div>
+            </div>
+            <div className="p-2 bg-purple-50 rounded border">
+              <div className="font-semibold">{summary.position.total.toFixed(2)}</div>
+              <div>Position-based total</div>
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500">Note: Totals represent relative credit across touches for a typical converting journey. Connect telemetry to replace sample touches.</div>
+      </div>
+    );
+  };
+  const [abResults, setAbResults] = useState({}); // cache server-fetched A/B results by campaignId
 
   // Persist anomaly toggle for reliability across renders/navigation
   useEffect(() => {
@@ -146,6 +219,17 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     })();
     return () => { mounted = false; };
   }, []);
+  const toggleActivity = async (cid) => {
+    if (!cid) return;
+    const open = activityOpenForId === cid ? null : cid;
+    setActivityOpenForId(open);
+    if (open && !activityByCampaign[cid]) {
+      try {
+        const items = await loadCampaignActivity(cid);
+        setActivityByCampaign(prev => ({ ...prev, [cid]: items || [] }));
+      } catch {}
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -158,6 +242,42 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     })();
     return () => { mounted = false; };
   }, []);
+
+  // Fetch learning recommendations for transparency (campaign-agnostic summary)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetchLearningRecommendations().catch(()=>null);
+        if (!mounted) return;
+        setLearningRecs(res?.recommendations || []);
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Prefetch A/B results for campaigns that have A/B enabled
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = (campaigns || []).filter(c => c?.ab_test?.enabled);
+        for (const c of list) {
+          const cid = c.campaign_id || c.id;
+          if (!cid) continue;
+          if (abResults[cid]) continue;
+          try {
+            const res = await loadABResults(cid);
+            if (!mounted) return;
+            if (res && Object.keys(res).length) {
+              setAbResults(prev => ({ ...prev, [cid]: res }));
+            }
+          } catch {}
+        }
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, [campaigns]);
 
   const handleRefreshInsights = async () => {
     try {
@@ -236,8 +356,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   };
 
   const buildAttributionSummary = (campaign) => {
-    // touches input expected: ordered array of channel keys for a converting journey
-    const touches = campaign?.mta_touches || [];
+    // Fetch server-provided touches if available (fallback to campaign embedded)
+    const cid = campaign?.campaign_id || campaign?.id;
+    const [serverTouches, setServerTouches] = React.useState(null);
+    React.useEffect(()=>{
+      let mounted = true;
+      (async()=>{
+        if (!cid) return;
+        try {
+          const res = await loadAttribution(cid);
+          if (mounted && res && Array.isArray(res.touches)) setServerTouches(res.touches);
+        } catch {}
+      })();
+      return ()=>{ mounted=false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cid]);
+
+    const touches = (serverTouches && serverTouches.length ? serverTouches : (campaign?.mta_touches || []));
     const linear = calcLinearAttribution(touches);
     const timeDecay = calcTimeDecayAttribution(touches);
     const position = calcPositionBasedAttribution(touches);
@@ -312,6 +447,33 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         bid_strategy: campaign.bid_strategy || 'Lowest Cost'
       });
       setShowSettingsModal(true);
+    } else if (action === 'optimize') {
+      // Unify optimization action with autonomous_optimization payload
+      (async () => {
+        try {
+          await fetch('/api/agents/enhanced-campaign', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'autonomous_optimization',
+              campaign_id: campaign.campaign_id || campaign.id,
+              campaign_data: campaign,
+              request: {
+                optimization_type: 'autonomous',
+                current_performance: {
+                  reach: campaign.reach,
+                  clicks: campaign.clicks,
+                  ctr: campaign.ctr,
+                  roas: campaign.roas,
+                  cpa: campaign.cpa,
+                  cpl: campaign.cpl
+                }
+              }
+            })
+          });
+          alert('AI optimization initiated. Track progress in Activity timeline.');
+          logCampaignActivity(campaign.campaign_id || campaign.id, { actor: 'User', action: 'enable_ai_optimization', reason: 'Started autonomous optimization from card menu' });
+        } catch {}
+      })();
     }
   };
 
@@ -493,7 +655,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <div className="flex items-center space-x-2">
               <Lightbulb className="w-4 h-4 text-yellow-500" />
               <span className="text-sm text-gray-700">
-                <strong>Optimization:</strong> Your Google Ads campaigns are 23% more efficient than last month
+                <strong>Optimization:</strong> {learningRecs[0]?.reason || 'Insights updating…'}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -505,7 +667,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <div className="flex items-center space-x-2">
               <Zap className="w-4 h-4 text-green-500" />
               <span className="text-sm text-gray-700">
-                <strong>Opportunity:</strong> TikTok campaigns showing 45% higher engagement
+                <strong>Opportunity:</strong> {learningRecs[1]?.reason || 'New opportunities incoming'}
               </span>
             </div>
           </div>
@@ -1043,10 +1205,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     </div>
                     <button
                       onClick={() => setAttribOpenForId(attribOpenForId === (campaign.campaign_id || campaign.id) ? null : (campaign.campaign_id || campaign.id))}
-                      className="p-1 text-gray-500 hover:text-gray-700"
-                      title="View attribution details"
+                      className="p-1 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md ml-2 flex items-center"
+                      title="View full attribution breakdown: linear, time-decay, position-based"
                     >
-                      <Info className="w-3 h-3" />
+                      <Info className="w-4 h-4 mr-1" />
+                      <span className="text-[11px]">Info</span>
                     </button>
                   </div>
                 )}
@@ -1058,10 +1221,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
                     {openMenuForId === (campaign.campaign_id || campaign.id) && (
-                      <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                      <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                         <button onClick={() => { setOpenMenuForId(null); setAssetsPayload(campaign.assets || loadCampaignAssets(campaign.campaign_id || campaign.id)); setShowAssetsModal(true); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Assets</button>
-                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('analytics', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Analytics</button>
+                        <button onClick={() => { setOpenMenuForId(null); handleCampaignAction('settings', campaign); }} className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50">Settings</button>
                         <div className="border-t border-gray-200"></div>
                         <button onClick={() => { setOpenMenuForId(null); if (window.confirm('Delete this campaign? This removes it from your dashboard and calendar views.')) { handleLocalDelete(campaign.id || campaign.campaign_id); } }} className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50">Delete</button>
                       </div>
@@ -1071,9 +1234,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               </div>
 
             {/* A/B mini-summary (if present) */}
-            {campaign?.ab_test?.enabled && ((campaign?.ab_results?.A || campaign?.ab_results?.B) || loadABResults(campaign.campaign_id||campaign.id)) && (()=>{
+            {campaign?.ab_test?.enabled && (()=>{
               const cid = campaign.campaign_id||campaign.id;
-              const ab = campaign.ab_results || loadABResults(cid) || {};
+              const ab = campaign.ab_results || abResults[cid] || {};
+              const hasData = !!(ab?.A || ab?.B);
+              if (!hasData) return null;
               const winner = campaign.ab_winner || computeABWinner(ab);
               return (
               <div className="mb-3 text-xs text-gray-700 inline-flex items-center space-x-2">
@@ -1085,6 +1250,29 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
               </div>
               );
             })()}
+
+            {/* Activity Timeline */}
+            <div className="mb-3">
+              <button onClick={()=>toggleActivity(campaign.campaign_id||campaign.id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">{activityOpenForId === (campaign.campaign_id||campaign.id) ? 'Hide' : 'Show'} Activity</button>
+            </div>
+            {activityOpenForId === (campaign.campaign_id||campaign.id) && (
+              <div className="mb-4 border rounded p-3 bg-white">
+                <div className="text-xs text-gray-500 mb-2">Full transparency: actions taken by agents and users</div>
+                <ul className="space-y-2">
+                  {(activityByCampaign[campaign.campaign_id||campaign.id] || []).map((e,i)=> (
+                    <li key={i} className="text-xs flex items-start">
+                      <span className="w-28 text-gray-500">{new Date(e.ts||Date.now()).toLocaleString()}</span>
+                      <span className="mx-2 text-gray-400">•</span>
+                      <span className="text-gray-800">{e.actor}: {e.action}</span>
+                      {e.reason && <span className="ml-2 text-gray-600">— {e.reason}</span>}
+                    </li>
+                  ))}
+                  {(!activityByCampaign[campaign.campaign_id||campaign.id] || activityByCampaign[campaign.campaign_id||campaign.id].length===0) && (
+                    <li className="text-xs text-gray-500">No activity yet.</li>
+                  )}
+                </ul>
+              </div>
+            )}
 
             {/* Campaign Metrics Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
@@ -1248,49 +1436,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     <div className="font-medium text-purple-900">Attribution details</div>
                     <button onClick={()=>setAttribOpenForId(null)} className="text-xs text-purple-700 hover:text-purple-900">Close</button>
                   </div>
-                  {(() => {
-                    const channels = [campaign.platform]?.filter(Boolean)[0] ? [campaign.platform] : ['facebook','instagram','google','tiktok','linkedin','twitter'];
-                    const summary = buildAttributionSummary(campaign);
-                    return (
-                      <div className="space-y-3 text-sm">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {channels.map(ch => (
-                            <div key={ch} className="bg-white border border-purple-100 rounded p-3">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="capitalize text-gray-800">{ch}</span>
-                                <span className="text-xs text-gray-500">by channel</span>
-                              </div>
-                              <div className="text-xs text-gray-600">First-touch: {campaign?.attribution?.[ch]?.first || 0}</div>
-                              <div className="text-xs text-gray-600">Last-touch: {campaign?.attribution?.[ch]?.last || 0}</div>
-                              <div className="mt-1 text-xs text-gray-700">
-                                <div className="flex items-center justify-between"><span>Linear</span><span>{(summary.linear.credits[ch]||0).toFixed(2)}</span></div>
-                                <div className="flex items-center justify-between"><span>Time-decay</span><span>{(summary.timeDecay.credits[ch]||0).toFixed(2)}</span></div>
-                                <div className="flex items-center justify-between"><span>Position</span><span>{(summary.position.credits[ch]||0).toFixed(2)}</span></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="bg-white border border-purple-100 rounded p-3">
-                          <div className="font-medium text-gray-900 mb-1">Totals</div>
-                          <div className="grid grid-cols-3 gap-2 text-xs text-gray-700">
-                            <div className="p-2 bg-purple-50 rounded border">
-                              <div className="font-semibold">{summary.linear.total.toFixed(2)}</div>
-                              <div>Linear total</div>
-                            </div>
-                            <div className="p-2 bg-purple-50 rounded border">
-                              <div className="font-semibold">{summary.timeDecay.total.toFixed(2)}</div>
-                              <div>Time-decay total</div>
-                            </div>
-                            <div className="p-2 bg-purple-50 rounded border">
-                              <div className="font-semibold">{summary.position.total.toFixed(2)}</div>
-                              <div>Position-based total</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500">Note: Totals represent relative credit across touches for a typical converting journey. Connect telemetry to replace sample touches.</div>
-                      </div>
-                    );
-                  })()}
+                  <AttributionSummaryPanel campaign={campaign} />
                 </div>
               )}
 

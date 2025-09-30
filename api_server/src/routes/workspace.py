@@ -3,11 +3,12 @@ Workspace routes for simple profile persistence.
 Writes JSON to a local workspace folder (can be swapped to MinIO later).
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from pydantic import BaseModel
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 import os
 import json
+import uuid
 
 router = APIRouter(
     prefix="/workspace",
@@ -59,4 +60,31 @@ async def get_profile(user_id: str = "default"):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to read profile: {str(e)}")
 
+
+
+# --- Assets library (in-memory minimal for now) ---
+_ASSETS_STORE: List[Dict[str, Any]] = []
+
+
+@router.get("/assets")
+async def list_assets():
+    return _ASSETS_STORE
+
+
+@router.post("/assets")
+async def upload_asset(file: UploadFile = File(...), name: Optional[str] = Form(None)):
+    try:
+        asset_id = str(uuid.uuid4())
+        meta = {
+            "asset_id": asset_id,
+            "name": name or file.filename,
+            "type": file.content_type or "application/octet-stream",
+            "filename": file.filename,
+        }
+        # Discard bytes; in a real system persist to object storage
+        await file.read()
+        _ASSETS_STORE.append(meta)
+        return meta
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Asset upload failed: {str(e)}")
 
