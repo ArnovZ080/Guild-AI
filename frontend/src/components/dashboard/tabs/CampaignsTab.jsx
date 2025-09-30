@@ -131,6 +131,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [microByCampaign, setMicroByCampaign] = useState({});
   const [expandedNextBestForId, setExpandedNextBestForId] = useState(null);
   const [expandedMicroForId, setExpandedMicroForId] = useState(null);
+  // Global sections below Campaign Details (independent containers)
+  const [showNextBestSection, setShowNextBestSection] = useState(false);
+  const [nextBestGlobal, setNextBestGlobal] = useState(null);
+  const [nextBestFilters, setNextBestFilters] = useState({ b2bOnly: false, channels: '' });
+  const [showMicroSection, setShowMicroSection] = useState(false);
+  const [microGlobal, setMicroGlobal] = useState(null);
   const [activityFilter, setActivityFilter] = useState('all'); // all|errors|budget
   const [expandedActivityIndexByCampaign, setExpandedActivityIndexByCampaign] = useState({});
 
@@ -632,6 +638,19 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     }
   };
 
+  const fetchNextBestGlobal = async (context) => {
+    try {
+      const resp = await fetch('/api/agents/next-best', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_context: context || {}, campaign_performance: {} })
+      });
+      const data = resp.ok ? await resp.json() : { ideas: [], confidence: 0 };
+      setNextBestGlobal(data);
+    } catch {
+      setNextBestGlobal({ ideas: [], confidence: 0 });
+    }
+  };
+
   const fetchMicroCampaigns = async (cid, context) => {
     try {
       const resp = await fetch('/api/agents/micro-campaigns', {
@@ -642,6 +661,19 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       setMicroByCampaign(prev => ({ ...prev, [cid]: data }));
     } catch {
       setMicroByCampaign(prev => ({ ...prev, [cid]: { segments: [], plan: {} } }));
+    }
+  };
+
+  const fetchMicroGlobal = async (context) => {
+    try {
+      const resp = await fetch('/api/agents/micro-campaigns', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_context: context || {}, campaign_performance: {} })
+      });
+      const data = resp.ok ? await resp.json() : { segments: [], plan: {} };
+      setMicroGlobal(data);
+    } catch {
+      setMicroGlobal({ segments: [], plan: {} });
     }
   };
 
@@ -2026,6 +2058,108 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
         </div>
       )}
+
+      {/* Next Best Campaigns - independent section below Campaign Details */}
+      <div className="mt-6 bg-white rounded-lg shadow-sm border">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center space-x-2">
+            <Lightbulb className="w-4 h-4 text-purple-600" />
+            <span className="font-semibold text-gray-900">Next Best Campaigns</span>
+            <span className="text-xs text-gray-500">(market_trends_agent + trend_spotter_agent)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <input type="checkbox" className="rounded" checked={nextBestFilters.b2bOnly} onChange={(e)=>setNextBestFilters(p=>({...p,b2bOnly:e.target.checked}))} />
+            <span className="text-xs text-gray-700">B2B only</span>
+            <input type="text" placeholder="Preferred channels e.g. instagram,email" value={nextBestFilters.channels} onChange={(e)=>setNextBestFilters(p=>({...p,channels:e.target.value}))} className="ml-2 px-2 py-1 text-xs border rounded" />
+            <button
+              onClick={async ()=>{ setShowNextBestSection(v=>!v); if (!showNextBestSection) { await fetchNextBestGlobal({ filter_b2b: nextBestFilters.b2bOnly, channels: nextBestFilters.channels }); } }}
+              className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+            >{showNextBestSection ? 'Hide' : 'Show'}</button>
+          </div>
+        </div>
+        {showNextBestSection && (
+          <div className="p-4">
+            <div className="text-xs text-gray-600 mb-3">Purpose: Surface fresh, data-driven campaign concepts from live market and cultural signals. Signals gathered independently, synthesized into plain-language ideas.</div>
+            {!nextBestGlobal ? (
+              <div className="text-xs text-gray-500">Loading…</div>
+            ) : (nextBestGlobal.ideas||[]).length===0 ? (
+              <div className="text-xs text-gray-500">No suggestions yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(nextBestGlobal.ideas||[]).slice(0,5).map((idea, idx)=> (
+                  <div key={idx} className="p-3 border rounded">
+                    <div className="font-medium text-gray-900">{idea.title || 'Untitled idea'}</div>
+                    <div className="text-xs text-gray-700 mt-0.5">Angle: {idea.angle || '—'}</div>
+                    <div className="text-xs text-gray-700">Suggested channels: {(idea.channels||idea.suggested_channels||[]).join(', ') || '—'}</div>
+                    <div className="text-xs text-gray-700 mt-1">Why it matters: {idea.why || 'Relevant based on current trend signals.'}</div>
+                    {Array.isArray(idea.sources) && idea.sources.length>0 && (
+                      <div className="mt-1 text-[11px] text-gray-600">Sources: {idea.sources.map((s,i)=> (<a key={i} href={s} target="_blank" rel="noreferrer" className="text-blue-600 underline">source {i+1}</a>))}</div>
+                    )}
+                    <div className="mt-2 text-xs text-gray-700">Projected effort & cost: {idea.effort_cost || 'Estimated moderate (creative refresh + light ad spend).'}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Personalized Micro-campaigns - independent section below Next Best */}
+      <div className="mt-4 bg-white rounded-lg shadow-sm border">
+        <div className="flex items-center justify-between p-4 border-b">
+          <div className="flex items-center space-x-2">
+            <Users className="w-4 h-4 text-emerald-600" />
+            <span className="font-semibold text-gray-900">Personalized Micro-campaigns</span>
+            <span className="text-xs text-gray-500">(lead_personalization_agent + upsell_cross_sell_agent)</span>
+          </div>
+          <button
+            onClick={async ()=>{ setShowMicroSection(v=>!v); if (!showMicroSection) { await fetchMicroGlobal({}); } }}
+            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+          >{showMicroSection ? 'Hide' : 'Show'}</button>
+        </div>
+        {showMicroSection && (
+          <div className="p-4">
+            <div className="text-xs text-gray-600 mb-3">Purpose: Automatically run small, targeted campaigns for micro-segments to maximize conversions. Default autonomous; optional human-in-the-loop rules.</div>
+            {!microGlobal ? (
+              <div className="text-xs text-gray-500">Loading…</div>
+            ) : (microGlobal.segments||[]).length===0 ? (
+              <div className="text-xs text-gray-500">No segments yet.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {(microGlobal.segments||[]).map((seg, idx)=> (
+                  <div key={idx} className="p-3 border rounded">
+                    <div className="font-medium text-gray-900">Segment: {seg.name}</div>
+                    <div className="text-xs text-gray-700">Channels: {(seg.channels||[]).join(', ')}</div>
+                    <div className="text-xs text-gray-700">Value Prop: {seg.value_prop}</div>
+                    <div className="text-xs text-gray-700">Campaign: {seg.campaign || seg.example || 'Tailored 3-touch sequence based on behavior.'}</div>
+                    <div className="text-xs text-gray-700">Status: {seg.status || 'Pending Approval'}</div>
+                    <div className="text-xs text-gray-700">Results: {seg.results ? JSON.stringify(seg.results) : '—'}</div>
+                    <div className="mt-2 flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          const draft = {
+                            name: `${seg.name} Micro-campaign`,
+                            platform: (seg.channels||[])[0]||'multi',
+                            objective: 'micro_campaign',
+                            targetAudience: `${seg.name}: ${seg.value_prop}`,
+                            budget: 0,
+                            duration: 7,
+                            ab_test: { enabled: false }
+                          };
+                          onCreateCampaign?.({ ...draft, campaign_id: `draft_${Date.now()}` });
+                          try { logCampaignActivity('global', { actor: 'Lead Personalization Agent', action: 'draft_micro_campaign', reason: `Drafted micro-campaign for segment ${seg.name}` }); } catch {}
+                        }}
+                        className="px-3 py-1.5 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
+                      >Draft micro-campaign</button>
+                      <button className="px-3 py-1.5 text-xs rounded border">Set rules…</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Thresholds Settings Modal (global) */}
       {showThresholdsModal && (
