@@ -152,4 +152,28 @@ export async function saveAttribution(campaignId, touches) {
   return res.ok;
 }
 
+// Learning loop endpoints
+export async function ingestLearningSignal(payload) {
+  const res = await fetch('/api/agents/learning/ingest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error('Failed to ingest learning signal');
+  return await res.json();
+}
+
+export async function fetchLearningRecommendations(campaignId) {
+  const url = campaignId ? `/api/agents/learning/recommendations?campaign_id=${encodeURIComponent(campaignId)}` : '/api/agents/learning/recommendations';
+  const res = await fetch(url);
+  if (!res.ok) return { recommendations: [] };
+  return await res.json();
+}
+
+export async function fetchLearningUpdates(campaignId) {
+  const res = await fetch(`/api/agents/learning/updates/${encodeURIComponent(campaignId)}`);
+  if (!res.ok) return { updates: [] };
+  return await res.json();
+}
+
 

@@ -81,7 +81,7 @@ const SentimentBlock = ({ comments = [] }) => {
     </div>
   );
 };
-import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity, loadAttribution } from '../../../services/campaignInsightsApi';
+import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity, loadAttribution, fetchLearningRecommendations } from '../../../services/campaignInsightsApi';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRefreshCampaigns }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -124,6 +124,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       return raw ? JSON.parse(raw) : {};
     } catch { return {}; }
   });
+  const [learningRecs, setLearningRecs] = useState([]);
   const [abResults, setAbResults] = useState({}); // cache server-fetched A/B results by campaignId
 
   // Persist anomaly toggle for reliability across renders/navigation
@@ -155,6 +156,19 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         const cb = await getCompetitiveBenchmarks().catch(()=>null);
         if (!mounted) return;
         setCompetitive(cb);
+      } catch {}
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // Fetch learning recommendations for transparency (campaign-agnostic summary)
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await fetchLearningRecommendations().catch(()=>null);
+        if (!mounted) return;
+        setLearningRecs(res?.recommendations || []);
       } catch {}
     })();
     return () => { mounted = false; };
@@ -532,7 +546,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <div className="flex items-center space-x-2">
               <Lightbulb className="w-4 h-4 text-yellow-500" />
               <span className="text-sm text-gray-700">
-                <strong>Optimization:</strong> Your Google Ads campaigns are 23% more efficient than last month
+                <strong>Optimization:</strong> {learningRecs[0]?.reason || 'Insights updating…'}
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -544,7 +558,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             <div className="flex items-center space-x-2">
               <Zap className="w-4 h-4 text-green-500" />
               <span className="text-sm text-gray-700">
-                <strong>Opportunity:</strong> TikTok campaigns showing 45% higher engagement
+                <strong>Opportunity:</strong> {learningRecs[1]?.reason || 'New opportunities incoming'}
               </span>
             </div>
           </div>

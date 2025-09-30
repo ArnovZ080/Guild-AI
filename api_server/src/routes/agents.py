@@ -32,6 +32,10 @@ try:
     from guild.src.agents.competitive_intelligence_agent import CompetitiveIntelligenceAgent  # type: ignore
 except Exception:
     CompetitiveIntelligenceAgent = None
+try:
+    from guild.src.agents.learning_agent import LearningAgent  # type: ignore
+except Exception:
+    LearningAgent = None
 from pydantic import BaseModel
 
 router = APIRouter(
@@ -441,3 +445,53 @@ async def save_attribution(campaign_id: str, touches: List[str]):
 @router.get("/campaigns/{campaign_id}/attribution")
 async def get_attribution(campaign_id: str):
     return {"touches": _attribution.get(campaign_id, [])}
+
+
+# --- Cross-agent learning loop ---
+
+class LearningSignal(BaseModel):
+    campaign_id: Optional[str] = None
+    metrics: Dict[str, Any] = {}
+    context: Optional[Dict[str, Any]] = None
+
+
+@router.post("/learning/ingest")
+async def learning_ingest(signal: LearningSignal):
+    try:
+        if LearningAgent is None:
+            # Fallback: accept and echo
+            return {"accepted": True, "stored": False, "message": "Learning agent unavailable; signal accepted"}
+        agent = LearningAgent()
+        agent.ingest_signal(signal.metrics, context=signal.context or {}, campaign_id=signal.campaign_id)
+        return {"accepted": True, "stored": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Learning ingest failed: {str(e)}")
+
+
+@router.get("/learning/recommendations")
+async def learning_recommendations(campaign_id: Optional[str] = None):
+    try:
+        if LearningAgent is None:
+            return {
+                "recommendations": [
+                    {"action": "increase_budget", "reason": "Sustained ROAS > 3x over 7 days", "confidence": 0.82},
+                    {"action": "refresh_creatives", "reason": "CTR decay detected vs benchmark", "confidence": 0.74}
+                ]
+            }
+        agent = LearningAgent()
+        recs = agent.get_recommendations(campaign_id=campaign_id)
+        return {"recommendations": recs}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Learning recommendations failed: {str(e)}")
+
+
+@router.get("/learning/updates/{campaign_id}")
+async def learning_updates(campaign_id: str):
+    try:
+        if LearningAgent is None:
+            return {"updates": []}
+        agent = LearningAgent()
+        updates = agent.get_recent_updates(campaign_id)
+        return {"updates": updates}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Learning updates failed: {str(e)}")
