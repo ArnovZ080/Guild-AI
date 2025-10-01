@@ -95,6 +95,8 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
   const [showIntegrations, setShowIntegrations] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [showTemplateAnalytics, setShowTemplateAnalytics] = useState(null);
+  const [showConnectorModal, setShowConnectorModal] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('');
 
   const api = new ContentIntelligenceAPIService();
 
@@ -564,13 +566,13 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Connect New Provider</label>
               <div className="flex gap-2">
-                <select className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                <select value={selectedProvider} onChange={e=>setSelectedProvider(e.target.value)} className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
                   <option value="">Choose provider...</option>
-                  {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(p => (
+                  {['ConvertKit', 'ActiveCampaign', 'HubSpot', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(p => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
-                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect</button>
+                <button onClick={()=>{ if(selectedProvider){setShowConnectorModal(true)}else{alert('Please select a provider first')} }} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect</button>
               </div>
               <div className="mt-2 text-xs text-gray-600">Select a provider and click Connect to authorize via OAuth or API key.</div>
             </div>
@@ -578,7 +580,31 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
         )}
       </div>
 
-      {/* AI Recommendations Hub */}
+      {/* Simple Connector Modal */}
+      {showConnectorModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div className="p-6 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Connect {selectedProvider}</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">API Key</label>
+                <input type="password" placeholder="Enter API key..." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+              </div>
+              <div className="text-xs text-gray-600">
+                Find your API key in {selectedProvider} settings. <a href="#" className="text-purple-600 hover:underline">Learn more</a>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+              <button onClick={()=>setShowConnectorModal(false)} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium">Cancel</button>
+              <button onClick={()=>{ alert(`Connected to ${selectedProvider}!`); setShowConnectorModal(false); setSelectedProvider(''); }} className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">Connect</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Recommendations Hub - moved here as it should be last */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-lg font-semibold text-gray-900 flex items-center"><Sparkles className="w-5 h-5 text-purple-500 mr-2"/>AI Recommendations Hub</h4>

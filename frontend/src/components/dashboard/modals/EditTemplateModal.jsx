@@ -95,9 +95,10 @@ const EditTemplateModal = ({ open, onClose, template }) => {
               <textarea value={body} onChange={e=>setBody(e.target.value)} rows={12} className="w-full px-3 py-2 focus:outline-none text-sm resize-none" placeholder="Enter template content..." style={{ fontFamily, fontSize: `${fontSize}px` }} />
             </div>
             <div className="mt-2 text-xs text-gray-600">
-              Import from provider: 
+              Import from connected providers: 
+              <button className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50">Gmail</button>
+              <button className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50">SendGrid</button>
               <button className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50">Mailchimp</button>
-              <button className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50">ConvertKit</button>
             </div>
           </div>
 
