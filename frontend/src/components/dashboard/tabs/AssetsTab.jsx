@@ -20,6 +20,7 @@ import {
 import UploadAssetModal from '../modals/UploadAssetModal';
 import GenerateImageModal from '../modals/GenerateImageModal';
 import GenerateVideoModal from '../modals/GenerateVideoModal';
+import EditVideoWithAIModal from '../modals/EditVideoWithAIModal';
 import EditAssetModal from '../modals/EditAssetModal';
 
 const AssetsTab = ({ assets = [] }) => {
@@ -27,63 +28,20 @@ const AssetsTab = ({ assets = [] }) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showGenerateImageModal, setShowGenerateImageModal] = useState(false);
   const [showGenerateVideoModal, setShowGenerateVideoModal] = useState(false);
+  const [showEditVideoAIModal, setShowEditVideoAIModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   
-  // Section visibility states - set to true by default for testing
-  const [showVideos, setShowVideos] = useState(true);
-  const [showImages, setShowImages] = useState(true);
-  const [showTemplates, setShowTemplates] = useState(true);
+  // Section visibility states
+  const [showVideos, setShowVideos] = useState(false);
+  const [showImages, setShowImages] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [showSounds, setShowSounds] = useState(false);
 
-  // Mock assets data (this would come from props/state in real implementation)
-  // Adding some test data if no assets provided
-  const initialAssets = assets.length > 0 ? assets : [
-    {
-      asset_id: 'test_img_1',
-      type: 'image',
-      name: 'Product Photo 1',
-      description: 'Main product image for marketing',
-      url: 'https://via.placeholder.com/400x300/6366f1/ffffff?text=Product+Photo+1',
-      created_at: new Date().toISOString(),
-      created_by: 'You',
-      ai_generated: false
-    },
-    {
-      asset_id: 'test_img_2',
-      type: 'image',
-      name: 'Brand Logo',
-      description: 'AI-generated brand logo',
-      url: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Brand+Logo',
-      created_at: new Date().toISOString(),
-      created_by: 'Image Generator Agent',
-      ai_generated: true
-    },
-    {
-      asset_id: 'test_video_1',
-      type: 'video',
-      name: 'Product Demo Video',
-      description: 'Demo video for social media',
-      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-      created_at: new Date().toISOString(),
-      created_by: 'Video Editor Agent',
-      ai_generated: true
-    },
-    {
-      asset_id: 'test_template_1',
-      type: 'template',
-      name: 'Email Template',
-      description: 'Standard email campaign template',
-      url: null,
-      created_at: new Date().toISOString(),
-      created_by: 'You',
-      ai_generated: false
-    }
-  ];
-  
-  const [localAssets, setLocalAssets] = useState(initialAssets);
+  // Local assets state (from props)
+  const [localAssets, setLocalAssets] = useState(assets || []);
 
   // Filter assets by type
   const filterAssetsByType = (type) => {
@@ -165,9 +123,9 @@ const AssetsTab = ({ assets = [] }) => {
       setSelectedAsset(asset);
       setShowGenerateImageModal(true);
     } else if (asset.type === 'video') {
-      console.log('Opening video generation modal');
+      console.log('Opening video edit with AI modal');
       setSelectedAsset(asset);
-      setShowGenerateVideoModal(true);
+      setShowEditVideoAIModal(true);
     } else {
       console.log('Opening edit modal for template/sound');
       // For templates and sounds, open the metadata edit modal
@@ -267,23 +225,6 @@ const AssetsTab = ({ assets = [] }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        {/* Test Button for Debugging */}
-        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800 mb-2">Debug Test:</p>
-          <button
-            type="button"
-            onClick={() => {
-              console.log('TEST BUTTON CLICKED!');
-              console.log('localAssets:', localAssets);
-              console.log('showGenerateImageModal:', showGenerateImageModal);
-              alert('Test button works! Check console for state info.');
-            }}
-            className="px-3 py-1 bg-yellow-500 text-white rounded text-sm"
-          >
-            Test Click Handler
-          </button>
-        </div>
-
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center">
             <Image className="w-6 h-6 text-green-500 mr-3" />
@@ -413,7 +354,7 @@ const AssetsTab = ({ assets = [] }) => {
                       <button
                         type="button"
                         onClick={() => handleAIEdit(asset)}
-                        className="flex-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 flex items-center justify-center"
+                        className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center text-sm"
                       >
                         <Sparkles className="w-3 h-3 mr-1" />
                         Edit with AI
@@ -421,7 +362,7 @@ const AssetsTab = ({ assets = [] }) => {
                       <button
                         type="button"
                         onClick={() => handleAssetDelete(asset.asset_id)}
-                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -472,7 +413,7 @@ const AssetsTab = ({ assets = [] }) => {
                       <button
                         type="button"
                         onClick={() => handleAIEdit(asset)}
-                        className="flex-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 flex items-center justify-center"
+                        className="flex-1 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center text-sm"
                       >
                         <Sparkles className="w-3 h-3 mr-1" />
                         Edit with AI
@@ -480,7 +421,7 @@ const AssetsTab = ({ assets = [] }) => {
                       <button
                         type="button"
                         onClick={() => handleAssetDelete(asset.asset_id)}
-                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                        className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -617,6 +558,33 @@ const AssetsTab = ({ assets = [] }) => {
           onGenerate={handleVideoGeneration}
           availableAssets={localAssets}
           initialReferenceAsset={selectedAsset}
+        />
+      )}
+
+      {showEditVideoAIModal && selectedAsset && (
+        <EditVideoWithAIModal
+          videoAsset={selectedAsset}
+          onClose={() => {
+            setShowEditVideoAIModal(false);
+            setSelectedAsset(null);
+          }}
+          onGenerate={(updatedVideo) => {
+            // Save edited video as a new asset
+            const newAsset = {
+              asset_id: `edited_video_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+              type: 'video',
+              name: updatedVideo.name || `${selectedAsset.name} (Edited)`,
+              description: updatedVideo.description || `AI-edited variation of ${selectedAsset.name}`,
+              url: updatedVideo.url || updatedVideo.video_path,
+              created_at: new Date().toISOString(),
+              created_by: 'Video Editor Agent',
+              ai_generated: true,
+              metadata: updatedVideo
+            };
+            setLocalAssets(prev => [newAsset, ...prev]);
+            setShowEditVideoAIModal(false);
+            setSelectedAsset(null);
+          }}
         />
       )}
 
