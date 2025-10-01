@@ -258,36 +258,6 @@ const AssetsTab = ({ assets = [] }) => {
             <span>{new Date(asset.created_at).toLocaleDateString()}</span>
             <span>{asset.created_by}</span>
           </div>
-          
-          {/* Action Buttons */}
-          <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={() => {
-                console.log('=== EDIT WITH AI BUTTON CLICKED ===');
-                console.log('Asset:', asset);
-                console.log('Asset type:', asset.type);
-                alert('Edit button clicked! Asset: ' + asset.name);
-                handleAIEdit(asset);
-              }}
-              className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
-            >
-              <Sparkles className="w-3 h-3 mr-1" />
-              Edit with AI
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                console.log('=== DELETE BUTTON CLICKED ===');
-                console.log('Asset ID:', asset.asset_id);
-                alert('Delete button clicked! Asset: ' + asset.name);
-                handleAssetDelete(asset.asset_id);
-              }}
-              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -439,12 +409,23 @@ const AssetsTab = ({ assets = [] }) => {
                 videoAssets.map(asset => (
                   <div key={asset.asset_id} className="flex-shrink-0 w-80">
                     <AssetCard asset={asset} type="video" />
-                    <button
-                      onClick={() => alert('Direct button test for: ' + asset.name)}
-                      className="mt-2 w-full px-2 py-1 bg-orange-500 text-white text-xs rounded"
-                    >
-                      Direct Test Button
-                    </button>
+                    <div className="mt-2 flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAIEdit(asset)}
+                        className="flex-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 flex items-center justify-center"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Edit with AI
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAssetDelete(asset.asset_id)}
+                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -487,15 +468,23 @@ const AssetsTab = ({ assets = [] }) => {
                 imageAssets.map(asset => (
                   <div key={asset.asset_id} className="flex-shrink-0 w-80">
                     <AssetCard asset={asset} type="image" />
-                    <button
-                      onClick={() => {
-                        alert('Direct button works! Opening modal for: ' + asset.name);
-                        handleAIEdit(asset);
-                      }}
-                      className="mt-2 w-full px-2 py-1 bg-orange-500 text-white text-xs rounded"
-                    >
-                      Direct Test → Edit with AI
-                    </button>
+                    <div className="mt-2 flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleAIEdit(asset)}
+                        className="flex-1 px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 flex items-center justify-center"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />
+                        Edit with AI
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAssetDelete(asset.asset_id)}
+                        className="px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))
               ) : (
