@@ -12,6 +12,8 @@ import FollowupsBuilderModal from '../../dashboard/modals/FollowupsBuilderModal.
 import RevenueAttributionModal from '../../dashboard/modals/RevenueAttributionModal.jsx';
 import CustomerJourneyMiniMapModal from '../../dashboard/modals/CustomerJourneyMiniMapModal.jsx';
 import EmailViewerModal from '../../dashboard/modals/EmailViewerModal.jsx';
+import EditTemplateModal from '../../dashboard/modals/EditTemplateModal.jsx';
+import TemplateAnalyticsModal from '../../dashboard/modals/TemplateAnalyticsModal.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 import { ContentIntelligenceAPIService as CIAService } from '../../../services/contentIntelligenceApi';
 
@@ -89,6 +91,10 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
   const [aiHubOpen, setAiHubOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [sortEngagement, setSortEngagement] = useState('desc');
+  const [showReportingConfig, setShowReportingConfig] = useState(false);
+  const [showIntegrations, setShowIntegrations] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [showTemplateAnalytics, setShowTemplateAnalytics] = useState(null);
 
   const api = new ContentIntelligenceAPIService();
 
@@ -352,8 +358,8 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
                 <div className="text-xs text-gray-600 mb-3">Avg Open {t.performance?.avg_open ?? 0}% • Click {t.performance?.avg_click ?? 0}%</div>
                 <div className="flex gap-2">
                   <button onClick={()=>setShowCompose(true)} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs flex-1">Use</button>
-                  <button className="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-xs">Edit</button>
-                  <button className="px-3 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-xs">Analytics</button>
+                  <button onClick={()=>setEditingTemplate(t)} className="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-xs">Edit</button>
+                  <button onClick={()=>setShowTemplateAnalytics(t.id)} className="px-3 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-xs">Analytics</button>
                 </div>
               </div>
             ))}
@@ -484,33 +490,71 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
         )}
       </div>
 
-      {/* Integrations */}
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-gray-900">Email Integrations</h4>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect Provider</button>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(provider => (
-            <div key={provider} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow">
-              <span className="text-sm text-gray-700">{provider}</span>
-              <span className="text-xs text-green-600">✓ Connected</span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-4 text-xs text-gray-600">Connected integrations sync automatically. Disconnect or add new providers in Settings.</div>
-      </div>
-
       {/* Automated Reporting */}
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-6">
           <h4 className="text-lg font-semibold text-gray-900">Automated Reporting</h4>
+          <button onClick={()=>setShowReportingConfig(!showReportingConfig)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+            {showReportingConfig ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide</> : <><ChevronDown className="w-4 h-4 mr-2"/>Configure</>}
+          </button>
         </div>
-        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-          <div className="text-sm font-medium text-gray-900 mb-2">Weekly Digest</div>
-          <div className="text-xs text-gray-700 mb-3">Every Monday at 9am, receive a summary of email performance trends, top campaigns, and actionable insights.</div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">Configure Schedule</button>
+        {showReportingConfig && (
+          <div className="space-y-4">
+            <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+              <div className="text-sm font-medium text-gray-900 mb-2">Weekly Digest</div>
+              <div className="text-xs text-gray-700 mb-3">Schedule recurring email performance reports with PA Agent</div>
+              <div className="grid grid-cols-3 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Day</label>
+                  <select className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm">
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Time</label>
+                  <input type="time" defaultValue="09:00" className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Report Type</label>
+                  <select className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm">
+                    <option>Full Summary</option>
+                    <option>Top Performers Only</option>
+                    <option>Anomalies & Alerts</option>
+                  </select>
+                </div>
+              </div>
+              <button onClick={()=>alert('Scheduled with PA Agent in Calendar')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">Schedule with PA Agent</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Integrations */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h4 className="text-lg font-semibold text-gray-900">Email Integrations</h4>
+          <button onClick={()=>setShowIntegrations(!showIntegrations)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+            {showIntegrations ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide</> : <><ChevronDown className="w-4 h-4 mr-2"/>View Integrations</>}
+          </button>
         </div>
+        {showIntegrations && (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(provider => (
+                <div key={provider} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow">
+                  <span className="text-sm text-gray-700">{provider}</span>
+                  <span className="text-xs text-green-600">✓ Connected</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-xs text-gray-600 mb-3">Connected integrations sync automatically. Disconnect or add new providers below.</div>
+            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect New Provider</button>
+          </>
+        )}
       </div>
 
       {/* AI Recommendations Hub */}
@@ -558,6 +602,8 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
       <RevenueAttributionModal open={!!showRevenue} onClose={()=>setShowRevenue(null)} campaignId={showRevenue} />
       <CustomerJourneyMiniMapModal open={!!showJourney} onClose={()=>setShowJourney(null)} campaignId={showJourney} />
       <EmailViewerModal open={!!viewingEmail} onClose={()=>setViewingEmail(null)} email={viewingEmail} onMarkRead={()=>{}} onDelete={()=>{}} onSpam={()=>{}} />
+      <EditTemplateModal open={!!editingTemplate} onClose={()=>setEditingTemplate(null)} template={editingTemplate} />
+      <TemplateAnalyticsModal open={!!showTemplateAnalytics} onClose={()=>setShowTemplateAnalytics(null)} templateId={showTemplateAnalytics} />
     </div>
   );
 };
