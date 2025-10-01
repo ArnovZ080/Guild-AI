@@ -33,8 +33,8 @@ const ChatEmailComposeAssistantModal = ({ open, onClose, onApply, context = {} }
       }, 300);
     } catch (e) {
       const fallback = {
-        subject: 'Following up — quick check-in',
-        body: 'Hi,\n\nSharing a quick follow-up based on our last conversation. Let me know if you'd like more details.\n\nBest,'
+        subject: 'Following up - quick check-in',
+        body: 'Hi,\n\nSharing a quick follow-up based on our last conversation. Let me know if you would like more details.\n\nBest,'
       };
       setMessages(prev => [...prev, { id: `a_${Date.now()}`, role: 'assistant', text: `Draft ready. Subject: ${fallback.subject}\n\n${fallback.body}` }]);
       setTimeout(() => onApply && onApply(fallback), 300);
