@@ -1224,7 +1224,7 @@ export class ContentIntelligenceAPIService {
         optimized_replay: {
           campaign_name: `[REPLAY] ${campaignId} - Optimized`,
           improvements: [
-            'Enhanced subject line with stronger urgency: "Last 24 hours: {{first_name}}'s exclusive offer expires"',
+            'Enhanced subject line with stronger urgency: "Last 24 hours: {{first_name}}\'s exclusive offer expires"',
             'Deeper personalization: Include company size + industry-specific pain points',
             'Improved CTA placement: Above fold + repeated at bottom',
             'Added video thumbnail for 45% engagement boost'
