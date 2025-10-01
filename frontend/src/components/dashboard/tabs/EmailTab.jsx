@@ -491,13 +491,14 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
           <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect Provider</button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo'].map(provider => (
-            <div key={provider} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+          {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(provider => (
+            <div key={provider} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow">
               <span className="text-sm text-gray-700">{provider}</span>
-              <span className="text-xs text-gray-500">Not connected</span>
+              <span className="text-xs text-green-600">✓ Connected</span>
             </div>
           ))}
         </div>
+        <div className="mt-4 text-xs text-gray-600">Connected integrations sync automatically. Disconnect or add new providers in Settings.</div>
       </div>
 
       {/* Automated Reporting */}
