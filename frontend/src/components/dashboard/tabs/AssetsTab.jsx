@@ -189,8 +189,6 @@ const AssetsTab = ({ assets = [] }) => {
 
   // Asset Card Component
   const AssetCard = ({ asset, type }) => {
-    console.log('AssetCard rendering for asset:', asset.asset_id, asset.name);
-    
     const getTypeIcon = () => {
       switch (type) {
         case 'video':
@@ -205,8 +203,6 @@ const AssetsTab = ({ assets = [] }) => {
           return <FileText className="w-8 h-8 text-gray-500" />;
       }
     };
-
-    console.log('About to render buttons for asset:', asset.asset_id);
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-200 group">
@@ -265,7 +261,6 @@ const AssetsTab = ({ assets = [] }) => {
           
           {/* Action Buttons */}
           <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
-            {console.log('Rendering buttons for asset:', asset.asset_id)}
             <button
               type="button"
               onClick={() => {
