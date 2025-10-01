@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { X, Send, Shield, Brain } from 'lucide-react';
-import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
+import React, { useState, useEffect } from 'react';
+import { X, Send, Shield, Brain, Image, Upload, Sparkles, Palette } from 'lucide-react';
+import { ContentIntelligenceAPIService, useCreativeAssets } from '../../../services/contentIntelligenceApi';
 import ChatEmailComposeAssistantModal from './ChatEmailComposeAssistantModal.jsx';
 
 const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
@@ -10,18 +10,45 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [segment, setSegment] = useState(defaultSegmentId || 'all');
+  const [attachments, setAttachments] = useState([]);
+  const [selectedAssets, setSelectedAssets] = useState([]);
+  const [showAssetPicker, setShowAssetPicker] = useState(false);
+  const [enrichPersonalization, setEnrichPersonalization] = useState(false);
+  const [enriching, setEnriching] = useState(false);
   const [sending, setSending] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
   const [compliance, setCompliance] = useState(null);
   const [checking, setChecking] = useState(false);
+  const [brandData, setBrandData] = useState(null);
+  const [customizeBrand, setCustomizeBrand] = useState(false);
   const api = new ContentIntelligenceAPIService();
+  const { assets } = useCreativeAssets();
+
+  useEffect(() => {
+    if (open) {
+      try {
+        const onboardingData = localStorage.getItem('guild_onboarding_data');
+        if (onboardingData) {
+          const data = JSON.parse(onboardingData);
+          setBrandData({
+            voice: data.brandVoice || data.answers?.[11] || 'Professional',
+            colors: data.brandColours || data.answers?.[12] || '#6366F1,#EC4899',
+            fonts: data.brandFonts || 'Inter, sans-serif',
+            logo: data.brandLogo || null
+          });
+        }
+      } catch (e) {
+        console.log('No brand data found');
+      }
+    }
+  }, [open]);
 
   if (!open) return null;
 
   const send = async () => {
     setSending(true);
     try {
-      const res = await api.sendEmail({ to, cc, bcc, subject, body, segment });
+      const res = await api.sendEmail({ to, cc, bcc, subject, body, segment, attachments, assets: selectedAssets, brand: customizeBrand? brandData : null });
       onSent && onSent(res);
       onClose();
     } finally {
@@ -37,6 +64,31 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
     } finally {
       setChecking(false);
     }
+  };
+
+  const enrichWithPersonalization = async () => {
+    if (!to.trim()) {
+      alert('Please enter recipient email first');
+      return;
+    }
+    setEnriching(true);
+    try {
+      const result = await api.request('/content/enrich-personalization', {
+        method: 'POST',
+        body: JSON.stringify({ email: to, subject, body, brand: brandData })
+      });
+      if (result?.data) {
+        setSubject(result.data.subject || subject);
+        setBody(result.data.body || body);
+      }
+    } finally {
+      setEnriching(false);
+    }
+  };
+
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files || []);
+    setAttachments([...attachments, ...files]);
   };
 
   return (
@@ -84,6 +136,75 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Body *</label>
             <textarea value={body} onChange={e=>setBody(e.target.value)} rows={10} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm" />
             <div className="mt-1 text-xs text-gray-500">Tip: Keep paragraphs short. Use one clear CTA.</div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Media & Assets</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <button onClick={()=>setShowAssetPicker(!showAssetPicker)} className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm flex items-center justify-center">
+                <Image className="w-4 h-4 mr-2"/>Asset Library
+              </button>
+              <label className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm flex items-center justify-center cursor-pointer">
+                <Upload className="w-4 h-4 mr-2"/>Upload File
+                <input type="file" multiple onChange={handleFileUpload} className="hidden" accept="image/*,.pdf,.doc,.docx" />
+              </label>
+              <button className="px-3 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors text-sm flex items-center justify-center">
+                <Sparkles className="w-4 h-4 mr-2"/>AI Generate Image
+              </button>
+            </div>
+            {showAssetPicker && (
+              <div className="mt-3 border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto grid grid-cols-4 gap-2">
+                {(assets?.items || assets?.assets || assets || []).slice(0,12).map(a => (
+                  <div key={a.asset_id||a.id} className={`border rounded p-2 cursor-pointer ${selectedAssets.includes(a.asset_id||a.id)?'border-purple-500 bg-purple-50':'border-gray-200'}`} onClick={()=>setSelectedAssets(prev=>prev.includes(a.asset_id||a.id)?prev.filter(id=>id!==(a.asset_id||a.id)):[...prev, a.asset_id||a.id])}>
+                    <div className="text-xs truncate">{a.name}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {attachments.length>0 && (
+              <div className="mt-2 text-xs text-gray-700">Attachments: {attachments.map(f=>f.name).join(', ')}</div>
+            )}
+            {selectedAssets.length>0 && (
+              <div className="mt-2 text-xs text-gray-700">{selectedAssets.length} asset(s) selected from library</div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Brand Styling</label>
+            {!customizeBrand ? (
+              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">Using Onboarding Brand Data</div>
+                    <div className="text-xs text-gray-600 mt-1">Voice: {brandData?.voice} • Colors: {brandData?.colors}</div>
+                  </div>
+                  <button onClick={()=>setCustomizeBrand(true)} className="text-xs text-purple-600 hover:text-purple-700 font-medium">Customize</button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Brand Voice</label>
+                  <input value={brandData?.voice||''} onChange={e=>setBrandData(p=>({...p,voice:e.target.value}))} className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Brand Colors</label>
+                  <input value={brandData?.colors||''} onChange={e=>setBrandData(p=>({...p,colors:e.target.value}))} className="w-full px-2 py-1 border border-gray-300 rounded-lg text-sm" placeholder="#6366F1,#EC4899" />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border border-purple-200 rounded-lg p-3 bg-purple-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm font-medium text-gray-900">Enrich with Personalization Data</div>
+                <div className="text-xs text-gray-600 mt-1">AI will rewrite email using contact enrichment (name, company, role, recent activity)</div>
+              </div>
+              <button onClick={enrichWithPersonalization} disabled={enriching || !to.trim()} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm disabled:opacity-50">
+                {enriching?'Enriching...':'Enrich Now'}
+              </button>
+            </div>
           </div>
 
           {compliance && (

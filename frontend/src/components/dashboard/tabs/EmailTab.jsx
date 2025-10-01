@@ -484,6 +484,22 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
         )}
       </div>
 
+      {/* Integrations */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-lg font-semibold text-gray-900">Email Integrations</h4>
+          <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect Provider</button>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo'].map(provider => (
+            <div key={provider} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+              <span className="text-sm text-gray-700">{provider}</span>
+              <span className="text-xs text-gray-500">Not connected</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Automated Reporting */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
