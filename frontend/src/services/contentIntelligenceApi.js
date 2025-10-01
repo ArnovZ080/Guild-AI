@@ -147,6 +147,18 @@ export const CONTENT_INTELLIGENCE_API_ENDPOINTS = {
   // Get creative assets from all platforms
   getCreativeAssets: '/content/assets',
   
+  // Mind-blowing features
+  generateAICopy: '/content/ai/generate-copy',
+  evaluateCopyQuality: '/content/ai/evaluate-copy',
+  predictRevenue: '/content/ai/predict-revenue',
+  getCustomerIntelligence: '/content/ai/customer-intelligence',
+  createAutonomousSequence: '/content/ai/autonomous-sequence',
+  syncCrossChannel: '/content/ai/cross-channel-sync',
+  detectAnomalies: '/content/ai/detect-anomalies',
+  getTrendIdeas: '/content/ai/trend-ideas',
+  replayCampaign: '/content/ai/replay-campaign',
+  generateVoiceScript: '/content/ai/voice-script',
+  
   // Create content
   createContent: '/content/create',
   
@@ -874,6 +886,333 @@ export class ContentIntelligenceAPIService {
       { stage: 'Visited Site', count: 150 },
       { stage: 'Purchased', count: 40 }
     ], largest_drop: { from: 'Opened', to: 'Clicked', reason: 'CTA placement below fold; low contrast' } } };
+  }
+
+  // Mind-blowing features mock methods
+  getMockAICopyGeneration(request) {
+    const { brief, targetAudience, brand, channel } = request;
+    return { 
+      data: {
+        variations: [
+          {
+            id: 'copy_v1',
+            subject: `${targetAudience?.role || 'Professional'}: Transform Your Workflow Today`,
+            body: `Hi {{first_name}},\n\nI noticed you're leading operations at {{company}}. Many ${targetAudience?.industry || 'industry'} leaders are finding that...\n\n[Rest of personalized copy]`,
+            psychological_framework: 'AIDA',
+            personalization_score: 8.7,
+            confidence: 0.89
+          },
+          {
+            id: 'copy_v2',
+            subject: `Quick win for {{company}}'s growth`,
+            body: `${targetAudience?.role || 'Hi there'},\n\nYour team at {{company}} is scaling fast. Here's how to keep up...\n\n[Rest of copy]`,
+            psychological_framework: 'PAS',
+            personalization_score: 8.3,
+            confidence: 0.85
+          }
+        ],
+        judge_layer_pending: true,
+        workflow_id: `wf_${Date.now()}`
+      }
+    };
+  }
+
+  getMockCopyEvaluation(copyId, copyContent) {
+    return {
+      data: {
+        copy_id: copyId,
+        judge_layer_results: {
+          overall_score: 0.84,
+          threshold: 0.8,
+          status: 'PASSED',
+          evaluations: [
+            { agent: 'Judge Agent', score: 0.85, feedback: 'Strong overall structure and persuasive elements', confidence: 0.88 },
+            { agent: 'Brand Checker', score: 0.90, feedback: 'Excellent brand alignment with voice guidelines', confidence: 0.92 },
+            { agent: 'Fact Checker', score: 0.80, feedback: 'All claims verifiable, consider adding specific data points', confidence: 0.85 },
+            { agent: 'Compliance Agent', score: 0.95, feedback: 'Fully compliant with email regulations', confidence: 0.98 }
+          ],
+          rubric_criteria: [
+            { name: 'clarity', score: 0.88, weight: 0.25, why: 'Message is clear and easy to understand' },
+            { name: 'persuasion', score: 0.82, weight: 0.30, why: 'Uses strong psychological triggers' },
+            { name: 'brand_alignment', score: 0.90, weight: 0.25, why: 'Matches brand voice perfectly' },
+            { name: 'spam_compliance', score: 0.95, weight: 0.20, why: 'No spam trigger words detected' }
+          ],
+          revision_count: 0,
+          improvements_applied: [],
+          final_recommendation: 'Approved for use - high conversion potential'
+        }
+      }
+    };
+  }
+
+  getMockRevenuePredict(campaignData) {
+    const { segmentId, campaignType, historicalPerformance } = campaignData;
+    return {
+      data: {
+        predicted_revenue: 12450,
+        confidence_interval: { low: 9800, high: 15200 },
+        confidence_level: 0.78,
+        factors: [
+          { factor: 'Segment engagement history', impact: '+35%', why: 'This segment has 2.3x higher conversion rate' },
+          { factor: 'Time of year (Q4)', impact: '+18%', why: 'Seasonal buying patterns favor this period' },
+          { factor: 'Campaign type (promotional)', impact: '+22%', why: 'Promo campaigns historically perform 22% better' },
+          { factor: 'Email deliverability score', impact: '-5%', why: 'Recent minor deliverability issues' }
+        ],
+        breakdown_by_segment: [
+          { segment: 'VIP Buyers', expected_revenue: 5200, probability: 0.82 },
+          { segment: 'Active Customers', expected_revenue: 4800, probability: 0.75 },
+          { segment: 'Warm Leads', expected_revenue: 2450, probability: 0.68 }
+        ],
+        optimization_suggestions: [
+          'Send on Tuesday at 10 AM for 12% higher open rate',
+          'Use urgency-based subject line for 8% CTR boost',
+          'Add social proof section for 15% conversion lift'
+        ],
+        agent_notes: 'Financial Intelligence Agent analysis with 78% confidence based on 24 months historical data'
+      }
+    };
+  }
+
+  getMockCustomerIntelligence(segmentId) {
+    return {
+      data: {
+        segment_id: segmentId,
+        insights: {
+          behavior_patterns: [
+            { pattern: 'High weekend engagement', frequency: 'Weekly', action: 'Schedule campaigns for Sunday 5-7 PM' },
+            { pattern: 'Mobile-first audience', percentage: 78, action: 'Optimize for mobile viewing' },
+            { pattern: 'Video content preference', engagement_lift: '45%', action: 'Include video thumbnails in emails' }
+          ],
+          churn_risk: {
+            at_risk_contacts: 23,
+            risk_factors: ['No opens in 30 days', 'Decreased click frequency'],
+            recommended_action: 'Launch re-engagement campaign with incentive',
+            estimated_impact: 'Recover 35-40% of at-risk customers'
+          },
+          upsell_opportunities: [
+            { contacts: 45, opportunity: 'Premium tier upgrade', estimated_value: 8900, confidence: 0.72 },
+            { contacts: 67, opportunity: 'Add-on service', estimated_value: 4200, confidence: 0.68 }
+          ],
+          sentiment_analysis: {
+            overall_sentiment: 'positive',
+            score: 0.74,
+            trending: 'up',
+            keywords: ['helpful', 'easy', 'time-saving', 'valuable']
+          }
+        },
+        recommended_campaigns: [
+          { type: 'retention', priority: 'high', description: 'Re-engage at-risk customers before churn' },
+          { type: 'upsell', priority: 'medium', description: 'Target premium upgrade opportunity' }
+        ],
+        agent_notes: 'Customer Intelligence Agent identified 3 high-value opportunities with combined $13K potential revenue'
+      }
+    };
+  }
+
+  getMockAutonomousSequence(request) {
+    const { goal, targetSegment, minimumInput } = request;
+    return {
+      data: {
+        sequence_id: `seq_${Date.now()}`,
+        sequence_name: `${goal} - ${targetSegment}`,
+        steps: [
+          { day: 0, type: 'email', subject: 'Welcome to your onboarding journey', template_id: 'welcome_1', triggers: ['signup'] },
+          { day: 2, type: 'email', subject: 'Quick tip: Get started in 5 minutes', template_id: 'onboard_2', condition: 'if_not_activated' },
+          { day: 5, type: 'email', subject: 'See what others are achieving', template_id: 'social_proof', condition: 'if_not_engaged' },
+          { day: 7, type: 'sms', content: 'Quick check-in: Need help getting started?', condition: 'if_still_not_activated' },
+          { day: 10, type: 'email', subject: 'Last chance: Special onboarding offer', template_id: 'urgency', condition: 'if_still_inactive' }
+        ],
+        orchestration_logic: {
+          exit_conditions: ['user_activated', 'unsubscribed', '14_days_elapsed'],
+          branching_rules: ['If opened but not clicked: send resource email', 'If not opened: try different subject'],
+          personalization: 'Dynamic per user based on signup source and behavior'
+        },
+        expected_outcomes: {
+          activation_rate: '60-70%',
+          time_to_activation: '4.5 days average',
+          unsubscribe_rate: '<2%'
+        },
+        agents_involved: ['Orchestrator Agent', 'CRM Automation Agent', 'Copywriter Agent', 'Judge Agent'],
+        ready_to_deploy: true,
+        human_approval_needed: false
+      }
+    };
+  }
+
+  getMockCrossChannelSync(userId) {
+    return {
+      data: {
+        user_id: userId,
+        communication_history: [
+          { channel: 'email', timestamp: Date.now() - 172800000, campaign: 'Product Launch' },
+          { channel: 'sms', timestamp: Date.now() - 86400000, campaign: 'Reminder' },
+          { channel: 'push', timestamp: Date.now() - 43200000, campaign: 'Flash Sale' }
+        ],
+        over_messaging_risk: 'medium',
+        recommendations: {
+          next_contact_window: '48 hours from now',
+          preferred_channel: 'email',
+          why: 'User has higher engagement on email (72% open rate vs 23% SMS)',
+          suppress_channels: ['sms', 'push'],
+          suppress_duration: '24 hours'
+        },
+        coordination_status: 'active',
+        agent_notes: 'Multi-Channel Inbox Agent synchronized across 3 channels to prevent message fatigue'
+      }
+    };
+  }
+
+  getMockAnomalyDetection(campaignId) {
+    return {
+      data: {
+        campaign_id: campaignId,
+        anomalies: [
+          {
+            type: 'open_rate_drop',
+            severity: 'high',
+            detected_at: new Date(Date.now() - 3600000).toISOString(),
+            details: 'Open rate dropped from 32% to 18% in last 2 hours',
+            likely_cause: 'Spam filter classification',
+            evidence: 'Bounce rate increased 3x, inbox placement dropped to 45%',
+            recommended_action: 'Pause campaign and review sender reputation',
+            auto_action_taken: 'Campaign paused automatically',
+            confidence: 0.89
+          },
+          {
+            type: 'unusual_unsubscribe_spike',
+            severity: 'medium',
+            detected_at: new Date(Date.now() - 7200000).toISOString(),
+            details: 'Unsubscribe rate 4x higher than baseline',
+            likely_cause: 'Content mismatch with audience expectations',
+            evidence: 'High unsubscribes clustered in specific segment',
+            recommended_action: 'Review content relevance for affected segment',
+            auto_action_taken: 'Segment excluded from future sends',
+            confidence: 0.76
+          }
+        ],
+        monitoring_active: true,
+        agent_notes: 'Automation Agent detected 2 anomalies and took corrective action automatically'
+      }
+    };
+  }
+
+  getMockTrendIdeas() {
+    return {
+      data: {
+        trending_topics: [
+          {
+            trend: 'AI automation in small businesses',
+            relevance_score: 0.92,
+            momentum: 'rising fast',
+            suggested_angle: 'How AI helps solopreneurs compete with big teams',
+            subject_lines: [
+              'The AI advantage small businesses are using right now',
+              'Why solopreneurs are winning with AI automation',
+              'How to 10x your output without hiring (AI tactics)'
+            ],
+            why: 'Google Trends shows 340% increase, high relevance to target audience',
+            timing: 'Peak interest, send within 48 hours',
+            confidence: 0.92
+          },
+          {
+            trend: 'End-of-year productivity push',
+            relevance_score: 0.85,
+            momentum: 'seasonal peak',
+            suggested_angle: 'Finish the year strong with workflow optimization',
+            subject_lines: [
+              'Close Q4 with momentum: Your productivity playbook',
+              'Make December your most productive month yet',
+              '2024 goals: Here\'s how to actually hit them'
+            ],
+            why: 'Seasonal buying behavior + planning cycle timing',
+            timing: 'Now through mid-December',
+            confidence: 0.88
+          }
+        ],
+        market_insights: 'Market Trends Agent + Trend Spotter Agent identified 2 high-opportunity campaign angles',
+        cultural_moments: ['New Year planning', 'Holiday shopping season', 'Year-end review season']
+      }
+    };
+  }
+
+  getMockReplayCampaign(campaignId) {
+    return {
+      data: {
+        original_campaign_id: campaignId,
+        performance_summary: {
+          open_rate: 42.3,
+          click_rate: 8.7,
+          conversion_rate: 3.2,
+          revenue: 18500,
+          sent: 4200
+        },
+        success_factors: [
+          { factor: 'Subject line urgency', contribution: '35%', specific: 'Limited time offer' drove opens' },
+          { factor: 'Personalization level', contribution: '28%', specific: 'Company name + role references' },
+          { factor: 'Send timing', contribution: '20%', specific: 'Tuesday 10 AM optimal' },
+          { factor: 'Social proof section', contribution: '17%', specific: 'Customer testimonials increased trust' }
+        ],
+        optimized_replay: {
+          campaign_name: `[REPLAY] ${campaignId} - Optimized`,
+          improvements: [
+            'Enhanced subject line with stronger urgency: "Last 24 hours: {{first_name}}'s exclusive offer expires"',
+            'Deeper personalization: Include company size + industry-specific pain points',
+            'Improved CTA placement: Above fold + repeated at bottom',
+            'Added video thumbnail for 45% engagement boost'
+          ],
+          predicted_performance: {
+            open_rate: 48.5,
+            click_rate: 10.2,
+            conversion_rate: 4.1,
+            expected_revenue: 24200,
+            confidence: 0.81
+          },
+          ready_to_launch: true,
+          template_created: true
+        },
+        agent_notes: 'Celebration Narrator + Content Repurposer Agents packaged high-performing campaign into repeatable, optimized template'
+      }
+    };
+  }
+
+  getMockVoiceScript(emailCampaignId) {
+    return {
+      data: {
+        email_campaign_id: emailCampaignId,
+        voice_scripts: {
+          voicemail_drop: {
+            duration: '30 seconds',
+            script: 'Hi {{first_name}}, this is {{sender_name}} from {{company}}. I sent you an email about [key benefit], but wanted to reach out personally. We\'ve helped companies like {{prospect_company}} achieve [specific result]. Give me a call back at {{phone}} or reply to my email. Looking forward to connecting!',
+            tone: 'conversational, helpful',
+            pace: 'moderate',
+            emphasis: ['key benefit', 'specific result']
+          },
+          cold_call_opener: {
+            duration: '45 seconds',
+            script: 'Hi {{first_name}}, this is {{sender_name}} from {{company}}. I hope I\'m not catching you at a bad time. I noticed {{prospect_company}} is [observation from research], and I wanted to share a quick idea that could [benefit]. We recently sent you an email about this - did you get a chance to see it? [Wait for response] Great! Let me give you the 30-second version...',
+            objection_handling: ['If busy: "No problem, when would be a better time?"', 'If not interested: "I understand. Would it help if I sent a brief case study?"'],
+            success_metrics: 'Track callbacks, email opens post-call'
+          },
+          follow_up_call: {
+            duration: '60 seconds',
+            script: 'Hi {{first_name}}, following up on the email I sent about [subject]. I saw you opened it, so I thought you might have questions. The key thing is [main benefit]. For {{prospect_company}}, this could mean [specific outcome]. Do you have 2 minutes to discuss how this might work for you?',
+            trigger: 'email_opened_but_no_click',
+            timing: '24-48 hours after email open'
+          }
+        },
+        synergy_strategy: {
+          sequence: [
+            { step: 1, action: 'Send email campaign' },
+            { step: 2, action: 'If opened within 24h → voicemail drop within 48h', lift_expected: '+23% response rate' },
+            { step: 3, action: 'If no response → cold call opener at day 5', lift_expected: '+15% contact rate' },
+            { step: 4, action: 'If positive call → follow-up email with resources' }
+          ],
+          expected_outcomes: 'Combined email + voice: 3.2x higher conversion vs email alone'
+        },
+        ready_to_use: true,
+        agent_notes: 'Voice Agent + Telephony Voice Agent created coordinated email-to-voice campaign for maximum reach'
+      }
+    };
   }
 
   getMockEmailPerformance(period) {
