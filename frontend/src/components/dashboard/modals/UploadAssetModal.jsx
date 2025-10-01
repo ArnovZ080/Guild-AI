@@ -1,13 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Upload, File, Image, Video, Music, FileText, Cloud, HardDrive } from 'lucide-react';
 
 const UploadAssetModal = ({ onClose, onUpload }) => {
-  const [uploadSource, setUploadSource] = useState('local'); // 'local', 'google_drive', 'one_drive'
+  const [uploadSource, setUploadSource] = useState('local'); // 'local', 'google_drive', 'onedrive', 'dropbox', 'box'
   const [assetType, setAssetType] = useState('image');
   const [assetName, setAssetName] = useState('');
   const [assetDescription, setAssetDescription] = useState('');
   const [file, setFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [connectedSources, setConnectedSources] = useState([]);
+
+  // Available storage sources
+  const storageSources = [
+    { key: 'local', label: 'Local File', icon: HardDrive },
+    { key: 'googledrive', label: 'Google Drive', icon: Cloud },
+    { key: 'onedrive', label: 'OneDrive', icon: Cloud },
+    { key: 'dropbox', label: 'Dropbox', icon: Cloud },
+    { key: 'box', label: 'Box', icon: Cloud }
+  ];
+
+  // Load connected storage sources on mount
+  useEffect(() => {
+    loadConnectedSources();
+  }, []);
+
+  const loadConnectedSources = async () => {
+    try {
+      const response = await fetch('/api/connectors/user-connections?category=storage');
+      if (response.ok) {
+        const data = await response.json();
+        setConnectedSources(data.connections || []);
+      }
+    } catch (error) {
+      console.error('Error loading connected sources:', error);
+    }
+  };
+
+  const isSourceConnected = (sourceKey) => {
+    return sourceKey === 'local' || connectedSources.some(conn => conn.connector_id === sourceKey);
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -145,43 +176,37 @@ const UploadAssetModal = ({ onClose, onUpload }) => {
                 Upload Source
               </label>
               <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setUploadSource('local')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    uploadSource === 'local'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <HardDrive className="w-6 h-6 mx-auto mb-2" />
-                  <span className="text-sm font-medium">Local File</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUploadSource('google_drive')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    uploadSource === 'google_drive'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Cloud className="w-6 h-6 mx-auto mb-2" />
-                  <span className="text-sm font-medium">Google Drive</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUploadSource('one_drive')}
-                  className={`p-4 border-2 rounded-lg transition-all ${
-                    uploadSource === 'one_drive'
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <Cloud className="w-6 h-6 mx-auto mb-2" />
-                  <span className="text-sm font-medium">OneDrive</span>
-                </button>
+                {storageSources.map(source => {
+                  const Icon = source.icon;
+                  const connected = isSourceConnected(source.key);
+                  return (
+                    <button
+                      key={source.key}
+                      type="button"
+                      onClick={() => connected && setUploadSource(source.key)}
+                      disabled={!connected}
+                      className={`p-4 border-2 rounded-lg transition-all relative ${
+                        uploadSource === source.key
+                          ? 'border-green-500 bg-green-50'
+                          : connected
+                          ? 'border-gray-200 hover:border-gray-300'
+                          : 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                      }`}
+                    >
+                      <Icon className="w-6 h-6 mx-auto mb-2" />
+                      <span className="text-sm font-medium block">{source.label}</span>
+                      {!connected && source.key !== 'local' && (
+                        <span className="text-xs text-gray-500 mt-1 block">Not connected</span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
+              {connectedSources.length === 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Connect storage sources in Settings → Integrations to upload from cloud storage
+                </p>
+              )}
             </div>
 
             {/* Asset Type Selection */}
@@ -267,23 +292,40 @@ const UploadAssetModal = ({ onClose, onUpload }) => {
               </div>
             )}
 
-            {/* Cloud Storage Integration (Placeholder) */}
+            {/* Cloud Storage Integration */}
             {uploadSource !== 'local' && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
                 <Cloud className="w-12 h-12 mx-auto mb-4 text-blue-500" />
                 <h3 className="font-medium text-gray-900 mb-2">
-                  {uploadSource === 'google_drive' ? 'Google Drive' : 'OneDrive'} Integration
+                  {storageSources.find(s => s.key === uploadSource)?.label} Integration
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Connect your {uploadSource === 'google_drive' ? 'Google Drive' : 'OneDrive'} account to import assets
-                </p>
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  onClick={() => alert(`${uploadSource === 'google_drive' ? 'Google Drive' : 'OneDrive'} integration coming soon!`)}
-                >
-                  Connect Account
-                </button>
+                {isSourceConnected(uploadSource) ? (
+                  <>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Select files from your connected {storageSources.find(s => s.key === uploadSource)?.label} account
+                    </p>
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      onClick={() => alert('File picker coming soon!')}
+                    >
+                      Browse {storageSources.find(s => s.key === uploadSource)?.label}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Connect your {storageSources.find(s => s.key === uploadSource)?.label} account to import assets
+                    </p>
+                    <button
+                      type="button"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      onClick={() => window.location.href = '/settings/integrations'}
+                    >
+                      Connect Account
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
