@@ -2001,23 +2001,23 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       )}
 
       {/* Next Best Campaigns - independent section below Campaign Details */}
-      <div className="mt-6 bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="flex items-center justify-between p-4 bg-gray-50 border-b">
+      <div className="mt-6 bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <Lightbulb className="w-5 h-5 text-purple-600" />
             <span className="text-lg font-semibold text-gray-900">Next Best Campaigns</span>
             <Tooltip label="Signals gathered by market_trends_agent + trend_spotter_agent. We show the rationale so you can see why we recommend it."><span className="text-xs text-gray-500">(market_trends_agent + trend_spotter_agent)</span></Tooltip>
           </div>
           <div className="flex items-center space-x-2">
-            <label className="flex items-center space-x-1 text-xs text-gray-700">
+            <label className="hidden md:flex items-center space-x-1 text-xs text-gray-700">
               <input type="checkbox" className="rounded border-gray-300" checked={nextBestFilters.b2bOnly} onChange={(e)=>setNextBestFilters(p=>({...p,b2bOnly:e.target.checked}))} />
               <span>B2B only</span>
             </label>
-            <input type="text" placeholder="Preferred channels e.g. instagram,email" value={nextBestFilters.channels} onChange={(e)=>setNextBestFilters(p=>({...p,channels:e.target.value}))} className="ml-2 px-3 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="text" placeholder="Preferred channels e.g. instagram,email" value={nextBestFilters.channels} onChange={(e)=>setNextBestFilters(p=>({...p,channels:e.target.value}))} className="hidden md:block ml-2 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500" />
             <button
               onClick={async ()=>{ setShowNextBestSection(v=>!v); if (!showNextBestSection) { await fetchNextBestGlobal({ filter_b2b: nextBestFilters.b2bOnly, channels: nextBestFilters.channels }); } }}
-              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
-            >{showNextBestSection ? 'Hide' : 'Show'}</button>
+              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all flex items-center text-sm"
+            >{showNextBestSection ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide</> : <><ChevronDown className="w-4 h-4 mr-2"/>View</>}</button>
           </div>
         </div>
         {showNextBestSection && (
@@ -2029,11 +2029,51 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             {!nextBestGlobal ? (
               <div className="text-sm text-gray-500">Loading…</div>
             ) : (nextBestGlobal.ideas||[]).length===0 ? (
-              <div className="text-sm text-gray-500">No suggestions yet.</div>
+              <div>
+                <div className="text-sm text-gray-600 mb-3">No live suggestions yet. Here are demo recommendations based on typical market signals:</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[{
+                    title: 'Leverage Back-to-School Momentum', angle: 'Parents plan learning purchases', channels: ['Instagram','Email'], why: 'Seasonal spike across IG hashtag trends', evidence: 'IG hashtags + Google Trends', confidence: 0.82,
+                    recommendations: ['Create 3 short videos','Run 7-day promo','Partner with micro-influencer']
+                  },{
+                    title: 'Financial Literacy Shorts', angle: '3-step money routine', channels: ['TikTok','YouTube Shorts'], why: 'Finance content up 34%', evidence: 'TikTok topic velocity', confidence: 0.76,
+                    recommendations: ['Storyboard 5 clips','Add CTA to lead magnet','Retarget viewers for 7 days']
+                  },{
+                    title: 'Case Study Carousel', angle: 'Outcome-driven proof', channels: ['LinkedIn','Email'], why: 'B2B engagement high on proof posts', evidence: 'LI engagement benchmarks', confidence: 0.79,
+                    recommendations: ['Design 4-slide carousel','Feature KPI uplift','Include soft CTA']
+                  }].map((idea, idx)=> (
+                    <div key={idx} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow border border-gray-100">
+                      <div className="flex items-start justify-between">
+                        <div className="font-semibold text-gray-900">{idea.title}</div>
+                        <span className="ml-2 px-2 py-0.5 text-[11px] rounded-full bg-purple-50 text-purple-700 border border-purple-200">{Math.round((idea.confidence||0)*100)}% confidence</span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-700">Angle: {idea.angle}</div>
+                      <div className="mt-1 text-xs text-gray-700">Suggested channels: {idea.channels.join(', ')}</div>
+                      <div className="mt-2 p-3 bg-green-50 rounded-lg">
+                        <div className="text-xs text-gray-800"><span className="font-semibold">Why now:</span> {idea.why}</div>
+                        <div className="mt-1 text-[11px] text-gray-700"><span className="font-semibold">Evidence:</span> {idea.evidence}</div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="text-xs font-semibold text-gray-900 mb-1">Recommended Actions</div>
+                        <ul className="list-disc pl-5 text-xs text-gray-700 space-y-1">
+                          {idea.recommendations.map((rec, rIdx)=>(<li key={rIdx}>{rec}</li>))}
+                        </ul>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <button className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">Implement</button>
+                          <button className="px-3 py-1.5 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700">Customize</button>
+                        </div>
+                        <span className="text-xs text-gray-500">Transparency: rationale shown</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(nextBestGlobal.ideas||[]).slice(0,5).map((idea, idx)=> (
-                  <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={idx} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow border border-gray-100">
                     <div className="flex items-start justify-between">
                       <div className="font-semibold text-gray-900">{idea.title || 'Untitled idea'}</div>
                       {idea.confidence && (<span className="ml-2 px-2 py-0.5 text-[11px] rounded-full bg-purple-50 text-purple-700 border border-purple-200">{Math.round((idea.confidence||0)*100)}% confidence</span>)}
@@ -2060,8 +2100,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     )}
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Tooltip label="Create a ready-to-run draft and hand off to orchestrator + enhanced_campaign_agent."><button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
-                        <Tooltip label="Open AI workflow creator to customize before launch."><button onClick={()=>setShowAIWorkflowModal(true)} className="px-3 py-1.5 text-xs rounded-md bg-purple-600 text-white hover:bg-purple-700">Customize</button></Tooltip>
+                        <Tooltip label="Create a ready-to-run draft and hand off to orchestrator + enhanced_campaign_agent."><button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
+                        <Tooltip label="Open AI workflow creator to customize before launch."><button onClick={()=>setShowAIWorkflowModal(true)} className="px-3 py-1.5 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700">Customize</button></Tooltip>
                       </div>
                       <Tooltip label="Explain how agents arrived at this idea."><span className="text-xs text-gray-500">Transparency: rationale shown</span></Tooltip>
                     </div>
@@ -2080,8 +2120,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       </div>
 
       {/* Personalized Micro-campaigns - independent section below Next Best */}
-      <div className="mt-4 bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="flex items-center justify-between p-4 bg-gray-50 border-b">
+      <div className="mt-4 bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <Users className="w-5 h-5 text-emerald-600" />
             <span className="text-lg font-semibold text-gray-900">Personalized Micro-campaigns</span>
@@ -2089,8 +2129,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
           <button
             onClick={async ()=>{ setShowMicroSection(v=>!v); if (!showMicroSection) { await fetchMicroGlobal({}); } }}
-            className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
-          >{showMicroSection ? 'Hide' : 'Show'}</button>
+            className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-lg hover:from-emerald-700 hover:to-green-700 transition-all flex items-center text-sm"
+          >{showMicroSection ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide</> : <><ChevronDown className="w-4 h-4 mr-2"/>View</>}</button>
         </div>
         {showMicroSection && (
           <div className="p-6">
@@ -2101,11 +2141,50 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             {!microGlobal ? (
               <div className="text-sm text-gray-500">Loading…</div>
             ) : (microGlobal.segments||[]).length===0 ? (
-              <div className="text-sm text-gray-500">No segments yet.</div>
+              <div>
+                <div className="text-sm text-gray-600 mb-3">No segments detected yet. Demo segments below illustrate how this works:</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[{
+                    name: 'Trial users who didn’t convert', channels:['Email','Ads'], value_prop: 'Nudge to premium with timed incentive',
+                    campaign: '3-email sequence + 7-day retargeting', status: 'Pending Approval', autonomy:'human_in_loop',
+                    recommendations:['Offer 15% limited-time discount','Highlight premium features','Follow-up with social proof']
+                  },{
+                    name: 'New customers (<7 days)', channels:['Email','DM'], value_prop: 'Activate + Upsell',
+                    campaign: 'Onboarding tips + upgrade offer', status: 'Running', autonomy:'auto',
+                    recommendations:['Send day-3 checklist','Invite to webinar','Offer premium trial']
+                  },{
+                    name: 'Loyal customers (3+ purchases)', channels:['Email'], value_prop: 'VIP early access',
+                    campaign: 'Exclusive preview + referral perk', status: 'Scheduled', autonomy:'auto',
+                    recommendations:['Announce early access','Add referral code','Collect testimonials']
+                  }].map((seg, idx)=>(
+                    <div key={idx} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow border border-gray-100">
+                      <div className="flex items-start justify-between">
+                        <div className="font-semibold text-gray-900">Segment: {seg.name}</div>
+                        <span className="ml-2 px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{seg.autonomy}</span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-700">Channels: {seg.channels.join(', ')}</div>
+                      <div className="mt-1 text-xs text-gray-700">Value Prop: {seg.value_prop}</div>
+                      <div className="mt-1 text-xs text-gray-700">Campaign: {seg.campaign}</div>
+                      <div className="mt-1 text-xs text-gray-700">Status: {seg.status}</div>
+                      <div className="mt-3">
+                        <div className="text-xs font-semibold text-gray-900 mb-1">Recommended Actions</div>
+                        <ul className="list-disc pl-5 text-xs text-gray-700 space-y-1">
+                          {seg.recommendations.map((rec, rIdx)=>(<li key={rIdx}>{rec}</li>))}
+                        </ul>
+                      </div>
+                      <div className="mt-3 flex items-center space-x-2">
+                        <button className="px-3 py-1.5 text-xs rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Draft micro-campaign</button>
+                        <button className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">Implement</button>
+                        <button className="px-3 py-1.5 text-xs rounded-lg border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(microGlobal.segments||[]).map((seg, idx)=> (
-                  <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div key={idx} className="bg-white rounded-lg p-4 hover:shadow-md transition-shadow border border-gray-100">
                     <div className="flex items-start justify-between">
                       <div className="font-semibold text-gray-900">Segment: {seg.name}</div>
                       {seg.autonomy && (<span className="ml-2 px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{seg.autonomy}</span>)}
