@@ -386,6 +386,75 @@ export class ContentIntelligenceAPIService {
     return result || this.getMockCreativeAssets();
   }
 
+  // Mind-blowing features API methods
+  async generateAICopy(request) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.generateAICopy, {
+      method: 'POST',
+      body: JSON.stringify(request)
+    });
+    return result || this.getMockAICopyGeneration(request);
+  }
+
+  async evaluateCopyQuality(copyId, copyContent) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.evaluateCopyQuality, {
+      method: 'POST',
+      body: JSON.stringify({ copy_id: copyId, content: copyContent })
+    });
+    return result || this.getMockCopyEvaluation(copyId, copyContent);
+  }
+
+  async predictRevenue(campaignData) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.predictRevenue, {
+      method: 'POST',
+      body: JSON.stringify(campaignData)
+    });
+    return result || this.getMockRevenuePredict(campaignData);
+  }
+
+  async getCustomerIntelligence(segmentId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.getCustomerIntelligence}?segment_id=${encodeURIComponent(segmentId)}`);
+    return result || this.getMockCustomerIntelligence(segmentId);
+  }
+
+  async createAutonomousSequence(request) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.createAutonomousSequence, {
+      method: 'POST',
+      body: JSON.stringify(request)
+    });
+    return result || this.getMockAutonomousSequence(request);
+  }
+
+  async syncCrossChannel(userId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.syncCrossChannel}?user_id=${encodeURIComponent(userId)}`);
+    return result || this.getMockCrossChannelSync(userId);
+  }
+
+  async detectAnomalies(campaignId) {
+    const result = await this.request(`${CONTENT_INTELLIGENCE_API_ENDPOINTS.detectAnomalies}?campaign_id=${encodeURIComponent(campaignId)}`);
+    return result || this.getMockAnomalyDetection(campaignId);
+  }
+
+  async getTrendIdeas() {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.getTrendIdeas);
+    return result || this.getMockTrendIdeas();
+  }
+
+  async replayCampaign(campaignId) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.replayCampaign, {
+      method: 'POST',
+      body: JSON.stringify({ campaign_id: campaignId })
+    });
+    return result || this.getMockReplayCampaign(campaignId);
+  }
+
+  async generateVoiceScript(emailCampaignId) {
+    const result = await this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.generateVoiceScript, {
+      method: 'POST',
+      body: JSON.stringify({ email_campaign_id: emailCampaignId })
+    });
+    return result || this.getMockVoiceScript(emailCampaignId);
+  }
+
   async createContent(contentData) {
     return this.request(CONTENT_INTELLIGENCE_API_ENDPOINTS.createContent, {
       method: 'POST',
