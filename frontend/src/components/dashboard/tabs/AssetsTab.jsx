@@ -189,6 +189,8 @@ const AssetsTab = ({ assets = [] }) => {
 
   // Asset Card Component
   const AssetCard = ({ asset, type }) => {
+    console.log('AssetCard rendering for asset:', asset.asset_id, asset.name);
+    
     const getTypeIcon = () => {
       switch (type) {
         case 'video':
@@ -203,6 +205,8 @@ const AssetsTab = ({ assets = [] }) => {
           return <FileText className="w-8 h-8 text-gray-500" />;
       }
     };
+
+    console.log('About to render buttons for asset:', asset.asset_id);
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-all duration-200 group">
@@ -261,10 +265,14 @@ const AssetsTab = ({ assets = [] }) => {
           
           {/* Action Buttons */}
           <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
+            {console.log('Rendering buttons for asset:', asset.asset_id)}
             <button
               type="button"
               onClick={() => {
-                console.log('Edit with AI button clicked!', asset);
+                console.log('=== EDIT WITH AI BUTTON CLICKED ===');
+                console.log('Asset:', asset);
+                console.log('Asset type:', asset.type);
+                alert('Edit button clicked! Asset: ' + asset.name);
                 handleAIEdit(asset);
               }}
               className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
@@ -275,7 +283,9 @@ const AssetsTab = ({ assets = [] }) => {
             <button
               type="button"
               onClick={() => {
-                console.log('Delete button clicked!', asset.asset_id);
+                console.log('=== DELETE BUTTON CLICKED ===');
+                console.log('Asset ID:', asset.asset_id);
+                alert('Delete button clicked! Asset: ' + asset.name);
                 handleAssetDelete(asset.asset_id);
               }}
               className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
