@@ -220,6 +220,26 @@ const AssetsTab = ({ assets = [] }) => {
             <span>{new Date(asset.created_at).toLocaleDateString()}</span>
             <span>{asset.created_by}</span>
           </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => {
+                setSelectedAsset(asset);
+                setShowEditModal(true);
+              }}
+              className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Edit
+            </button>
+            <button
+              onClick={() => handleAssetDelete(asset.asset_id)}
+              className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -450,7 +470,7 @@ const AssetsTab = ({ assets = [] }) => {
                   >
                     Upload Your First Template
                   </button>
-                </div>
+              </div>
               )}
             </div>
           </div>
@@ -511,6 +531,7 @@ const AssetsTab = ({ assets = [] }) => {
         <GenerateImageModal
           onClose={() => setShowGenerateImageModal(false)}
           onGenerate={handleImageGeneration}
+          availableAssets={localAssets}
         />
       )}
 
@@ -518,6 +539,7 @@ const AssetsTab = ({ assets = [] }) => {
         <GenerateVideoModal
           onClose={() => setShowGenerateVideoModal(false)}
           onGenerate={handleVideoGeneration}
+          availableAssets={localAssets}
         />
       )}
 

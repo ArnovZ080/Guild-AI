@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Video, Wand2, RefreshCw, Download, Loader, Image as ImageIcon } from 'lucide-react';
 
-const GenerateVideoModal = ({ onClose, onGenerate }) => {
+const GenerateVideoModal = ({ onClose, onGenerate, availableAssets = [] }) => {
   const [videoType, setVideoType] = useState('slideshow'); // 'slideshow', 'text_video', 'social_media'
   const [content, setContent] = useState('');
   const [platform, setPlatform] = useState('instagram');
@@ -12,6 +12,7 @@ const GenerateVideoModal = ({ onClose, onGenerate }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedVideo, setGeneratedVideo] = useState(null);
   const [error, setError] = useState(null);
+  const [showAssetPicker, setShowAssetPicker] = useState(false);
 
   const videoTypes = [
     { 
@@ -209,25 +210,36 @@ const GenerateVideoModal = ({ onClose, onGenerate }) => {
               {videoType === 'slideshow' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Upload Images ({images.length})
+                    Images ({images.length})
                   </label>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                    <label className="cursor-pointer">
-                      <div className="text-center">
-                        <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                        <span className="text-sm text-gray-600">Click to upload images</span>
-                      </div>
-                      <input
-                        type="file"
-                        multiple
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                    </label>
+                    <div className="flex items-center justify-center space-x-4 mb-4">
+                      <label className="cursor-pointer flex-1 text-center">
+                        <div className="text-center">
+                          <ImageIcon className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <span className="text-sm text-gray-600">Upload from device</span>
+                        </div>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      <div className="text-gray-400">or</div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAssetPicker(true)}
+                        className="flex-1 text-center text-sm text-green-600 hover:text-green-700"
+                      >
+                        <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+                        <span>Select from library</span>
+                      </button>
+                    </div>
                     
                     {images.length > 0 && (
-                      <div className="mt-4 grid grid-cols-3 gap-2">
+                      <div className="mt-4 grid grid-cols-3 gap-2 pt-4 border-t">
                         {images.map((img, idx) => (
                           <div key={idx} className="relative group">
                             <img
@@ -456,7 +468,7 @@ const GenerateVideoModal = ({ onClose, onGenerate }) => {
           <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>
@@ -472,6 +484,59 @@ const GenerateVideoModal = ({ onClose, onGenerate }) => {
           </div>
         </div>
       </div>
+
+      {/* Asset Picker Overlay */}
+      {showAssetPicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto m-4">
+            <div className="p-4 border-b sticky top-0 bg-white">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Select Images from Library</h3>
+                <button
+                  onClick={() => setShowAssetPicker(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                {availableAssets.filter(a => a.type === 'image').map(asset => (
+                  <div
+                    key={asset.asset_id}
+                    onClick={() => {
+                      // Add asset to images array
+                      setImages(prev => [...prev, {
+                        file: null,
+                        url: asset.url,
+                        name: asset.name
+                      }]);
+                      setShowAssetPicker(false);
+                    }}
+                    className="cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-green-500 transition-all"
+                  >
+                    <img
+                      src={asset.url}
+                      alt={asset.name}
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="p-2">
+                      <p className="text-xs font-medium truncate">{asset.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {availableAssets.filter(a => a.type === 'image').length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <ImageIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No images in your library yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

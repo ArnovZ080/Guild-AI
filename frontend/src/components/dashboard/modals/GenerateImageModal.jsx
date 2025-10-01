@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Image, Wand2, RefreshCw, Download, Loader } from 'lucide-react';
 
-const GenerateImageModal = ({ onClose, onGenerate }) => {
+const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [] }) => {
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('professional');
   const [mood, setMood] = useState('neutral');
@@ -10,6 +10,8 @@ const GenerateImageModal = ({ onClose, onGenerate }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [error, setError] = useState(null);
+  const [showAssetPicker, setShowAssetPicker] = useState(false);
+  const [selectedReferenceAssets, setSelectedReferenceAssets] = useState([]);
 
   const styles = [
     { value: 'professional', label: 'Professional', description: 'Clean, modern, business-appropriate' },
@@ -189,6 +191,54 @@ const GenerateImageModal = ({ onClose, onGenerate }) => {
                 </div>
               </div>
 
+              {/* Reference Assets */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reference Images (Optional)
+                </label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  {selectedReferenceAssets.length > 0 ? (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedReferenceAssets.map((asset, idx) => (
+                          <div key={idx} className="relative group">
+                            <img
+                              src={asset.url}
+                              alt={asset.name}
+                              className="w-20 h-20 object-cover rounded border-2 border-purple-500"
+                            />
+                            <button
+                              onClick={() => setSelectedReferenceAssets(prev => prev.filter((_, i) => i !== idx))}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAssetPicker(true)}
+                        className="text-sm text-purple-600 hover:text-purple-700"
+                      >
+                        + Add more reference images
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowAssetPicker(true)}
+                      className="w-full text-center text-sm text-gray-600 hover:text-purple-600"
+                    >
+                      Click to select reference images from your library
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Select existing assets to use as reference for style, composition, or content
+                </p>
+              </div>
+
               {/* Style Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -366,7 +416,7 @@ const GenerateImageModal = ({ onClose, onGenerate }) => {
           <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
             >
               Cancel
             </button>
@@ -382,6 +432,56 @@ const GenerateImageModal = ({ onClose, onGenerate }) => {
           </div>
         </div>
       </div>
+
+      {/* Asset Picker Overlay */}
+      {showAssetPicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[80vh] overflow-y-auto m-4">
+            <div className="p-4 border-b sticky top-0 bg-white">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Select Reference Images</h3>
+                <button
+                  onClick={() => setShowAssetPicker(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+                {availableAssets.filter(a => a.type === 'image').map(asset => (
+                  <div
+                    key={asset.asset_id}
+                    onClick={() => {
+                      if (!selectedReferenceAssets.find(a => a.asset_id === asset.asset_id)) {
+                        setSelectedReferenceAssets(prev => [...prev, asset]);
+                      }
+                      setShowAssetPicker(false);
+                    }}
+                    className="cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-purple-500 transition-all"
+                  >
+                    <img
+                      src={asset.url}
+                      alt={asset.name}
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="p-2">
+                      <p className="text-xs font-medium truncate">{asset.name}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {availableAssets.filter(a => a.type === 'image').length === 0 && (
+                <div className="text-center py-12 text-gray-500">
+                  <Image className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No images in your library yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
