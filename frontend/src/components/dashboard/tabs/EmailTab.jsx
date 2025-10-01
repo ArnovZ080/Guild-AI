@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Mail, Plus, BarChart3, Pause, Play, Trash2, Eye, Calendar, Info, Sparkles, Zap, TrendingUp, Send, Upload, ChevronDown, ChevronUp, CheckCheck, Brain } from 'lucide-react';
+import { Mail, Plus, BarChart3, Pause, Play, Trash2, Eye, Calendar, Info, Sparkles, Zap, TrendingUp, Send, Upload, ChevronDown, ChevronUp, CheckCheck, Brain, DollarSign } from 'lucide-react';
 import CampaignEmailAnalyticsModal from '../../dashboard/modals/CampaignEmailAnalyticsModal.jsx';
 import ComposeEmailModal from '../../dashboard/modals/ComposeEmailModal.jsx';
 import EditEmailCampaignModal from '../../dashboard/modals/EditEmailCampaignModal.jsx';
