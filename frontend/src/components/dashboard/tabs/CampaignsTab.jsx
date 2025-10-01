@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
+import MicroCampaignRulesModal from '../modals/MicroCampaignRulesModal';
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 // removed AIOptimizeCampaignModal (redundant)
 import EmailTab from './EmailTab';
@@ -91,6 +92,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [showCreateModal, setShowCreateModal] = useState(false);
   // removed showAIOptimizeModal and showAICreateModal (redundant)
   const [showAIWorkflowModal, setShowAIWorkflowModal] = useState(false);
+  const [showMicroRules, setShowMicroRules] = useState(false);
+  const [rulesSegment, setRulesSegment] = useState(null);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [openMenuForId, setOpenMenuForId] = useState(null);
@@ -2144,7 +2147,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                         className="px-3 py-1.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
                       >Draft micro-campaign</button></Tooltip>
                       <Tooltip label="Triggers orchestration to run this micro-campaign with guardrails."><button onClick={()=>activateMicroSegment(seg)} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
-                      <Tooltip label="Define human-in-the-loop constraints (e.g., discount limits)."><button className="px-3 py-1.5 text-xs rounded-md border border-gray-300">Set rules…</button></Tooltip>
+                      <Tooltip label="Define human-in-the-loop constraints (e.g., discount limits)."><button className="px-3 py-1.5 text-xs rounded-md border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button></Tooltip>
                     </div>
                   </div>
                 ))}
@@ -2159,6 +2162,15 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
         )}
       </div>
+
+      <MicroCampaignRulesModal
+        isOpen={showMicroRules}
+        onClose={()=>{ setShowMicroRules(false); setRulesSegment(null); }}
+        segment={rulesSegment}
+        onSave={(payload)=>{
+          try { logCampaignActivity('global', { actor: 'Lead Personalization Agent', action: 'set_micro_rules', reason: `Updated rules for ${payload.segmentName}`, payload }); } catch {}
+        }}
+      />
 
       {/* Thresholds Settings Modal (global) */}
       {showThresholdsModal && (
