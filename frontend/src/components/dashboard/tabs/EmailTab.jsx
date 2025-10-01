@@ -373,7 +373,7 @@ const EmailTab = ({ emailData, campaigns }) => {
             </div>
             
             {/* Extended Insights */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div className="border border-gray-200 rounded-lg p-4">
                 <div className="text-sm font-medium text-gray-700 mb-2">Best Performing Email</div>
                 <div className="text-lg font-semibold text-gray-900">Welcome Series #1</div>
@@ -388,6 +388,16 @@ const EmailTab = ({ emailData, campaigns }) => {
                 <div className="text-sm font-medium text-gray-700 mb-2">Top Campaign</div>
                 <div className="text-lg font-semibold text-gray-900">Black Friday Promo</div>
                 <div className="text-xs text-gray-600">$4,280 revenue</div>
+              </div>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">Best Performing Campaign</div>
+                <div className="text-lg font-semibold text-gray-900">Newsletter October</div>
+                <div className="text-xs text-gray-600 grid grid-cols-2 gap-1 mt-2">
+                  <span>Open: 41.8%</span>
+                  <span>Click: 6.2%</span>
+                  <span>Bounce: 0.4%</span>
+                  <span>Revenue: $890</span>
+                </div>
               </div>
             </div>
 

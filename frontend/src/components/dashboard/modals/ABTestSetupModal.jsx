@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Plus, Trophy } from 'lucide-react';
+import { X, Plus, Trophy, Sparkles } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 
 const ABTestSetupModal = ({ open, onClose, campaignId, onSaved }) => {
@@ -64,39 +64,52 @@ const ABTestSetupModal = ({ open, onClose, campaignId, onSaved }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
-          <div className="font-semibold">A/B Test Setup</div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100"><X className="w-4 h-4"/></button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Trophy className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">A/B Test Setup</h2>
+              <p className="text-sm text-gray-600">Test multiple variants to optimize performance</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <div className="p-4 space-y-4 text-sm overflow-y-auto">
+
+        <div className="flex-1 p-6 overflow-y-auto space-y-4">
           {variants.map((v, idx) => (
-            <div key={v.id} className="border rounded p-3">
-              <div className="font-medium mb-2">Variant {v.id}</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div key={v.id} className="border border-gray-200 rounded-lg p-4">
+              <div className="font-semibold text-gray-900 mb-3">Variant {v.id}</div>
+              <div className="space-y-3">
                 <div>
-                  <label className="block text-gray-700 mb-1">Subject</label>
-                  <input value={v.subject} onChange={e=>setVariants(prev=>prev.map((pv,i)=>i===idx?{...pv,subject:e.target.value}:pv))} className="w-full border rounded px-2 py-1" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                  <input value={v.subject} onChange={e=>setVariants(prev=>prev.map((pv,i)=>i===idx?{...pv,subject:e.target.value}:pv))} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
                 </div>
                 <div>
-                  <label className="block text-gray-700 mb-1">Body</label>
-                  <textarea value={v.body} onChange={e=>setVariants(prev=>prev.map((pv,i)=>i===idx?{...pv,body:e.target.value}:pv))} rows={6} className="w-full border rounded px-2 py-1 font-mono" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Body</label>
+                  <textarea value={v.body} onChange={e=>setVariants(prev=>prev.map((pv,i)=>i===idx?{...pv,body:e.target.value}:pv))} rows={4} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm" />
                 </div>
               </div>
             </div>
           ))}
-          <button onClick={addVariant} className="px-3 py-2 border rounded text-sm flex items-center"><Plus className="w-4 h-4 mr-1"/>Add Variant</button>
+          <button onClick={addVariant} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center">
+            <Plus className="w-4 h-4 mr-2"/>Add Variant
+          </button>
 
           {suggested.length>0 && (
-            <div className="border rounded p-3">
-              <div className="font-medium mb-2">Agent-suggested variants</div>
+            <div className="border border-purple-200 rounded-lg p-4 bg-purple-50">
+              <div className="font-semibold text-gray-900 mb-3 flex items-center"><Sparkles className="w-4 h-4 text-purple-600 mr-2"/>Agent-suggested variants</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {suggested.map(s => (
-                  <div key={s.id} className="border rounded p-2 text-sm">
-                    <div className="text-gray-800">{s.subject}</div>
-                    <div className="text-xs text-gray-600 mt-1 line-clamp-3">{s.body}</div>
-                    <button onClick={()=>applySuggestion(s)} className="mt-2 px-2 py-1 border rounded text-xs">Add as Variant</button>
+                  <div key={s.id} className="border border-gray-200 rounded-lg p-3 bg-white">
+                    <div className="text-sm font-medium text-gray-800 mb-1">{s.subject}</div>
+                    <div className="text-xs text-gray-600 mb-2 line-clamp-2">{s.body}</div>
+                    <button onClick={()=>applySuggestion(s)} className="px-3 py-1 bg-purple-600 text-white rounded-md text-xs hover:bg-purple-700 transition-colors">Add as Variant</button>
                   </div>
                 ))}
               </div>
@@ -104,30 +117,38 @@ const ABTestSetupModal = ({ open, onClose, campaignId, onSaved }) => {
           )}
 
           {results && results.winner && (
-            <div className="rounded border p-3 bg-green-50 border-green-200 flex items-center text-sm">
-              <Trophy className="w-4 h-4 text-green-700 mr-2"/> Current winner: Variant {results.winner}
+            <div className="rounded-lg border border-green-200 p-4 bg-green-50 flex items-center">
+              <Trophy className="w-5 h-5 text-green-700 mr-2"/>
+              <span className="text-sm font-medium text-gray-900">Current winner: Variant {results.winner}</span>
             </div>
           )}
 
-          <div className="border rounded p-3">
-            <div className="font-medium mb-2">Traffic Allocation</div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="border border-gray-200 rounded-lg p-4">
+            <div className="font-semibold text-gray-900 mb-3">Traffic Allocation</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {Object.keys(allocation).map((k)=> (
                 <div key={k} className="flex items-center">
-                  <span className="w-8">{k}</span>
-                  <input type="number" min={0} max={100} value={allocation[k]} onChange={(e)=>setAllocation(prev=>({...prev,[k]:parseInt(e.target.value||'0',10)}))} className="w-24 border rounded px-2 py-1 ml-2" />
-                  <span className="ml-1">%</span>
+                  <span className="w-12 font-medium text-gray-700">Var {k}</span>
+                  <input type="number" min={0} max={100} value={allocation[k]} onChange={(e)=>setAllocation(prev=>({...prev,[k]:parseInt(e.target.value||'0',10)}))} className="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" />
+                  <span className="ml-1 text-gray-600">%</span>
                 </div>
               ))}
             </div>
-            <div className="mt-2 flex items-center space-x-2">
-              <button onClick={autoAllocate} className="px-3 py-2 border rounded text-sm">Auto-select winner and shift</button>
-              <button onClick={async()=>{ await api.setTrafficAllocation(campaignId, allocation); }} className="px-3 py-2 border rounded text-sm">Apply Allocation</button>
+            <div className="mt-3 flex gap-2">
+              <button onClick={autoAllocate} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors text-sm">
+                Auto-select winner and shift
+              </button>
+              <button onClick={async()=>{ await api.setTrafficAllocation(campaignId, allocation); }} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                Apply Allocation
+              </button>
             </div>
           </div>
         </div>
-        <div className="p-4 border-t flex justify-end sticky bottom-0 bg-white rounded-b-xl">
-          <button onClick={save} disabled={loading} className="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
+
+        <div className="p-6 border-t border-gray-200 flex justify-end">
+          <button onClick={save} disabled={loading} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50">
+            {loading?'Saving...':'Save Test'}
+          </button>
         </div>
       </div>
     </div>
@@ -135,5 +156,3 @@ const ABTestSetupModal = ({ open, onClose, campaignId, onSaved }) => {
 };
 
 export default ABTestSetupModal;
-
-

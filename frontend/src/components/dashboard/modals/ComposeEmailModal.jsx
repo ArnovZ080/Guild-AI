@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Send, Shield } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 import ChatEmailComposeAssistantModal from './ChatEmailComposeAssistantModal.jsx';
 
@@ -40,62 +40,88 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-white z-10 rounded-t-xl">
-          <div className="font-semibold">Compose Email</div>
-          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100"><X className="w-4 h-4"/></button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <Send className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Compose Email</h2>
+              <p className="text-sm text-gray-600">Send a personalized email</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <div className="p-4 space-y-3 text-sm overflow-y-auto">
+
+        <div className="flex-1 p-6 overflow-y-auto space-y-4">
           <div>
-            <label className="block text-gray-700 mb-1">Segment</label>
-            <input value={segment} onChange={e=>setSegment(e.target.value)} className="w-full border rounded px-2 py-1" placeholder="segment id or 'all'" />
+            <label className="block text-sm font-medium text-gray-700 mb-2">Segment</label>
+            <input value={segment} onChange={e=>setSegment(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="segment id or 'all'" />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-gray-700 mb-1">To</label>
-              <input value={to} onChange={e=>setTo(e.target.value)} className="w-full border rounded px-2 py-1" placeholder="email@example.com, user@domain.com" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">To *</label>
+              <input value={to} onChange={e=>setTo(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="email@example.com" />
             </div>
             <div>
-              <label className="block text-gray-700 mb-1">CC</label>
-              <input value={cc} onChange={e=>setCc(e.target.value)} className="w-full border rounded px-2 py-1" placeholder="optional" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">CC</label>
+              <input value={cc} onChange={e=>setCc(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="optional" />
             </div>
             <div>
-              <label className="block text-gray-700 mb-1">BCC</label>
-              <input value={bcc} onChange={e=>setBcc(e.target.value)} className="w-full border rounded px-2 py-1" placeholder="optional" />
+              <label className="block text-sm font-medium text-gray-700 mb-2">BCC</label>
+              <input value={bcc} onChange={e=>setBcc(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" placeholder="optional" />
             </div>
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">Subject</label>
-            <input value={subject} onChange={e=>setSubject(e.target.value)} className="w-full border rounded px-2 py-1" />
+            <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+            <input value={subject} onChange={e=>setSubject(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
           </div>
           <div>
-            <label className="block text-gray-700 mb-1">Body</label>
-            <textarea value={body} onChange={e=>setBody(e.target.value)} rows={10} className="w-full border rounded px-2 py-1 font-mono" />
+            <label className="block text-sm font-medium text-gray-700 mb-2">Body *</label>
+            <textarea value={body} onChange={e=>setBody(e.target.value)} rows={10} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm" />
             <div className="mt-1 text-xs text-gray-500">Tip: Keep paragraphs short. Use one clear CTA.</div>
           </div>
-        </div>
-        <div className="p-4 border-t space-y-3 sticky bottom-0 bg-white rounded-b-xl">
-          <div className="flex items-center justify-between">
-            <button onClick={()=>setShowAssistant(true)} className="px-3 py-2 border rounded text-sm">Let an Agent write your email</button>
-            <div className="flex items-center space-x-2">
-              <button onClick={checkCompliance} disabled={checking} className="px-3 py-2 border rounded text-sm">{checking?'Checking...':'Check Compliance'}</button>
-              <button onClick={onClose} className="px-3 py-2 border rounded">Cancel</button>
-              <button onClick={send} disabled={sending || !subject.trim() || !body.trim()} className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50">{sending?'Sending...':'Send'}</button>
-            </div>
-          </div>
+
           {compliance && (
-            <div className={`rounded border p-3 ${compliance.pass?'border-green-200 bg-green-50':'border-yellow-200 bg-yellow-50'}`}>
-              <div className="text-sm font-medium">Send Readiness: {compliance.pass ? 'Pass' : 'Needs Attention'}</div>
+            <div className={`rounded-lg border p-4 ${compliance.pass?'border-green-200 bg-green-50':'border-yellow-200 bg-yellow-50'}`}>
+              <div className="flex items-center">
+                <Shield className="w-5 h-5 mr-2 text-gray-700"/>
+                <div className="text-sm font-semibold">Send Readiness: {compliance.pass ? 'Pass ✓' : 'Needs Attention'}</div>
+              </div>
               {(compliance.issues||[]).length>0 && (
-                <ul className="mt-2 list-disc pl-5 text-xs text-gray-700">
+                <ul className="mt-2 space-y-1 text-xs text-gray-700">
                   {compliance.issues.map(issue => (
-                    <li key={issue.id}><span className="font-medium capitalize">{issue.label}</span>: {issue.why}</li>
+                    <li key={issue.id} className="flex items-start">
+                      <span className="font-medium capitalize mr-1">{issue.label}:</span>
+                      <span>{issue.why}</span>
+                    </li>
                   ))}
                 </ul>
               )}
             </div>
           )}
+        </div>
+
+        <div className="p-6 border-t border-gray-200 flex justify-between">
+          <button onClick={()=>setShowAssistant(true)} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center">
+            <Brain className="w-4 h-4 mr-2" />
+            Let an Agent write your email
+          </button>
+          <div className="flex items-center gap-3">
+            <button onClick={checkCompliance} disabled={checking} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium">
+              {checking?'Checking...':'Check Compliance'}
+            </button>
+            <button onClick={onClose} className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700 font-medium">
+              Cancel
+            </button>
+            <button onClick={send} disabled={sending || !subject.trim() || !body.trim()} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50">
+              {sending?'Sending...':'Send Email'}
+            </button>
+          </div>
         </div>
       </div>
       <ChatEmailComposeAssistantModal
@@ -109,5 +135,3 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
 };
 
 export default ComposeEmailModal;
-
-
