@@ -188,24 +188,30 @@ const AssetsTab = ({ assets = [] }) => {
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <div className="flex items-center space-x-2">
               <button 
-                onClick={() => window.open(asset.url, '_blank')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(asset.url, '_blank');
+                }}
                 className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
                 title="View"
               >
                 <Eye className="w-4 h-4 text-gray-700" />
               </button>
               <button 
-                onClick={() => {
-                  setSelectedAsset(asset);
-                  setShowEditModal(true);
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAIEdit(asset);
                 }}
                 className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
-                title="Edit"
+                title="Edit with AI"
               >
-                <Edit className="w-4 h-4 text-blue-600" />
+                <Sparkles className="w-4 h-4 text-blue-600" />
               </button>
               <button 
-                onClick={() => handleAssetDelete(asset.asset_id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAssetDelete(asset.asset_id);
+                }}
                 className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
                 title="Delete"
               >
@@ -239,14 +245,20 @@ const AssetsTab = ({ assets = [] }) => {
           {/* Action Buttons */}
           <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
             <button
-              onClick={() => handleAIEdit(asset)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAIEdit(asset);
+              }}
               className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
             >
               <Sparkles className="w-3 h-3 mr-1" />
               Edit with AI
             </button>
             <button
-              onClick={() => handleAssetDelete(asset.asset_id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAssetDelete(asset.asset_id);
+              }}
               className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               <Trash2 className="w-4 h-4" />
