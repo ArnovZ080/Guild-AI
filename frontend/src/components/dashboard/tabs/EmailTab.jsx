@@ -260,15 +260,20 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
           <div className="mt-4 space-y-3">
             <div className="text-sm font-medium text-gray-700 mb-2">Campaign History</div>
             {(mergedCampaigns||[]).filter(c=>c.status==='completed'||c.status==='cancelled').map(c => (
-              <div key={c.campaign_id||c.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div key={c.campaign_id||c.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50 hover:shadow-sm transition-shadow">
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <div className="font-semibold text-gray-900">{c.name || c.title}</div>
                     <div className="text-xs text-gray-500">{c.objective} • {c.status}</div>
                   </div>
-                  <button onClick={()=>setShowAnalytics(c.campaign_id||c.id)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs flex items-center">
-                    <BarChart3 className="w-3 h-3 mr-1"/>View
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={()=>setShowAnalytics(c.campaign_id||c.id)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs flex items-center">
+                      <BarChart3 className="w-3 h-3 mr-1"/>Analytics
+                    </button>
+                    <button onClick={()=>{ setShowAICreate(true); /* TODO: pre-fill with campaign data */ }} className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors text-xs flex items-center">
+                      <Zap className="w-3 h-3 mr-1"/>Replay & Optimize
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-4 gap-3 text-xs text-gray-700">
                   <div>Open: {c.open_rate!=null?`${c.open_rate}%`:'-'}</div>
@@ -543,16 +548,32 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
         </div>
         {showIntegrations && (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-              {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(provider => (
-                <div key={provider} className="border border-gray-200 rounded-lg p-3 flex items-center justify-between hover:shadow-sm transition-shadow">
-                  <span className="text-sm text-gray-700">{provider}</span>
-                  <span className="text-xs text-green-600">✓ Connected</span>
-                </div>
-              ))}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Connected Providers</label>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {['Gmail', 'SendGrid', 'Mailchimp'].map(provider => (
+                  <div key={provider} className="border border-green-200 rounded-lg p-3 bg-green-50 flex items-center justify-between">
+                    <span className="text-sm text-gray-700">{provider}</span>
+                    <span className="text-xs text-green-600">✓ Connected</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-gray-600">These providers sync automatically.</div>
             </div>
-            <div className="text-xs text-gray-600 mb-3">Connected integrations sync automatically. Disconnect or add new providers below.</div>
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect New Provider</button>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Connect New Provider</label>
+              <div className="flex gap-2">
+                <select className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                  <option value="">Choose provider...</option>
+                  {['Mailchimp', 'ConvertKit', 'ActiveCampaign', 'HubSpot', 'SendGrid', 'Gmail', 'Outlook', 'Klaviyo', 'Salesforce', 'Systeme.io'].map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+                <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">Connect</button>
+              </div>
+              <div className="mt-2 text-xs text-gray-600">Select a provider and click Connect to authorize via OAuth or API key.</div>
+            </div>
           </>
         )}
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText } from 'lucide-react';
+import { X, FileText, Bold, Italic, Underline, Type, Image, Upload } from 'lucide-react';
 
 const EditTemplateModal = ({ open, onClose, template }) => {
   const [name, setName] = useState(template?.name || '');
@@ -8,6 +8,9 @@ const EditTemplateModal = ({ open, onClose, template }) => {
   const [body, setBody] = useState('');
   const [brandVoice, setBrandVoice] = useState('');
   const [colors, setColors] = useState('');
+  const [fontSize, setFontSize] = useState('14');
+  const [fontFamily, setFontFamily] = useState('Arial, sans-serif');
+  const [headerLevel, setHeaderLevel] = useState('body');
 
   useEffect(() => {
     if (template) {
@@ -60,7 +63,42 @@ const EditTemplateModal = ({ open, onClose, template }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Template Body</label>
-            <textarea value={body} onChange={e=>setBody(e.target.value)} rows={8} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 font-mono text-sm" placeholder="Enter template HTML or text..." />
+            <div className="border border-gray-300 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 border-b border-gray-300 p-2 flex items-center gap-2">
+                <select value={headerLevel} onChange={e=>setHeaderLevel(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-xs">
+                  <option value="body">Body</option>
+                  <option value="h1">H1</option>
+                  <option value="h2">H2</option>
+                  <option value="h3">H3</option>
+                </select>
+                <button className="p-1 border border-gray-300 rounded hover:bg-gray-100" title="Bold"><Bold className="w-4 h-4"/></button>
+                <button className="p-1 border border-gray-300 rounded hover:bg-gray-100" title="Italic"><Italic className="w-4 h-4"/></button>
+                <button className="p-1 border border-gray-300 rounded hover:bg-gray-100" title="Underline"><Underline className="w-4 h-4"/></button>
+                <select value={fontSize} onChange={e=>setFontSize(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-xs">
+                  <option value="12">12px</option>
+                  <option value="14">14px</option>
+                  <option value="16">16px</option>
+                  <option value="18">18px</option>
+                  <option value="20">20px</option>
+                </select>
+                <select value={fontFamily} onChange={e=>setFontFamily(e.target.value)} className="px-2 py-1 border border-gray-300 rounded text-xs">
+                  <option value="Arial, sans-serif">Arial</option>
+                  <option value="Georgia, serif">Georgia</option>
+                  <option value="'Courier New', monospace">Courier</option>
+                  <option value="Inter, sans-serif">Inter</option>
+                </select>
+                <label className="px-2 py-1 border border-gray-300 rounded hover:bg-gray-100 cursor-pointer flex items-center text-xs">
+                  <Image className="w-4 h-4 mr-1"/>Insert Image
+                  <input type="file" accept="image/*" className="hidden" />
+                </label>
+              </div>
+              <textarea value={body} onChange={e=>setBody(e.target.value)} rows={12} className="w-full px-3 py-2 focus:outline-none text-sm resize-none" placeholder="Enter template content..." style={{ fontFamily, fontSize: `${fontSize}px` }} />
+            </div>
+            <div className="mt-2 text-xs text-gray-600">
+              Import from provider: 
+              <button className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50">Mailchimp</button>
+              <button className="ml-2 px-2 py-1 border border-gray-300 rounded text-xs hover:bg-gray-50">ConvertKit</button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
