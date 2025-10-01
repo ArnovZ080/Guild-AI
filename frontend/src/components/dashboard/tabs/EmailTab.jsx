@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Mail, Plus, BarChart3, Pause, Play, Trash2, Eye, Calendar, Info, Sparkles, Zap, TrendingUp, Send, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { Mail, Plus, BarChart3, Pause, Play, Trash2, Eye, Calendar, Info, Sparkles, Zap, TrendingUp, Send, Upload, ChevronDown, ChevronUp, CheckCheck, Brain } from 'lucide-react';
 import CampaignEmailAnalyticsModal from '../../dashboard/modals/CampaignEmailAnalyticsModal.jsx';
 import ComposeEmailModal from '../../dashboard/modals/ComposeEmailModal.jsx';
 import EditEmailCampaignModal from '../../dashboard/modals/EditEmailCampaignModal.jsx';
@@ -11,6 +11,7 @@ import ContactDrawer from '../../dashboard/modals/ContactDrawer.jsx';
 import FollowupsBuilderModal from '../../dashboard/modals/FollowupsBuilderModal.jsx';
 import RevenueAttributionModal from '../../dashboard/modals/RevenueAttributionModal.jsx';
 import CustomerJourneyMiniMapModal from '../../dashboard/modals/CustomerJourneyMiniMapModal.jsx';
+import EmailViewerModal from '../../dashboard/modals/EmailViewerModal.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 import { ContentIntelligenceAPIService as CIAService } from '../../../services/contentIntelligenceApi';
 
@@ -78,6 +79,8 @@ const EmailTab = ({ emailData, campaigns }) => {
   const [showFollowups, setShowFollowups] = useState(null);
   const [showRevenue, setShowRevenue] = useState(null);
   const [showJourney, setShowJourney] = useState(null);
+  const [viewingEmail, setViewingEmail] = useState(null);
+  const [selectedInbox, setSelectedInbox] = useState(new Set());
   const [activeCampaignsOpen, setActiveCampaignsOpen] = useState(true);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -245,28 +248,42 @@ const EmailTab = ({ emailData, campaigns }) => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-lg font-semibold text-gray-900">Unified Inbox</h4>
-          <button onClick={()=>setInboxOpen(!inboxOpen)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
-            {inboxOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide Inbox</> : <><ChevronDown className="w-4 h-4 mr-2"/>View Inbox</>}
-          </button>
+          <div className="flex gap-2">
+            {selectedInbox.size > 0 && (
+              <>
+                <button onClick={()=>setSelectedInbox(new Set())} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm flex items-center">
+                  <CheckCheck className="w-4 h-4 mr-2"/>Mark {selectedInbox.size} Read
+                </button>
+                <button onClick={()=>setSelectedInbox(new Set())} className="px-3 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors text-sm flex items-center">
+                  <Trash2 className="w-4 h-4 mr-2"/>Delete {selectedInbox.size}
+                </button>
+              </>
+            )}
+            <button onClick={()=>setInboxOpen(!inboxOpen)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+              {inboxOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide Inbox</> : <><ChevronDown className="w-4 h-4 mr-2"/>View Inbox</>}
+            </button>
+          </div>
         </div>
         {inboxOpen && (
           <>
             {!inboxLoading && !inboxData?.data?.inbox?.length && (
               <div className="text-sm text-gray-600">No messages yet. Connect your email providers in Settings.</div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(inboxData?.data?.inbox||[]).slice(0,8).map(msg => (
-                <div key={msg.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="font-medium text-gray-900 truncate max-w-[70%]" title={msg.subject}>{msg.subject}</div>
-                    <div className="text-xs text-gray-500">{new Date(msg.received_at).toLocaleTimeString()}</div>
+            <div className="max-h-[500px] overflow-y-auto space-y-2">
+              {(inboxData?.data?.inbox||[]).map(msg => (
+                <div key={msg.id} className={`border rounded-lg p-3 hover:shadow-sm transition-shadow flex items-center gap-3 ${selectedInbox.has(msg.id)?'border-purple-300 bg-purple-50':'border-gray-200 bg-white'}`}>
+                  <input type="checkbox" checked={selectedInbox.has(msg.id)} onChange={()=>setSelectedInbox(prev=>{ const next = new Set(prev); next.has(msg.id)? next.delete(msg.id) : next.add(msg.id); return next; })} className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="font-medium text-gray-900 truncate" title={msg.subject}>{msg.subject}</div>
+                      <div className="text-xs text-gray-500 ml-2">{new Date(msg.received_at).toLocaleTimeString()}</div>
+                    </div>
+                    <div className="text-xs text-gray-600">From {msg.from} • {msg.provider}</div>
                   </div>
-                  <div className="text-xs text-gray-600 mb-2">From {msg.from} • {msg.provider}</div>
-                  <div className="text-sm text-gray-700 mb-3 line-clamp-2">{msg.snippet}</div>
                   <div className="flex items-center gap-2">
-                    <button className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs" onClick={()=>setContactEmail(msg.from)}>View Contact</button>
-                    <button className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs">Reply (AI)</button>
-                    <button className="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-xs">Assign</button>
+                    <button className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs" onClick={()=>setViewingEmail(msg)}>Open</button>
+                    <button className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-xs">Reply (AI)</button>
+                    <button className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors text-xs" title="Assign to support or sales workflow">Assign</button>
                   </div>
                 </div>
               ))}
@@ -280,7 +297,7 @@ const EmailTab = ({ emailData, campaigns }) => {
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-lg font-semibold text-gray-900">Templates & Content Library</h4>
           <div className="flex gap-2">
-            <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center text-sm">
+            <button onClick={()=>{ setShowCompose(true); /* TODO: flag as template mode */ }} className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center text-sm">
               <Sparkles className="w-4 h-4 mr-2" />
               AI Create Template
             </button>
@@ -301,7 +318,7 @@ const EmailTab = ({ emailData, campaigns }) => {
                 <div className="text-xs text-gray-500 mb-2 capitalize">{t.type}</div>
                 <div className="text-xs text-gray-600 mb-3">Avg Open {t.performance?.avg_open ?? 0}% • Click {t.performance?.avg_click ?? 0}%</div>
                 <div className="flex gap-2">
-                  <button className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs flex-1">Use</button>
+                  <button onClick={()=>setShowCompose(true)} className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs flex-1">Use</button>
                   <button className="px-3 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-xs">Edit</button>
                   <button className="px-3 py-2 bg-purple-100 text-purple-800 rounded-lg hover:bg-purple-200 transition-colors text-xs">Analytics</button>
                 </div>
@@ -328,8 +345,8 @@ const EmailTab = ({ emailData, campaigns }) => {
                   <div className="font-semibold text-gray-900 mb-1">{s.name}</div>
                   <div className="text-sm text-gray-600 mb-3">Count {s.count} • Engagement {(Math.round((s.engagement||0)*100))}%</div>
                   <div className="space-y-2">
-                    <button className="w-full px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs">Launch Campaign</button>
-                    <button onClick={()=>applyBestTimes(s.id)} disabled={applyingTimes} className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-xs">{applyingTimes?'Applying…':'Apply Best Times'}</button>
+                    <button onClick={()=>{ setShowAICreate(true); /* TODO: pre-fill segment */ }} className="w-full px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-xs">Launch Campaign</button>
+                    <button onClick={()=>applyBestTimes(s.id)} disabled={applyingTimes} className="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-xs">{applyingTimes?'Applying...':'Apply Best Times'}</button>
                   </div>
                 </div>
               ))}
@@ -466,6 +483,7 @@ const EmailTab = ({ emailData, campaigns }) => {
       <FollowupsBuilderModal open={!!showFollowups} onClose={()=>setShowFollowups(null)} campaignId={showFollowups} onSaved={()=>{}} />
       <RevenueAttributionModal open={!!showRevenue} onClose={()=>setShowRevenue(null)} campaignId={showRevenue} />
       <CustomerJourneyMiniMapModal open={!!showJourney} onClose={()=>setShowJourney(null)} campaignId={showJourney} />
+      <EmailViewerModal open={!!viewingEmail} onClose={()=>setViewingEmail(null)} email={viewingEmail} onMarkRead={()=>{}} onDelete={()=>{}} onSpam={()=>{}} />
     </div>
   );
 };
