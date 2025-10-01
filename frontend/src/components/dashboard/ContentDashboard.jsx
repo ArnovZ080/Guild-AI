@@ -596,7 +596,7 @@ const ContentDashboard = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <EmailTab emailData={emailData} />
+            <EmailTab emailData={emailData} campaigns={campaigns} onSwitchToCalendar={()=>setActiveTab('calendar')} />
           </motion.div>
         )}
 

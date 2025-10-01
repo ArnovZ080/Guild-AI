@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { X, Mail, Clock } from 'lucide-react';
+import { X, Mail, Clock, MousePointer, TrendingUp } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 
 const ContactDrawer = ({ open, onClose, email }) => {
   const [profile, setProfile] = useState(null);
   const [timeline, setTimeline] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [sentEmails, setSentEmails] = useState([]);
   const api = new ContentIntelligenceAPIService();
 
   useEffect(() => {
@@ -17,7 +18,9 @@ const ContactDrawer = ({ open, onClose, email }) => {
         api.getPersonalizationSuggestions(email)
       ]);
       setProfile(p?.data || null);
-      setTimeline(t?.data?.events || []);
+      const events = t?.data?.events || [];
+      setTimeline(events);
+      setSentEmails(events.filter(e=>e.type==='email_sent'));
       setSuggestions(s?.data?.suggestions || []);
     };
     load();
@@ -43,18 +46,31 @@ const ContactDrawer = ({ open, onClose, email }) => {
           )}
 
           <div className="border rounded p-3">
-            <div className="font-medium mb-2">Timeline</div>
+            <div className="font-medium mb-2">Timeline & Click Details</div>
             <div className="space-y-2">
               {timeline.map((e, idx) => (
                 <div key={idx} className="flex items-start text-xs">
-                  <Clock className="w-3 h-3 mr-2 mt-0.5 text-gray-500"/>
+                  {e.type==='click' ? <MousePointer className="w-3 h-3 mr-2 mt-0.5 text-purple-500"/> : <Clock className="w-3 h-3 mr-2 mt-0.5 text-gray-500"/>}
                   <div>
                     <div className="text-gray-800">{new Date(e.ts).toLocaleString()} — {e.type.replace('_',' ')} {e.subject?`• ${e.subject}`:''}</div>
-                    {e.details && <div className="text-gray-600">{e.details}</div>}
+                    {e.details && <div className="text-gray-600 flex items-center"><MousePointer className="w-3 h-3 mr-1"/>{e.details}</div>}
                   </div>
                 </div>
               ))}
               {timeline.length===0 && <div className="text-xs text-gray-600">No recent activity.</div>}
+            </div>
+          </div>
+
+          <div className="border rounded p-3">
+            <div className="font-medium mb-2">Emails Sent to Contact</div>
+            <div className="space-y-1">
+              {sentEmails.map((e, idx) => (
+                <div key={idx} className="text-xs text-gray-700 flex items-center">
+                  <Mail className="w-3 h-3 mr-1 text-blue-500"/>
+                  {new Date(e.ts).toLocaleDateString()} • {e.subject}
+                </div>
+              ))}
+              {sentEmails.length===0 && <div className="text-xs text-gray-600">No emails sent yet.</div>}
             </div>
           </div>
 

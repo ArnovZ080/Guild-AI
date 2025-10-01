@@ -15,7 +15,7 @@ import EmailViewerModal from '../../dashboard/modals/EmailViewerModal.jsx';
 import { useUnifiedInbox, useEmailCampaigns, useEmailTemplates, useEmailSegments, useEmailBestSendTimes } from '../../../services/contentIntelligenceApi';
 import { ContentIntelligenceAPIService as CIAService } from '../../../services/contentIntelligenceApi';
 
-const EmailTab = ({ emailData, campaigns }) => {
+const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
   const emailMetrics = emailData?.data?.email_metrics || {};
   const topMetrics = {
     open: (emailMetrics.open_rate ?? 45.2),
@@ -87,6 +87,8 @@ const EmailTab = ({ emailData, campaigns }) => {
   const [audienceOpen, setAudienceOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const [aiHubOpen, setAiHubOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [sortEngagement, setSortEngagement] = useState('desc');
 
   const api = new ContentIntelligenceAPIService();
 
@@ -175,13 +177,18 @@ const EmailTab = ({ emailData, campaigns }) => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
           <h4 className="text-lg font-semibold text-gray-900">Active Campaigns</h4>
-          <button onClick={()=>setActiveCampaignsOpen(!activeCampaignsOpen)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
-            {activeCampaignsOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide Campaigns</> : <><ChevronDown className="w-4 h-4 mr-2"/>View Campaigns</>}
-          </button>
+          <div className="flex gap-2">
+            <button onClick={()=>setHistoryOpen(!historyOpen)} className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center text-sm">
+              {historyOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide History</> : <><ChevronDown className="w-4 h-4 mr-2"/>View History</>}
+            </button>
+            <button onClick={()=>setActiveCampaignsOpen(!activeCampaignsOpen)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center">
+              {activeCampaignsOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide Active</> : <><ChevronDown className="w-4 h-4 mr-2"/>View Active</>}
+            </button>
+          </div>
         </div>
         {activeCampaignsOpen && (
           <div className="space-y-4">
-            {(mergedCampaigns||[]).map(c => (
+            {(mergedCampaigns||[]).filter(c=>c.status!=='completed'&&c.status!=='cancelled').map(c => (
               <div key={c.campaign_id||c.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-4">
@@ -226,6 +233,7 @@ const EmailTab = ({ emailData, campaigns }) => {
                     <button className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm" onClick={()=>setShowFollowups(c.campaign_id||c.id)}>Follow-ups</button>
                     <button className="px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm" onClick={()=>setShowRevenue(c.campaign_id||c.id)}>Revenue</button>
                     <button className="px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm" onClick={()=>setShowJourney(c.campaign_id||c.id)}>Journey</button>
+                    <button className="px-3 py-2 bg-pink-100 text-pink-800 rounded-lg hover:bg-pink-200 transition-colors text-sm flex items-center" onClick={()=>onSwitchToCalendar&&onSwitchToCalendar()}><Calendar className="w-4 h-4 mr-2"/>Show in Calendar</button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {c.status==='paused' ? (
@@ -239,7 +247,32 @@ const EmailTab = ({ emailData, campaigns }) => {
                 </div>
             </div>
             ))}
-            {(!mergedCampaigns || mergedCampaigns.length===0) && <div className="text-sm text-gray-600">No active email campaigns. Click "New Campaign" to start.</div>}
+            {(!mergedCampaigns || mergedCampaigns.filter(c=>c.status!=='completed'&&c.status!=='cancelled').length===0) && <div className="text-sm text-gray-600">No active email campaigns. Click "New Campaign" to start.</div>}
+          </div>
+        )}
+        {historyOpen && (
+          <div className="mt-4 space-y-3">
+            <div className="text-sm font-medium text-gray-700 mb-2">Campaign History</div>
+            {(mergedCampaigns||[]).filter(c=>c.status==='completed'||c.status==='cancelled').map(c => (
+              <div key={c.campaign_id||c.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <div className="font-semibold text-gray-900">{c.name || c.title}</div>
+                    <div className="text-xs text-gray-500">{c.objective} • {c.status}</div>
+                  </div>
+                  <button onClick={()=>setShowAnalytics(c.campaign_id||c.id)} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-xs flex items-center">
+                    <BarChart3 className="w-3 h-3 mr-1"/>View
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-3 text-xs text-gray-700">
+                  <div>Open: {c.open_rate!=null?`${c.open_rate}%`:'-'}</div>
+                  <div>Click: {c.click_rate!=null?`${c.click_rate}%`:'-'}</div>
+                  <div>Unsubs: {c.unsubscribe_rate!=null?`${c.unsubscribe_rate}%`:'-'}</div>
+                  <div>Sent: {c.sent || 0}</div>
+                </div>
+              </div>
+            ))}
+            {(mergedCampaigns||[]).filter(c=>c.status==='completed'||c.status==='cancelled').length===0 && <div className="text-sm text-gray-600">No archived campaigns yet.</div>}
           </div>
         )}
       </div>
@@ -339,8 +372,15 @@ const EmailTab = ({ emailData, campaigns }) => {
         </div>
         {audienceOpen && (
           <>
+            <div className="flex items-center justify-end mb-3">
+              <label className="text-sm text-gray-700 mr-2">Sort by Engagement:</label>
+              <select value={sortEngagement} onChange={e=>setSortEngagement(e.target.value)} className="px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-sm">
+                <option value="desc">Highest First</option>
+                <option value="asc">Lowest First</option>
+              </select>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              {(segments||[]).map(s => (
+              {(segments||[]).sort((a,b)=>sortEngagement==='desc'?(b.engagement-a.engagement):(a.engagement-b.engagement)).map(s => (
                 <div key={s.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="font-semibold text-gray-900 mb-1">{s.name}</div>
                   <div className="text-sm text-gray-600 mb-3">Count {s.count} • Engagement {(Math.round((s.engagement||0)*100))}%</div>
@@ -370,7 +410,7 @@ const EmailTab = ({ emailData, campaigns }) => {
         </div>
         {analyticsOpen && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
               <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
                 <div className="text-gray-600 text-sm mb-1">Avg Open Rate</div>
                 <div className="text-2xl font-semibold text-blue-700">{(emailMetrics.open_rate ?? 42.3)}%</div>
@@ -386,6 +426,11 @@ const EmailTab = ({ emailData, campaigns }) => {
               <div className="border border-red-200 rounded-lg p-4 bg-red-50">
                 <div className="text-gray-600 text-sm mb-1">Unsubscribe Rate</div>
                 <div className="text-2xl font-semibold text-red-700">{(emailMetrics.unsubscribe_rate ?? 0.3)}%</div>
+              </div>
+              <div className="border border-indigo-200 rounded-lg p-4 bg-indigo-50">
+                <div className="text-gray-600 text-sm mb-1">Email Health Score</div>
+                <div className="text-2xl font-semibold text-indigo-700">{Math.round((emailMetrics.deliverability??97.8) * (1 - (emailMetrics.bounce_rate??0.7)/100) * (emailMetrics.open_rate??42.3)/100)}</div>
+                <div className="text-xs text-gray-600 mt-1">Composite metric</div>
               </div>
             </div>
             
@@ -437,6 +482,18 @@ const EmailTab = ({ emailData, campaigns }) => {
             )}
           </>
         )}
+      </div>
+
+      {/* Automated Reporting */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-lg font-semibold text-gray-900">Automated Reporting</h4>
+        </div>
+        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
+          <div className="text-sm font-medium text-gray-900 mb-2">Weekly Digest</div>
+          <div className="text-xs text-gray-700 mb-3">Every Monday at 9am, receive a summary of email performance trends, top campaigns, and actionable insights.</div>
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">Configure Schedule</button>
+        </div>
       </div>
 
       {/* AI Recommendations Hub */}
