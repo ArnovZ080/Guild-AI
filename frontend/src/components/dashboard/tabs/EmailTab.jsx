@@ -210,6 +210,197 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
         </div>
       </div>
 
+      {/* AI-Powered Insights - Mind-Blowing Features */}
+      <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 rounded-xl shadow-lg p-6 border-2 border-purple-200">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg">
+              <Brain className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h4 className="text-lg font-bold text-gray-900">AI-Powered Insights</h4>
+              <p className="text-sm text-gray-600">Real-time intelligence from Judge Layer + Agent Workforce</p>
+            </div>
+          </div>
+          <button onClick={()=>setMindBlowingOpen(!mindBlowingOpen)} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all flex items-center">
+            {mindBlowingOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide</> : <><ChevronDown className="w-4 h-4 mr-2"/>View</>}
+          </button>
+        </div>
+        
+        {mindBlowingOpen && (
+          <div className="space-y-4">
+            {/* Real-time Anomalies */}
+            {anomalies.length > 0 && (
+              <div className="bg-white rounded-lg p-5 border-l-4 border-red-500 shadow-sm">
+                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  Real-Time Anomalies Detected
+                </h5>
+                <div className="space-y-3">
+                  {anomalies.map((anomaly, idx) => (
+                    <div key={idx} className={`p-4 rounded-lg border-2 ${
+                      anomaly.severity === 'high' ? 'bg-red-50 border-red-200' :
+                      anomaly.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' :
+                      'bg-blue-50 border-blue-200'
+                    }`}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`px-2 py-0.5 rounded text-xs font-bold ${
+                              anomaly.severity === 'high' ? 'bg-red-200 text-red-800' :
+                              anomaly.severity === 'medium' ? 'bg-yellow-200 text-yellow-800' :
+                              'bg-blue-200 text-blue-800'
+                            }`}>
+                              {anomaly.severity.toUpperCase()}
+                            </span>
+                            <span className="text-sm font-semibold text-gray-900">{anomaly.type.replace(/_/g, ' ').toUpperCase()}</span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{anomaly.details}</p>
+                          <div className="flex items-start gap-2 text-xs">
+                            <Info className="w-3 h-3 mt-0.5 text-gray-500" />
+                            <div>
+                              <p className="text-gray-600"><strong>Likely cause:</strong> {anomaly.likely_cause}</p>
+                              <p className="text-gray-600"><strong>Evidence:</strong> {anomaly.evidence}</p>
+                              <p className="text-green-600 mt-1"><strong>Auto-action taken:</strong> {anomaly.auto_action_taken}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="ml-4 text-right">
+                          <div className="text-xs text-gray-500 mb-1">Confidence</div>
+                          <div className="text-lg font-bold text-gray-900">{Math.round(anomaly.confidence * 100)}%</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600">
+                        <strong>Recommended:</strong> {anomaly.recommended_action}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-xs text-gray-600 bg-gray-50 rounded p-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Automation Agent actively monitoring and taking corrective actions
+                </div>
+              </div>
+            )}
+
+            {/* Trending Campaign Ideas */}
+            {trendIdeas.length > 0 && (
+              <div className="bg-white rounded-lg p-5 border-l-4 border-green-500 shadow-sm">
+                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                  Trending Campaign Opportunities
+                </h5>
+                <div className="space-y-3">
+                  {trendIdeas.slice(0, 2).map((trend, idx) => (
+                    <div key={idx} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs font-bold">{trend.momentum.toUpperCase()}</span>
+                            <span className="text-sm font-bold text-gray-900">{trend.trend}</span>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{trend.suggested_angle}</p>
+                          <div className="space-y-1 mb-2">
+                            <p className="text-xs font-semibold text-gray-700">Suggested Subject Lines:</p>
+                            {trend.subject_lines.slice(0, 2).map((subj, sidx) => (
+                              <div key={sidx} className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-green-100">
+                                "{subj}"
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="ml-4 text-right">
+                          <div className="text-xs text-gray-500 mb-1">Relevance</div>
+                          <div className="text-2xl font-bold text-green-600">{Math.round(trend.relevance_score * 100)}%</div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2 text-xs">
+                        <Info className="w-3 h-3 mt-0.5 text-gray-500" />
+                        <div>
+                          <p className="text-gray-600"><strong>Why now:</strong> {trend.why}</p>
+                          <p className="text-orange-600 mt-1"><strong>Timing:</strong> {trend.timing}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-center mt-3">
+                        <button 
+                          onClick={() => setShowAICreate(true)}
+                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+                        >
+                          <Zap className="w-4 h-4" />
+                          Create Campaign from This Trend
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 text-xs text-gray-600 bg-gray-50 rounded p-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Market Trends Agent + Trend Spotter Agent analyzing real-time data
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions Grid */}
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* Revenue Prediction */}
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h6 className="font-semibold text-gray-900">Revenue Forecasting</h6>
+                    <p className="text-xs text-gray-600">Predict campaign revenue with AI</p>
+                  </div>
+                </div>
+                <div className="flex justify-center mt-2">
+                  <button 
+                    onClick={() => setShowRevenuePrediction({ segmentId: segments?.[0]?.id, campaignType: 'promotional' })}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    View Predictions
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer Intelligence */}
+              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Brain className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h6 className="font-semibold text-gray-900">Customer Intelligence</h6>
+                    <p className="text-xs text-gray-600">Behavioral insights & opportunities</p>
+                  </div>
+                </div>
+                <div className="flex justify-center mt-2">
+                  <button 
+                    onClick={() => setShowCustomerIntel(segments?.[0]?.id || 'all')}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+                  >
+                    View Insights
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 mt-4">
+              <div className="flex items-start gap-2">
+                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-900 mb-1">About These Insights</p>
+                  <p className="text-sm text-blue-700">
+                    All predictions and recommendations are generated by specialized AI agents and validated through the Judge Layer quality assurance system. 
+                    Each insight includes confidence scores and transparent reasoning to help you make informed decisions.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Active Campaigns */}
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
@@ -632,191 +823,6 @@ const EmailTab = ({ emailData, campaigns, onSwitchToCalendar }) => {
           </div>
         </div>
       )}
-
-      {/* AI-Powered Insights - Mind-Blowing Features */}
-      <div className="bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 rounded-xl shadow-lg p-6 border-2 border-purple-200">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg">
-              <Brain className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h4 className="text-lg font-bold text-gray-900">AI-Powered Insights</h4>
-              <p className="text-sm text-gray-600">Real-time intelligence from Judge Layer + Agent Workforce</p>
-            </div>
-          </div>
-          <button onClick={()=>setMindBlowingOpen(!mindBlowingOpen)} className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all flex items-center">
-            {mindBlowingOpen ? <><ChevronUp className="w-4 h-4 mr-2"/>Hide</> : <><ChevronDown className="w-4 h-4 mr-2"/>View</>}
-          </button>
-        </div>
-        
-        {mindBlowingOpen && (
-          <div className="space-y-4">
-            {/* Real-time Anomalies */}
-            {anomalies.length > 0 && (
-              <div className="bg-white rounded-lg p-5 border-l-4 border-red-500 shadow-sm">
-                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                  Real-Time Anomalies Detected
-                </h5>
-                <div className="space-y-3">
-                  {anomalies.map((anomaly, idx) => (
-                    <div key={idx} className={`p-4 rounded-lg border-2 ${
-                      anomaly.severity === 'high' ? 'bg-red-50 border-red-200' :
-                      anomaly.severity === 'medium' ? 'bg-yellow-50 border-yellow-200' :
-                      'bg-blue-50 border-blue-200'
-                    }`}>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                              anomaly.severity === 'high' ? 'bg-red-200 text-red-800' :
-                              anomaly.severity === 'medium' ? 'bg-yellow-200 text-yellow-800' :
-                              'bg-blue-200 text-blue-800'
-                            }`}>
-                              {anomaly.severity.toUpperCase()}
-                            </span>
-                            <span className="text-sm font-semibold text-gray-900">{anomaly.type.replace(/_/g, ' ').toUpperCase()}</span>
-                          </div>
-                          <p className="text-sm text-gray-700 mb-2">{anomaly.details}</p>
-                          <div className="flex items-start gap-2 text-xs">
-                            <Info className="w-3 h-3 mt-0.5 text-gray-500" />
-                            <div>
-                              <p className="text-gray-600"><strong>Likely cause:</strong> {anomaly.likely_cause}</p>
-                              <p className="text-gray-600"><strong>Evidence:</strong> {anomaly.evidence}</p>
-                              <p className="text-green-600 mt-1"><strong>Auto-action taken:</strong> {anomaly.auto_action_taken}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="ml-4 text-right">
-                          <div className="text-xs text-gray-500 mb-1">Confidence</div>
-                          <div className="text-lg font-bold text-gray-900">{Math.round(anomaly.confidence * 100)}%</div>
-                        </div>
-                      </div>
-                      <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-600">
-                        <strong>Recommended:</strong> {anomaly.recommended_action}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 text-xs text-gray-600 bg-gray-50 rounded p-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Automation Agent actively monitoring and taking corrective actions
-                </div>
-              </div>
-            )}
-
-            {/* Trending Campaign Ideas */}
-            {trendIdeas.length > 0 && (
-              <div className="bg-white rounded-lg p-5 border-l-4 border-green-500 shadow-sm">
-                <h5 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-green-600" />
-                  Trending Campaign Opportunities
-                </h5>
-                <div className="space-y-3">
-                  {trendIdeas.slice(0, 2).map((trend, idx) => (
-                    <div key={idx} className="p-4 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="px-2 py-0.5 bg-green-200 text-green-800 rounded text-xs font-bold">{trend.momentum.toUpperCase()}</span>
-                            <span className="text-sm font-bold text-gray-900">{trend.trend}</span>
-                          </div>
-                          <p className="text-sm text-gray-700 mb-2">{trend.suggested_angle}</p>
-                          <div className="space-y-1 mb-2">
-                            <p className="text-xs font-semibold text-gray-700">Suggested Subject Lines:</p>
-                            {trend.subject_lines.slice(0, 2).map((subj, sidx) => (
-                              <div key={sidx} className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-green-100">
-                                "{subj}"
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="ml-4 text-right">
-                          <div className="text-xs text-gray-500 mb-1">Relevance</div>
-                          <div className="text-2xl font-bold text-green-600">{Math.round(trend.relevance_score * 100)}%</div>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-2 text-xs">
-                        <Info className="w-3 h-3 mt-0.5 text-gray-500" />
-                        <div>
-                          <p className="text-gray-600"><strong>Why now:</strong> {trend.why}</p>
-                          <p className="text-orange-600 mt-1"><strong>Timing:</strong> {trend.timing}</p>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={() => setShowAICreate(true)}
-                        className="mt-3 w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                      >
-                        <Zap className="w-4 h-4" />
-                        Create Campaign from This Trend
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 text-xs text-gray-600 bg-gray-50 rounded p-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  Market Trends Agent + Trend Spotter Agent analyzing real-time data
-                </div>
-              </div>
-            )}
-
-            {/* Quick Actions Grid */}
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Revenue Prediction */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h6 className="font-semibold text-gray-900">Revenue Forecasting</h6>
-                    <p className="text-xs text-gray-600">Predict campaign revenue with AI</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowRevenuePrediction({ segmentId: segments?.[0]?.id, campaignType: 'promotional' })}
-                  className="w-full mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                >
-                  View Predictions
-                </button>
-              </div>
-
-              {/* Customer Intelligence */}
-              <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Brain className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h6 className="font-semibold text-gray-900">Customer Intelligence</h6>
-                    <p className="text-xs text-gray-600">Behavioral insights & opportunities</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setShowCustomerIntel(segments?.[0]?.id || 'all')}
-                  className="w-full mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                >
-                  View Insights
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200 mt-4">
-              <div className="flex items-start gap-2">
-                <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-blue-900 mb-1">About These Insights</p>
-                  <p className="text-sm text-blue-700">
-                    All predictions and recommendations are generated by specialized AI agents and validated through the Judge Layer quality assurance system. 
-                    Each insight includes confidence scores and transparent reasoning to help you make informed decisions.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
 
       {/* AI Recommendations Hub - moved here as it should be last */}
       <div className="bg-white rounded-lg shadow-lg p-6">
