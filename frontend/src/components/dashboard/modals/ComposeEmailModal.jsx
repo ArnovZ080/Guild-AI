@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, Shield } from 'lucide-react';
+import { X, Send, Shield, Brain } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 import ChatEmailComposeAssistantModal from './ChatEmailComposeAssistantModal.jsx';
 

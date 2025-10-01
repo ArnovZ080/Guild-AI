@@ -116,7 +116,7 @@ const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
               <p className="text-sm text-gray-600">Let AI create an optimized email campaign for you</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+          <button onClick={()=>onClose()} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>

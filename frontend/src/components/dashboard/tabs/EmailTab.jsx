@@ -282,8 +282,8 @@ const EmailTab = ({ emailData, campaigns }) => {
                   </div>
                   <div className="flex items-center gap-2">
                     <button className="px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs" onClick={()=>setViewingEmail(msg)}>Open</button>
-                    <button className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-xs">Reply (AI)</button>
-                    <button className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors text-xs" title="Assign to support or sales workflow">Assign</button>
+                    <button className="px-3 py-1.5 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-xs" onClick={()=>{ setShowCompose(true); /* TODO: pre-fill To with msg.from */ }}>Reply (AI)</button>
+                    <button className="px-3 py-1.5 bg-gray-100 text-gray-800 rounded-md hover:bg-gray-200 transition-colors text-xs" title="Assign to support or sales workflow" onClick={()=>alert('Assign to sales/support workflow via CRM automation agent')}>Assign</button>
                   </div>
                 </div>
               ))}
@@ -460,8 +460,8 @@ const EmailTab = ({ emailData, campaigns }) => {
                   <span><strong>Why:</strong> {s.reason}</span>
                 </div>
                 <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">Apply Suggestion</button>
-                  <button className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm">Customize First</button>
+                  <button onClick={()=>alert(`Applying: ${s.title}`)} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">Apply Suggestion</button>
+                  <button onClick={()=>{ setShowAICreate(true); /* TODO: pre-fill with suggestion context */ }} className="px-4 py-2 bg-gray-100 text-gray-800 rounded-lg hover:bg-gray-200 transition-colors text-sm">Customize First</button>
                 </div>
               </div>
             ))}
