@@ -439,6 +439,12 @@ const AssetsTab = ({ assets = [] }) => {
                 videoAssets.map(asset => (
                   <div key={asset.asset_id} className="flex-shrink-0 w-80">
                     <AssetCard asset={asset} type="video" />
+                    <button
+                      onClick={() => alert('Direct button test for: ' + asset.name)}
+                      className="mt-2 w-full px-2 py-1 bg-orange-500 text-white text-xs rounded"
+                    >
+                      Direct Test Button
+                    </button>
                   </div>
                 ))
               ) : (
@@ -481,6 +487,15 @@ const AssetsTab = ({ assets = [] }) => {
                 imageAssets.map(asset => (
                   <div key={asset.asset_id} className="flex-shrink-0 w-80">
                     <AssetCard asset={asset} type="image" />
+                    <button
+                      onClick={() => {
+                        alert('Direct button works! Opening modal for: ' + asset.name);
+                        handleAIEdit(asset);
+                      }}
+                      className="mt-2 w-full px-2 py-1 bg-orange-500 text-white text-xs rounded"
+                    >
+                      Direct Test → Edit with AI
+                    </button>
                   </div>
                 ))
               ) : (
