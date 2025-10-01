@@ -115,13 +115,17 @@ const AssetsTab = ({ assets = [] }) => {
 
   // Handle AI edit with asset
   const handleAIEdit = (asset) => {
+    console.log('handleAIEdit called with asset:', asset);
     if (asset.type === 'image') {
+      console.log('Opening image generation modal');
       setSelectedAsset(asset);
       setShowGenerateImageModal(true);
     } else if (asset.type === 'video') {
+      console.log('Opening video generation modal');
       setSelectedAsset(asset);
       setShowGenerateVideoModal(true);
     } else {
+      console.log('Opening edit modal for template/sound');
       // For templates and sounds, open the metadata edit modal
       setSelectedAsset(asset);
       setShowEditModal(true);
@@ -130,8 +134,12 @@ const AssetsTab = ({ assets = [] }) => {
 
   // Handle asset delete
   const handleAssetDelete = (assetId) => {
+    console.log('handleAssetDelete called with assetId:', assetId);
     if (window.confirm('Are you sure you want to delete this asset?')) {
+      console.log('User confirmed deletion');
       setLocalAssets(prev => prev.filter(asset => asset.asset_id !== assetId));
+    } else {
+      console.log('User cancelled deletion');
     }
   };
 
@@ -184,41 +192,6 @@ const AssetsTab = ({ assets = [] }) => {
             </div>
           )}
           
-          {/* Overlay actions on hover */}
-          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center opacity-0 group-hover:opacity-100">
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(asset.url, '_blank');
-                }}
-                className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
-                title="View"
-              >
-                <Eye className="w-4 h-4 text-gray-700" />
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAIEdit(asset);
-                }}
-                className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
-                title="Edit with AI"
-              >
-                <Sparkles className="w-4 h-4 text-blue-600" />
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAssetDelete(asset.asset_id);
-                }}
-                className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
-                title="Delete"
-              >
-                <Trash2 className="w-4 h-4 text-red-600" />
-              </button>
-            </div>
-          </div>
 
           {/* AI Generated Badge */}
           {asset.ai_generated && (
@@ -245,8 +218,9 @@ const AssetsTab = ({ assets = [] }) => {
           {/* Action Buttons */}
           <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
+              type="button"
+              onClick={() => {
+                console.log('Edit with AI button clicked!', asset);
                 handleAIEdit(asset);
               }}
               className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
@@ -255,8 +229,9 @@ const AssetsTab = ({ assets = [] }) => {
               Edit with AI
             </button>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
+              type="button"
+              onClick={() => {
+                console.log('Delete button clicked!', asset.asset_id);
                 handleAssetDelete(asset.asset_id);
               }}
               className="px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
