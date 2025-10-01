@@ -113,6 +113,21 @@ const AssetsTab = ({ assets = [] }) => {
     setSelectedAsset(null);
   };
 
+  // Handle AI edit with asset
+  const handleAIEdit = (asset) => {
+    if (asset.type === 'image') {
+      setSelectedAsset(asset);
+      setShowGenerateImageModal(true);
+    } else if (asset.type === 'video') {
+      setSelectedAsset(asset);
+      setShowGenerateVideoModal(true);
+    } else {
+      // For templates and sounds, open the metadata edit modal
+      setSelectedAsset(asset);
+      setShowEditModal(true);
+    }
+  };
+
   // Handle asset delete
   const handleAssetDelete = (assetId) => {
     if (window.confirm('Are you sure you want to delete this asset?')) {
@@ -224,14 +239,11 @@ const AssetsTab = ({ assets = [] }) => {
           {/* Action Buttons */}
           <div className="flex items-center space-x-2 mt-3 pt-3 border-t border-gray-100">
             <button
-              onClick={() => {
-                setSelectedAsset(asset);
-                setShowEditModal(true);
-              }}
+              onClick={() => handleAIEdit(asset)}
               className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
             >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
+              <Sparkles className="w-3 h-3 mr-1" />
+              Edit with AI
             </button>
             <button
               onClick={() => handleAssetDelete(asset.asset_id)}
@@ -529,17 +541,25 @@ const AssetsTab = ({ assets = [] }) => {
 
       {showGenerateImageModal && (
         <GenerateImageModal
-          onClose={() => setShowGenerateImageModal(false)}
+          onClose={() => {
+            setShowGenerateImageModal(false);
+            setSelectedAsset(null);
+          }}
           onGenerate={handleImageGeneration}
           availableAssets={localAssets}
+          initialReferenceAsset={selectedAsset}
         />
       )}
 
       {showGenerateVideoModal && (
         <GenerateVideoModal
-          onClose={() => setShowGenerateVideoModal(false)}
+          onClose={() => {
+            setShowGenerateVideoModal(false);
+            setSelectedAsset(null);
+          }}
           onGenerate={handleVideoGeneration}
           availableAssets={localAssets}
+          initialReferenceAsset={selectedAsset}
         />
       )}
 

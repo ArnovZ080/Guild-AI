@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Video, Wand2, RefreshCw, Download, Loader, Image as ImageIcon } from 'lucide-react';
 
-const GenerateVideoModal = ({ onClose, onGenerate, availableAssets = [] }) => {
+const GenerateVideoModal = ({ onClose, onGenerate, availableAssets = [], initialReferenceAsset = null }) => {
   const [videoType, setVideoType] = useState('slideshow'); // 'slideshow', 'text_video', 'social_media'
   const [content, setContent] = useState('');
   const [platform, setPlatform] = useState('instagram');
@@ -13,6 +13,25 @@ const GenerateVideoModal = ({ onClose, onGenerate, availableAssets = [] }) => {
   const [generatedVideo, setGeneratedVideo] = useState(null);
   const [error, setError] = useState(null);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
+
+  // Pre-populate with reference asset if provided
+  useEffect(() => {
+    if (initialReferenceAsset) {
+      if (initialReferenceAsset.type === 'image') {
+        // Add the image to the slideshow
+        setImages([{
+          file: null,
+          url: initialReferenceAsset.url,
+          name: initialReferenceAsset.name
+        }]);
+        setVideoType('slideshow');
+      } else if (initialReferenceAsset.type === 'video') {
+        // Set content based on video name
+        setContent(`Create a variation of ${initialReferenceAsset.name}`);
+        setVideoType('social_media');
+      }
+    }
+  }, [initialReferenceAsset]);
 
   const videoTypes = [
     { 

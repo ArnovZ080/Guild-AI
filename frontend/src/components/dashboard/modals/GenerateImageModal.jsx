@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Image, Wand2, RefreshCw, Download, Loader } from 'lucide-react';
 
-const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [] }) => {
+const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [], initialReferenceAsset = null }) => {
   const [prompt, setPrompt] = useState('');
   const [style, setStyle] = useState('professional');
   const [mood, setMood] = useState('neutral');
@@ -12,6 +12,15 @@ const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [] }) => {
   const [error, setError] = useState(null);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
   const [selectedReferenceAssets, setSelectedReferenceAssets] = useState([]);
+
+  // Pre-populate reference asset if provided
+  useEffect(() => {
+    if (initialReferenceAsset && initialReferenceAsset.type === 'image') {
+      setSelectedReferenceAssets([initialReferenceAsset]);
+      // Pre-fill prompt with a helpful suggestion
+      setPrompt(`Create a variation of ${initialReferenceAsset.name}`);
+    }
+  }, [initialReferenceAsset]);
 
   const styles = [
     { value: 'professional', label: 'Professional', description: 'Clean, modern, business-appropriate' },
