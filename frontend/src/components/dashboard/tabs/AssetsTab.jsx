@@ -32,14 +32,58 @@ const AssetsTab = ({ assets = [] }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
   
-  // Section visibility states
-  const [showVideos, setShowVideos] = useState(false);
-  const [showImages, setShowImages] = useState(false);
-  const [showTemplates, setShowTemplates] = useState(false);
+  // Section visibility states - set to true by default for testing
+  const [showVideos, setShowVideos] = useState(true);
+  const [showImages, setShowImages] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(true);
   const [showSounds, setShowSounds] = useState(false);
 
   // Mock assets data (this would come from props/state in real implementation)
-  const [localAssets, setLocalAssets] = useState(assets);
+  // Adding some test data if no assets provided
+  const initialAssets = assets.length > 0 ? assets : [
+    {
+      asset_id: 'test_img_1',
+      type: 'image',
+      name: 'Product Photo 1',
+      description: 'Main product image for marketing',
+      url: 'https://via.placeholder.com/400x300/6366f1/ffffff?text=Product+Photo+1',
+      created_at: new Date().toISOString(),
+      created_by: 'You',
+      ai_generated: false
+    },
+    {
+      asset_id: 'test_img_2',
+      type: 'image',
+      name: 'Brand Logo',
+      description: 'AI-generated brand logo',
+      url: 'https://via.placeholder.com/400x300/8b5cf6/ffffff?text=Brand+Logo',
+      created_at: new Date().toISOString(),
+      created_by: 'Image Generator Agent',
+      ai_generated: true
+    },
+    {
+      asset_id: 'test_video_1',
+      type: 'video',
+      name: 'Product Demo Video',
+      description: 'Demo video for social media',
+      url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+      created_at: new Date().toISOString(),
+      created_by: 'Video Editor Agent',
+      ai_generated: true
+    },
+    {
+      asset_id: 'test_template_1',
+      type: 'template',
+      name: 'Email Template',
+      description: 'Standard email campaign template',
+      url: null,
+      created_at: new Date().toISOString(),
+      created_by: 'You',
+      ai_generated: false
+    }
+  ];
+  
+  const [localAssets, setLocalAssets] = useState(initialAssets);
 
   // Filter assets by type
   const filterAssetsByType = (type) => {
@@ -248,6 +292,23 @@ const AssetsTab = ({ assets = [] }) => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-lg p-6">
+        {/* Test Button for Debugging */}
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800 mb-2">Debug Test:</p>
+          <button
+            type="button"
+            onClick={() => {
+              console.log('TEST BUTTON CLICKED!');
+              console.log('localAssets:', localAssets);
+              console.log('showGenerateImageModal:', showGenerateImageModal);
+              alert('Test button works! Check console for state info.');
+            }}
+            className="px-3 py-1 bg-yellow-500 text-white rounded text-sm"
+          >
+            Test Click Handler
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
           <div className="flex items-center">
             <Image className="w-6 h-6 text-green-500 mr-3" />
