@@ -41,6 +41,7 @@ import {
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
 import MicroCampaignRulesModal from '../modals/MicroCampaignRulesModal';
+import CampaignImplementSummaryModal from '../modals/CampaignImplementSummaryModal';
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
 // removed AIOptimizeCampaignModal (redundant)
 import EmailTab from './EmailTab';
@@ -96,6 +97,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [showAIWorkflowModal, setShowAIWorkflowModal] = useState(false);
   const [showMicroRules, setShowMicroRules] = useState(false);
   const [rulesSegment, setRulesSegment] = useState(null);
+  const [showImplementModal, setShowImplementModal] = useState(false);
+  const [implementRecommendation, setImplementRecommendation] = useState(null);
+  const [showAICreate, setShowAICreate] = useState(false);
+  const [aiPrefill, setAiPrefill] = useState(null);
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [openMenuForId, setOpenMenuForId] = useState(null);
@@ -2102,8 +2107,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                     )}
                     <div className="mt-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Tooltip label="Create a ready-to-run draft and hand off to orchestrator + enhanced_campaign_agent."><button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
-                        <Tooltip label="Open AI workflow creator to customize before launch."><button onClick={()=>setShowAIWorkflowModal(true)} className="px-3 py-1.5 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700">Customize</button></Tooltip>
+                        <Tooltip label="Create a ready-to-run draft and hand off to orchestrator + enhanced_campaign_agent."><button onClick={()=>{ setImplementRecommendation(idea); setShowImplementModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">Implement</button></Tooltip>
+                        <Tooltip label="Open AI campaign creator with fields pre-filled."><button onClick={()=>{ setAiPrefill(idea); setShowAICreate(true); }} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs">Customize</button></Tooltip>
                       </div>
                       <Tooltip label="Explain how agents arrived at this idea."><span className="text-xs text-gray-500">Transparency: rationale shown</span></Tooltip>
                     </div>
@@ -2175,8 +2180,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                         </ul>
                       </div>
                       <div className="mt-3 flex items-center space-x-2">
-                        <button className="px-3 py-1.5 text-xs rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Draft micro-campaign</button>
-                        <button className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">Implement</button>
+                        <button className="px-4 py-2 text-xs rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" onClick={()=>{ setAiPrefill(seg); setShowAICreate(true); }}>Draft micro-campaign</button>
+                        <button className="px-4 py-2 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={()=>{ setImplementRecommendation(seg); setShowImplementModal(true); }}>Implement</button>
                         <button className="px-3 py-1.5 text-xs rounded-lg border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button>
                       </div>
                     </div>
@@ -2227,7 +2232,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                         }}
                         className="px-3 py-1.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
                       >Draft micro-campaign</button></Tooltip>
-                      <Tooltip label="Triggers orchestration to run this micro-campaign with guardrails."><button onClick={()=>activateMicroSegment(seg)} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
+                      <Tooltip label="Triggers orchestration to run this micro-campaign with guardrails."><button onClick={()=>{ setImplementRecommendation(seg); setShowImplementModal(true); }} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
                       <Tooltip label="Define human-in-the-loop constraints (e.g., discount limits)."><button className="px-3 py-1.5 text-xs rounded-md border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button></Tooltip>
                     </div>
                   </div>
@@ -2251,6 +2256,35 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
         onSave={(payload)=>{
           try { logCampaignActivity('global', { actor: 'Lead Personalization Agent', action: 'set_micro_rules', reason: `Updated rules for ${payload.segmentName}`, payload }); } catch {}
         }}
+      />
+
+      <CampaignImplementSummaryModal
+        isOpen={showImplementModal}
+        onClose={()=>{ setShowImplementModal(false); setImplementRecommendation(null); }}
+        recommendation={implementRecommendation}
+        onConfirm={(edits)=>{
+          // proceed to orchestrate with recommended idea + minor edits
+          if (!implementRecommendation) return;
+          const idea = implementRecommendation;
+          const campaign_data = {
+            platform: (idea.platform || (Array.isArray(idea.channels) && idea.channels[0]) || (Array.isArray(idea.suggested_channels) && idea.suggested_channels[0]) || 'tiktok'),
+            objective: idea.title || idea.angle || 'growth_campaign',
+            duration: Number(edits?.duration)||7,
+            budget: Number(edits?.budget)||undefined,
+            audience: { description: edits?.targeting || idea.targeting || idea.audience || '' },
+            angle: idea.angle || idea.title,
+            rationale: idea.why,
+            sources: idea.sources
+          };
+          activateRecommendation(campaign_data);
+          setShowImplementModal(false);
+        }}
+      />
+
+      <AICreateCampaignModal
+        isOpen={showAICreate}
+        onClose={()=>{ setShowAICreate(false); setAiPrefill(null); }}
+        onCreateCampaign={(c)=>{ onCreateCampaign?.(c); }}
       />
 
       {/* Thresholds Settings Modal (global) */}
