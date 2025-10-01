@@ -34,7 +34,9 @@ import {
   Sliders,
   Globe,
   Hash,
-  Info
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
