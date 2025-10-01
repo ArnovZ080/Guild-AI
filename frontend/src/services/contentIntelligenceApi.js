@@ -1216,7 +1216,7 @@ export class ContentIntelligenceAPIService {
           sent: 4200
         },
         success_factors: [
-          { factor: 'Subject line urgency', contribution: '35%', specific: 'Limited time offer' drove opens' },
+          { factor: 'Subject line urgency', contribution: '35%', specific: '"Limited time offer" drove opens' },
           { factor: 'Personalization level', contribution: '28%', specific: 'Company name + role references' },
           { factor: 'Send timing', contribution: '20%', specific: 'Tuesday 10 AM optimal' },
           { factor: 'Social proof section', contribution: '17%', specific: 'Customer testimonials increased trust' }
