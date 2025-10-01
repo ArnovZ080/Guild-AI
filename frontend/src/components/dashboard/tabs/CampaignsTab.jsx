@@ -1998,85 +1998,136 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       )}
 
       {/* Next Best Campaigns - independent section below Campaign Details */}
-      <div className="mt-6 bg-white rounded-lg shadow-sm border">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="mt-6 bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4 bg-gray-50 border-b">
           <div className="flex items-center space-x-2">
-            <Lightbulb className="w-4 h-4 text-purple-600" />
-            <span className="font-semibold text-gray-900">Next Best Campaigns</span>
-            <span className="text-xs text-gray-500">(market_trends_agent + trend_spotter_agent)</span>
+            <Lightbulb className="w-5 h-5 text-purple-600" />
+            <span className="text-lg font-semibold text-gray-900">Next Best Campaigns</span>
+            <Tooltip label="Signals gathered by market_trends_agent + trend_spotter_agent. We show the rationale so you can see why we recommend it."><span className="text-xs text-gray-500">(market_trends_agent + trend_spotter_agent)</span></Tooltip>
           </div>
           <div className="flex items-center space-x-2">
-            <input type="checkbox" className="rounded" checked={nextBestFilters.b2bOnly} onChange={(e)=>setNextBestFilters(p=>({...p,b2bOnly:e.target.checked}))} />
-            <span className="text-xs text-gray-700">B2B only</span>
-            <input type="text" placeholder="Preferred channels e.g. instagram,email" value={nextBestFilters.channels} onChange={(e)=>setNextBestFilters(p=>({...p,channels:e.target.value}))} className="ml-2 px-2 py-1 text-xs border rounded" />
+            <label className="flex items-center space-x-1 text-xs text-gray-700">
+              <input type="checkbox" className="rounded border-gray-300" checked={nextBestFilters.b2bOnly} onChange={(e)=>setNextBestFilters(p=>({...p,b2bOnly:e.target.checked}))} />
+              <span>B2B only</span>
+            </label>
+            <input type="text" placeholder="Preferred channels e.g. instagram,email" value={nextBestFilters.channels} onChange={(e)=>setNextBestFilters(p=>({...p,channels:e.target.value}))} className="ml-2 px-3 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
             <button
               onClick={async ()=>{ setShowNextBestSection(v=>!v); if (!showNextBestSection) { await fetchNextBestGlobal({ filter_b2b: nextBestFilters.b2bOnly, channels: nextBestFilters.channels }); } }}
-              className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+              className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
             >{showNextBestSection ? 'Hide' : 'Show'}</button>
           </div>
         </div>
         {showNextBestSection && (
-          <div className="p-4">
-            <div className="text-xs text-gray-600 mb-3">Purpose: Surface fresh, data-driven campaign concepts from live market and cultural signals. Signals gathered independently, synthesized into plain-language ideas.</div>
+          <div className="p-6">
+            <div className="text-sm text-gray-700 mb-4">
+              <span className="font-medium text-gray-900">Purpose:</span> Surface fresh, data-driven campaign concepts from live market and cultural signals.
+              <span className="ml-1">Signals are gathered independently and synthesized into plain-language ideas for clarity.</span>
+            </div>
             {!nextBestGlobal ? (
-              <div className="text-xs text-gray-500">Loading…</div>
+              <div className="text-sm text-gray-500">Loading…</div>
             ) : (nextBestGlobal.ideas||[]).length===0 ? (
-              <div className="text-xs text-gray-500">No suggestions yet.</div>
+              <div className="text-sm text-gray-500">No suggestions yet.</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(nextBestGlobal.ideas||[]).slice(0,5).map((idea, idx)=> (
-                  <div key={idx} className="p-3 border rounded">
-                    <div className="font-medium text-gray-900">{idea.title || 'Untitled idea'}</div>
-                    <div className="text-xs text-gray-700 mt-0.5">Angle: {idea.angle || '—'}</div>
-                    <div className="text-xs text-gray-700">Suggested channels: {(idea.channels||idea.suggested_channels||[]).join(', ') || '—'}</div>
-                    <div className="text-xs text-gray-700 mt-1">Why it matters: {idea.why || 'Relevant based on current trend signals.'}</div>
+                  <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="font-semibold text-gray-900">{idea.title || 'Untitled idea'}</div>
+                      {idea.confidence && (<span className="ml-2 px-2 py-0.5 text-[11px] rounded-full bg-purple-50 text-purple-700 border border-purple-200">{Math.round((idea.confidence||0)*100)}% confidence</span>)}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-700">Angle: {idea.angle || '—'}</div>
+                    <div className="mt-1 text-xs text-gray-700">Suggested channels: {(idea.channels||idea.suggested_channels||[]).join(', ') || '—'}</div>
+                    <div className="mt-2 p-3 bg-green-50 border-l-4 border-green-500 rounded-r">
+                      <div className="text-xs text-gray-800"><span className="font-semibold">Why now:</span> {idea.why || 'Relevant based on current trend signals.'}</div>
+                      {idea.evidence && (
+                        <div className="mt-1 text-[11px] text-gray-700"><span className="font-semibold">Evidence:</span> {idea.evidence}</div>
+                      )}
+                    </div>
                     {Array.isArray(idea.sources) && idea.sources.length>0 && (
-                      <div className="mt-1 text-[11px] text-gray-600">Sources: {idea.sources.map((s,i)=> (<a key={i} href={s} target="_blank" rel="noreferrer" className="text-blue-600 underline">source {i+1}</a>))}</div>
+                      <div className="mt-2 text-[11px] text-gray-600">Sources: {idea.sources.map((s,i)=> (<a key={i} href={s} target="_blank" rel="noreferrer" className="text-blue-600 underline">source {i+1}</a>))}</div>
                     )}
                     <div className="mt-2 text-xs text-gray-700">Projected effort & cost: {idea.effort_cost || 'Estimated moderate (creative refresh + light ad spend).'}</div>
-                    <div className="mt-2">
-                      <button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">Activate campaign</button>
+                    {Array.isArray(idea.recommendations) && idea.recommendations.length>0 && (
+                      <div className="mt-3">
+                        <div className="text-xs font-semibold text-gray-900 mb-1">Recommended Actions</div>
+                        <ul className="list-disc pl-5 text-xs text-gray-700 space-y-1">
+                          {idea.recommendations.slice(0,3).map((rec, rIdx)=>(<li key={rIdx}>{rec}</li>))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Tooltip label="Create a ready-to-run draft and hand off to orchestrator + enhanced_campaign_agent."><button onClick={()=>activateRecommendation(idea)} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
+                        <Tooltip label="Open AI workflow creator to customize before launch."><button onClick={()=>setShowAIWorkflowModal(true)} className="px-3 py-1.5 text-xs rounded-md bg-purple-600 text-white hover:bg-purple-700">Customize</button></Tooltip>
+                      </div>
+                      <Tooltip label="Explain how agents arrived at this idea."><span className="text-xs text-gray-500">Transparency: rationale shown</span></Tooltip>
                     </div>
                   </div>
                 ))}
               </div>
             )}
+            <div className="mt-4 bg-blue-50 rounded-lg p-3 border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
+              <Info className="w-4 h-4 mt-0.5 text-blue-600" />
+              <div>
+                All ideas are synthesized by Business Intelligence from Market Trends + Trend Spotter agents. Each card shows the rationale and source links for full transparency.
+              </div>
+            </div>
           </div>
         )}
       </div>
 
       {/* Personalized Micro-campaigns - independent section below Next Best */}
-      <div className="mt-4 bg-white rounded-lg shadow-sm border">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="mt-4 bg-white rounded-lg shadow-lg overflow-hidden">
+        <div className="flex items-center justify-between p-4 bg-gray-50 border-b">
           <div className="flex items-center space-x-2">
-            <Users className="w-4 h-4 text-emerald-600" />
-            <span className="font-semibold text-gray-900">Personalized Micro-campaigns</span>
-            <span className="text-xs text-gray-500">(lead_personalization_agent + upsell_cross_sell_agent)</span>
+            <Users className="w-5 h-5 text-emerald-600" />
+            <span className="text-lg font-semibold text-gray-900">Personalized Micro-campaigns</span>
+            <Tooltip label="Built by lead_personalization_agent + upsell_cross_sell_agent using Customer Intelligence data."><span className="text-xs text-gray-500">(lead_personalization_agent + upsell_cross_sell_agent)</span></Tooltip>
           </div>
           <button
             onClick={async ()=>{ setShowMicroSection(v=>!v); if (!showMicroSection) { await fetchMicroGlobal({}); } }}
-            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+            className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
           >{showMicroSection ? 'Hide' : 'Show'}</button>
         </div>
         {showMicroSection && (
-          <div className="p-4">
-            <div className="text-xs text-gray-600 mb-3">Purpose: Automatically run small, targeted campaigns for micro-segments to maximize conversions. Default autonomous; optional human-in-the-loop rules.</div>
+          <div className="p-6">
+            <div className="text-sm text-gray-700 mb-4">
+              <span className="font-medium text-gray-900">Purpose:</span> Automatically run small, targeted campaigns for micro-segments to maximize conversions.
+              <span className="ml-1">Default: autonomous. Optional human-in-the-loop rules for control.</span>
+            </div>
             {!microGlobal ? (
-              <div className="text-xs text-gray-500">Loading…</div>
+              <div className="text-sm text-gray-500">Loading…</div>
             ) : (microGlobal.segments||[]).length===0 ? (
-              <div className="text-xs text-gray-500">No segments yet.</div>
+              <div className="text-sm text-gray-500">No segments yet.</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(microGlobal.segments||[]).map((seg, idx)=> (
-                  <div key={idx} className="p-3 border rounded">
-                    <div className="font-medium text-gray-900">Segment: {seg.name}</div>
-                    <div className="text-xs text-gray-700">Channels: {(seg.channels||[]).join(', ')}</div>
-                    <div className="text-xs text-gray-700">Value Prop: {seg.value_prop}</div>
-                    <div className="text-xs text-gray-700">Campaign: {seg.campaign || seg.example || 'Tailored 3-touch sequence based on behavior.'}</div>
-                    <div className="text-xs text-gray-700">Status: {seg.status || 'Pending Approval'}</div>
-                    <div className="text-xs text-gray-700">Results: {seg.results ? JSON.stringify(seg.results) : '—'}</div>
-                    <div className="mt-2 flex items-center space-x-2">
-                      <button
+                  <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="font-semibold text-gray-900">Segment: {seg.name}</div>
+                      {seg.autonomy && (<span className="ml-2 px-2 py-0.5 text-[11px] rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{seg.autonomy}</span>)}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-700">Channels: {(seg.channels||[]).join(', ')}</div>
+                    <div className="mt-1 text-xs text-gray-700">Value Prop: {seg.value_prop}</div>
+                    <div className="mt-1 text-xs text-gray-700">Campaign: {seg.campaign || seg.example || 'Tailored 3-touch sequence based on behavior.'}</div>
+                    {seg.motivation && (
+                      <div className="mt-2 p-3 bg-green-50 border-l-4 border-green-500 rounded-r">
+                        <div className="text-xs text-gray-800"><span className="font-semibold">Why this segment:</span> {seg.motivation}</div>
+                        {seg.evidence && (<div className="mt-1 text-[11px] text-gray-700"><span className="font-semibold">Evidence:</span> {seg.evidence}</div>)}
+                      </div>
+                    )}
+                    <div className="mt-1 text-xs text-gray-700">Status: {seg.status || 'Pending Approval'}</div>
+                    <div className="mt-1 text-xs text-gray-700">Results: {seg.results ? JSON.stringify(seg.results) : '—'}</div>
+                    {Array.isArray(seg.recommendations) && seg.recommendations.length>0 && (
+                      <div className="mt-3">
+                        <div className="text-xs font-semibold text-gray-900 mb-1">Recommended Actions</div>
+                        <ul className="list-disc pl-5 text-xs text-gray-700 space-y-1">
+                          {seg.recommendations.slice(0,3).map((rec, rIdx)=>(<li key={rIdx}>{rec}</li>))}
+                        </ul>
+                      </div>
+                    )}
+                    <div className="mt-3 flex items-center space-x-2">
+                      <Tooltip label="Creates a draft micro-campaign and logs why this segment was chosen."><button
                         onClick={() => {
                           const draft = {
                             name: `${seg.name} Micro-campaign`,
@@ -2090,15 +2141,21 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                           onCreateCampaign?.({ ...draft, campaign_id: `draft_${Date.now()}` });
                           try { logCampaignActivity('global', { actor: 'Lead Personalization Agent', action: 'draft_micro_campaign', reason: `Drafted micro-campaign for segment ${seg.name}` }); } catch {}
                         }}
-                        className="px-3 py-1.5 text-xs rounded bg-emerald-600 text-white hover:bg-emerald-700"
-                      >Draft micro-campaign</button>
-                      <button onClick={()=>activateMicroSegment(seg)} className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">Activate</button>
-                      <button className="px-3 py-1.5 text-xs rounded border">Set rules…</button>
+                        className="px-3 py-1.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                      >Draft micro-campaign</button></Tooltip>
+                      <Tooltip label="Triggers orchestration to run this micro-campaign with guardrails."><button onClick={()=>activateMicroSegment(seg)} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
+                      <Tooltip label="Define human-in-the-loop constraints (e.g., discount limits)."><button className="px-3 py-1.5 text-xs rounded-md border border-gray-300">Set rules…</button></Tooltip>
                     </div>
                   </div>
                 ))}
               </div>
             )}
+            <div className="mt-4 bg-blue-50 rounded-lg p-3 border border-blue-200 text-xs text-blue-700 flex items-start gap-2">
+              <Info className="w-4 h-4 mt-0.5 text-blue-600" />
+              <div>
+                Micro-campaigns are assembled by Lead Personalization + Upsell/Cross-sell agents from Customer Intelligence signals. We display the reasoning so you can understand the recommendations.
+              </div>
+            </div>
           </div>
         )}
       </div>
