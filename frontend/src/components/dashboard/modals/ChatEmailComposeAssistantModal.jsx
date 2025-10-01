@@ -25,7 +25,7 @@ const ChatEmailComposeAssistantModal = ({ open, onClose, onApply, context = {} }
       });
       const draft = result?.data?.draft || {
         subject: 'Quick question about your recent order',
-        body: 'Hi there,\n\nI wanted to reach out regarding your recent purchase and make sure everything is going smoothly. If you have any questions, just hit reply — I'm here to help.\n\nBest,\nYour Name'
+        body: 'Hi there,\n\nI wanted to reach out regarding your recent purchase and make sure everything is going smoothly. If you have any questions, just hit reply - I am here to help.\n\nBest,\nYour Name'
       };
       setMessages(prev => [...prev, { id: `a_${Date.now()}`, role: 'assistant', text: `Draft ready. Subject: ${draft.subject}\n\n${draft.body}` }]);
       setTimeout(() => {
