@@ -156,9 +156,19 @@ const GenerateVideoModal = ({ onClose, onGenerate, availableAssets = [], initial
       }
 
       // Call the video generation agent via API
-      const response = await fetch('/api/agents/generate-video', {
+      const response = await fetch('/content/generate-video', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: content || `Generate ${videoType} video`,
+          duration: duration,
+          style: style,
+          platform: platform,
+          aspectRatio: aspectRatio,
+          referenceAssets: images.map(img => img.id || img.name)
+        })
       });
 
       if (!response.ok) {

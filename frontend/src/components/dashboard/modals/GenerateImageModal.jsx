@@ -96,38 +96,19 @@ const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [], initial
       } catch {}
 
       // Call the image generation agent via API
-      const response = await fetch('/api/agents/generate-image', {
+      const response = await fetch('/content/generate-image', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          visual_request: {
-            prompt: prompt,
-            style: style,
-            mood: mood,
-            platform: platform,
-            aspect_ratio: aspectRatio
-          },
-          brand_guidelines: {
-            // This would come from user's stored brand guidelines
-            style: 'corporate',
-            colors: ['#1E3A8A', '#3B82F6', '#FFFFFF']
-          },
-          target_audience: {
-            // This would come from user's profile
-            demographics: 'professionals',
-            preferences: 'clean, modern design'
-          },
-          content_context: {
-            purpose: 'marketing',
-            use_case: 'social_media'
-          },
-          technical_requirements: {
-            platform: platform,
-            aspect_ratio: aspectRatio
-          }
-        }),
+          prompt: prompt,
+          style: style,
+          mood: mood,
+          platform: platform,
+          aspectRatio: aspectRatio,
+          referenceAssets: selectedReferenceAssets.map(asset => asset.id)
+        })
       });
 
       if (!response.ok) {
@@ -138,7 +119,8 @@ const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [], initial
       
       // Set the generated image
       setGeneratedImage({
-        url: data.image_path || data.url,
+        id: data.id || `img_${Date.now()}`,
+        url: data.url || data.image_path,
         prompt: prompt,
         style: style,
         mood: mood,

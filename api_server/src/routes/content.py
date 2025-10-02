@@ -58,6 +58,175 @@ async def delete_calendar_items(req: CalendarUpdateRequest):
     return {"success": True}
 
 
+class ImageGenerationRequest(BaseModel):
+    prompt: str
+    style: str = "professional"
+    mood: str = "neutral"
+    platform: str = "general"
+    aspectRatio: str = "16:9"
+    referenceAssets: List[str] = []
+
+
+@router.post("/generate-image")
+async def generate_image(req: ImageGenerationRequest):
+    try:
+        # Call Image Generation Agent
+        from guild.src.agents.image_generation_agent import ImageGenerationAgent
+        
+        agent = ImageGenerationAgent()
+        result = await agent.generate_image(
+            prompt=req.prompt,
+            style=req.style,
+            mood=req.mood,
+            platform=req.platform,
+            aspect_ratio=req.aspectRatio,
+            reference_assets=req.referenceAssets
+        )
+        
+        # Store generated image metadata
+        image_data = {
+            "id": f"img_{int(time.time())}",
+            "url": result.get("url"),
+            "prompt": req.prompt,
+            "style": req.style,
+            "mood": req.mood,
+            "platform": req.platform,
+            "aspectRatio": req.aspectRatio,
+            "created_at": datetime.now().isoformat(),
+            "metadata": result.get("metadata", {})
+        }
+        
+        # Broadcast asset update for realtime UI
+        await broadcast_update('assets_update', {
+            "op": "create",
+            "asset": image_data
+        })
+        
+        return {
+            "success": True,
+            "data": image_data
+        }
+    except Exception as e:
+        logger.error(f"Error generating image: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+class VideoGenerationRequest(BaseModel):
+    prompt: str
+    duration: int = 30
+    style: str = "professional"
+    platform: str = "general"
+    aspectRatio: str = "16:9"
+    referenceAssets: List[str] = []
+
+
+@router.post("/generate-video")
+async def generate_video(req: VideoGenerationRequest):
+    try:
+        # Call Video Generation Agent
+        from guild.src.agents.video_editor_agent import VideoEditorAgent
+        
+        agent = VideoEditorAgent()
+        result = await agent.generate_video(
+            prompt=req.prompt,
+            duration=req.duration,
+            style=req.style,
+            platform=req.platform,
+            aspect_ratio=req.aspectRatio,
+            reference_assets=req.referenceAssets
+        )
+        
+        # Store generated video metadata
+        video_data = {
+            "id": f"vid_{int(time.time())}",
+            "url": result.get("url"),
+            "prompt": req.prompt,
+            "duration": req.duration,
+            "style": req.style,
+            "platform": req.platform,
+            "aspectRatio": req.aspectRatio,
+            "created_at": datetime.now().isoformat(),
+            "metadata": result.get("metadata", {})
+        }
+        
+        # Broadcast asset update for realtime UI
+        await broadcast_update('assets_update', {
+            "op": "create",
+            "asset": video_data
+        })
+        
+        return {
+            "success": True,
+            "data": video_data
+        }
+    except Exception as e:
+        logger.error(f"Error generating video: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+class EmailSequenceRequest(BaseModel):
+    name: str
+    subject: str
+    content: str
+    recipients: List[str]
+    schedule: Optional[str] = None
+    crm_provider: str = "mailchimp"
+
+
+@router.post("/email-sequence")
+async def create_email_sequence(req: EmailSequenceRequest):
+    try:
+        # Call CRM Automation Agent
+        from guild.src.agents.crm_automation_agent import CRMAutomationAgent
+        
+        agent = CRMAutomationAgent()
+        result = await agent.create_email_sequence(
+            name=req.name,
+            subject=req.subject,
+            content=req.content,
+            recipients=req.recipients,
+            schedule=req.schedule,
+            crm_provider=req.crm_provider
+        )
+        
+        # Broadcast email sequence creation
+        await broadcast_update('email_sequence_update', {
+            "op": "create",
+            "sequence": {
+                "id": result.get("id"),
+                "name": req.name,
+                "status": "created",
+                "recipients": len(req.recipients)
+            }
+        })
+        
+        return {
+            "success": True,
+            "data": result
+        }
+    except Exception as e:
+        logger.error(f"Error creating email sequence: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+@router.get("/email-performance")
+async def get_email_performance():
+    try:
+        # Call CRM Automation Agent for performance data
+        from guild.src.agents.crm_automation_agent import CRMAutomationAgent
+        
+        agent = CRMAutomationAgent()
+        performance_data = await agent.get_email_performance()
+        
+        return {
+            "success": True,
+            "data": performance_data
+        }
+    except Exception as e:
+        logger.error(f"Error fetching email performance: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
 class ExecuteWorkflowRequest(BaseModel):
     workflow: str
     content: Optional[Dict[str, Any]] = None
@@ -285,21 +454,72 @@ async def schedule_content(req: ScheduleRequest):
     return {"success": True, "data": {"scheduled": scheduled}}
 
 
+# Predefined workflow templates
+WORKFLOW_TEMPLATES = {
+    "calendar_fill_auto_schedule": {
+        "name": "Calendar Fill + Auto-Schedule",
+        "description": "Generate content ideas and automatically schedule them",
+        "agents": ["ContentIntelligenceAgent", "SocialMediaAgent", "SchedulerAgent"],
+        "steps": [
+            {"agent": "ContentIntelligenceAgent", "action": "generate_content_ideas"},
+            {"agent": "SocialMediaAgent", "action": "create_posts"},
+            {"agent": "SchedulerAgent", "action": "schedule_content"}
+        ]
+    },
+    "replay_best_performer": {
+        "name": "Replay Best-Performer",
+        "description": "Analyze top content and recreate similar high-performing posts",
+        "agents": ["AnalyticsAgent", "ContentIntelligenceAgent", "SocialMediaAgent"],
+        "steps": [
+            {"agent": "AnalyticsAgent", "action": "identify_top_content"},
+            {"agent": "ContentIntelligenceAgent", "action": "analyze_success_factors"},
+            {"agent": "SocialMediaAgent", "action": "create_similar_content"}
+        ]
+    },
+    "optimize_underperformer": {
+        "name": "Optimize Underperformer",
+        "description": "Improve low-performing content with AI recommendations",
+        "agents": ["AnalyticsAgent", "ContentIntelligenceAgent", "OptimizationAgent"],
+        "steps": [
+            {"agent": "AnalyticsAgent", "action": "identify_underperforming_content"},
+            {"agent": "ContentIntelligenceAgent", "action": "analyze_improvement_opportunities"},
+            {"agent": "OptimizationAgent", "action": "apply_optimizations"}
+        ]
+    }
+}
+
+
 @router.post("/execute-workflow")
 async def execute_workflow(req: ExecuteWorkflowRequest):
-    # Build a real workflow plan with Orchestrator
-    objective = req.workflow.replace('_', ' ').title()
-    additional_notes = (req.context or {}).get("notes")
-    ui = UserInput(objective=objective, additional_notes=additional_notes)
-    orch = Orchestrator(ui)
-    workflow = await orch.generate_workflow()
-    # Optionally kick off execution asynchronously in future
-    result = {
-        "success": True,
-        "workflow_id": f"wf_{asyncio.get_event_loop().time()}",
-        "accepted": True,
-        "workflow_definition": workflow.model_dump() if hasattr(workflow, 'model_dump') else None,
-    }
+    # Check if it's a predefined template
+    if req.workflow in WORKFLOW_TEMPLATES:
+        template = WORKFLOW_TEMPLATES[req.workflow]
+        
+        # Execute template workflow
+        result = {
+            "success": True,
+            "workflow_id": f"wf_{int(time.time())}",
+            "template": template["name"],
+            "description": template["description"],
+            "agents": template["agents"],
+            "steps": template["steps"],
+            "context": req.context or {}
+        }
+    else:
+        # Build a custom workflow plan with Orchestrator
+        objective = req.workflow.replace('_', ' ').title()
+        additional_notes = (req.context or {}).get("notes")
+        ui = UserInput(objective=objective, additional_notes=additional_notes)
+        orch = Orchestrator(ui)
+        workflow = await orch.generate_workflow()
+        
+        result = {
+            "success": True,
+            "workflow_id": f"wf_{int(time.time())}",
+            "accepted": True,
+            "workflow_definition": workflow.model_dump() if hasattr(workflow, 'model_dump') else None,
+        }
+    
     # Broadcast campaign status update for UI to reflect orchestration start
     await broadcast_update('campaign_status_update', {
         "status": "accepted",

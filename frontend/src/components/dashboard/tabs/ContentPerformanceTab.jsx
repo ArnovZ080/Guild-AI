@@ -354,7 +354,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
               onProceed={async (selected) => {
                 try {
                   await api.executeWorkflow({
-                    workflow: 'implement_recommendations',
+                    workflow: 'optimize_underperformer',
                     context: {
                       scope: 'overall_performance',
                       summary: aiInsights?.overallPerformance?.summary,
