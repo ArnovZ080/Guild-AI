@@ -40,6 +40,7 @@ import {
 } from 'lucide-react';
 import CreateCampaignModal from '../modals/CreateCampaignModal';
 import AIWorkflowCreateCampaignModal from '../modals/AIWorkflowCreateCampaignModal';
+import AICreateCampaignModal from '../modals/AICreateCampaignModal';
 import MicroCampaignRulesModal from '../modals/MicroCampaignRulesModal';
 import CampaignImplementSummaryModal from '../modals/CampaignImplementSummaryModal';
 import CampaignAssetsModal from '../modals/CampaignAssetsModal';
