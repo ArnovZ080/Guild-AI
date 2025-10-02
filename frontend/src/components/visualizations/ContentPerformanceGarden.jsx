@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Info } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../services/contentIntelligenceApi';
-import AgentActionsConfirmModal from '../dashboard/modals/AgentActionsConfirmModal';
+import AgentActionsConfirmModal from '../dashboard/modals/AgentActionsConfirmModal.jsx';
 
 const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   const [plants, setPlants] = useState([]);
