@@ -587,6 +587,14 @@ const CalendarView = () => {
     };
     setEvents(prev => [...prev, newEvent]);
     setShowAddEvent(false);
+    // Notify server to broadcast calendar update for realtime sync
+    try {
+      fetch('/content/calendar/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: [newEvent] })
+      });
+    } catch {}
     
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
       message: "Event added to your diary! 📅",
