@@ -19,7 +19,9 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const { performance: realPerformance, loading: performanceLoading, error: performanceError } = useContentPerformance('all', '30d');
   const { analysis: contentAnalysis, loading: analysisLoading, error: analysisError } = useContentAnalysis();
 
-  const isFallback = true; // temporarily always show until real integrations are wired in this environment
+  const hasLiveAnalysis = Boolean(contentAnalysis?.data?.content_metrics);
+  const hasLivePerformance = Boolean(realPerformance?.data?.performance && realPerformance.data.performance.length > 0);
+  const isFallback = !analysisLoading && !performanceLoading && (!hasLiveAnalysis || !hasLivePerformance);
 
   // Extract AI insights from content analysis
   const aiInsights = contentAnalysis?.data ? {
