@@ -1052,7 +1052,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       </div>
 
       {/* Campaign Controls */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 pb-8">
+      <div className="bg-white rounded-lg shadow-sm p-6 pb-8">
         {/* Campaign Details Heading and toggle inside card */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
@@ -1061,7 +1061,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
           </div>
           <button
             onClick={()=>setShowCampaignDetails(!showCampaignDetails)}
-            className="px-3 py-1.5 text-sm rounded border border-gray-300 text-gray-700 hover:bg-gray-100"
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all text-sm"
           >
             {showCampaignDetails ? 'Hide details' : 'Show details'}
           </button>
