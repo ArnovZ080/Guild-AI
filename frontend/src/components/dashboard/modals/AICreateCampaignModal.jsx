@@ -541,8 +541,8 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
           </div>
         </div>
       </div>
+      <EvaluatorRubricDrawer open={showRubric} onClose={()=>setShowRubric(false)} data={rubric} />
     </div>
-    <EvaluatorRubricDrawer open={showRubric} onClose={()=>setShowRubric(false)} data={rubric} />
   );
 };
 
