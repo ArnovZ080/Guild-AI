@@ -162,8 +162,13 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
             Content Performance Garden
           </h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Brain className="w-4 h-4" />
-            <span>AI-Powered Insights</span>
+            <button
+              onClick={() => setInsightsConfirm({ actions: aiInsights?.overallPerformance?.recommendations || [] })}
+              className="flex items-center space-x-2 px-2 py-1 rounded hover:bg-gray-100"
+            >
+              <Brain className="w-4 h-4" />
+              <span>AI-Powered Insights</span>
+            </button>
           </div>
         </div>
         

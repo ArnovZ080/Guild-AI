@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Info } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../services/contentIntelligenceApi';
-import AgentActionsConfirmModal from '../dashboard/modals/AgentActionsConfirmModal.jsx';
+import AgentActionsConfirmModal from '../dashboard/modals/AgentActionsConfirmModal';
 
 const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   const [plants, setPlants] = useState([]);
@@ -114,8 +114,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   const getPerformanceColor = (performance) => {
     if (performance >= 80) return '#10B981'; // Green
     if (performance >= 60) return '#F59E0B'; // Amber
-    if (performance >= 40) return '#EF4444'; // Red
-    return '#6B7280'; // Gray
+    return '#EF4444'; // Red for <60%
   };
 
   const getSeasonalEffect = (plant) => {
@@ -160,7 +159,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   }
 
   return (
-    <div className="relative w-full h-96 bg-gradient-to-br from-green-100 via-blue-50 to-yellow-50 rounded-lg overflow-hidden">
+    <div className="relative w-full h-96 bg-gradient-to-br from-green-100 via-blue-50 to-yellow-50 rounded-lg overflow-visible">
       {/* Garden Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-b from-green-200 to-green-300 opacity-30" />
@@ -295,8 +294,8 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
               )}
 
               {/* Hover Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                <div className="bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                <div className="bg-black text-white text-xs rounded px-2 py-1 whitespace-nowrap shadow-lg">
                   <div className="font-medium">{plant.title}</div>
                   <div className="text-gray-300">{plant.platform} • {plant.performance}% performance</div>
                 </div>
