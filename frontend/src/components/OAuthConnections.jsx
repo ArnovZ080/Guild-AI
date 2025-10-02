@@ -45,6 +45,45 @@ const OAuthConnections = () => {
     }
   };
 
+  // Social media and marketing platform providers
+  const socialProviders = {
+    facebook: {
+      name: 'Facebook',
+      icon: '📘',
+      color: 'bg-blue-600',
+      description: 'Schedule posts and manage Facebook Business pages',
+      setupUrl: '/connections?platform=facebook'
+    },
+    instagram: {
+      name: 'Instagram',
+      icon: '📷',
+      color: 'bg-pink-500',
+      description: 'Post to Instagram Business accounts',
+      setupUrl: '/connections?platform=instagram'
+    },
+    linkedin: {
+      name: 'LinkedIn',
+      icon: '💼',
+      color: 'bg-blue-700',
+      description: 'Share content on LinkedIn company pages',
+      setupUrl: '/connections?platform=linkedin'
+    },
+    twitter: {
+      name: 'Twitter/X',
+      icon: '🐦',
+      color: 'bg-blue-400',
+      description: 'Tweet and manage Twitter/X account',
+      setupUrl: '/connections?platform=twitter'
+    },
+    tiktok: {
+      name: 'TikTok',
+      icon: '🎵',
+      color: 'bg-black',
+      description: 'Post videos to TikTok Business accounts',
+      setupUrl: '/connections?platform=tiktok'
+    }
+  };
+
   useEffect(() => {
     fetchConnections();
     fetchCredentials();
@@ -222,8 +261,12 @@ const OAuthConnections = () => {
   }
 
   const availableProviders = Object.keys(providerInfo);
+  const availableSocialProviders = Object.keys(socialProviders);
   const connectedProviders = credentials.map(cred => cred.provider);
   const unconnectedProviders = availableProviders.filter(
+    provider => !connectedProviders.includes(provider)
+  );
+  const unconnectedSocialProviders = availableSocialProviders.filter(
     provider => !connectedProviders.includes(provider)
   );
 
@@ -332,6 +375,82 @@ const OAuthConnections = () => {
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Disconnect
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Social Media & Marketing Platforms */}
+      {unconnectedSocialProviders.length > 0 && (
+        <div className="mb-8">
+          <h3 className="text-lg font-semibold mb-4">Social Media & Marketing Platforms</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            {unconnectedSocialProviders.map((providerId) => {
+              const provider = socialProviders[providerId];
+              const isConnecting = connecting === providerId;
+
+              return (
+                <motion.div
+                  key={providerId}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center">
+                      <div className={`w-10 h-10 rounded-lg ${provider.color} flex items-center justify-center text-white text-lg mr-3`}>
+                        {provider.icon}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {provider.name}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {provider.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center text-gray-400">
+                      <AlertCircle className="w-5 h-5 mr-1" />
+                      <span className="text-sm">Not connected</span>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                      <Database className="w-4 h-4 mr-1" />
+                      <span>Status: Available</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleConnect(providerId)}
+                      disabled={isConnecting}
+                      className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                    >
+                      {isConnecting ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Connect Now
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => window.open(provider.setupUrl, '_blank')}
+                      className="px-3 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors flex items-center justify-center"
+                    >
+                      <ExternalLink className="w-4 h-4" />
                     </button>
                   </div>
                 </motion.div>

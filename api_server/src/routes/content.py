@@ -302,7 +302,7 @@ async def execute_workflow(req: ExecuteWorkflowRequest):
     }
     # Broadcast campaign status update for UI to reflect orchestration start
     await broadcast_update('campaign_status_update', {
-        "status": "started",
+        "status": "accepted",
         "workflow_id": result["workflow_id"],
         "context": req.context or {},
     })
