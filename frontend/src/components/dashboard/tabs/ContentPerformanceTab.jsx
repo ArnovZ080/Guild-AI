@@ -3,7 +3,7 @@ import { TrendingUp, BarChart3, Eye, Heart, Share2, MousePointer, Info, Brain, T
 import ContentPerformanceGarden from '../../visualizations/ContentPerformanceGarden';
 import PlatformPerformanceModal from '../modals/PlatformPerformanceModal';
 import ContentTypePerformanceModal from '../modals/ContentTypePerformanceModal';
-import { useContentPerformance, useContentAnalysis } from '../../services/contentIntelligenceApi';
+import { useContentPerformance, useContentAnalysis } from '../../../services/contentIntelligenceApi';
 
 const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const [showPlatformModal, setShowPlatformModal] = useState(false);
