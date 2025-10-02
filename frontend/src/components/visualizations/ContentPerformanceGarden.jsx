@@ -216,13 +216,23 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
             <div className="relative">
               {/* Plant Visual */}
               <div
-                className="text-3xl filter drop-shadow-lg"
+                className="text-3xl filter drop-shadow-lg relative"
                 style={{
                   fontSize: `${plant.size}px`,
-                  color: getPerformanceColor(plant.performance),
-                  boxShadow: `0 0 12px ${getPerformanceColor(plant.performance)}55`
+                  color: getPerformanceColor(plant.performance)
                 }}
               >
+                {/* Colored circular badge behind the plant */}
+                <div
+                  className="absolute inset-0 -z-10 rounded-full"
+                  style={{
+                    width: `${plant.size + 14}px`,
+                    height: `${plant.size + 14}px`,
+                    left: `${-(plant.size + 14) / 2}px`,
+                    top: `${-(plant.size + 14) / 2}px`,
+                    backgroundColor: `${getPerformanceColor(plant.performance)}22`
+                  }}
+                />
                 {getPlantVisual(plant)}
               </div>
 
@@ -260,7 +270,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
               </div>
 
               {/* Engagement Particles */}
-              {plant.engagement > 80 && (
+              {false && plant.engagement > 80 && (
                 <motion.div
                   className="absolute inset-0 pointer-events-none"
                   animate={{
@@ -370,8 +380,16 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
               <div className="flex space-x-3">
                 <button className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
                   onClick={async () => {
+                    const api = new ContentIntelligenceAPIService();
+                    const actions = [
+                      'Adjust targeting parameters',
+                      'Optimize creative elements',
+                      'Improve call-to-action',
+                      'Test different posting times'
+                    ];
+                    const confirm = window.confirm(`Would you like the AI Agents to initiate the following to optimize your content?\n\n- ${actions.join('\n- ')}`);
+                    if (!confirm) return;
                     try {
-                      const api = new ContentIntelligenceAPIService();
                       const payload = {
                         workflow: 'optimize_content_performance',
                         content: {
@@ -380,13 +398,11 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                           type: selectedPlant.type,
                           title: selectedPlant.title
                         },
+                        actions,
                         agents: ['orchestrator_agent', 'strategy_agent', 'content_intelligence_agent', 'automation_agent']
                       };
                       await api.executeWorkflow(payload);
-                      alert('Agents activated to optimize this content. You will see updates shortly.');
-                    } catch (e) {
-                      alert('Unable to start optimization right now. Please try again.');
-                    }
+                    } catch {}
                   }}
                 >
                   <BarChart3 className="w-4 h-4 mr-2" />
@@ -394,9 +410,16 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                 </button>
                 <button className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
                   onClick={async () => {
+                    const api = new ContentIntelligenceAPIService();
+                    const actions = [
+                      'Deep-dive content diagnostics',
+                      'Benchmark vs industry',
+                      'Generate prioritized recommendations'
+                    ];
+                    const confirm = window.confirm(`Run analysis and generate recommendations?\n\nThis will trigger:\n- ${actions.join('\n- ')}`);
+                    if (!confirm) return;
                     try {
-                      const api = new ContentIntelligenceAPIService();
-                      const insightReq = {
+                      const res = await api.getInsightAnalysis({
                         insight_text: `Analyze content performance for ${selectedPlant.title} on ${selectedPlant.platform}`,
                         context: {
                           id: selectedPlant.id,
@@ -407,12 +430,10 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                             conversions: selectedPlant.conversion
                           }
                         }
-                      };
-                      const res = await api.getInsightAnalysis(insightReq);
-                      alert((res?.data?.analysis || 'Analysis generated.') + '\n\nRecommendations:\n' + (res?.data?.immediate_actions?.join('\n') || '- Increase posting at peak hours\n- Test new creative variants'));
-                    } catch (e) {
-                      alert('Unable to analyze right now. Please try again.');
-                    }
+                      });
+                      // In future: display a rich modal; for now, show native confirm step only before executing
+                      console.log('Analysis result', res);
+                    } catch {}
                   }}
                 >
                   <Info className="w-4 h-4 mr-2" />

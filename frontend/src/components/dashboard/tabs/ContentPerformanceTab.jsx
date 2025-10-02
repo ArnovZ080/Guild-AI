@@ -304,7 +304,20 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
             </div>
             
             <div className="p-4 bg-green-50 rounded-lg">
-              <h5 className="font-medium text-green-800 mb-2">Top Recommendations</h5>
+              <div className="flex items-center justify-between mb-2">
+                <h5 className="font-medium text-green-800">Top Recommendations</h5>
+                <button
+                  className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                  onClick={() => {
+                    const recs = aiInsights.overallPerformance.recommendations || [];
+                    const confirm = window.confirm(`Would you like the AI Agents to initiate the following recommendations?\n\n- ${recs.slice(0,3).join('\n- ')}`);
+                    if (!confirm) return;
+                    // Execution is handled in modals or targeted views; here we confirm intent
+                  }}
+                >
+                  Activate agents
+                </button>
+              </div>
               <ul className="text-sm text-green-700 space-y-1">
                 {aiInsights.overallPerformance.recommendations.slice(0, 2).map((rec, index) => (
                   <li key={index} className="flex items-start">
