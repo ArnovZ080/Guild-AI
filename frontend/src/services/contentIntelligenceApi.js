@@ -1938,9 +1938,13 @@ export const useRealtimeContentAnalysis = () => {
     };
 
     contentIntelligenceWS.subscribe('content_analysis_update', handleUpdate);
+    // Also react to calendar updates that may affect analysis panels
+    const handleCalendar = () => fetchData();
+    contentIntelligenceWS.subscribe('calendar_update', handleCalendar);
     
     return () => {
       contentIntelligenceWS.unsubscribe('content_analysis_update', handleUpdate);
+      contentIntelligenceWS.unsubscribe('calendar_update', handleCalendar);
     };
   }, [fetchData]);
 
@@ -1981,9 +1985,12 @@ export const useRealtimeContentPerformance = (platform = 'all', period = '7d') =
     };
 
     contentIntelligenceWS.subscribe('content_performance_update', handleUpdate);
+    const handleCalendar = () => fetchData();
+    contentIntelligenceWS.subscribe('calendar_update', handleCalendar);
     
     return () => {
       contentIntelligenceWS.unsubscribe('content_performance_update', handleUpdate);
+      contentIntelligenceWS.unsubscribe('calendar_update', handleCalendar);
     };
   }, [fetchData]);
 
@@ -2031,9 +2038,12 @@ export const useRealtimeActiveCampaigns = () => {
     };
 
     contentIntelligenceWS.subscribe('campaigns_update', handleUpdate);
+    const handleCalendar = () => fetchCampaigns();
+    contentIntelligenceWS.subscribe('calendar_update', handleCalendar);
     
     return () => {
       contentIntelligenceWS.unsubscribe('campaigns_update', handleUpdate);
+      contentIntelligenceWS.unsubscribe('calendar_update', handleCalendar);
     };
   }, [fetchCampaigns]);
 

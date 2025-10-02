@@ -15,6 +15,7 @@ from guild.src.agents.unified_automation_agent import UnifiedAutomationAgent
 from .content_ws import broadcast_update
 from guild.src.agents.facebook_scheduler_adapter import FacebookSchedulerAdapter
 from guild.src.agents.linkedin_scheduler_adapter import LinkedInSchedulerAdapter
+from guild.src.agents.twitter_scheduler_adapter import TwitterSchedulerAdapter
 import os
 
 
@@ -150,7 +151,8 @@ async def schedule_content(req: ScheduleRequest):
     # Platform-specific: Facebook adapter example
     fb_items = [it for it in req.items if (it.get('platform') or '').lower() == 'facebook']
     li_items = [it for it in req.items if (it.get('platform') or '').lower() == 'linkedin']
-    other_items = [it for it in req.items if (it.get('platform') or '').lower() not in ('facebook','linkedin')]
+    tw_items = [it for it in req.items if (it.get('platform') or '').lower() in ('twitter','x')]
+    other_items = [it for it in req.items if (it.get('platform') or '').lower() not in ('facebook','linkedin','twitter','x')]
 
     scheduled: list = []
     if fb_items:
@@ -169,6 +171,16 @@ async def schedule_content(req: ScheduleRequest):
         )
         li_res = await li.schedule_posts(li_items)
         for it, res in zip(li_items, li_res):
+            scheduled.append({"item": it, "result": res})
+
+    if tw_items:
+        tw = TwitterSchedulerAdapter(
+            access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
+            api_key=os.getenv('TWITTER_API_KEY'),
+            api_secret=os.getenv('TWITTER_API_SECRET')
+        )
+        tw_res = await tw.schedule_posts(tw_items)
+        for it, res in zip(tw_items, tw_res):
             scheduled.append({"item": it, "result": res})
 
     if other_items:
