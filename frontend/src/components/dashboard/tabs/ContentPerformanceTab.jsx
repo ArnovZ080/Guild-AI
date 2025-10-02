@@ -6,6 +6,7 @@ import ContentTypePerformanceModal from '../modals/ContentTypePerformanceModal';
 import { useContentPerformance, useContentAnalysis } from '../../../services/contentIntelligenceApi';
 import AgentActionsConfirmModal from '../modals/AgentActionsConfirmModal';
 import UnifiedPerformanceInsightsModal from '../modals/UnifiedPerformanceInsightsModal';
+import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 
 const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const [showPlatformModal, setShowPlatformModal] = useState(false);
@@ -14,6 +15,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const [selectedContentType, setSelectedContentType] = useState(null);
   const [insightsConfirm, setInsightsConfirm] = useState(null);
   const [showUnifiedInsights, setShowUnifiedInsights] = useState(false);
+  const api = new ContentIntelligenceAPIService();
 
   // Use real API hooks for data
   const { performance: realPerformance, loading: performanceLoading, error: performanceError } = useContentPerformance('all', '30d');
@@ -349,9 +351,21 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
               description="Select which actions to run now."
               actions={insightsConfirm.actions}
               onCancel={() => setInsightsConfirm(null)}
-              onProceed={(selected) => {
-                // This panel confirms selection; detailed execution happens in per-platform/type modals
-                setInsightsConfirm(null);
+              onProceed={async (selected) => {
+                try {
+                  await api.executeWorkflow({
+                    workflow: 'implement_recommendations',
+                    context: {
+                      scope: 'overall_performance',
+                      summary: aiInsights?.overallPerformance?.summary,
+                      recommendations: aiInsights?.overallPerformance?.recommendations || []
+                    },
+                    actions: selected,
+                    agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
+                  });
+                } finally {
+                  setInsightsConfirm(null);
+                }
               }}
             />
           )}

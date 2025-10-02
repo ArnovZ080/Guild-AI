@@ -105,10 +105,40 @@ const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   };
 
   const handleCreateCampaign = async () => {
-    if (generatedCampaign) {
+    if (!generatedCampaign) return;
+    try {
+      let profile = null;
+      try {
+        const res = await fetch('/api/profile');
+        const json = await res.json();
+        profile = json?.data || null;
+      } catch {}
+
+      const judgePayload = {
+        brief: {
+          objective: generatedCampaign.objective || 'Create email campaign',
+          goals: { open_rate: 'increase', conversion: 'increase' },
+          audience: generatedCampaign.targetAudience ? { description: generatedCampaign.targetAudience } : undefined,
+          topic: generatedCampaign.name,
+        },
+        platforms: ['email'],
+        brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+      };
+      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+      const resp = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(judgePayload) });
+      const judge = await resp.json();
+      const approved = judge?.data?.approved !== false;
+      if (!approved) {
+        const score = judge?.data?.overall_score;
+        alert(`Email campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine and try again.`);
+        return;
+      }
+
       await api.createEmailCampaign(generatedCampaign);
       onCreateCampaign && onCreateCampaign(generatedCampaign);
       onClose();
+    } catch (e) {
+      alert('Could not validate campaign quality. Please try again.');
     }
   };
 

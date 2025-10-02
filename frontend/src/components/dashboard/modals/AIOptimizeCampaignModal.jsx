@@ -85,11 +85,41 @@ const AIOptimizeCampaignModal = ({ isOpen, onClose, campaigns = [] }) => {
     }, 4000);
   };
 
-  const handleApplyOptimizations = () => {
-    // Apply optimizations to the campaign
-    console.log('Applying optimizations to campaign:', selectedCampaign);
-    alert('Optimizations applied successfully! Your campaign will be updated with the recommended changes.');
-    onClose();
+  const handleApplyOptimizations = async () => {
+    if (!selectedCampaign || !optimizationResults) return;
+    try {
+      let profile = null;
+      try {
+        const res = await fetch('/api/profile');
+        const json = await res.json();
+        profile = json?.data || null;
+      } catch {}
+
+      const judgePayload = {
+        brief: {
+          objective: `Optimize campaign ${selectedCampaign.name}`,
+          goals: { roas: 'increase', ctr: 'increase', reach: 'increase' },
+          audience: selectedCampaign.audience ? { description: selectedCampaign.audience } : undefined,
+          topic: selectedCampaign.name,
+        },
+        platforms: selectedCampaign.platform ? [selectedCampaign.platform] : [],
+        brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+      };
+      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+      const resp = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(judgePayload) });
+      const judge = await resp.json();
+      const approved = judge?.data?.approved !== false;
+      if (!approved) {
+        const score = judge?.data?.overall_score;
+        alert(`Optimizations failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine and try again.`);
+        return;
+      }
+
+      alert('Optimizations applied successfully! Your campaign will be updated with the recommended changes.');
+      onClose();
+    } catch (e) {
+      alert('Could not validate optimization quality. Please try again.');
+    }
   };
 
   const resetModal = () => {
