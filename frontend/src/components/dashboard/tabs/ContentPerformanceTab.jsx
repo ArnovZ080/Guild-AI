@@ -5,6 +5,7 @@ import PlatformPerformanceModal from '../modals/PlatformPerformanceModal';
 import ContentTypePerformanceModal from '../modals/ContentTypePerformanceModal';
 import { useContentPerformance, useContentAnalysis } from '../../../services/contentIntelligenceApi';
 import AgentActionsConfirmModal from '../modals/AgentActionsConfirmModal';
+import UnifiedPerformanceInsightsModal from '../modals/UnifiedPerformanceInsightsModal';
 
 const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const [showPlatformModal, setShowPlatformModal] = useState(false);
@@ -12,6 +13,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [selectedContentType, setSelectedContentType] = useState(null);
   const [insightsConfirm, setInsightsConfirm] = useState(null);
+  const [showUnifiedInsights, setShowUnifiedInsights] = useState(false);
 
   // Use real API hooks for data
   const { performance: realPerformance, loading: performanceLoading, error: performanceError } = useContentPerformance('all', '30d');
@@ -163,7 +165,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
           </h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <button
-              onClick={() => setInsightsConfirm({ actions: aiInsights?.overallPerformance?.recommendations || [] })}
+              onClick={() => setShowUnifiedInsights(true)}
               className="flex items-center space-x-2 px-2 py-1 rounded hover:bg-gray-100"
             >
               <Brain className="w-4 h-4" />
@@ -365,6 +367,14 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
           performanceData={contentTypePerformance}
           aiInsights={aiInsights}
           onClose={() => setShowContentTypeModal(false)}
+        />
+      )}
+
+      {showUnifiedInsights && (
+        <UnifiedPerformanceInsightsModal
+          analysis={contentAnalysis}
+          performance={realPerformance}
+          onClose={() => setShowUnifiedInsights(false)}
         />
       )}
     </div>
