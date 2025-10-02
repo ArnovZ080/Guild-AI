@@ -109,6 +109,32 @@ const GenerateVideoModal = ({ onClose, onGenerate, availableAssets = [], initial
     setGeneratedVideo(null);
 
     try {
+      // Judge Layer gating with brand profile context
+      try {
+        const profRes = await fetch('/api/profile');
+        const profJson = await profRes.json();
+        const profile = profJson?.data || null;
+        const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+        const judgePayload = {
+          brief: {
+            objective: `Generate ${videoType} video`,
+            goals: { engagement: 'increase' },
+            audience: undefined,
+            topic: content || `AI ${videoType} for ${platform}`
+          },
+          platforms: [platform],
+          brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+        };
+        const jr = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(judgePayload) });
+        const judge = await jr.json();
+        if (judge?.data?.approved === false) {
+          const score = judge?.data?.overall_score;
+          setIsGenerating(false);
+          setError(`Video content failed quality gate${typeof score==='number'?` (score: ${Math.round(score*100)/100})`:''}. Refine inputs and try again.`);
+          return;
+        }
+      } catch {}
+
       // Prepare form data for file upload
       const formData = new FormData();
       formData.append('video_type', videoType);

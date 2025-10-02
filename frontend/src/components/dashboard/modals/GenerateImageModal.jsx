@@ -70,6 +70,31 @@ const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [], initial
     setGeneratedImage(null);
 
     try {
+      // Judge Layer gating with brand profile
+      try {
+        const profRes = await fetch('/api/profile');
+        const profJson = await profRes.json();
+        const profile = profJson?.data || null;
+        const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+        const judgePayload = {
+          brief: {
+            objective: 'Generate image asset',
+            goals: { brand_alignment: 'enforce' },
+            topic: prompt || 'AI image generation'
+          },
+          platforms: [platform === 'general' ? 'image' : platform],
+          brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+        };
+        const jr = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(judgePayload) });
+        const judge = await jr.json();
+        if (judge?.data?.approved === false) {
+          const score = judge?.data?.overall_score;
+          setIsGenerating(false);
+          setError(`Image content failed quality gate${typeof score==='number'?` (score: ${Math.round(score*100)/100})`:''}. Refine prompt and try again.`);
+          return;
+        }
+      } catch {}
+
       // Call the image generation agent via API
       const response = await fetch('/api/agents/generate-image', {
         method: 'POST',
