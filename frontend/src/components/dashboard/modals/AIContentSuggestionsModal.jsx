@@ -228,6 +228,12 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
       if (onSchedule) {
         onSchedule(calendarItems);
       }
+      // Notify server to broadcast calendar update
+      try {
+        await fetch('/content/calendar/update', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ items: calendarItems })
+        });
+      } catch {}
       onClose();
     } catch (e) {
       alert('Could not schedule content. Please check Connections and try again.');

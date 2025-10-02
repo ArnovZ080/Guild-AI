@@ -42,6 +42,22 @@ class ScheduleRequest(BaseModel):
     connected_platforms: Optional[List[str]] = None
 
 
+class CalendarUpdateRequest(BaseModel):
+    items: List[Dict[str, Any]]
+
+
+@router.post("/calendar/update")
+async def update_calendar_items(req: CalendarUpdateRequest):
+    await broadcast_update('calendar_update', {"op": "update", "items": req.items})
+    return {"success": True}
+
+
+@router.post("/calendar/delete")
+async def delete_calendar_items(req: CalendarUpdateRequest):
+    await broadcast_update('calendar_update', {"op": "delete", "items": req.items})
+    return {"success": True}
+
+
 class ExecuteWorkflowRequest(BaseModel):
     workflow: str
     content: Optional[Dict[str, Any]] = None
