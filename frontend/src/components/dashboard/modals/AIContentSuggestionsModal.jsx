@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { X, Sparkles, TrendingUp, Calendar, Target, Users, Hash, Clock, Zap } from 'lucide-react';
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
+import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 
 const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -155,10 +156,9 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
     setSelectedContent([]);
   };
 
-  const handleScheduleSelected = () => {
+  const handleScheduleSelected = async () => {
     const selectedItems = suggestedContent.filter(item => selectedContent.includes(item.id));
-    
-    // Transform suggestions to calendar format
+
     const calendarItems = selectedItems.map(item => ({
       content_id: `ai_suggestion_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
       platform: item.platform,
@@ -177,10 +177,27 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
       created_at: new Date().toISOString()
     }));
 
-    if (onSchedule) {
-      onSchedule(calendarItems);
+    try {
+      const api = new ContentIntelligenceAPIService();
+      const requiredPlatforms = Array.from(new Set(calendarItems.map(i => i.platform)));
+      const result = await api.scheduleContent({
+        items: calendarItems,
+        required_platforms: requiredPlatforms,
+        // connected_platforms: pass from state when available
+      });
+
+      if (!result || result?.success === false) {
+        alert('Scheduling failed. Please ensure your platform connections are set up in Connections.');
+        return;
+      }
+
+      if (onSchedule) {
+        onSchedule(calendarItems);
+      }
+      onClose();
+    } catch (e) {
+      alert('Could not schedule content. Please check Connections and try again.');
     }
-    onClose();
   };
 
   const getEngagementColor = (prediction) => {
