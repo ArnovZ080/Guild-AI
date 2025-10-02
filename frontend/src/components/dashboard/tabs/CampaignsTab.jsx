@@ -2067,12 +2067,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                           {idea.recommendations.map((rec, rIdx)=>(<li key={rIdx}>{rec}</li>))}
                         </ul>
                       </div>
-                      <div className="mt-3 flex items-center justify-between">
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <div className="text-xs text-gray-500 mb-2">Transparency: rationale shown</div>
                         <div className="flex items-center gap-2">
                           <button onClick={()=>{ setImplementRecommendation(idea); setShowImplementModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">Implement</button>
                           <button onClick={()=>{ setAiPrefill(idea); setShowAICreate(true); }} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs">Customize</button>
                         </div>
-                        <span className="text-xs text-gray-500">Transparency: rationale shown</span>
                       </div>
                     </div>
                   ))}
@@ -2106,12 +2106,12 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                         </ul>
                       </div>
                     )}
-                    <div className="mt-3 flex items-center justify-between">
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <Tooltip label="Explain how agents arrived at this idea."><div className="text-xs text-gray-500 mb-2">Transparency: rationale shown</div></Tooltip>
                       <div className="flex items-center gap-2">
                         <Tooltip label="Create a ready-to-run draft and hand off to orchestrator + enhanced_campaign_agent."><button onClick={()=>{ setImplementRecommendation(idea); setShowImplementModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">Implement</button></Tooltip>
                         <Tooltip label="Open AI campaign creator with fields pre-filled."><button onClick={()=>{ setAiPrefill(idea); setShowAICreate(true); }} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs">Customize</button></Tooltip>
                       </div>
-                      <Tooltip label="Explain how agents arrived at this idea."><span className="text-xs text-gray-500">Transparency: rationale shown</span></Tooltip>
                     </div>
                   </div>
                 ))}
@@ -2180,10 +2180,13 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                           {seg.recommendations.map((rec, rIdx)=>(<li key={rIdx}>{rec}</li>))}
                         </ul>
                       </div>
-                      <div className="mt-3 flex items-center space-x-2">
-                        <button className="px-4 py-2 text-xs rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" onClick={()=>{ setAiPrefill(seg); setShowAICreate(true); }}>Draft micro-campaign</button>
-                        <button className="px-4 py-2 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={()=>{ setImplementRecommendation(seg); setShowImplementModal(true); }}>Implement</button>
-                        <button className="px-3 py-1.5 text-xs rounded-lg border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button>
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <div className="text-xs text-gray-500 mb-2">Transparency: rationale shown</div>
+                        <div className="flex items-center space-x-2">
+                          <button className="px-4 py-2 text-xs rounded-lg bg-emerald-600 text-white hover:bg-emerald-700" onClick={()=>{ setAiPrefill(seg); setShowAICreate(true); }}>Draft micro-campaign</button>
+                          <button className="px-4 py-2 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700" onClick={()=>{ setImplementRecommendation(seg); setShowImplementModal(true); }}>Implement</button>
+                          <button className="px-3 py-1.5 text-xs rounded-lg border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -2216,8 +2219,10 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                         </ul>
                       </div>
                     )}
-                    <div className="mt-3 flex items-center space-x-2">
-                      <Tooltip label="Creates a draft micro-campaign and logs why this segment was chosen."><button
+                    <div className="mt-4 pt-3 border-t border-gray-100">
+                      <div className="text-xs text-gray-500 mb-2">Transparency: rationale shown</div>
+                      <div className="flex items-center space-x-2">
+                        <Tooltip label="Creates a draft micro-campaign and logs why this segment was chosen."><button
                         onClick={() => {
                           const draft = {
                             name: `${seg.name} Micro-campaign`,
@@ -2231,10 +2236,11 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                           onCreateCampaign?.({ ...draft, campaign_id: `draft_${Date.now()}` });
                           try { logCampaignActivity('global', { actor: 'Lead Personalization Agent', action: 'draft_micro_campaign', reason: `Drafted micro-campaign for segment ${seg.name}` }); } catch {}
                         }}
-                        className="px-3 py-1.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
-                      >Draft micro-campaign</button></Tooltip>
-                      <Tooltip label="Triggers orchestration to run this micro-campaign with guardrails."><button onClick={()=>{ setImplementRecommendation(seg); setShowImplementModal(true); }} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
-                      <Tooltip label="Define human-in-the-loop constraints (e.g., discount limits)."><button className="px-3 py-1.5 text-xs rounded-md border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button></Tooltip>
+                          className="px-3 py-1.5 text-xs rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+                        >Draft micro-campaign</button></Tooltip>
+                        <Tooltip label="Triggers orchestration to run this micro-campaign with guardrails."><button onClick={()=>{ setImplementRecommendation(seg); setShowImplementModal(true); }} className="px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700">Implement</button></Tooltip>
+                        <Tooltip label="Define human-in-the-loop constraints (e.g., discount limits)."><button className="px-3 py-1.5 text-xs rounded-md border border-gray-300" onClick={()=>{ setRulesSegment(seg); setShowMicroRules(true); }}>Set rules…</button></Tooltip>
+                      </div>
                     </div>
                   </div>
                 ))}
