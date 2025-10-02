@@ -19,7 +19,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const { performance: realPerformance, loading: performanceLoading, error: performanceError } = useContentPerformance('all', '30d');
   const { analysis: contentAnalysis, loading: analysisLoading, error: analysisError } = useContentAnalysis();
 
-  const isFallback = !analysisLoading && !contentAnalysis?.data;
+  const isFallback = true; // temporarily always show until real integrations are wired in this environment
 
   // Extract AI insights from content analysis
   const aiInsights = contentAnalysis?.data ? {
@@ -167,7 +167,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
           </h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             {isFallback && (
-              <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">Using sample data</span>
+              <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">Using Sample data - connect platforms for real data analysis</span>
             )}
             <button
               onClick={() => setShowUnifiedInsights(true)}
@@ -175,13 +175,6 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
             >
               <Brain className="w-4 h-4" />
               <span>AI-Powered Insights</span>
-            </button>
-            <button
-              onClick={() => { try { window.location.href = '/settings/integrations'; } catch {} }}
-              className="px-2 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700"
-              title="Connect platforms for real data analysis"
-            >
-              Connect platforms
             </button>
           </div>
         </div>
