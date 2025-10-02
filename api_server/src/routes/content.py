@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 from typing import Any, Dict, List, Optional
 import asyncio
@@ -9,6 +9,8 @@ from guild.src.agents.strategy_agent import generate_comprehensive_strategy_plan
 from guild.src.agents.copywriter import generate_comprehensive_copywriting_strategy as copywriter_strategy
 from guild.src.agents.judge_agent import generate_comprehensive_judgement_rubric as judge_rubric  # type: ignore
 from guild.src.agents.crm_agent import generate_comprehensive_crm_strategy
+from guild.src.core.orchestrator import Orchestrator
+from guild.src.models.user_input import UserInput
 
 
 router = APIRouter(prefix="/content", tags=["content-intelligence"])
@@ -26,6 +28,8 @@ class CreateContentRequest(BaseModel):
 
 class ScheduleRequest(BaseModel):
     items: List[Dict[str, Any]]
+    required_platforms: Optional[List[str]] = None
+    connected_platforms: Optional[List[str]] = None
 
 
 class ExecuteWorkflowRequest(BaseModel):
@@ -102,14 +106,37 @@ async def create_content(req: CreateContentRequest):
 
 @router.post("/schedule")
 async def schedule_content(req: ScheduleRequest):
-    # For now, return items untouched; later call UnifiedAutomationAgent per connector
+    # Preflight: ensure required platforms are connected
+    if req.required_platforms:
+        connected = set(req.connected_platforms or [])
+        missing = [p for p in req.required_platforms if p not in connected]
+        if missing:
+            raise HTTPException(
+                status_code=status.HTTP_412_PRECONDITION_FAILED,
+                detail={
+                    "message": "Missing required platform connections",
+                    "missing": missing,
+                    "action": "Please connect platforms in Connections to continue"
+                }
+            )
+    # TODO: call UnifiedAutomationAgent per connector to schedule
     return {"success": True, "data": {"scheduled": req.items}}
 
 
 @router.post("/execute-workflow")
 async def execute_workflow(req: ExecuteWorkflowRequest):
-    # Defer to orchestrator via simple echo for now with clear structure; frontend hooks will receive id
-    execution_id = f"wf_{asyncio.get_event_loop().time()}"
-    return {"success": True, "workflow_id": execution_id, "accepted": True, "request": req.dict()}
+    # Build a real workflow plan with Orchestrator
+    objective = req.workflow.replace('_', ' ').title()
+    additional_notes = (req.context or {}).get("notes")
+    ui = UserInput(objective=objective, additional_notes=additional_notes)
+    orch = Orchestrator(ui)
+    workflow = await orch.generate_workflow()
+    # Optionally kick off execution asynchronously in future
+    return {
+        "success": True,
+        "workflow_id": f"wf_{asyncio.get_event_loop().time()}",
+        "accepted": True,
+        "workflow_definition": workflow.model_dump() if hasattr(workflow, 'model_dump') else None,
+    }
 
 
