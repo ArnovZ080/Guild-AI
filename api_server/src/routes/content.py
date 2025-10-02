@@ -15,6 +15,7 @@ from guild.src.agents.unified_automation_agent import UnifiedAutomationAgent
 from .content_ws import broadcast_update
 from guild.src.agents.facebook_scheduler_adapter import FacebookSchedulerAdapter
 from guild.src.agents.linkedin_scheduler_adapter import LinkedInSchedulerAdapter
+import os
 
 
 router = APIRouter(prefix="/content", tags=["content-intelligence"])
@@ -153,13 +154,19 @@ async def schedule_content(req: ScheduleRequest):
 
     scheduled: list = []
     if fb_items:
-        fb = FacebookSchedulerAdapter()
+        fb = FacebookSchedulerAdapter(
+            access_token=os.getenv('FACEBOOK_ACCESS_TOKEN'),
+            page_id=os.getenv('FACEBOOK_PAGE_ID')
+        )
         fb_res = await fb.schedule_posts(fb_items)
         for it, res in zip(fb_items, fb_res):
             scheduled.append({"item": it, "result": res})
 
     if li_items:
-        li = LinkedInSchedulerAdapter()
+        li = LinkedInSchedulerAdapter(
+            access_token=os.getenv('LINKEDIN_ACCESS_TOKEN'),
+            organization_id=os.getenv('LINKEDIN_ORG_ID')
+        )
         li_res = await li.schedule_posts(li_items)
         for it, res in zip(li_items, li_res):
             scheduled.append({"item": it, "result": res})
@@ -171,6 +178,7 @@ async def schedule_content(req: ScheduleRequest):
         for it, res in zip(other_items, results):
             scheduled.append({"item": it, "result": (res if isinstance(res, dict) else {"error": str(res)})})
     await broadcast_update('campaigns_update', {"action": "update", "scheduled": scheduled})
+    await broadcast_update('calendar_update', {"items": [s.get('item') for s in scheduled]})
     return {"success": True, "data": {"scheduled": scheduled}}
 
 
