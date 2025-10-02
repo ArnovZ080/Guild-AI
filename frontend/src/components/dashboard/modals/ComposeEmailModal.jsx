@@ -248,7 +248,40 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
       <ChatEmailComposeAssistantModal
         open={showAssistant}
         onClose={()=>setShowAssistant(false)}
-        onApply={(draft)=>{ setSubject(draft.subject||''); setBody(draft.body||''); setShowAssistant(false); }}
+        onApply={async (draft)=>{
+          try {
+            // Judge Layer gate generated draft before applying
+            let profile = null;
+            try {
+              const res = await fetch('/api/profile');
+              const json = await res.json();
+              profile = json?.data || null;
+            } catch {}
+            const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            const payload = {
+              brief: {
+                objective: 'Compose email draft',
+                goals: { clarity: 'high', brand_alignment: 'enforce' },
+                audience: to ? { description: to } : undefined,
+                topic: draft.subject || subject || 'Email draft'
+              },
+              platforms: ['email'],
+              brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+            };
+            const resp = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const judge = await resp.json();
+            if (judge?.data?.approved === false) {
+              const score = judge?.data?.overall_score;
+              alert(`Draft failed quality gate${typeof score==='number'?` (score: ${Math.round(score*100)/100})`:''}. Please refine with the assistant and try again.`);
+              return;
+            }
+            setSubject(draft.subject||'');
+            setBody(draft.body||'');
+            setShowAssistant(false);
+          } catch {
+            alert('Could not validate draft quality. Please try again.');
+          }
+        }}
         context={{ to, segment }}
       />
     </div>
