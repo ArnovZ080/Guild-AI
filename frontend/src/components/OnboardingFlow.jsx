@@ -94,6 +94,33 @@ const OnboardingFlow = ({ onOnboardingComplete }) => {
       setStep('setup');
       setIsLoading(true);
       setInputPlaceholder('');
+      // Persist captured answers to Business Profile API
+      ;(async () => {
+        try {
+          const profilePayload = {
+            description: answers[0],
+            team_size: parseInt(answers[1]) || undefined,
+            years_active: parseInt(answers[2]) || undefined,
+            ideal_client: answers[3] || answers[4],
+            products_services: answers[5],
+            pricing_strategy: answers[6],
+            turnover_current: answers[7],
+            turnover_goals_6m: answers[8],
+            pain_points: answers[9],
+            platforms: { notes: answers[10] },
+            brand_voice: answers[11],
+            brand_colors: answers[12],
+            long_term_vision: answers[13]
+          };
+          await fetch('/api/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profilePayload)
+          });
+        } catch (e) {
+          console.warn('Failed to save onboarding profile', e);
+        }
+      })();
       setTimeout(() => {
           setMessages(prev => [...prev, {
               id: 'setup-start',
