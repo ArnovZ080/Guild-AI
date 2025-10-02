@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Info } from 'lucide-react';
-import ContentIntelligenceApi, { } from '../../services/contentIntelligenceApi';
+import { ContentIntelligenceAPIService } from '../../services/contentIntelligenceApi';
 
 const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   const [plants, setPlants] = useState([]);
@@ -371,6 +371,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                 <button className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
                   onClick={async () => {
                     try {
+                      const api = new ContentIntelligenceAPIService();
                       const payload = {
                         workflow: 'optimize_content_performance',
                         content: {
@@ -381,7 +382,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                         },
                         agents: ['orchestrator_agent', 'strategy_agent', 'content_intelligence_agent', 'automation_agent']
                       };
-                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      await api.executeWorkflow(payload);
                       alert('Agents activated to optimize this content. You will see updates shortly.');
                     } catch (e) {
                       alert('Unable to start optimization right now. Please try again.');
@@ -394,6 +395,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                 <button className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
                   onClick={async () => {
                     try {
+                      const api = new ContentIntelligenceAPIService();
                       const insightReq = {
                         insight_text: `Analyze content performance for ${selectedPlant.title} on ${selectedPlant.platform}`,
                         context: {
@@ -406,7 +408,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                           }
                         }
                       };
-                      const res = await ContentIntelligenceApi.getInsightAnalysis?.(insightReq);
+                      const res = await api.getInsightAnalysis(insightReq);
                       alert((res?.data?.analysis || 'Analysis generated.') + '\n\nRecommendations:\n' + (res?.data?.immediate_actions?.join('\n') || '- Increase posting at peak hours\n- Test new creative variants'));
                     } catch (e) {
                       alert('Unable to analyze right now. Please try again.');

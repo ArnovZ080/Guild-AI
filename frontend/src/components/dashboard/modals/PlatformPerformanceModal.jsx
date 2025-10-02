@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Brain, Target, Zap, Clock, Users, DollarSign } from 'lucide-react';
-import ContentIntelligenceApi from '../../../services/contentIntelligenceApi';
+import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 
 const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClose }) => {
   const platformData = performanceData.find(p => p.platform === platform) || performanceData[0];
@@ -111,6 +111,7 @@ const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClo
                   className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
                   onClick={async () => {
                     try {
+                      const api = new ContentIntelligenceAPIService();
                       const payload = {
                         workflow: 'implement_recommendations',
                         context: {
@@ -121,7 +122,7 @@ const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClo
                         },
                         agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
                       };
-                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      await api.executeWorkflow(payload);
                       alert('Agents activated to implement this recommendation.');
                     } catch (e) {
                       alert('Could not activate agents right now.');

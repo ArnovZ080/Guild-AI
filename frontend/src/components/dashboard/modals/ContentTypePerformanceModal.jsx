@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Brain, Target, Zap, Clock, Users, DollarSign, Video, FileText, Image, Music } from 'lucide-react';
-import ContentIntelligenceApi from '../../../services/contentIntelligenceApi';
+import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 
 const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights, onClose }) => {
   const contentData = performanceData.find(c => c.type === contentType) || performanceData[0];
@@ -148,6 +148,7 @@ const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights,
                   className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
                   onClick={async () => {
                     try {
+                      const api = new ContentIntelligenceAPIService();
                       const payload = {
                         workflow: 'implement_recommendations',
                         context: {
@@ -158,7 +159,7 @@ const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights,
                         },
                         agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
                       };
-                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      await api.executeWorkflow(payload);
                       alert('Agents activated to implement content-type recommendations.');
                     } catch (e) {
                       alert('Could not activate agents right now.');
@@ -277,6 +278,7 @@ const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights,
                   className="mt-3 text-xs bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700"
                   onClick={async () => {
                     try {
+                      const api = new ContentIntelligenceAPIService();
                       const payload = {
                         workflow: 'implement_recommendations',
                         context: {
@@ -286,7 +288,7 @@ const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights,
                         },
                         agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
                       };
-                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      await api.executeWorkflow(payload);
                       alert('Agents activated to apply optimization tips.');
                     } catch (e) {
                       alert('Could not activate agents right now.');
