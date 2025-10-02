@@ -37,6 +37,8 @@ const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => 
     'Content Intelligence Agent aggregation'
   ];
 
+  const isFallback = !overall?.content_metrics;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
@@ -49,7 +51,15 @@ const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => 
                 <p className="text-sm text-gray-600">Cross-content summary of what works and why</p>
               </div>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-6 h-6" /></button>
+            <div className="flex items-center space-x-2">
+              {isFallback && (
+                <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-800">Using sample data</span>
+              )}
+              <button onClick={() => { try { window.location.href = '/settings/integrations'; } catch {} }} className="text-xs px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700" title="Connect platforms for real data analysis">
+                Connect platforms
+              </button>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-6 h-6" /></button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
