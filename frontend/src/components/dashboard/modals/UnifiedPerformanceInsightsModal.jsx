@@ -1,8 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Brain, TrendingUp, Target, BarChart3, Lightbulb } from 'lucide-react';
+import { X, Brain, TrendingUp, Target, BarChart3, Lightbulb, Zap } from 'lucide-react';
+import { ContentIntelligenceAPIService } from '../../services/contentIntelligenceApi';
+import AgentActionsConfirmModal from './AgentActionsConfirmModal';
 
 const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => {
+  const [confirmCfg, setConfirmCfg] = React.useState(null);
+  const api = new ContentIntelligenceAPIService();
+
   // Derive summary
   const overall = analysis?.data || analysis || {};
   const keyInsights = overall.key_insights || [
@@ -16,6 +21,13 @@ const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => 
     { label: 'Topic-Intent Match', why: 'Educational/problem-solution content sustains engagement' },
     { label: 'Creative Variance', why: 'A/B creative cycles avoid fatigue and find winners' }
   ];
+
+  const unifiedRecs = (overall.immediate_actions || [
+    'Increase short-form video share by 30% across social',
+    'Optimize LinkedIn headlines for reach and CTR',
+    'Schedule posts in peak evening windows',
+    'Run A/B creative tests weekly to avoid fatigue'
+  ]);
 
   const sources = [
     'Instagram Analytics API',
@@ -80,10 +92,18 @@ const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => 
             </div>
           </div>
 
-          <div className="bg-white border rounded-lg p-4 mb-6">
-            <div className="flex items-center mb-3">
-              <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
-              <h3 className="font-semibold text-gray-800">Performance Summary</h3>
+          <div className="bg-white border rounded-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <BarChart3 className="w-5 h-5 text-gray-600 mr-2" />
+                <h3 className="font-semibold text-gray-800">Performance Summary</h3>
+              </div>
+              <button
+                className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 flex items-center"
+                onClick={() => setConfirmCfg({ actions: unifiedRecs })}
+              >
+                <Zap className="w-4 h-4 mr-1" /> Activate agents
+              </button>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
               <div className="p-3 rounded bg-blue-50"><div className="text-xs text-blue-700">Avg Engagement Rate</div><div className="text-lg font-semibold text-blue-900">{(overall?.content_metrics?.engagement_metrics?.engagement_rate?.current ?? 4.8)}%</div></div>
@@ -93,23 +113,34 @@ const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => 
             </div>
           </div>
 
-          <div className="bg-white border rounded-lg p-4">
-            <div className="flex items-center mb-3">
-              <Lightbulb className="w-5 h-5 text-yellow-600 mr-2" />
-              <h3 className="font-semibold text-gray-800">Unified Recommendations</h3>
-            </div>
-            <ul className="list-disc pl-5 text-sm text-gray-700 space-y-1">
-              {(overall.immediate_actions || [
-                'Increase short-form video share by 30% across social',
-                'Optimize LinkedIn headlines for reach and CTR',
-                'Schedule posts in peak evening windows',
-                'Run A/B creative tests weekly to avoid fatigue'
-              ]).map((r, i) => (<li key={i}>{r}</li>))}
-            </ul>
-            <div className="text-xs text-gray-500 mt-3">Sources: {sources.join(', ')}</div>
-          </div>
+          <div className="text-xs text-gray-500 mt-4">Sources: {sources.join(', ')}</div>
         </div>
       </motion.div>
+
+      {confirmCfg && (
+        <AgentActionsConfirmModal
+          title="Activate agents for unified recommendations"
+          description="Select which recommendations to implement now."
+          actions={confirmCfg.actions}
+          onCancel={() => setConfirmCfg(null)}
+          onProceed={async (selected) => {
+            try {
+              await api.executeWorkflow({
+                workflow: 'implement_recommendations',
+                context: {
+                  scope: 'unified_insights',
+                  summary: keyInsights,
+                  determining_factors: determiningFactors,
+                },
+                actions: selected,
+                agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
+              });
+            } finally {
+              setConfirmCfg(null);
+            }
+          }}
+        />
+      )}
     </div>
   );
 };
