@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Brain, Mail, Users, Calendar, CheckCircle, X, Loader2, Lightbulb, Zap, BarChart3, MessageCircle, ArrowRight, DollarSign, Target, Image, Palette } from 'lucide-react';
 import { ContentIntelligenceAPIService, useCreativeAssets } from '../../../services/contentIntelligenceApi';
+import EvaluatorRubricDrawer from '../shared/EvaluatorRubricDrawer.jsx';
 
 const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [step, setStep] = useState(1);
@@ -19,6 +20,8 @@ const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [aiAnalysis, setAiAnalysis] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCampaign, setGeneratedCampaign] = useState(null);
+  const [rubric, setRubric] = useState(null);
+  const [showRubric, setShowRubric] = useState(false);
   const [showAssetPicker, setShowAssetPicker] = useState(false);
   const api = new ContentIntelligenceAPIService();
   const { assets } = useCreativeAssets();
@@ -129,8 +132,8 @@ const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       const judge = await resp.json();
       const approved = judge?.data?.approved !== false;
       if (!approved) {
-        const score = judge?.data?.overall_score; const seo = judge?.data?.seo; const comp = judge?.data?.compliance;
-        alert(`Email campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}.\n\nSEO: ${seo?.data?.analysis || 'n/a'}\nCompliance: ${comp?.content_planning ? 'Review email compliance criteria' : 'n/a'}`);
+        setRubric(judge?.data || {});
+        setShowRubric(true);
         return;
       }
 
@@ -332,6 +335,7 @@ const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         </div>
       </div>
     </div>
+    <EvaluatorRubricDrawer open={showRubric} onClose={()=>setShowRubric(false)} data={rubric} />
   );
 };
 

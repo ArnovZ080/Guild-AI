@@ -4,6 +4,7 @@ import { X, Sparkles, TrendingUp, Calendar, Target, Users, Hash, Clock, Zap } fr
 import ConfidenceScore from '../shared/ConfidenceScore';
 import AIRecommendations from '../shared/AIRecommendations';
 import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
+import EvaluatorRubricDrawer from '../shared/EvaluatorRubricDrawer.jsx';
 
 const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -18,6 +19,8 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
     includeSeasonal: true,
     includeIndustry: true
   });
+  const [rubric, setRubric] = useState(null);
+  const [showRubric, setShowRubric] = useState(false);
 
   const platforms = [
     { id: 'instagram', name: 'Instagram', icon: '📸' },
@@ -201,9 +204,8 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
       const judgeResult = await api.createContent(judgePayload);
       const approved = judgeResult?.data?.approved !== false;
       if (!approved) {
-        const score = judgeResult?.data?.overall_score;
-        const seo = judgeResult?.data?.seo; const comp = judgeResult?.data?.compliance;
-        alert(`Content did not pass quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}.\n\nSEO: ${seo?.data?.analysis || 'n/a'}\nCompliance: ${comp?.content_planning ? 'Review platform policy alignment' : 'n/a'}`);
+        setRubric(judgeResult?.data || {});
+        setShowRubric(true);
         return;
       }
 
@@ -489,6 +491,7 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
           </div>
         </div>
       </motion.div>
+      <EvaluatorRubricDrawer open={showRubric} onClose={()=>setShowRubric(false)} data={rubric} />
     </div>
   );
 };

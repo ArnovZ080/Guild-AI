@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import EvaluatorRubricDrawer from '../shared/EvaluatorRubricDrawer.jsx';
 import { 
   Brain, 
   Target, 
@@ -49,6 +50,8 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCampaign, setGeneratedCampaign] = useState(null);
   const [isRefiningAudience, setIsRefiningAudience] = useState(false);
+  const [rubric, setRubric] = useState(null);
+  const [showRubric, setShowRubric] = useState(false);
 
   const handleInputChange = (field, value) => {
     setCampaignInput(prev => ({ ...prev, [field]: value }));
@@ -154,9 +157,8 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       const judge = await resp.json();
       const approved = judge?.data?.approved !== false;
       if (!approved) {
-        const score = judge?.data?.overall_score;
-        const seo = judge?.data?.seo; const comp = judge?.data?.compliance;
-        alert(`Campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}.\n\nSEO: ${seo?.data?.analysis || 'n/a'}\nCompliance: ${comp?.content_planning ? 'Review policy alignment' : 'n/a'}`);
+        setRubric(judge?.data || {});
+        setShowRubric(true);
         return;
       }
 
@@ -540,6 +542,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         </div>
       </div>
     </div>
+    <EvaluatorRubricDrawer open={showRubric} onClose={()=>setShowRubric(false)} data={rubric} />
   );
 };
 
