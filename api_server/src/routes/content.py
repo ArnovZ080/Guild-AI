@@ -149,6 +149,34 @@ async def schedule_content(req: ScheduleRequest):
                     "action": "Please connect platforms in Connections to continue"
                 }
             )
+    # Credential checks per platform
+    present_platforms = set([(it.get('platform') or '').lower() for it in req.items])
+    creds_required = {
+        'facebook': ['FACEBOOK_ACCESS_TOKEN', 'FACEBOOK_PAGE_ID'],
+        'linkedin': ['LINKEDIN_ACCESS_TOKEN', 'LINKEDIN_ORG_ID'],
+        'twitter': ['TWITTER_ACCESS_TOKEN', 'TWITTER_API_KEY', 'TWITTER_API_SECRET'],
+        'x': ['TWITTER_ACCESS_TOKEN', 'TWITTER_API_KEY', 'TWITTER_API_SECRET'],
+        'instagram': ['IG_ACCESS_TOKEN', 'IG_BUSINESS_ACCOUNT_ID'],
+        'tiktok': ['TIKTOK_ACCESS_TOKEN', 'TIKTOK_ADVERTISER_ID'],
+    }
+    missing_creds = {}
+    for plat in present_platforms:
+        req_vars = creds_required.get(plat)
+        if not req_vars:
+            continue
+        missing_vars = [var for var in req_vars if not os.getenv(var)]
+        if missing_vars:
+            missing_creds[plat] = missing_vars
+    if missing_creds:
+        raise HTTPException(
+            status_code=status.HTTP_412_PRECONDITION_FAILED,
+            detail={
+                "message": "Missing API credentials for platform scheduling",
+                "missing_credentials": missing_creds,
+                "action": "Please add credentials in Connections or set environment variables",
+                "connect_path": "/connections"
+            }
+        )
     # Call UnifiedAutomationAgent to schedule (placeholder text task per item)
     # Platform-specific: Facebook adapter example
     fb_items = [it for it in req.items if (it.get('platform') or '').lower() == 'facebook']
