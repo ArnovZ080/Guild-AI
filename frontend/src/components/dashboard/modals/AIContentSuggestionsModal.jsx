@@ -179,6 +179,33 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
 
     try {
       const api = new ContentIntelligenceAPIService();
+      // Fetch Business Profile for brand guidelines (if available)
+      let profile = null;
+      try {
+        const res = await fetch('/api/profile');
+        const json = await res.json();
+        profile = json?.data || null;
+      } catch {}
+
+      // Judge Layer gating via /content/create API
+      const judgePayload = {
+        brief: {
+          objective: 'Schedule AI content suggestions',
+          goals: { engagement: 'increase', consistency: true },
+          audience: profile?.ideal_client ? { description: profile.ideal_client } : undefined,
+          topic: 'Content calendar fill',
+        },
+        platforms: Array.from(new Set(calendarItems.map(i => i.platform))),
+        brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+      };
+      const judgeResult = await api.createContent(judgePayload);
+      const approved = judgeResult?.data?.approved !== false;
+      if (!approved) {
+        const score = judgeResult?.data?.overall_score;
+        alert(`Content did not pass quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine and try again.`);
+        return;
+      }
+
       const requiredPlatforms = Array.from(new Set(calendarItems.map(i => i.platform)));
       const result = await api.scheduleContent({
         items: calendarItems,

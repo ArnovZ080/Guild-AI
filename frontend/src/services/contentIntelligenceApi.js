@@ -910,13 +910,13 @@ export class ContentIntelligenceAPIService {
   getMockPersonalizationSuggestions(email) {
     return { data: { email, suggestions: [
       { id: 'p1', field: 'subject', text: 'Jane, quick idea to save you time in Ops' , why: 'Personalized subject with role reference increases opens' },
-      { id: 'p2', field: 'body', text: 'Reference Acme’s recent onboarding milestone to build relevance', why: 'Context from timeline indicates onboarding' }
+      { id: 'p2', field: 'body', text: 'Reference Acme's recent onboarding milestone to build relevance', why: 'Context from timeline indicates onboarding' }
     ] } };
   }
 
   getMockVariantSuggestions(context) {
     return { data: { suggestions: [
-      { id: 'vs1', subject: 'Unlock time back each week with a 5‑minute workflow', body: 'Hi {{first_name}}, here’s a quick win we spotted…' },
+      { id: 'vs1', subject: 'Unlock time back each week with a 5‑minute workflow', body: 'Hi {{first_name}}, here's a quick win we spotted…' },
       { id: 'vs2', subject: '{{first_name}}, cut email busywork in half this month', body: 'Noticed your team is scaling—this helps keep quality high…' }
     ] } };
   }
