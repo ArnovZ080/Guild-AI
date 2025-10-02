@@ -102,7 +102,27 @@ async def create_content(req: CreateContentRequest):
         quality_criteria={"clarity": 0.8, "brand_alignment": 0.85},
         content_samples=copy_plan
     )
-    return {"success": True, "data": {"strategy": strategy, "copy": copy_plan, "judge": rubric}}
+    # Simple gating: require overall >= 0.8 if present
+    approved = True
+    threshold = 0.8
+    overall = None
+    try:
+        overall = rubric.get("judge_layer_results", {}).get("overall_score")
+    except Exception:
+        overall = None
+    if isinstance(overall, (int, float)):
+        approved = overall >= threshold
+    return {
+        "success": True,
+        "data": {
+            "strategy": strategy,
+            "copy": copy_plan,
+            "judge": rubric,
+            "approved": approved,
+            "threshold": threshold,
+            "overall_score": overall
+        }
+    }
 
 
 @router.post("/schedule")
