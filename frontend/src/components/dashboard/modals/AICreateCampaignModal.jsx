@@ -127,13 +127,42 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
     }, 3000);
   };
 
-  const handleCreateCampaign = () => {
-    console.log('Create campaign clicked, generatedCampaign:', generatedCampaign);
-    if (generatedCampaign) {
+  const handleCreateCampaign = async () => {
+    if (!generatedCampaign) return;
+    try {
+      // Fetch business profile
+      let profile = null;
+      try {
+        const res = await fetch('/api/profile');
+        const json = await res.json();
+        profile = json?.data || null;
+      } catch {}
+
+      // Judge Layer gating before creating campaign content
+      const payload = {
+        brief: {
+          objective: generatedCampaign.objective || 'Create campaign content',
+          goals: { roi: 'maximize', engagement: 'increase' },
+          audience: generatedCampaign.targetAudience ? { description: generatedCampaign.targetAudience } : undefined,
+          topic: generatedCampaign.name,
+        },
+        platforms: generatedCampaign.platform ? [generatedCampaign.platform] : [],
+        brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+      };
+      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+      const resp = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const judge = await resp.json();
+      const approved = judge?.data?.approved !== false;
+      if (!approved) {
+        const score = judge?.data?.overall_score;
+        alert(`Campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine inputs and try again.`);
+        return;
+      }
+
       onCreateCampaign(generatedCampaign);
       onClose();
-    } else {
-      console.log('No generated campaign found');
+    } catch (e) {
+      alert('Could not validate campaign quality. Please try again.');
     }
   };
 
