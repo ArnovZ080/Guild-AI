@@ -687,64 +687,64 @@ const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highli
             </div>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3">
-            
+          <div className="space-y-3">
+            {/* Top Row: Create Content, AI Suggestions, Autonomous Content */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Create Content Button */}
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Content
+              </button>
 
+              {/* AI Content Suggestions Button */}
+              <button 
+                onClick={() => setShowAISuggestionsModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Suggestions
+              </button>
 
-            {/* Performance Analytics Button */}
-            <button 
-              onClick={() => setShowAnalyticsModal(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Analytics
-            </button>
+              {/* Autonomous Content Creation Button */}
+              <button 
+                onClick={() => setShowAutonomousModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Autonomous Content
+              </button>
+            </div>
 
-            {/* Autonomous Content Creation Button */}
-            <button 
-              onClick={() => setShowAutonomousModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
-            >
-              <Zap className="w-4 h-4 mr-2" />
-              Autonomous Content
-            </button>
+            {/* Bottom Row: Pending, Analytics */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Request Approval Button */}
+              <button 
+                onClick={() => {
+                  const pendingApproval = filteredCalendar.find(item => item.status === 'review');
+                  if (pendingApproval) {
+                    handleApprovalRequest(pendingApproval);
+                  } else {
+                    alert('No content in review status found. Please create content and set it to review status first.');
+                  }
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Pending ({filteredCalendar.filter(item => item.status === 'review').length})
+              </button>
 
-            {/* AI Content Suggestions Button */}
-            <button 
-              onClick={() => setShowAISuggestionsModal(true)}
-              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center"
-            >
-              <Sparkles className="w-4 h-4 mr-2" />
-              AI Suggestions
-            </button>
-
-            
-
-            {/* Request Approval Button */}
-            <button 
-              onClick={() => {
-                const pendingApproval = filteredCalendar.find(item => item.status === 'review');
-                if (pendingApproval) {
-                  handleApprovalRequest(pendingApproval);
-                } else {
-                  alert('No content in review status found. Please create content and set it to review status first.');
-                }
-              }}
-              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Review Pending ({filteredCalendar.filter(item => item.status === 'review').length})
-            </button>
-            
-
-            {/* Create Content Button */}
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-            >
-            <Plus className="w-4 h-4 mr-2" />
-              Create Content
-          </button>
+              {/* Performance Analytics Button */}
+              <button 
+                onClick={() => setShowAnalyticsModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </button>
+            </div>
           </div>
         </div>
         
