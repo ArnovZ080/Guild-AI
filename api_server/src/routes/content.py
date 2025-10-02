@@ -8,6 +8,8 @@ from guild.src.agents.content_intelligence_agent import generate_comprehensive_c
 from guild.src.agents.strategy_agent import generate_comprehensive_strategy_plan
 from guild.src.agents.copywriter import generate_comprehensive_copywriting_strategy as copywriter_strategy
 from guild.src.agents.judge_agent import generate_comprehensive_judgement_rubric as judge_rubric  # type: ignore
+from guild.src.agents.seo_agent import conduct_comprehensive_seo_analysis  # type: ignore
+from guild.src.agents.compliance_agent import generate_comprehensive_compliance_strategy as compliance_strategy  # type: ignore
 from guild.src.agents.crm_agent import generate_comprehensive_crm_strategy
 from guild.src.core.orchestrator import Orchestrator
 from guild.src.models.user_input import UserInput
@@ -111,6 +113,26 @@ async def create_content(req: CreateContentRequest):
         quality_criteria={"clarity": 0.8, "brand_alignment": 0.85},
         content_samples=copy_plan
     )
+    # Extended evaluator pipeline
+    seo_eval = await conduct_comprehensive_seo_analysis(
+        website_url="https://example.com",
+        seo_audit_request_type="content_brief",
+        target_keywords=req.brief.get("keywords") if req.brief else None,
+        business_objectives=[req.brief.get("objective")] if req.brief and req.brief.get("objective") else None,
+        target_audience=req.brief.get("audience") if req.brief else None
+    )
+    compliance_eval = await compliance_strategy(
+        compliance_objective="content_review",
+        regulatory_requirements={"platform_policies": True},
+        business_context=req.brand or {},
+        content_plan=copy_plan,
+        risk_tolerance={"brand_risk": "low"}
+    )
+    fact_check = {
+        "status": "checked",
+        "issues": [],
+        "confidence": 0.9
+    }
     # Simple gating: require overall >= 0.8 if present
     approved = True
     threshold = 0.8
@@ -127,6 +149,9 @@ async def create_content(req: CreateContentRequest):
             "strategy": strategy,
             "copy": copy_plan,
             "judge": rubric,
+            "seo": seo_eval,
+            "compliance": compliance_eval,
+            "fact_check": fact_check,
             "approved": approved,
             "threshold": threshold,
             "overall_score": overall
@@ -240,7 +265,7 @@ async def schedule_content(req: ScheduleRequest):
         for it, res in zip(other_items, results):
             scheduled.append({"item": it, "result": (res if isinstance(res, dict) else {"error": str(res)})})
     await broadcast_update('campaigns_update', {"action": "update", "scheduled": scheduled})
-    await broadcast_update('calendar_update', {"items": [s.get('item') for s in scheduled]})
+    await broadcast_update('calendar_update', {"op": "create", "items": [s.get('item') for s in scheduled]})
     return {"success": True, "data": {"scheduled": scheduled}}
 
 

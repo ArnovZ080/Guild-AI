@@ -214,7 +214,13 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
       });
 
       if (!result || result?.success === false) {
-        alert('Scheduling failed. Please ensure your platform connections are set up in Connections.');
+        const detail = result?.detail || {};
+        if (detail?.missing_credentials) {
+          const entries = Object.entries(detail.missing_credentials).map(([p, vars]) => `${p}: ${vars.join(', ')}`).join('\n');
+          alert(`Missing credentials for scheduling:\n${entries}\n\nGo to Connections to configure.`);
+        } else {
+          alert('Scheduling failed. Please ensure your platform connections are set up in Connections.');
+        }
         return;
       }
 

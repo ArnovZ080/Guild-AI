@@ -69,6 +69,25 @@ const OAuthConnections = () => {
     }
   };
 
+  // Helper to surface missing credentials from backend 412
+  const explainMissingCreds = (detail) => {
+    if (!detail?.missing_credentials) return null;
+    const rows = Object.entries(detail.missing_credentials).map(([platform, vars]) => ({ platform, vars }));
+    return (
+      <div className="mt-4 border border-yellow-200 bg-yellow-50 rounded p-3">
+        <div className="text-sm font-semibold text-yellow-900">Missing credentials</div>
+        <ul className="mt-2 text-xs text-yellow-800 list-disc pl-5">
+          {rows.map(r => (
+            <li key={r.platform}>
+              <span className="font-medium capitalize">{r.platform}:</span> {r.vars.join(', ')}
+            </li>
+          ))}
+        </ul>
+        <div className="mt-2 text-xs text-yellow-800">Use the Connect buttons below to configure providers or set environment variables in your deployment.</div>
+      </div>
+    );
+  };
+
   // Mock API calls - replace with actual API integration
   const fetchCredentials = async () => {
     setLoading(true);
