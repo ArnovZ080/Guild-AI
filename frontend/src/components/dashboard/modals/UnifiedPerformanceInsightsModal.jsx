@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Brain, TrendingUp, Target, BarChart3, Lightbulb, Zap } from 'lucide-react';
-import { ContentIntelligenceAPIService } from '../../services/contentIntelligenceApi';
+import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
 import AgentActionsConfirmModal from './AgentActionsConfirmModal';
 
 const UnifiedPerformanceInsightsModal = ({ analysis, performance, onClose }) => {
