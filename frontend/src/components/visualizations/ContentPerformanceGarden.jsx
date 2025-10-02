@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Info } from 'lucide-react';
+import ContentIntelligenceApi, { } from '../../services/contentIntelligenceApi';
 
 const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   const [plants, setPlants] = useState([]);
@@ -218,7 +219,8 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
                 className="text-3xl filter drop-shadow-lg"
                 style={{
                   fontSize: `${plant.size}px`,
-                  color: getPerformanceColor(plant.performance)
+                  color: getPerformanceColor(plant.performance),
+                  boxShadow: `0 0 12px ${getPerformanceColor(plant.performance)}55`
                 }}
               >
                 {getPlantVisual(plant)}
@@ -366,11 +368,51 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
               </div>
 
               <div className="flex space-x-3">
-                <button className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center">
+                <button className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
+                  onClick={async () => {
+                    try {
+                      const payload = {
+                        workflow: 'optimize_content_performance',
+                        content: {
+                          id: selectedPlant.id,
+                          platform: selectedPlant.platform,
+                          type: selectedPlant.type,
+                          title: selectedPlant.title
+                        },
+                        agents: ['orchestrator_agent', 'strategy_agent', 'content_intelligence_agent', 'automation_agent']
+                      };
+                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      alert('Agents activated to optimize this content. You will see updates shortly.');
+                    } catch (e) {
+                      alert('Unable to start optimization right now. Please try again.');
+                    }
+                  }}
+                >
                   <BarChart3 className="w-4 h-4 mr-2" />
                   Optimize
                 </button>
-                <button className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center">
+                <button className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
+                  onClick={async () => {
+                    try {
+                      const insightReq = {
+                        insight_text: `Analyze content performance for ${selectedPlant.title} on ${selectedPlant.platform}`,
+                        context: {
+                          id: selectedPlant.id,
+                          platform: selectedPlant.platform,
+                          metrics: {
+                            engagement: selectedPlant.engagement,
+                            reach: selectedPlant.reach,
+                            conversions: selectedPlant.conversion
+                          }
+                        }
+                      };
+                      const res = await ContentIntelligenceApi.getInsightAnalysis?.(insightReq);
+                      alert((res?.data?.analysis || 'Analysis generated.') + '\n\nRecommendations:\n' + (res?.data?.immediate_actions?.join('\n') || '- Increase posting at peak hours\n- Test new creative variants'));
+                    } catch (e) {
+                      alert('Unable to analyze right now. Please try again.');
+                    }
+                  }}
+                >
                   <Info className="w-4 h-4 mr-2" />
                   Analyze
                 </button>
@@ -383,7 +425,10 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
       {/* Garden Legend */}
       <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 rounded-lg p-3">
         <div className="text-xs space-y-1">
-          <div className="font-medium text-gray-800 mb-2">Garden Legend</div>
+          <div className="font-medium text-gray-800 mb-2 flex items-center">
+            Garden Legend
+            <span className="ml-2 text-gray-400" title="Colors reflect performance: green=high, yellow=medium, red=low. Seasons visualize seasonal effects for content marked as seasonal; the background cycles to illustrate seasonality context.">ℹ️</span>
+          </div>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
             <span>High Performance (80%+)</span>

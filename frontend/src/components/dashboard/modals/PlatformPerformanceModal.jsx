@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Brain, Target, Zap, Clock, Users, DollarSign } from 'lucide-react';
+import ContentIntelligenceApi from '../../../services/contentIntelligenceApi';
 
 const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClose }) => {
   const platformData = performanceData.find(p => p.platform === platform) || performanceData[0];
@@ -101,9 +102,34 @@ const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClo
           {/* AI Insights Section */}
           {platformInsights && (
             <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border-l-4 border-blue-500">
-              <div className="flex items-center space-x-2 mb-3">
-                <Brain className="w-5 h-5 text-blue-600" />
-                <h3 className="font-semibold text-blue-800">AI Content Intelligence Analysis</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Brain className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold text-blue-800">AI Content Intelligence Analysis</h3>
+                </div>
+                <button
+                  className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+                  onClick={async () => {
+                    try {
+                      const payload = {
+                        workflow: 'implement_recommendations',
+                        context: {
+                          scope: 'platform',
+                          platform,
+                          recommendation: platformInsights.recommendation,
+                          key_insight: platformInsights.keyInsight
+                        },
+                        agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
+                      };
+                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      alert('Agents activated to implement this recommendation.');
+                    } catch (e) {
+                      alert('Could not activate agents right now.');
+                    }
+                  }}
+                >
+                  Activate agents
+                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

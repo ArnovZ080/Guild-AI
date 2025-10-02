@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { X, TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Brain, Target, Zap, Clock, Users, DollarSign, Video, FileText, Image, Music } from 'lucide-react';
+import ContentIntelligenceApi from '../../../services/contentIntelligenceApi';
 
 const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights, onClose }) => {
   const contentData = performanceData.find(c => c.type === contentType) || performanceData[0];
@@ -138,9 +139,34 @@ const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights,
           {/* AI Insights Section */}
           {contentTypeInsights && (
             <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border-l-4 border-purple-500">
-              <div className="flex items-center space-x-2 mb-3">
-                <Brain className="w-5 h-5 text-purple-600" />
-                <h3 className="font-semibold text-purple-800">AI Content Intelligence Analysis</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-2">
+                  <Brain className="w-5 h-5 text-purple-600" />
+                  <h3 className="font-semibold text-purple-800">AI Content Intelligence Analysis</h3>
+                </div>
+                <button
+                  className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700"
+                  onClick={async () => {
+                    try {
+                      const payload = {
+                        workflow: 'implement_recommendations',
+                        context: {
+                          scope: 'content_type',
+                          content_type: contentType,
+                          recommendation: contentTypeInsights.recommendation,
+                          key_insight: contentTypeInsights.keyInsight
+                        },
+                        agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
+                      };
+                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      alert('Agents activated to implement content-type recommendations.');
+                    } catch (e) {
+                      alert('Could not activate agents right now.');
+                    }
+                  }}
+                >
+                  Activate agents
+                </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -247,6 +273,28 @@ const ContentTypePerformanceModal = ({ contentType, performanceData, aiInsights,
                 <p>
                   The Content Intelligence Agent continuously monitors performance patterns to provide personalized recommendations.
                 </p>
+                <button
+                  className="mt-3 text-xs bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700"
+                  onClick={async () => {
+                    try {
+                      const payload = {
+                        workflow: 'implement_recommendations',
+                        context: {
+                          scope: 'content_type_tips',
+                          content_type: contentType,
+                          tips: (optimizationTips[contentType] || optimizationTips['Static Posts'])
+                        },
+                        agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
+                      };
+                      await ContentIntelligenceApi.executeWorkflow?.(payload);
+                      alert('Agents activated to apply optimization tips.');
+                    } catch (e) {
+                      alert('Could not activate agents right now.');
+                    }
+                  }}
+                >
+                  Activate agents
+                </button>
               </div>
             </div>
           </div>
