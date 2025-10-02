@@ -16,6 +16,8 @@ from .content_ws import broadcast_update
 from guild.src.agents.facebook_scheduler_adapter import FacebookSchedulerAdapter
 from guild.src.agents.linkedin_scheduler_adapter import LinkedInSchedulerAdapter
 from guild.src.agents.twitter_scheduler_adapter import TwitterSchedulerAdapter
+from guild.src.agents.instagram_scheduler_adapter import InstagramSchedulerAdapter
+from guild.src.agents.tiktok_scheduler_adapter import TikTokSchedulerAdapter
 import os
 
 
@@ -152,7 +154,9 @@ async def schedule_content(req: ScheduleRequest):
     fb_items = [it for it in req.items if (it.get('platform') or '').lower() == 'facebook']
     li_items = [it for it in req.items if (it.get('platform') or '').lower() == 'linkedin']
     tw_items = [it for it in req.items if (it.get('platform') or '').lower() in ('twitter','x')]
-    other_items = [it for it in req.items if (it.get('platform') or '').lower() not in ('facebook','linkedin','twitter','x')]
+    ig_items = [it for it in req.items if (it.get('platform') or '').lower() == 'instagram']
+    tt_items = [it for it in req.items if (it.get('platform') or '').lower() == 'tiktok']
+    other_items = [it for it in req.items if (it.get('platform') or '').lower() not in ('facebook','linkedin','twitter','x','instagram','tiktok')]
 
     scheduled: list = []
     if fb_items:
@@ -181,6 +185,24 @@ async def schedule_content(req: ScheduleRequest):
         )
         tw_res = await tw.schedule_posts(tw_items)
         for it, res in zip(tw_items, tw_res):
+            scheduled.append({"item": it, "result": res})
+
+    if ig_items:
+        ig = InstagramSchedulerAdapter(
+            access_token=os.getenv('IG_ACCESS_TOKEN'),
+            instagram_business_account_id=os.getenv('IG_BUSINESS_ACCOUNT_ID')
+        )
+        ig_res = await ig.schedule_posts(ig_items)
+        for it, res in zip(ig_items, ig_res):
+            scheduled.append({"item": it, "result": res})
+
+    if tt_items:
+        tt = TikTokSchedulerAdapter(
+            access_token=os.getenv('TIKTOK_ACCESS_TOKEN'),
+            advertiser_id=os.getenv('TIKTOK_ADVERTISER_ID')
+        )
+        tt_res = await tt.schedule_posts(tt_items)
+        for it, res in zip(tt_items, tt_res):
             scheduled.append({"item": it, "result": res})
 
     if other_items:
