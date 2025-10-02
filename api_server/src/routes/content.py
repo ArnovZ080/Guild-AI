@@ -11,6 +11,7 @@ from guild.src.agents.judge_agent import generate_comprehensive_judgement_rubric
 from guild.src.agents.crm_agent import generate_comprehensive_crm_strategy
 from guild.src.core.orchestrator import Orchestrator
 from guild.src.models.user_input import UserInput
+from guild.src.agents.unified_automation_agent import UnifiedAutomationAgent
 
 
 router = APIRouter(prefix="/content", tags=["content-intelligence"])
@@ -119,8 +120,15 @@ async def schedule_content(req: ScheduleRequest):
                     "action": "Please connect platforms in Connections to continue"
                 }
             )
-    # TODO: call UnifiedAutomationAgent per connector to schedule
-    return {"success": True, "data": {"scheduled": req.items}}
+    # Call UnifiedAutomationAgent to schedule (placeholder text task per item)
+    ua = UnifiedAutomationAgent()
+    # Execute in parallel for multiple items
+    tasks = [ua.run(user_input=f"Schedule {it.get('platform')} {it.get('content_type')} on {it.get('scheduled_date')}") for it in req.items]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    scheduled = []
+    for it, res in zip(req.items, results):
+        scheduled.append({"item": it, "result": (res if isinstance(res, dict) else {"error": str(res)})})
+    return {"success": True, "data": {"scheduled": scheduled}}
 
 
 @router.post("/execute-workflow")
