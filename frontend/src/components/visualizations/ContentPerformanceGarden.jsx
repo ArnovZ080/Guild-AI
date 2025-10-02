@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Info } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../services/contentIntelligenceApi';
+import AgentActionsConfirmModal from '../dashboard/modals/AgentActionsConfirmModal';
 
 const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   const [plants, setPlants] = useState([]);
@@ -12,49 +13,55 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   // Transform performance data into garden plants
   useEffect(() => {
     if (performanceData && performanceData.content_performance) {
-      const transformedPlants = performanceData.content_performance.map((content, index) => {
-        const performance = content.engagement_rate || 0;
+      const items = performanceData.content_performance;
+      const maxReach = Math.max(1, ...items.map(c => c.reach || 0));
+      const maxEng = Math.max(1, ...items.map(c => c.engagement_rate || 0));
+      const maxImpr = Math.max(1, ...items.map(c => c.impressions || 0));
+
+      const transformedPlants = items.map((content, index) => {
+        // Use performance_score if available, otherwise scale engagement_rate (0-10%) to 0-100
+        const perf = (typeof content.performance_score === 'number' && !isNaN(content.performance_score))
+          ? content.performance_score
+          : (typeof content.engagement_rate === 'number' ? content.engagement_rate * 10 : 0);
         const reach = content.reach || 0;
         const conversion = content.conversion_rate || 0;
         const engagement = content.engagement_rate || 0;
-        
-        // Calculate growth stage based on performance
+
         let growthStage = 'seedling';
-        if (performance >= 90) growthStage = 'flourishing';
-        else if (performance >= 70) growthStage = 'mature';
-        else if (performance >= 50) growthStage = 'growing';
-        
-        // Calculate plant size based on reach
-        const size = Math.min(30, Math.max(12, (reach / 1000) * 2));
-        
-        // Calculate position (spread plants across garden)
-        const x = 20 + (index * 15) % 70;
-        const y = 20 + (index * 20) % 60;
-        
+        if (perf >= 90) growthStage = 'flourishing';
+        else if (perf >= 70) growthStage = 'mature';
+        else if (perf >= 50) growthStage = 'growing';
+
+        const x = 5 + Math.min(95, (reach / maxReach) * 90);
+        const y = 90 - Math.min(85, (engagement / maxEng) * 85);
+
+        const rawSize = Math.sqrt((reach + (content.impressions || 0)) / (maxReach + maxImpr)) * 36;
+        const size = Math.min(40, Math.max(12, rawSize));
+
         return {
           id: content.content_id || `content_${index}`,
           title: content.title || `Content ${index + 1}`,
           type: content.content_type || 'post',
           platform: content.platform || 'unknown',
-          performance: performance,
+          performance: perf,
           engagement: engagement,
           reach: reach,
           conversion: conversion,
           publishDate: new Date(content.publish_date || new Date()),
           category: content.category || 'General',
-          x: x,
-          y: y,
-          size: size,
-          growthStage: growthStage,
+          x,
+          y,
+          size,
+          growthStage,
           seasonal: content.seasonal || false,
-          performanceScore: content.performance_score || 0,
+          performanceScore: perf,
           impressions: content.impressions || 0,
           clicks: content.clicks || 0,
           cost: content.cost || 0,
           roi: content.roi || 0
         };
       });
-      
+
       setPlants(transformedPlants);
       setIsLoading(false);
     }
@@ -142,7 +149,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
   };
 
   if (isLoading) {
-    return (
+  return (
       <div className="relative w-full h-96 bg-gradient-to-br from-green-100 via-blue-50 to-yellow-50 rounded-lg overflow-hidden flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
@@ -218,19 +225,19 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
               <div
                 className="text-3xl filter drop-shadow-lg relative"
                 style={{
-                  fontSize: `${plant.size}px`,
-                  color: getPerformanceColor(plant.performance)
+                  fontSize: `${plant.size}px`
                 }}
               >
-                {/* Colored circular badge behind the plant */}
+                {/* Colored circular badge behind the plant (centered) */}
                 <div
-                  className="absolute inset-0 -z-10 rounded-full"
+                  className="absolute rounded-full"
                   style={{
-                    width: `${plant.size + 14}px`,
-                    height: `${plant.size + 14}px`,
-                    left: `${-(plant.size + 14) / 2}px`,
-                    top: `${-(plant.size + 14) / 2}px`,
-                    backgroundColor: `${getPerformanceColor(plant.performance)}22`
+                    width: `${plant.size + 16}px`,
+                    height: `${plant.size + 16}px`,
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    backgroundColor: getPerformanceColor(plant.performance) + '33'
                   }}
                 />
                 {getPlantVisual(plant)}
@@ -325,7 +332,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
 
               <div className="flex items-center space-x-3 mb-4">
                 <div className="text-3xl">{getPlantIcon(selectedPlant.type)}</div>
-                <div>
+              <div>
                   <h3 className="text-lg font-bold text-gray-800">{selectedPlant.title}</h3>
                   <div className="flex items-center space-x-2">
                     <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
@@ -378,67 +385,7 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
               </div>
 
               <div className="flex space-x-3">
-                <button className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
-                  onClick={async () => {
-                    const api = new ContentIntelligenceAPIService();
-                    const actions = [
-                      'Adjust targeting parameters',
-                      'Optimize creative elements',
-                      'Improve call-to-action',
-                      'Test different posting times'
-                    ];
-                    const confirm = window.confirm(`Would you like the AI Agents to initiate the following to optimize your content?\n\n- ${actions.join('\n- ')}`);
-                    if (!confirm) return;
-                    try {
-                      const payload = {
-                        workflow: 'optimize_content_performance',
-                        content: {
-                          id: selectedPlant.id,
-                          platform: selectedPlant.platform,
-                          type: selectedPlant.type,
-                          title: selectedPlant.title
-                        },
-                        actions,
-                        agents: ['orchestrator_agent', 'strategy_agent', 'content_intelligence_agent', 'automation_agent']
-                      };
-                      await api.executeWorkflow(payload);
-                    } catch {}
-                  }}
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  Optimize
-                </button>
-                <button className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
-                  onClick={async () => {
-                    const api = new ContentIntelligenceAPIService();
-                    const actions = [
-                      'Deep-dive content diagnostics',
-                      'Benchmark vs industry',
-                      'Generate prioritized recommendations'
-                    ];
-                    const confirm = window.confirm(`Run analysis and generate recommendations?\n\nThis will trigger:\n- ${actions.join('\n- ')}`);
-                    if (!confirm) return;
-                    try {
-                      const res = await api.getInsightAnalysis({
-                        insight_text: `Analyze content performance for ${selectedPlant.title} on ${selectedPlant.platform}`,
-                        context: {
-                          id: selectedPlant.id,
-                          platform: selectedPlant.platform,
-                          metrics: {
-                            engagement: selectedPlant.engagement,
-                            reach: selectedPlant.reach,
-                            conversions: selectedPlant.conversion
-                          }
-                        }
-                      });
-                      // In future: display a rich modal; for now, show native confirm step only before executing
-                      console.log('Analysis result', res);
-                    } catch {}
-                  }}
-                >
-                  <Info className="w-4 h-4 mr-2" />
-                  Analyze
-                </button>
+                <AgentActionButtons selectedPlant={selectedPlant} />
               </div>
             </motion.div>
           </motion.div>
@@ -470,6 +417,86 @@ const ContentPerformanceGarden = ({ performanceData, onPlantClick }) => {
         </div>
       </div>
     </div>
+  );
+};
+
+const AgentActionButtons = ({ selectedPlant }) => {
+  const [showConfirm, setShowConfirm] = useState(null);
+  const api = new ContentIntelligenceAPIService();
+
+  const optimizeActions = [
+    'Adjust targeting parameters',
+    'Optimize creative elements',
+    'Improve call-to-action',
+    'Test different posting times'
+  ];
+  const analyzeActions = [
+    'Deep-dive content diagnostics',
+    'Benchmark vs industry',
+    'Generate prioritized recommendations'
+  ];
+
+  return (
+    <>
+      <button
+        className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center"
+        onClick={() => setShowConfirm({ type: 'optimize', actions: optimizeActions })}
+      >
+        <BarChart3 className="w-4 h-4 mr-2" />
+        Optimize
+      </button>
+      <button
+        className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
+        onClick={() => setShowConfirm({ type: 'analyze', actions: analyzeActions })}
+      >
+        <Info className="w-4 h-4 mr-2" />
+        Analyze
+      </button>
+
+      {showConfirm && (
+        <AgentActionsConfirmModal
+          title={showConfirm.type === 'optimize' ? 'Initiate Optimization' : 'Run Analysis'}
+          description={showConfirm.type === 'optimize'
+            ? `Would you like the AI Agents to initiate the following to optimize your content "${selectedPlant.title}"?`
+            : `Run analysis for "${selectedPlant.title}" and generate recommendations?`}
+          actions={showConfirm.actions}
+          onCancel={() => setShowConfirm(null)}
+          onProceed={async (selectedActions) => {
+            try {
+              if (showConfirm.type === 'optimize') {
+                await api.executeWorkflow({
+                  workflow: 'optimize_content_performance',
+                  content: {
+                    id: selectedPlant.id,
+                    platform: selectedPlant.platform,
+                    type: selectedPlant.type,
+                    title: selectedPlant.title
+                  },
+                  actions: selectedActions,
+                  agents: ['orchestrator_agent', 'strategy_agent', 'content_intelligence_agent', 'automation_agent']
+                });
+              } else {
+                await api.getInsightAnalysis({
+                  insight_text: `Analyze content performance for ${selectedPlant.title} on ${selectedPlant.platform}`,
+                  context: {
+                    id: selectedPlant.id,
+                    platform: selectedPlant.platform,
+                    metrics: {
+                      engagement: selectedPlant.engagement,
+                      reach: selectedPlant.reach,
+                      conversions: selectedPlant.conversion
+                    }
+                  },
+                  actions: selectedActions
+                });
+              }
+            } finally {
+              setShowConfirm(null);
+            }
+          }}
+        />
+      )}
+    </>
   );
 };
 
