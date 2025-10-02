@@ -47,6 +47,33 @@ const OnboardingContainer = ({ onComplete }) => {
     }
   };
 
+  const persistProfile = async (data) => {
+    try {
+      const payload = {
+        company_name: data.company_name,
+        description: data.business_description || data.tagline || data.business_blurb,
+        team_size: data.team_size ? parseInt(data.team_size) : undefined,
+        years_active: data.years_active ? parseInt(data.years_active) : undefined,
+        ideal_client: data.ideal_customer || data.icp,
+        products_services: data.products_services || data.offerings,
+        pricing_strategy: data.pricing_strategy,
+        turnover_current: data.revenue_current,
+        turnover_goals_6m: data.revenue_goal_6m,
+        turnover_goals_12m: data.revenue_goal_12m,
+        pain_points: data.primary_pain_points,
+        platforms: data.platforms || { social: data.social_platforms, email: data.email_platforms },
+        brand_voice: data.brand_voice,
+        brand_colors: data.brand_colors,
+        brand_fonts: data.brand_fonts,
+        long_term_vision: data.vision,
+        guidelines: data.guidelines
+      };
+      await fetch('/api/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    } catch (e) {
+      console.warn('Failed to persist onboarding profile', e);
+    }
+  };
+
   const steps = {
     welcome: <WelcomeStep onNext={() => setCurrentStep('business')} />,
     business: (
@@ -116,7 +143,10 @@ const OnboardingContainer = ({ onComplete }) => {
     capabilities: (
       <CapabilitiesStep
         answers={answers}
-        onNext={() => onComplete({ ...answers, unknowns })}
+        onNext={async () => {
+          await persistProfile(answers);
+          onComplete({ ...answers, unknowns });
+        }}
       />
     ),
   };
