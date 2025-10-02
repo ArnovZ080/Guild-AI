@@ -2069,8 +2069,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
                       </div>
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <button className="px-3 py-1.5 text-xs rounded-lg bg-blue-600 text-white hover:bg-blue-700">Implement</button>
-                          <button className="px-3 py-1.5 text-xs rounded-lg bg-purple-600 text-white hover:bg-purple-700">Customize</button>
+                          <button onClick={()=>{ setImplementRecommendation(idea); setShowImplementModal(true); }} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs">Implement</button>
+                          <button onClick={()=>{ setAiPrefill(idea); setShowAICreate(true); }} className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-xs">Customize</button>
                         </div>
                         <span className="text-xs text-gray-500">Transparency: rationale shown</span>
                       </div>
