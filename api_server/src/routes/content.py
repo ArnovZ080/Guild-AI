@@ -278,11 +278,18 @@ async def execute_workflow(req: ExecuteWorkflowRequest):
     orch = Orchestrator(ui)
     workflow = await orch.generate_workflow()
     # Optionally kick off execution asynchronously in future
-    return {
+    result = {
         "success": True,
         "workflow_id": f"wf_{asyncio.get_event_loop().time()}",
         "accepted": True,
         "workflow_definition": workflow.model_dump() if hasattr(workflow, 'model_dump') else None,
     }
+    # Broadcast campaign status update for UI to reflect orchestration start
+    await broadcast_update('campaign_status_update', {
+        "status": "started",
+        "workflow_id": result["workflow_id"],
+        "context": req.context or {},
+    })
+    return result
 
 

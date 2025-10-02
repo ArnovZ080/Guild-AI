@@ -129,8 +129,8 @@ const AICreateEmailCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       const judge = await resp.json();
       const approved = judge?.data?.approved !== false;
       if (!approved) {
-        const score = judge?.data?.overall_score;
-        alert(`Email campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine and try again.`);
+        const score = judge?.data?.overall_score; const seo = judge?.data?.seo; const comp = judge?.data?.compliance;
+        alert(`Email campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}.\n\nSEO: ${seo?.data?.analysis || 'n/a'}\nCompliance: ${comp?.content_planning ? 'Review email compliance criteria' : 'n/a'}`);
         return;
       }
 

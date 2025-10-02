@@ -202,7 +202,8 @@ const AIContentSuggestionsModal = ({ onClose, onSchedule }) => {
       const approved = judgeResult?.data?.approved !== false;
       if (!approved) {
         const score = judgeResult?.data?.overall_score;
-        alert(`Content did not pass quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine and try again.`);
+        const seo = judgeResult?.data?.seo; const comp = judgeResult?.data?.compliance;
+        alert(`Content did not pass quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}.\n\nSEO: ${seo?.data?.analysis || 'n/a'}\nCompliance: ${comp?.content_planning ? 'Review platform policy alignment' : 'n/a'}`);
         return;
       }
 

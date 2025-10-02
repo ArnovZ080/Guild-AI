@@ -155,7 +155,8 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
       const approved = judge?.data?.approved !== false;
       if (!approved) {
         const score = judge?.data?.overall_score;
-        alert(`Campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}. Please refine inputs and try again.`);
+        const seo = judge?.data?.seo; const comp = judge?.data?.compliance;
+        alert(`Campaign failed quality gate${typeof score === 'number' ? ` (score: ${Math.round(score*100)/100})` : ''}.\n\nSEO: ${seo?.data?.analysis || 'n/a'}\nCompliance: ${comp?.content_planning ? 'Review policy alignment' : 'n/a'}`);
         return;
       }
 

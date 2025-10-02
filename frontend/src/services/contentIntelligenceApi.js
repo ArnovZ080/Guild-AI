@@ -2040,10 +2040,13 @@ export const useRealtimeActiveCampaigns = () => {
     contentIntelligenceWS.subscribe('campaigns_update', handleUpdate);
     const handleCalendar = () => fetchCampaigns();
     contentIntelligenceWS.subscribe('calendar_update', handleCalendar);
+    const handleStatus = () => fetchCampaigns();
+    contentIntelligenceWS.subscribe('campaign_status_update', handleStatus);
     
     return () => {
       contentIntelligenceWS.unsubscribe('campaigns_update', handleUpdate);
       contentIntelligenceWS.unsubscribe('calendar_update', handleCalendar);
+      contentIntelligenceWS.unsubscribe('campaign_status_update', handleStatus);
     };
   }, [fetchCampaigns]);
 
