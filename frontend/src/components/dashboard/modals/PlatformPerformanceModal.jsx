@@ -2,8 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { X, TrendingUp, Eye, Heart, Share2, MousePointer, BarChart3, Brain, Target, Zap, Clock, Users, DollarSign } from 'lucide-react';
 import { ContentIntelligenceAPIService } from '../../../services/contentIntelligenceApi';
+import AgentActionsConfirmModal from './AgentActionsConfirmModal';
 
-const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClose }) => {
+const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClose, }) => {
+  const [confirmCfg, setConfirmCfg] = React.useState(null);
+  const api = new ContentIntelligenceAPIService();
   const platformData = performanceData.find(p => p.platform === platform) || performanceData[0];
   const platformInsights = aiInsights?.platformInsights?.[platform] || aiInsights?.platformInsights?.instagram;
 
@@ -109,24 +112,14 @@ const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClo
                 </div>
                 <button
                   className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                  onClick={async () => {
-                    try {
-                      const api = new ContentIntelligenceAPIService();
-                      const payload = {
-                        workflow: 'implement_recommendations',
-                        context: {
-                          scope: 'platform',
-                          platform,
-                          recommendation: platformInsights.recommendation,
-                          key_insight: platformInsights.keyInsight
-                        },
-                        agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
-                      };
-                      await api.executeWorkflow(payload);
-                      alert('Agents activated to implement this recommendation.');
-                    } catch (e) {
-                      alert('Could not activate agents right now.');
-                    }
+                  onClick={() => {
+                    const actions = [
+                      'Increase best-performing format share',
+                      'Optimize posting times for platform',
+                      'A/B test two creative variants',
+                      'Tighten targeting for quality engagement'
+                    ];
+                    setConfirmCfg({ scope: 'platform', actions });
                   }}
                 >
                   Activate agents
@@ -149,6 +142,32 @@ const PlatformPerformanceModal = ({ platform, performanceData, aiInsights, onClo
                 </div>
               </div>
             </div>
+          )}
+
+          {confirmCfg && (
+            <AgentActionsConfirmModal
+              title={`Activate agents for ${platform}`}
+              description={`Select which actions to run for ${platform}.`}
+              actions={confirmCfg.actions}
+              onCancel={() => setConfirmCfg(null)}
+              onProceed={async (selected) => {
+                try {
+                  await api.executeWorkflow({
+                    workflow: 'implement_recommendations',
+                    context: {
+                      scope: 'platform',
+                      platform,
+                      recommendation: aiInsights?.platformInsights?.[platform]?.recommendation,
+                      key_insight: aiInsights?.platformInsights?.[platform]?.keyInsight
+                    },
+                    actions: selected,
+                    agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
+                  });
+                } finally {
+                  setConfirmCfg(null);
+                }
+              }}
+            />
           )}
 
           {/* Key Metrics Grid */}

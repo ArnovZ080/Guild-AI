@@ -4,12 +4,14 @@ import ContentPerformanceGarden from '../../visualizations/ContentPerformanceGar
 import PlatformPerformanceModal from '../modals/PlatformPerformanceModal';
 import ContentTypePerformanceModal from '../modals/ContentTypePerformanceModal';
 import { useContentPerformance, useContentAnalysis } from '../../../services/contentIntelligenceApi';
+import AgentActionsConfirmModal from '../modals/AgentActionsConfirmModal';
 
 const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
   const [showPlatformModal, setShowPlatformModal] = useState(false);
   const [showContentTypeModal, setShowContentTypeModal] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState(null);
   const [selectedContentType, setSelectedContentType] = useState(null);
+  const [insightsConfirm, setInsightsConfirm] = useState(null);
 
   // Use real API hooks for data
   const { performance: realPerformance, loading: performanceLoading, error: performanceError } = useContentPerformance('all', '30d');
@@ -310,9 +312,7 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
                   className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
                   onClick={() => {
                     const recs = aiInsights.overallPerformance.recommendations || [];
-                    const confirm = window.confirm(`Would you like the AI Agents to initiate the following recommendations?\n\n- ${recs.slice(0,3).join('\n- ')}`);
-                    if (!confirm) return;
-                    // Execution is handled in modals or targeted views; here we confirm intent
+                    setInsightsConfirm({ actions: recs });
                   }}
                 >
                   Activate agents
@@ -328,6 +328,19 @@ const ContentPerformanceTab = ({ performance, contentIntelligenceData }) => {
               </ul>
             </div>
           </div>
+
+          {insightsConfirm && (
+            <AgentActionsConfirmModal
+              title="Activate agents for top recommendations"
+              description="Select which actions to run now."
+              actions={insightsConfirm.actions}
+              onCancel={() => setInsightsConfirm(null)}
+              onProceed={(selected) => {
+                // This panel confirms selection; detailed execution happens in per-platform/type modals
+                setInsightsConfirm(null);
+              }}
+            />
+          )}
         </div>
       )}
 
