@@ -12,6 +12,8 @@ from guild.src.agents.crm_agent import generate_comprehensive_crm_strategy
 from guild.src.core.orchestrator import Orchestrator
 from guild.src.models.user_input import UserInput
 from guild.src.agents.unified_automation_agent import UnifiedAutomationAgent
+from .content_ws import broadcast_update
+from guild.src.agents.facebook_scheduler_adapter import FacebookSchedulerAdapter
 
 
 router = APIRouter(prefix="/content", tags=["content-intelligence"])
@@ -52,6 +54,7 @@ async def content_analysis(req: AnalysisRequest):
         performance_targets={},
         brand_guidelines={}
     )
+    await broadcast_update('content_analysis_update', {"data": strategy})
     return {"success": True, "data": strategy}
 
 
@@ -63,8 +66,9 @@ async def get_calendar(period: str = "30d"):
 
 @router.get("/performance")
 async def get_performance(platform: str = "all", period: str = "7d"):
-    # Placeholder consistent schema
-    return {"success": True, "data": {"platform": platform, "period": period, "performance": [], "summary": {}}}
+    data = {"platform": platform, "period": period, "performance": [], "summary": {}}
+    await broadcast_update('content_performance_update', data)
+    return {"success": True, "data": data}
 
 
 @router.get("/campaigns")
@@ -141,13 +145,24 @@ async def schedule_content(req: ScheduleRequest):
                 }
             )
     # Call UnifiedAutomationAgent to schedule (placeholder text task per item)
-    ua = UnifiedAutomationAgent()
-    # Execute in parallel for multiple items
-    tasks = [ua.run(user_input=f"Schedule {it.get('platform')} {it.get('content_type')} on {it.get('scheduled_date')}") for it in req.items]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    scheduled = []
-    for it, res in zip(req.items, results):
-        scheduled.append({"item": it, "result": (res if isinstance(res, dict) else {"error": str(res)})})
+    # Platform-specific: Facebook adapter example
+    fb_items = [it for it in req.items if (it.get('platform') or '').lower() == 'facebook']
+    other_items = [it for it in req.items if (it.get('platform') or '').lower() != 'facebook']
+
+    scheduled: list = []
+    if fb_items:
+        fb = FacebookSchedulerAdapter()
+        fb_res = await fb.schedule_posts(fb_items)
+        for it, res in zip(fb_items, fb_res):
+            scheduled.append({"item": it, "result": res})
+
+    if other_items:
+        ua = UnifiedAutomationAgent()
+        tasks = [ua.run(user_input=f"Schedule {it.get('platform')} {it.get('content_type')} on {it.get('scheduled_date')}") for it in other_items]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for it, res in zip(other_items, results):
+            scheduled.append({"item": it, "result": (res if isinstance(res, dict) else {"error": str(res)})})
+    await broadcast_update('campaigns_update', {"action": "update", "scheduled": scheduled})
     return {"success": True, "data": {"scheduled": scheduled}}
 
 

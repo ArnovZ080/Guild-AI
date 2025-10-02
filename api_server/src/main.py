@@ -51,6 +51,7 @@ async def startup_event():
 from .routes import agents, oauth, document_processing, auth, subscription, credits
 from .routes import execution_layer, connectors, onboarding, workspace
 from .routes import agents_available
+from .routes import content_ws
 from .routes import profile, content
 from .routes import campaign_agents, asset_agents
 
@@ -66,6 +67,8 @@ app.include_router(connectors.router)
 app.include_router(onboarding.router)
 app.include_router(workspace.router)
 app.include_router(agents_available.router)
+# WS router
+app.include_router(content_ws.router)
 # Business profile and content intelligence routes
 app.include_router(profile.router)
 app.include_router(content.router)
