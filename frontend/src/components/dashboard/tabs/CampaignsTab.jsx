@@ -471,26 +471,49 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
       });
       setShowSettingsModal(true);
     } else if (action === 'optimize') {
-      // Unify optimization action with autonomous_optimization payload
+      // Route to orchestrated workflow with Judge Layer gate prior to apply
       (async () => {
         try {
-          await fetch('/api/agents/enhanced-campaign', {
+          let profile = null;
+          try {
+            const r = await fetch('/api/profile');
+            const j = await r.json();
+            profile = j?.data || null;
+          } catch {}
+
+          const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+          // Judge Layer gate using content/create
+          const judgePayload = {
+            brief: {
+              objective: `Optimize campaign ${campaign.name || campaign.campaign_id}`,
+              goals: { roas: 'increase', ctr: 'increase' },
+              audience: campaign.targetAudience ? { description: campaign.targetAudience } : undefined,
+              topic: campaign.name || campaign.campaign_id,
+            },
+            platforms: campaign.platform ? [campaign.platform] : [],
+            brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
+          };
+          const resp = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(judgePayload) });
+          const jr = await resp.json();
+          if (jr?.data?.approved === false) {
+            alert('Optimization failed quality gate. Please refine campaign settings and try again.');
+            return;
+          }
+
+          // Trigger orchestrated workflow
+          await fetch(`${apiBase}/content/execute-workflow`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              action: 'autonomous_optimization',
-              campaign_id: campaign.campaign_id || campaign.id,
-              campaign_data: campaign,
-              request: {
-                optimization_type: 'autonomous',
+              workflow: 'implement_recommendations',
+              context: {
+                scope: 'campaign_optimization',
+                campaign_id: campaign.campaign_id || campaign.id,
+                platform: campaign.platform,
                 current_performance: {
-                  reach: campaign.reach,
-                  clicks: campaign.clicks,
-                  ctr: campaign.ctr,
-                  roas: campaign.roas,
-                  cpa: campaign.cpa,
-                  cpl: campaign.cpl
+                  reach: campaign.reach, clicks: campaign.clicks, ctr: campaign.ctr, roas: campaign.roas, cpa: campaign.cpa, cpl: campaign.cpl
                 }
-              }
+              },
+              agents: ['strategy_agent', 'orchestrator_agent', 'content_intelligence_agent', 'automation_agent']
             })
           });
           alert('AI optimization initiated. Track progress in Activity timeline.');
