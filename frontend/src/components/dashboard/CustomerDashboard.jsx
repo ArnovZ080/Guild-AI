@@ -64,6 +64,7 @@ import CustomerProfileModal from './modals/CustomerProfileModal';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
 import MessageComposeModal from './modals/MessageComposeModal.jsx';
 import ScheduleCallModal from './modals/ScheduleCallModal.jsx';
+import CreateCustomerModal from './modals/CreateCustomerModal.jsx';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
 import ApprovalModal from './modals/ApprovalModal';
 import { useCustomerActions } from '../../services/customerIntelligenceAPI';
@@ -95,6 +96,7 @@ const CustomerDashboard = () => {
   const [messageCustomer, setMessageCustomer] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleCustomer, setScheduleCustomer] = useState(null);
+  const [showCreateCustomer, setShowCreateCustomer] = useState(false);
   const { executeAction, executing } = useCustomerActions();
 
   // API hooks
@@ -478,7 +480,7 @@ const CustomerDashboard = () => {
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+            <button onClick={()=>setShowCreateCustomer(true)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center">
               <Plus className="w-4 h-4 mr-2" />
               Add Customer
             </button>
@@ -668,6 +670,18 @@ const CustomerDashboard = () => {
       )}
 
       {/* Export/Import Modals - Coming soon placeholders */}
+      {showCreateCustomer && (
+        <CreateCustomerModal
+          open={showCreateCustomer}
+          onClose={()=>setShowCreateCustomer(false)}
+          onCreate={(customer)=>{
+            // Optimistically add to profiles list for now
+            if (profiles && Array.isArray(profiles)) {
+              profiles.unshift(customer);
+            }
+          }}
+        />
+      )}
       {showExportModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowExportModal(false)}>
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full" onClick={(e)=>e.stopPropagation()}>
