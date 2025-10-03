@@ -60,7 +60,7 @@ const CustomerListTab = ({
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     healthScore: { min: 0, max: 100 },
-    lifetimeValue: { min: 0, max: 10000 },
+    lifetimeValue: { min: 0, max: 1000000 },
     churnRisk: 'all',
     engagementScore: { min: 0, max: 100 }
   });

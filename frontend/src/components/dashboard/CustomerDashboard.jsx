@@ -517,7 +517,13 @@ const CustomerDashboard = () => {
           {activeTab === 'customers' && (
             <CustomerListTab 
               profiles={profiles}
+              segments={segments}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedSegment={selectedSegment}
+              setSelectedSegment={setSelectedSegment}
               onCustomerAction={handleCustomerAction}
+              onProfileView={(p) => handleCustomerAction('view_profile', p)}
             />
           )}
           
