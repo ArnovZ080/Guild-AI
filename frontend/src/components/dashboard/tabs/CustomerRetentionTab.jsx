@@ -72,6 +72,20 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   
   // Approval workflow state
   const [approvalData, setApprovalData] = useState(null);
+  
+  // Playbook state management
+  const [playbooks, setPlaybooks] = useState([]);
+  const [editingPlaybook, setEditingPlaybook] = useState(null);
+  const [playbookForm, setPlaybookForm] = useState({
+    name: '',
+    description: '',
+    trigger: '',
+    actions: [],
+    targetSegment: '',
+    successRate: 0,
+    avgResponseTime: '',
+    status: 'active'
+  });
 
   // Retention strategies based on segment
   const getRetentionStrategies = (segment) => {
@@ -156,10 +170,304 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   // Handle approval
   const handleApproval = (approved) => {
     if (approved && approvalData) {
-      // Open AI Campaign Modal with pre-populated data
-      setShowAICampaignModal(true);
+      if (approvalData.action === 'launch_retention_campaign') {
+        // Open AI Campaign Modal with pre-populated data
+        setShowAICampaignModal(true);
+      } else if (approvalData.action === 'execute_playbook') {
+        // Execute playbook with intelligent strategy
+        executePlaybookWithStrategy(approvalData.data);
+      }
     }
     setShowApprovalModal(false);
+  };
+
+  // Execute playbook with intelligent strategy
+  const executePlaybookWithStrategy = (data) => {
+    const { playbook, strategy, executionPlan } = data;
+    
+    console.log('Executing playbook with strategy:', {
+      playbook: playbook.name,
+      strategy: strategy.approach,
+      priority: strategy.priority,
+      channels: strategy.channels,
+      timeline: strategy.timeline,
+      executionPlan: executionPlan
+    });
+
+    // Here you would integrate with the actual Customer Intelligence Agent
+    // For now, we'll show a success message
+    alert(`Playbook "${playbook.name}" executed successfully!\n\nStrategy: ${strategy.approach}\nPriority: ${strategy.priority}\nTimeline: ${strategy.timeline}\n\nThe Customer Intelligence Agent will now monitor and execute the retention strategy.`);
+  };
+
+  // Enhanced trigger options for retention playbooks
+  const triggerOptions = [
+    'No activity for 30+ days',
+    'Health score below 60',
+    'LTV above $10,000',
+    'Support ticket unresolved for 48+ hours',
+    'Login frequency decreased by 50%',
+    'Payment failed or subscription expired',
+    'Negative sentiment detected in feedback',
+    'Feature usage dropped below threshold',
+    'Customer support escalation',
+    'Competitor mention detected',
+    'Price sensitivity indicators',
+    'Onboarding incomplete after 7 days',
+    'Email engagement below 20%',
+    'Social media complaint or negative review',
+    'Contract renewal date approaching (30 days)',
+    'High-value customer inactive for 14+ days',
+    'Multiple failed login attempts',
+    'Feature adoption rate below 30%',
+    'Customer success score declining',
+    'Churn risk score above 80%'
+  ];
+
+  // Smart playbook suggestions based on customer data
+  const getSmartPlaybookSuggestions = () => {
+    const suggestions = [];
+    
+    // Analyze current customer data to generate suggestions
+    const atRiskCustomers = profiles.filter(p => p.churn_risk === 'high' || p.churn_risk === 'critical');
+    const inactiveCustomers = profiles.filter(p => {
+      const daysSinceActivity = Math.floor((Date.now() - new Date(p.last_activity).getTime()) / (1000 * 60 * 60 * 24));
+      return daysSinceActivity > 30;
+    });
+    const highValueCustomers = profiles.filter(p => p.lifetime_value > 10000);
+    const lowEngagementCustomers = profiles.filter(p => p.engagement_score < 50);
+
+    if (atRiskCustomers.length > 5) {
+      suggestions.push({
+        name: 'High-Risk Customer Intervention',
+        description: 'Automated intervention for customers with high churn risk',
+        trigger: 'Churn risk score above 80%',
+        actions: [
+          'Send personalized retention email',
+          'Schedule urgent check-in call',
+          'Offer exclusive retention discount',
+          'Assign dedicated success manager',
+          'Provide priority support access'
+        ],
+        targetSegment: 'High-risk customers',
+        successRate: 75,
+        avgResponseTime: '1.2 days'
+      });
+    }
+
+    if (inactiveCustomers.length > 3) {
+      suggestions.push({
+        name: 'Inactive Customer Re-engagement',
+        description: 'Win-back campaign for customers with no recent activity',
+        trigger: 'No activity for 30+ days',
+        actions: [
+          'Send re-engagement email sequence',
+          'Offer reactivation incentives',
+          'Survey for feedback on inactivity',
+          'Provide personalized content',
+          'Schedule relationship call'
+        ],
+        targetSegment: 'Inactive customers',
+        successRate: 68,
+        avgResponseTime: '2.5 days'
+      });
+    }
+
+    if (highValueCustomers.length > 2) {
+      suggestions.push({
+        name: 'VIP Customer Retention',
+        description: 'Premium retention strategy for high-value customers',
+        trigger: 'LTV above $10,000',
+        actions: [
+          'Assign VIP success manager',
+          'Provide exclusive early access',
+          'Schedule executive check-ins',
+          'Offer premium support tier',
+          'Create personalized retention offers'
+        ],
+        targetSegment: 'High-value customers',
+        successRate: 92,
+        avgResponseTime: '0.8 days'
+      });
+    }
+
+    if (lowEngagementCustomers.length > 8) {
+      suggestions.push({
+        name: 'Engagement Recovery',
+        description: 'Boost engagement for low-activity customers',
+        trigger: 'Login frequency decreased by 50%',
+        actions: [
+          'Send engagement-focused email series',
+          'Provide training and onboarding refresh',
+          'Offer gamification incentives',
+          'Schedule product demo',
+          'Create personalized usage recommendations'
+        ],
+        targetSegment: 'Low engagement customers',
+        successRate: 72,
+        avgResponseTime: '3.1 days'
+      });
+    }
+
+    return suggestions;
+  };
+
+  // Handle playbook creation/update
+  const handlePlaybookSubmit = () => {
+    if (!playbookForm.name || !playbookForm.description || !playbookForm.trigger) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const newPlaybook = {
+      id: editingPlaybook ? editingPlaybook.id : `playbook_${Date.now()}`,
+      ...playbookForm,
+      actions: playbookForm.actions.length > 0 ? playbookForm.actions : [
+        'Send personalized retention email',
+        'Schedule follow-up call',
+        'Offer retention discount',
+        'Monitor engagement closely'
+      ]
+    };
+
+    if (editingPlaybook) {
+      // Update existing playbook
+      setPlaybooks(prev => prev.map(p => p.id === editingPlaybook.id ? newPlaybook : p));
+      setEditingPlaybook(null);
+    } else {
+      // Add new playbook
+      setPlaybooks(prev => [...prev, newPlaybook]);
+    }
+
+    // Reset form and close modal
+    setPlaybookForm({
+      name: '',
+      description: '',
+      trigger: '',
+      actions: [],
+      targetSegment: '',
+      successRate: 0,
+      avgResponseTime: '',
+      status: 'active'
+    });
+    setShowPlaybookModal(false);
+  };
+
+  // Handle playbook edit
+  const handleEditPlaybook = (playbook) => {
+    setEditingPlaybook(playbook);
+    setPlaybookForm({
+      name: playbook.name,
+      description: playbook.description,
+      trigger: playbook.trigger,
+      actions: playbook.actions || [],
+      targetSegment: playbook.targetSegment || '',
+      successRate: playbook.successRate || 0,
+      avgResponseTime: playbook.avgResponseTime || '',
+      status: playbook.status || 'active'
+    });
+    setShowPlaybookModal(true);
+  };
+
+  // Handle playbook execution
+  const handleExecutePlaybook = (playbook) => {
+    // Generate intelligent strategy based on trigger
+    const strategy = generateExecutionStrategy(playbook);
+    
+    // Set up approval for execution
+    setApprovalData({
+      title: 'Execute Retention Playbook',
+      message: `Execute "${playbook.name}" playbook with optimized strategy?`,
+      action: 'execute_playbook',
+      data: {
+        playbook: playbook,
+        strategy: strategy,
+        executionPlan: generateExecutionPlan(playbook, strategy)
+      }
+    });
+    
+    setShowApprovalModal(true);
+  };
+
+  // Generate execution strategy based on playbook trigger
+  const generateExecutionStrategy = (playbook) => {
+    const triggerStrategies = {
+      'No activity for 30+ days': {
+        approach: 'Re-engagement Focus',
+        priority: 'High',
+        channels: ['Email', 'Phone'],
+        timeline: 'Immediate',
+        tactics: [
+          'Send personalized re-engagement email',
+          'Offer exclusive reactivation discount',
+          'Schedule personal check-in call',
+          'Provide value-added content'
+        ]
+      },
+      'Health score below 60': {
+        approach: 'Proactive Intervention',
+        priority: 'Critical',
+        channels: ['Phone', 'Email', 'In-app'],
+        timeline: 'Within 2 hours',
+        tactics: [
+          'Immediate phone outreach',
+          'Escalate to senior success manager',
+          'Offer retention incentives',
+          'Provide priority support'
+        ]
+      },
+      'LTV above $10,000': {
+        approach: 'VIP Treatment',
+        priority: 'Premium',
+        channels: ['Phone', 'Email', 'Executive'],
+        timeline: 'Within 1 hour',
+        tactics: [
+          'Executive-level outreach',
+          'Dedicated success manager assignment',
+          'Exclusive benefits offer',
+          'Personal relationship building'
+        ]
+      }
+    };
+
+    return triggerStrategies[playbook.trigger] || {
+      approach: 'Standard Retention',
+      priority: 'Medium',
+      channels: ['Email'],
+      timeline: 'Within 24 hours',
+      tactics: playbook.actions || ['Send retention email', 'Schedule follow-up']
+    };
+  };
+
+  // Generate detailed execution plan
+  const generateExecutionPlan = (playbook, strategy) => {
+    return {
+      phase1: {
+        name: 'Immediate Response',
+        duration: '0-2 hours',
+        actions: strategy.tactics.slice(0, 2),
+        expectedOutcome: 'Initial customer contact established'
+      },
+      phase2: {
+        name: 'Follow-up Engagement',
+        duration: '2-24 hours',
+        actions: strategy.tactics.slice(2, 4),
+        expectedOutcome: 'Customer engagement increased'
+      },
+      phase3: {
+        name: 'Retention Monitoring',
+        duration: '1-7 days',
+        actions: ['Monitor engagement metrics', 'Track retention indicators', 'Adjust strategy if needed'],
+        expectedOutcome: 'Retention goal achieved'
+      }
+    };
+  };
+
+  // Handle play/pause toggle
+  const handlePlayPauseToggle = (playbook) => {
+    const newStatus = playbook.status === 'active' ? 'paused' : 'active';
+    setPlaybooks(prev => prev.map(p => 
+      p.id === playbook.id ? { ...p, status: newStatus } : p
+    ));
   };
 
   // Mock retention data
@@ -345,7 +653,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
             <div className="text-sm text-gray-600">Customers</div>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-3xl font-bold text-purple-600">{retentionPlaybooks.length}</div>
+            <div className="text-3xl font-bold text-purple-600">{playbooks.length + retentionPlaybooks.length}</div>
             <div className="text-purple-600 font-medium">Active Playbooks</div>
             <div className="text-sm text-gray-600">Automation</div>
           </div>
@@ -421,6 +729,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Existing playbooks */}
           {retentionPlaybooks.map((playbook, index) => (
             <motion.div
               key={playbook.id}
@@ -457,23 +766,90 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               
               <div className="flex items-center space-x-2">
                 <button
-                  onClick={() => onCustomerAction('execute_playbook', playbook)}
+                  onClick={() => handleExecutePlaybook(playbook)}
                   className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm flex items-center justify-center"
                 >
                   <Play className="w-4 h-4 mr-1" />
                   Execute
                 </button>
                 <button
-                  onClick={() => onCustomerAction('edit_playbook', playbook)}
+                  onClick={() => handleEditPlaybook(playbook)}
                   className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                 >
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => onCustomerAction('pause_playbook', playbook)}
+                  onClick={() => handlePlayPauseToggle(playbook)}
+                  className={`px-3 py-2 rounded-md transition-colors ${
+                    playbook.status === 'active' 
+                      ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                >
+                  {playbook.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                </button>
+              </div>
+            </motion.div>
+          ))}
+          
+          {/* New user-created playbooks */}
+          {playbooks.map((playbook, index) => (
+            <motion.div
+              key={playbook.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (retentionPlaybooks.length + index) * 0.1 }}
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="font-semibold text-gray-900">{playbook.name}</h5>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  playbook.status === 'active' ? 'text-green-600 bg-green-100' : 'text-gray-600 bg-gray-100'
+                }`}>
+                  {playbook.status}
+                </span>
+              </div>
+              
+              <p className="text-gray-600 text-sm mb-3">{playbook.description}</p>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Success Rate:</span>
+                  <span className="font-medium text-green-600">{playbook.successRate}%</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Avg Response:</span>
+                  <span className="font-medium text-blue-600">{playbook.avgResponseTime}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Trigger:</span>
+                  <span className="font-medium text-purple-600">{playbook.trigger}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => handleExecutePlaybook(playbook)}
+                  className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm flex items-center justify-center"
+                >
+                  <Play className="w-4 h-4 mr-1" />
+                  Execute
+                </button>
+                <button
+                  onClick={() => handleEditPlaybook(playbook)}
                   className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
                 >
-                  <Pause className="w-4 h-4" />
+                  <Edit className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => handlePlayPauseToggle(playbook)}
+                  className={`px-3 py-2 rounded-md transition-colors ${
+                    playbook.status === 'active' 
+                      ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                >
+                  {playbook.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 </button>
               </div>
             </motion.div>
@@ -625,52 +1001,72 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Playbook Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Playbook Name *</label>
                   <input
                     type="text"
+                    value={playbookForm.name}
+                    onChange={(e) => setPlaybookForm(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Win-Back Campaign"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
                   <textarea
                     rows={3}
+                    value={playbookForm.description}
+                    onChange={(e) => setPlaybookForm(prev => ({ ...prev, description: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Describe the playbook's purpose and goals"
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Condition</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>No activity for 30+ days</option>
-                    <option>Health score below 60</option>
-                    <option>Support ticket unresolved</option>
-                    <option>Price sensitivity detected</option>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Condition *</label>
+                  <select 
+                    value={playbookForm.trigger}
+                    onChange={(e) => setPlaybookForm(prev => ({ ...prev, trigger: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select trigger condition</option>
+                    {triggerOptions.map((trigger, index) => (
+                      <option key={index} value={trigger}>{trigger}</option>
+                    ))}
                   </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Actions</label>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" defaultChecked />
-                      <span className="text-sm">Send personalized email sequence</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" defaultChecked />
-                      <span className="text-sm">Offer exclusive discount</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Schedule follow-up call</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-sm">Provide value-added content</span>
-                    </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {[
+                      'Send personalized retention email',
+                      'Schedule follow-up call',
+                      'Offer retention discount',
+                      'Provide value-added content',
+                      'Assign dedicated success manager',
+                      'Escalate to senior team',
+                      'Send survey for feedback',
+                      'Offer exclusive benefits',
+                      'Schedule product demo',
+                      'Provide priority support'
+                    ].map((action, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <input 
+                          type="checkbox" 
+                          className="rounded"
+                          checked={playbookForm.actions.includes(action)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setPlaybookForm(prev => ({ ...prev, actions: [...prev.actions, action] }));
+                            } else {
+                              setPlaybookForm(prev => ({ ...prev, actions: prev.actions.filter(a => a !== action) }));
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-gray-700">{action}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -682,16 +1078,13 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 >
                   Cancel
                 </button>
-                <button
-                  onClick={() => {
-                    console.log('Creating playbook...');
-                    setShowPlaybookModal(false);
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Playbook
-                </button>
+                  <button
+                    onClick={handlePlaybookSubmit}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    {editingPlaybook ? 'Update Playbook' : 'Create Playbook'}
+                  </button>
               </div>
             </div>
           </motion.div>
@@ -864,13 +1257,29 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 <p className="text-gray-700 mb-4">{approvalData.message}</p>
                 
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Campaign Details:</h4>
-                  <div className="space-y-2 text-sm">
-                    <div><span className="font-medium">Name:</span> {approvalData.data.campaignName}</div>
-                    <div><span className="font-medium">Target:</span> {approvalData.data.targetSegment}</div>
-                    <div><span className="font-medium">Type:</span> {approvalData.data.campaignType}</div>
-                    <div><span className="font-medium">Strategy:</span> {approvalData.data.retentionStrategies.length} retention tactics</div>
-                  </div>
+                  {approvalData.action === 'execute_playbook' ? (
+                    <>
+                      <h4 className="font-medium text-gray-900 mb-2">Playbook Execution Details:</h4>
+                      <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Playbook:</span> {approvalData.data.playbook.name}</div>
+                        <div><span className="font-medium">Strategy:</span> {approvalData.data.strategy.approach}</div>
+                        <div><span className="font-medium">Priority:</span> {approvalData.data.strategy.priority}</div>
+                        <div><span className="font-medium">Timeline:</span> {approvalData.data.strategy.timeline}</div>
+                        <div><span className="font-medium">Channels:</span> {approvalData.data.strategy.channels.join(', ')}</div>
+                        <div><span className="font-medium">Actions:</span> {approvalData.data.strategy.tactics.length} tactics</div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-medium text-gray-900 mb-2">Campaign Details:</h4>
+                      <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Name:</span> {approvalData.data.campaignName}</div>
+                        <div><span className="font-medium">Target:</span> {approvalData.data.targetSegment}</div>
+                        <div><span className="font-medium">Type:</span> {approvalData.data.campaignType}</div>
+                        <div><span className="font-medium">Strategy:</span> {approvalData.data.retentionStrategies.length} retention tactics</div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
               
