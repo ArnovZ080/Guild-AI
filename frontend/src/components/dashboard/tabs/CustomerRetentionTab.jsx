@@ -44,6 +44,7 @@ import {
   ExternalLink,
   UserPlus,
   UserMinus,
+  User,
   Plus,
   Minus,
   Play,
@@ -1309,7 +1310,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                     placeholder="Describe the playbook's purpose and goals"
                   />
                 </div>
-
+                
                 {/* AI Create Playbook Button */}
                 {playbookForm.trigger && (
                   <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
@@ -1317,12 +1318,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                       <div className="flex items-center space-x-3">
                         <div className="p-2 bg-purple-100 rounded-lg">
                           <Brain className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
+                </div>
+                <div>
                           <h4 className="font-medium text-gray-900">AI-Powered Playbook Generation</h4>
                           <p className="text-sm text-gray-600">Let the Customer Intelligence Agent create an optimized playbook for this trigger</p>
-                        </div>
-                      </div>
+                    </div>
+                    </div>
                       <button
                         onClick={handleAICreatePlaybook}
                         className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
@@ -1331,7 +1332,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                         Let AI Create Playbook
                       </button>
                     </div>
-                  </div>
+                    </div>
                 )}
 
                 <div>
@@ -1376,13 +1377,13 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 >
                   Cancel
                 </button>
-                  <button
+                <button
                     onClick={handlePlaybookSubmit}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
                     {editingPlaybook ? 'Update Playbook' : 'Create Playbook'}
-                  </button>
+                </button>
               </div>
             </div>
           </motion.div>
@@ -1461,7 +1462,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                         <div className="mt-2">
                           <CheckCircle className="w-4 h-4 text-blue-600 inline mr-1" />
                           <span className="text-xs text-blue-600 font-medium">Selected</span>
-                        </div>
+                    </div>
                       )}
                     </div>
                     <div 
@@ -1733,12 +1734,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 <div className="flex items-center space-x-3">
                   <button
                     onClick={() => setShowAICampaignModal(false)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
                       console.log('Creating AI campaign with retention data:', approvalData.data);
                       setShowAICampaignModal(false);
                       // Here you would trigger the actual AI campaign creation
@@ -2092,12 +2093,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                       });
                       setShowRetentionOutreachModal(false);
                       setShowApprovalModal(true);
-                    }}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
-                  >
-                    <Heart className="w-4 h-4 mr-2" />
+                  }}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                >
+                  <Heart className="w-4 h-4 mr-2" />
                     Execute Outreach
-                  </button>
+                </button>
                 </div>
               </div>
             </div>
