@@ -61,6 +61,7 @@ import CustomerOpportunitiesTab from './tabs/CustomerOpportunitiesTab';
 
 // Import modals
 import CustomerProfileModal from './modals/CustomerProfileModal';
+import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
 import ApprovalModal from './modals/ApprovalModal';
 import { useCustomerActions } from '../../services/customerIntelligenceAPI';
@@ -86,6 +87,8 @@ const CustomerDashboard = () => {
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showComposeEmail, setShowComposeEmail] = useState(false);
+  const [composeTo, setComposeTo] = useState('');
   const { executeAction, executing } = useCustomerActions();
 
   // API hooks
@@ -373,6 +376,18 @@ const CustomerDashboard = () => {
         } else if (result.modal === 'customer_segment') {
           setSelectedSegmentData(data);
           setShowSegmentModal(true);
+        } else if (result.modal === 'compose_email') {
+          setComposeTo(data?.email || '');
+          setShowComposeEmail(true);
+        } else if (result.modal === 'schedule_call') {
+          // Placeholder until full calendar wiring; reuse approval for now
+          setApprovalData({
+            title: 'Schedule Call',
+            message: `Schedule call with ${data?.name || 'customer'}`,
+            action: 'run_workflow',
+            data: { payload: { workflow: 'schedule_call', context: { customer: data } } }
+          });
+          setShowApprovalModal(true);
         }
         if (result.modal === 'export_customers') {
           setExportData(result.data || []);
@@ -612,6 +627,16 @@ const CustomerDashboard = () => {
           message={approvalData.message}
           action={approvalData.action}
           data={approvalData.data}
+        />
+      )}
+
+      {/* Compose Email */}
+      {showComposeEmail && (
+        <ComposeEmailModal
+          open={showComposeEmail}
+          onClose={() => setShowComposeEmail(false)}
+          onSent={()=> setShowComposeEmail(false)}
+          defaultSegmentId={'all'}
         />
       )}
 
