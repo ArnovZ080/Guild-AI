@@ -63,6 +63,7 @@ import CustomerOpportunitiesTab from './tabs/CustomerOpportunitiesTab';
 import CustomerProfileModal from './modals/CustomerProfileModal';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
 import ApprovalModal from './modals/ApprovalModal';
+import { useCustomerActions } from '../../services/customerIntelligenceAPI';
 
 // Import utilities
 import { handleCustomerAction as processCustomerAction, formatModalData } from './utils/customerActions';
@@ -82,6 +83,7 @@ const CustomerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState(null);
+  const { executeAction, executing } = useCustomerActions();
 
   // API hooks
   const { data: customerAnalysis, loading: analysisLoading, error: analysisError } = useCustomerAnalysis();
@@ -566,9 +568,14 @@ const CustomerDashboard = () => {
         <ApprovalModal
           isOpen={showApprovalModal}
           onClose={() => setShowApprovalModal(false)}
-          onApprove={(action, data) => {
-            console.log('Approved action:', action, data);
-            setShowApprovalModal(false);
+          onApprove={async (action, data) => {
+            try {
+              await executeAction(action, data);
+            } catch (e) {
+              console.error('Agent execution failed:', e);
+            } finally {
+              setShowApprovalModal(false);
+            }
           }}
           title={approvalData.title}
           message={approvalData.message}
