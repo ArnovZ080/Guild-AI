@@ -119,7 +119,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
   const profileCounts = stages.reduce((acc, [name]) => {
     acc[name] = customersInStage(name).length;
     return acc;
-  }, {} as Record<string, number>);
+  }, {});
   const hasProfileCounts = Object.values(profileCounts).some((v) => v > 0);
   const totalDisplayLeads = hasProfileCounts
     ? Object.values(profileCounts).reduce((a, b) => a + b, 0)
