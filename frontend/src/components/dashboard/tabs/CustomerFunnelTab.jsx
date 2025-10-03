@@ -448,6 +448,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
 
               <div className="space-y-6">
                 {stageModalTab === 'analytics' && (
+                <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">Stage Metrics</h4>
@@ -492,6 +493,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                     <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Recommended actions: shorten time-to-value, send stage-specific playbooks, add CTA nudges on high-exit pages.</li>
                   </ul>
                 </div>
+                </>
                 )}
 
                 {stageModalTab === 'customers' && (
