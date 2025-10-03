@@ -185,34 +185,6 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
       {viewMode === 'funnel' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h4 className="text-lg font-semibold text-gray-900 mb-6">Sales Funnel</h4>
-          <div className="mb-8">
-            {(() => {
-              // Priority: integrated plan > agent-provided plan > inferred
-              const externalPlan = integratedPlan;
-              const agentPlan = funnel_analysis?.funnel_plan;
-              const inferredStages = stages.map(([name, data]) => ({
-                name,
-                strategy: `Optimize ${name} with targeted playbooks`,
-                content_needed:
-                  name.toLowerCase() === 'lead' ? ['Lead magnets', 'Landing page copy'] :
-                  name.toLowerCase() === 'prospect' ? ['Case studies', 'Objection-handling emails'] :
-                  name.toLowerCase() === 'trial' ? ['Onboarding emails', 'How-to guides'] :
-                  name.toLowerCase() === 'customer' ? ['Adoption tips', 'Success stories'] :
-                  ['Referral CTA', 'Advocacy prompts']
-              }));
-
-              const inferredPlan = { stages: inferredStages };
-              const plan = externalPlan?.stages?.length ? externalPlan : agentPlan?.stages?.length ? agentPlan : inferredPlan;
-              const source = externalPlan?.stages?.length ? (integratedSource || 'Connected funnel integrations') : agentPlan?.stages?.length ? 'Connected funnel integrations' : 'Inferred from customer data';
-
-              return (
-                <>
-                  <SalesFunnelVisualizer funnelPlan={plan} />
-                  <div className="mt-2 text-xs text-gray-500">Source: {source}</div>
-                </>
-              );
-            })()}
-          </div>
           <div className="space-y-4">
             {stages.map(([stageName, stageData], index) => {
               const Icon = getStageIcon(stageName);
@@ -272,6 +244,40 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                           {stages[index - 1][1].count - stageData.count} lost customers
                         </span>
                       </div>
+                      {/* AI analysis of likely causes */}
+                      <div className="mt-2 text-xs text-red-800">
+                        {(() => {
+                          const reasons = funnel_analysis?.ai_dropoff_reasons?.[stageName];
+                          if (Array.isArray(reasons) && reasons.length) {
+                            return (
+                              <>
+                                <div className="font-medium">Possible causes (AI):</div>
+                                <ul className="list-disc ml-4 space-y-0.5">
+                                  {reasons.slice(0,3).map((r, i) => (<li key={i}>{r}</li>))}
+                                </ul>
+                                <div className="mt-1 text-[10px] text-red-700">Source: Customer Intelligence Agent</div>
+                              </>
+                            );
+                          }
+                          // Fallback heuristics
+                          const guess = index === 1
+                            ? ['Low qualification quality', 'Slow first response', 'Weak value proposition']
+                            : index === 2
+                            ? ['Onboarding friction', 'Insufficient product proof', 'Trial-to-value delay']
+                            : index === 3
+                            ? ['Adoption gaps', 'Unclear next best actions', 'Support delays']
+                            : ['No advocacy prompts', 'No referral nudge', 'Low satisfaction signals'];
+                          return (
+                            <>
+                              <div className="font-medium">Possible causes (AI):</div>
+                              <ul className="list-disc ml-4 space-y-0.5">
+                                {guess.map((r, i) => (<li key={i}>{r}</li>))}
+                              </ul>
+                              <div className="mt-1 text-[10px] text-red-700">Source: Customer Intelligence Agent</div>
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   )}
                   
@@ -298,6 +304,37 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                 </motion.div>
               );
             })}
+          </div>
+          {/* Visual Playbook (Integrated/Agent/Inference) */}
+          <div className="mt-10">
+            <div className="mb-2 text-sm text-gray-700">
+              This visual playbook shows your funnel steps, strategy, and required assets. It reflects connected funnel tools when available, otherwise it’s inferred from customer data.
+            </div>
+            {(() => {
+              const externalPlan = integratedPlan;
+              const agentPlan = funnel_analysis?.funnel_plan;
+              const inferredStages = stages.map(([name, data]) => ({
+                name,
+                strategy: `Optimize ${name} with targeted playbooks`,
+                content_needed:
+                  name.toLowerCase() === 'lead' ? ['Lead magnets', 'Landing page copy'] :
+                  name.toLowerCase() === 'prospect' ? ['Case studies', 'Objection-handling emails'] :
+                  name.toLowerCase() === 'trial' ? ['Onboarding emails', 'How-to guides'] :
+                  name.toLowerCase() === 'customer' ? ['Adoption tips', 'Success stories'] :
+                  ['Referral CTA', 'Advocacy prompts']
+              }));
+
+              const inferredPlan = { stages: inferredStages };
+              const plan = externalPlan?.stages?.length ? externalPlan : agentPlan?.stages?.length ? agentPlan : inferredPlan;
+              const source = externalPlan?.stages?.length ? (integratedSource || 'Connected funnel integrations') : agentPlan?.stages?.length ? 'Connected funnel integrations' : 'Inferred from customer data';
+
+              return (
+                <>
+                  <SalesFunnelVisualizer funnelPlan={plan} />
+                  <div className="mt-2 text-xs text-gray-500">Source: {source}</div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
