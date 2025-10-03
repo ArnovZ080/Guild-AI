@@ -58,10 +58,27 @@ import {
   XCircle
 } from 'lucide-react';
 
+import ComposeEmailModal from '../ComposeEmailModal.jsx';
+import MessageComposeModal from '../MessageComposeModal.jsx';
+import ScheduleCallModal from '../ScheduleCallModal.jsx';
+import ForwardMessageModal from './ForwardMessageModal.jsx';
+
 const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [editedCustomer, setEditedCustomer] = useState(customer);
+  const [messages, setMessages] = useState([
+    ...(
+      Array.isArray(customer?.messages)
+        ? customer.messages
+        : []
+    ),
+  ]);
+  const [replyEmailOpen, setReplyEmailOpen] = useState(false);
+  const [replyChatOpen, setReplyChatOpen] = useState(false);
+  const [scheduleCallOpen, setScheduleCallOpen] = useState(false);
+  const [forwardOpen, setForwardOpen] = useState(false);
+  const [activeMessage, setActiveMessage] = useState(null);
 
   if (!isOpen || !customer) return null;
 
@@ -143,12 +160,30 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
     ]
   };
 
-  // Mock unified messaging history
-  const messagingHistory = [
-    { id: 'msg_001', channel: 'email', direction: 'in', subject: 'Question about pricing', timestamp: new Date(Date.now() - 86400000).toISOString(), preview: 'Could you clarify the discount tiers...' },
-    { id: 'msg_002', channel: 'chat', direction: 'out', subject: 'Support follow-up', timestamp: new Date(Date.now() - 7200000).toISOString(), preview: 'Just checking if the login issue...' },
-    { id: 'msg_003', channel: 'phone', direction: 'out', subject: 'Scheduled call summary', timestamp: new Date(Date.now() - 3600000).toISOString(), preview: 'Thanks for your time today. We discussed...' },
-  ];
+  // Local fallbacks if no messages on customer
+  if (messages.length === 0) {
+    messages.push(
+      { id: 'msg_001', channel: 'email', direction: 'in', subject: 'Question about pricing', timestamp: new Date(Date.now() - 86400000).toISOString(), preview: 'Could you clarify the discount tiers...' },
+      { id: 'msg_002', channel: 'chat', direction: 'out', subject: 'Support follow-up', timestamp: new Date(Date.now() - 7200000).toISOString(), preview: 'Just checking if the login issue...' },
+      { id: 'msg_003', channel: 'phone', direction: 'out', subject: 'Scheduled call summary', timestamp: new Date(Date.now() - 3600000).toISOString(), preview: 'Thanks for your time today. We discussed...' }
+    );
+  }
+
+  const handleReply = (m) => {
+    setActiveMessage(m);
+    if (m.channel === 'email') setReplyEmailOpen(true);
+    else if (m.channel === 'chat') setReplyChatOpen(true);
+    else if (m.channel === 'phone') setScheduleCallOpen(true);
+  };
+
+  const handleForward = (m) => {
+    setActiveMessage(m);
+    setForwardOpen(true);
+  };
+
+  const handleArchive = (m) => {
+    setMessages(prev => prev.filter(x => x.id !== m.id));
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -482,7 +517,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Messaging History</h3>
               <div className="space-y-3">
-                {messagingHistory.map((m) => {
+                {messages.map((m) => {
                   const Icon = m.channel === 'email' ? Mail : m.channel === 'phone' ? Phone : MessageCircle;
                   return (
                     <div key={m.id} className="p-3 border border-gray-200 rounded-lg flex items-start justify-between">
@@ -498,9 +533,9 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button className="px-3 py-1 bg-blue-600 text-white rounded text-xs">Reply</button>
-                        <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs">Forward</button>
-                        <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs">Archive</button>
+                        <button onClick={()=>handleReply(m)} className="px-3 py-1 bg-blue-600 text-white rounded text-xs">Reply</button>
+                        <button onClick={()=>handleForward(m)} className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs">Forward</button>
+                        <button onClick={()=>handleArchive(m)} className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs">Archive</button>
                       </div>
                     </div>
                   );
@@ -626,7 +661,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
           )}
         </div>
 
-        {/* Footer Actions */}
+        {/* Footer Actions */
         <div className="p-6 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -659,6 +694,45 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
           </div>
         </div>
       </motion.div>
+
+      {/* Reply Modals */}
+      {replyEmailOpen && activeMessage && (
+        <ComposeEmailModal
+          open={replyEmailOpen}
+          onClose={() => setReplyEmailOpen(false)}
+          defaultTo={customer.email}
+          defaultSegmentId={'all'}
+          onSent={() => setReplyEmailOpen(false)}
+          replyTo={activeMessage}
+        />
+      )}
+      {replyChatOpen && activeMessage && (
+        <MessageComposeModal
+          open={replyChatOpen}
+          onClose={() => setReplyChatOpen(false)}
+          customer={customer}
+          replyTo={activeMessage}
+        />
+      )}
+      {scheduleCallOpen && activeMessage && (
+        <ScheduleCallModal
+          open={scheduleCallOpen}
+          onClose={() => setScheduleCallOpen(false)}
+          customer={customer}
+          defaultNotes={`Reply to: ${activeMessage.subject || ''}`}
+          onConfirm={()=> setScheduleCallOpen(false)}
+        />
+      )}
+
+      {/* Forward Modal */}
+      {forwardOpen && activeMessage && (
+        <ForwardMessageModal
+          open={forwardOpen}
+          onClose={() => setForwardOpen(false)}
+          message={activeMessage}
+          onSend={()=> setForwardOpen(false)}
+        />
+      )}
     </motion.div>
   );
 };
