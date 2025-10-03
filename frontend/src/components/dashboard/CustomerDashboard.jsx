@@ -374,6 +374,13 @@ const CustomerDashboard = () => {
           setSelectedSegmentData(data);
           setShowSegmentModal(true);
         }
+        if (result.modal === 'export_customers') {
+          setExportData(result.data || []);
+          setShowExportModal(true);
+        }
+        if (result.modal === 'import_customers') {
+          setShowImportModal(true);
+        }
         break;
       case 'confirm_action':
         setApprovalData({
@@ -387,15 +394,7 @@ const CustomerDashboard = () => {
       case 'download':
         console.log('Downloading:', result.format, result.data);
         break;
-      case 'open_modal':
-        if (result.modal === 'export_customers') {
-          setExportData(result.data || []);
-          setShowExportModal(true);
-        }
-        if (result.modal === 'import_customers') {
-          setShowImportModal(true);
-        }
-        break;
+      
       case 'error':
         console.error(result.message);
         break;

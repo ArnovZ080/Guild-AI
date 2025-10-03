@@ -152,6 +152,9 @@ export const formatModalData = (action, data) => {
         showRecommendations: true
       };
     
+    case 'segment':
+      return { type: 'open_modal', modal: 'customer_segment', data };
+    
     default:
       return data;
   }
