@@ -3,7 +3,7 @@ import { X, Send, Shield, Brain, Image, Upload, Sparkles, Palette } from 'lucide
 import { ContentIntelligenceAPIService, useCreativeAssets } from '../../../services/contentIntelligenceApi';
 import ChatEmailComposeAssistantModal from './ChatEmailComposeAssistantModal.jsx';
 
-const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
+const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent, defaultTo }) => {
   const [to, setTo] = useState('');
   const [cc, setCc] = useState('');
   const [bcc, setBcc] = useState('');
@@ -36,6 +36,9 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent }) => {
             fonts: data.brandFonts || 'Inter, sans-serif',
             logo: data.brandLogo || null
           });
+        }
+        if (defaultTo) {
+          setTo(defaultTo);
         }
       } catch (e) {
         console.log('No brand data found');

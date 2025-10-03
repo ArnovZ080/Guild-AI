@@ -62,6 +62,8 @@ import CustomerOpportunitiesTab from './tabs/CustomerOpportunitiesTab';
 // Import modals
 import CustomerProfileModal from './modals/CustomerProfileModal';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
+import MessageComposeModal from './modals/MessageComposeModal.jsx';
+import ScheduleCallModal from './modals/ScheduleCallModal.jsx';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
 import ApprovalModal from './modals/ApprovalModal';
 import { useCustomerActions } from '../../services/customerIntelligenceAPI';
@@ -89,6 +91,10 @@ const CustomerDashboard = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [showComposeEmail, setShowComposeEmail] = useState(false);
   const [composeTo, setComposeTo] = useState('');
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageCustomer, setMessageCustomer] = useState(null);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleCustomer, setScheduleCustomer] = useState(null);
   const { executeAction, executing } = useCustomerActions();
 
   // API hooks
@@ -380,14 +386,11 @@ const CustomerDashboard = () => {
           setComposeTo(data?.email || '');
           setShowComposeEmail(true);
         } else if (result.modal === 'schedule_call') {
-          // Placeholder until full calendar wiring; reuse approval for now
-          setApprovalData({
-            title: 'Schedule Call',
-            message: `Schedule call with ${data?.name || 'customer'}`,
-            action: 'run_workflow',
-            data: { payload: { workflow: 'schedule_call', context: { customer: data } } }
-          });
-          setShowApprovalModal(true);
+          setScheduleCustomer(data);
+          setShowScheduleModal(true);
+        } else if (result.modal === 'compose_message') {
+          setMessageCustomer(data);
+          setShowMessageModal(true);
         }
         if (result.modal === 'export_customers') {
           setExportData(result.data || []);
@@ -637,6 +640,30 @@ const CustomerDashboard = () => {
           onClose={() => setShowComposeEmail(false)}
           onSent={()=> setShowComposeEmail(false)}
           defaultSegmentId={'all'}
+          defaultTo={composeTo}
+        />
+      )}
+
+      {/* Compose Message */}
+      {showMessageModal && (
+        <MessageComposeModal
+          open={showMessageModal}
+          onClose={() => setShowMessageModal(false)}
+          customer={messageCustomer}
+        />
+      )}
+
+      {/* Schedule Call */}
+      {showScheduleModal && (
+        <ScheduleCallModal
+          open={showScheduleModal}
+          onClose={() => setShowScheduleModal(false)}
+          customer={scheduleCustomer}
+          onConfirm={(payload)=>{
+            // Trigger orchestrator workflow
+            setApprovalData({ title: 'Schedule Call', message: `Schedule ${payload.when}`, action: 'run_workflow', data: { payload: { workflow: 'schedule_call', context: payload } } });
+            setShowApprovalModal(true);
+          }}
         />
       )}
 
