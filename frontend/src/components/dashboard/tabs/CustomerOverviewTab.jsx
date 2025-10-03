@@ -249,7 +249,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 </div>
                 <button
                   onClick={() => { setSelectedInsight(insight); setShowInsightModal(true); }}
-                  className="px-3 py-1 text-sm bg-white border border-green-200 rounded hover:bg-green-100"
+                  className="ml-3 px-3 py-1 text-xs font-medium text-green-600 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
                 >
                   Details
                 </button>
@@ -280,7 +280,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 </div>
                 <button
                   onClick={() => { setSelectedAction(action); setShowActionModal(true); }}
-                  className="px-3 py-1 text-sm bg-white border border-red-200 rounded hover:bg-red-100"
+                  className="ml-3 px-3 py-1 text-xs font-medium text-red-600 bg-red-100 hover:bg-red-200 rounded-md transition-colors"
                 >
                   Details
                 </button>
@@ -438,19 +438,45 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
       {/* Insight Details Modal */}
       {showInsightModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInsightModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">Insight Details</h3>
-                <button onClick={() => setShowInsightModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Insight Details</h3>
+                  <p className="text-sm text-gray-600">Why we surfaced this insight and where it comes from</p>
+                </div>
               </div>
-              <p className="text-gray-800 mb-4">{selectedInsight}</p>
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Primary Sources</h4>
-              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                <li>Alerts feed from Customer Intelligence Agent</li>
-                <li>Recent retention and satisfaction metrics</li>
-                <li>Support sentiment and engagement signals</li>
-              </ul>
+              <button onClick={() => setShowInsightModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-green-900 mb-2">Insight</h4>
+                <p className="text-gray-800">{selectedInsight}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Primary Sources</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <p className="text-sm font-medium text-gray-800">Customer Intelligence Alerts</p>
+                    <p className="text-xs text-gray-600">Recent high-signal alerts related to retention and opportunities</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <p className="text-sm font-medium text-gray-800">Retention & Satisfaction Metrics</p>
+                    <p className="text-xs text-gray-600">Short-term changes in retention, churn and NPS</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <p className="text-sm font-medium text-gray-800">Support Sentiment Signals</p>
+                    <p className="text-xs text-gray-600">Aggregated sentiment from support interactions</p>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded border">
+                    <p className="text-sm font-medium text-gray-800">Engagement Indicators</p>
+                    <p className="text-xs text-gray-600">Usage, engagement and activity trends</p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="p-4 border-t bg-gray-50 text-right">
               <button onClick={() => setShowInsightModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Close</button>
@@ -462,19 +488,42 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
       {/* Action Details Modal */}
       {showActionModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowActionModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-gray-900">Action Details</h3>
-                <button onClick={() => setShowActionModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Action Details</h3>
+                  <p className="text-sm text-gray-600">Why this action is recommended and what agents will do</p>
+                </div>
               </div>
-              <p className="text-gray-800 mb-4">{selectedAction}</p>
-              <h4 className="text-sm font-semibold text-gray-900 mb-2">Why this action?</h4>
-              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 mb-4">
-                <li>Triggered by high-priority alert patterns</li>
-                <li>Correlated with recent drops in retention or sentiment</li>
-                <li>Validated by Judge Agent criteria for urgency</li>
-              </ul>
+              <button onClick={() => setShowActionModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-red-900 mb-2">Action</h4>
+                <p className="text-gray-800">{selectedAction}</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="p-3 bg-gray-50 rounded border">
+                  <p className="text-sm font-medium text-gray-800">Reasoning</p>
+                  <p className="text-xs text-gray-600">Triggered by high-priority alert patterns and KPI deviations</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border">
+                  <p className="text-sm font-medium text-gray-800">Judge Agent Validation</p>
+                  <p className="text-xs text-gray-600">Meets urgency threshold and brand compliance criteria</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border">
+                  <p className="text-sm font-medium text-gray-800">Expected Outcome</p>
+                  <p className="text-xs text-gray-600">Retention uplift and risk reduction within 7–14 days</p>
+                </div>
+                <div className="p-3 bg-gray-50 rounded border">
+                  <p className="text-sm font-medium text-gray-800">Agents Involved</p>
+                  <p className="text-xs text-gray-600">Customer Intelligence, Judge, CRM Automation</p>
+                </div>
+              </div>
             </div>
             <div className="p-4 border-t bg-gray-50 flex items-center justify-end space-x-2">
               <button onClick={() => setShowActionModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Cancel</button>
