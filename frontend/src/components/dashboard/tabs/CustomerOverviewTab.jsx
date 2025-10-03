@@ -1,4 +1,5 @@
 import React from 'react';
+import SalesFunnelVisualizer from '../../visualizations/SalesFunnelVisualizer.jsx';
 import { motion } from 'framer-motion';
 import { 
   Users, 
@@ -52,6 +53,21 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView }) =
 
   return (
     <div className="space-y-6">
+      {/* Funnel Snapshot */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <Target className="w-5 h-5 text-blue-500 mr-2" />
+          Funnel Snapshot
+        </h3>
+        <SalesFunnelVisualizer data={{
+          stages: [
+            { name: 'Awareness', value: 1200 },
+            { name: 'Interest', value: 650 },
+            { name: 'Decision', value: 280 },
+            { name: 'Retention', value: 180 }
+          ]
+        }} />
+      </div>
       {/* Key Customer Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Acquisition Metrics */}

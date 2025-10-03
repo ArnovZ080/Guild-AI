@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import SalesFunnelVisualizer from '../../visualizations/SalesFunnelVisualizer.jsx';
 import { motion } from 'framer-motion';
 import { 
   Target,
@@ -158,6 +159,11 @@ const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
       {viewMode === 'funnel' && (
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h4 className="text-lg font-semibold text-gray-900 mb-6">Sales Funnel</h4>
+          <div className="mb-8">
+            <SalesFunnelVisualizer data={{
+              stages: stages.map(([name, data]) => ({ name, value: data.count }))
+            }} />
+          </div>
           <div className="space-y-4">
             {stages.map(([stageName, stageData], index) => {
               const Icon = getStageIcon(stageName);

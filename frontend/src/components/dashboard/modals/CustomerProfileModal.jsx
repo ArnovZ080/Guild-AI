@@ -69,6 +69,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
     { id: 'overview', label: 'Overview', icon: User },
     { id: 'timeline', label: 'Timeline', icon: Activity },
     { id: 'value', label: 'Value Metrics', icon: DollarSign },
+    { id: 'messages', label: 'Messaging History', icon: MessageCircle },
     { id: 'sentiment', label: 'Sentiment', icon: Heart },
     { id: 'ai', label: 'AI Insights', icon: Brain }
   ];
@@ -141,6 +142,13 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
       'Offer exclusive beta access'
     ]
   };
+
+  // Mock unified messaging history
+  const messagingHistory = [
+    { id: 'msg_001', channel: 'email', direction: 'in', subject: 'Question about pricing', timestamp: new Date(Date.now() - 86400000).toISOString(), preview: 'Could you clarify the discount tiers...' },
+    { id: 'msg_002', channel: 'chat', direction: 'out', subject: 'Support follow-up', timestamp: new Date(Date.now() - 7200000).toISOString(), preview: 'Just checking if the login issue...' },
+    { id: 'msg_003', channel: 'phone', direction: 'out', subject: 'Scheduled call summary', timestamp: new Date(Date.now() - 3600000).toISOString(), preview: 'Thanks for your time today. We discussed...' },
+  ];
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -482,6 +490,37 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'messages' && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Messaging History</h3>
+              <div className="space-y-3">
+                {messagingHistory.map((m) => {
+                  const Icon = m.channel === 'email' ? Mail : m.channel === 'phone' ? Phone : MessageCircle;
+                  return (
+                    <div key={m.id} className="p-3 border border-gray-200 rounded-lg flex items-start justify-between">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-gray-600" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-900 font-medium capitalize">{m.channel} • {m.direction === 'in' ? 'Received' : 'Sent'}</div>
+                          <div className="text-sm text-gray-700">{m.subject}</div>
+                          <div className="text-xs text-gray-500">{new Date(m.timestamp).toLocaleString()}</div>
+                          <div className="text-sm text-gray-600 mt-1 line-clamp-2">{m.preview}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button className="px-3 py-1 bg-blue-600 text-white rounded text-xs">Reply</button>
+                        <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs">Forward</button>
+                        <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs">Archive</button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}

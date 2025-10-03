@@ -84,13 +84,19 @@ const CustomerListTab = ({
   }) || [];
 
   // Sort profiles
-  const sortedProfiles = [...filteredProfiles].sort((a, b) => {
-    let aValue = a[sortBy] || '';
-    let bValue = b[sortBy] || '';
-    
-    if (typeof aValue === 'string') {
-      aValue = aValue.toLowerCase();
-      bValue = bValue.toLowerCase();
+  const sortedProfiles = [...(filteredProfiles || [])].sort((a, b) => {
+    let aValue = a?.[sortBy];
+    let bValue = b?.[sortBy];
+
+    // Normalize values for comparison
+    const aIsString = typeof aValue === 'string';
+    const bIsString = typeof bValue === 'string';
+    if (aIsString || bIsString) {
+      aValue = (aValue ?? '').toString().toLowerCase();
+      bValue = (bValue ?? '').toString().toLowerCase();
+    } else {
+      aValue = Number(aValue ?? 0);
+      bValue = Number(bValue ?? 0);
     }
     
     if (sortOrder === 'asc') {
@@ -212,11 +218,14 @@ const CustomerListTab = ({
             className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">All Segments</option>
-            {segments?.map(segment => (
-              <option key={segment.segment_id} value={segment.name?.toLowerCase().replace(' ', '_')}>
-                {segment.name}
-              </option>
-            ))}
+            {segments?.map(segment => {
+              const value = segment?.name ? segment.name.toLowerCase().replace(/\s+/g, '_') : 'unknown';
+              return (
+                <option key={segment.segment_id || value} value={value}>
+                  {segment?.name || 'Unknown'}
+                </option>
+              );
+            })}
           </select>
 
           <select
