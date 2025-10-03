@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SalesFunnelVisualizer from '../../visualizations/SalesFunnelVisualizer.jsx';
+import { useIntegratedFunnelPlan } from '../../../services/funnelIntegrations';
 import { motion } from 'framer-motion';
 import { 
   Target,
@@ -53,6 +54,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
   const [viewMode, setViewMode] = useState('funnel'); // funnel, journey, analytics
 
   const { funnel: agentFunnel } = useCustomerFunnel(timeframe);
+  const { plan: integratedPlan, source: integratedSource } = useIntegratedFunnelPlan(true);
   const { executeAction } = useCustomerActions();
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState(null);
@@ -185,7 +187,8 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
           <h4 className="text-lg font-semibold text-gray-900 mb-6">Sales Funnel</h4>
           <div className="mb-8">
             {(() => {
-              // If agent-provided plan exists in funnel_analysis, use it; else infer from stages/profiles
+              // Priority: integrated plan > agent-provided plan > inferred
+              const externalPlan = integratedPlan;
               const agentPlan = funnel_analysis?.funnel_plan;
               const inferredStages = stages.map(([name, data]) => ({
                 name,
@@ -199,8 +202,8 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
               }));
 
               const inferredPlan = { stages: inferredStages };
-              const plan = agentPlan?.stages?.length ? agentPlan : inferredPlan;
-              const source = agentPlan?.stages?.length ? 'Connected funnel integrations' : 'Inferred from customer data';
+              const plan = externalPlan?.stages?.length ? externalPlan : agentPlan?.stages?.length ? agentPlan : inferredPlan;
+              const source = externalPlan?.stages?.length ? (integratedSource || 'Connected funnel integrations') : agentPlan?.stages?.length ? 'Connected funnel integrations' : 'Inferred from customer data';
 
               return (
                 <>
