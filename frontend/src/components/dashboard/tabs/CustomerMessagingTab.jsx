@@ -45,7 +45,8 @@ import {
   Globe,
   Smartphone,
   Monitor,
-  Laptop
+  Laptop,
+  X
 } from 'lucide-react';
 
 const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {

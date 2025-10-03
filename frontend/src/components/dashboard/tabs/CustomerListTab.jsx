@@ -67,9 +67,9 @@ const CustomerListTab = ({
 
   // Filter and search profiles
   const filteredProfiles = profiles?.filter(profile => {
-    const matchesSearch = profile.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         profile.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         profile.company?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         profile.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (profile.company && profile.company.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesSegment = selectedSegment === 'all' || profile.customer_segment === selectedSegment;
     const matchesHealthScore = profile.health_score >= filters.healthScore.min && 
                               profile.health_score <= filters.healthScore.max;
@@ -85,8 +85,8 @@ const CustomerListTab = ({
 
   // Sort profiles
   const sortedProfiles = [...filteredProfiles].sort((a, b) => {
-    let aValue = a[sortBy];
-    let bValue = b[sortBy];
+    let aValue = a[sortBy] || '';
+    let bValue = b[sortBy] || '';
     
     if (typeof aValue === 'string') {
       aValue = aValue.toLowerCase();
@@ -213,7 +213,7 @@ const CustomerListTab = ({
           >
             <option value="all">All Segments</option>
             {segments?.map(segment => (
-              <option key={segment.segment_id} value={segment.name.toLowerCase().replace(' ', '_')}>
+              <option key={segment.segment_id} value={segment.name?.toLowerCase().replace(' ', '_')}>
                 {segment.name}
               </option>
             ))}

@@ -62,6 +62,10 @@ import CustomerOpportunitiesTab from './tabs/CustomerOpportunitiesTab';
 // Import modals
 import CustomerProfileModal from './modals/CustomerProfileModal';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
+import ApprovalModal from './modals/ApprovalModal';
+
+// Import utilities
+import { handleCustomerAction as processCustomerAction, formatModalData } from './utils/customerActions';
 
 // Import API service
 import { useCustomerAnalysis, useCustomerProfiles, useCustomerSegments } from '../../services/customerIntelligenceAPI';
@@ -76,6 +80,8 @@ const CustomerDashboard = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedSegmentData, setSelectedSegmentData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalData, setApprovalData] = useState(null);
 
   // API hooks
   const { data: customerAnalysis, loading: analysisLoading, error: analysisError } = useCustomerAnalysis();
@@ -274,25 +280,37 @@ const CustomerDashboard = () => {
     { id: 'opportunities', label: 'Opportunities', icon: TrendingUp }
   ];
 
-  const handleCustomerAction = (action, customer) => {
-    console.log('Customer action:', action, customer);
+  const handleCustomerAction = (action, data) => {
+    const result = processCustomerAction(action, data);
     
-    switch (action) {
-      case 'view_profile':
-        setSelectedCustomer(customer);
-        setShowProfileModal(true);
+    switch (result.type) {
+      case 'open_modal':
+        if (result.modal === 'customer_profile') {
+          setSelectedCustomer(data);
+          setShowProfileModal(true);
+        } else if (result.modal === 'customer_segment') {
+          setSelectedSegmentData(data);
+          setShowSegmentModal(true);
+        }
         break;
-      case 'message':
-        // Handle messaging
+      case 'confirm_action':
+        setApprovalData({
+          title: 'Confirm Action',
+          message: result.message,
+          action: result.action,
+          data: result.data
+        });
+        setShowApprovalModal(true);
         break;
-      case 'call':
-        // Handle calling
+      case 'download':
+        // Handle download
+        console.log('Downloading:', result.format, result.data);
         break;
-      case 'email':
-        // Handle email
+      case 'error':
+        console.error(result.message);
         break;
       default:
-        console.log('Unknown action:', action);
+        console.log('Action result:', result);
     }
   };
 
@@ -477,6 +495,21 @@ const CustomerDashboard = () => {
           onClose={() => setShowSegmentModal(false)}
           onSave={handleSaveSegment}
           onAction={handleSegmentAction}
+        />
+      )}
+
+      {showApprovalModal && approvalData && (
+        <ApprovalModal
+          isOpen={showApprovalModal}
+          onClose={() => setShowApprovalModal(false)}
+          onApprove={(action, data) => {
+            console.log('Approved action:', action, data);
+            setShowApprovalModal(false);
+          }}
+          title={approvalData.title}
+          message={approvalData.message}
+          action={approvalData.action}
+          data={approvalData.data}
         />
       )}
     </div>
