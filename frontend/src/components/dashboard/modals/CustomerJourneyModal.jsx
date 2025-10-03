@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Target, MapPin, ChevronRight, Clock, MessageCircle, Mail, Activity } from 'lucide-react';
+import { X, Target, Clock, MessageCircle, Mail, Activity } from 'lucide-react';
 
 const stageOrder = ['lead', 'prospect', 'trial', 'customer', 'evangelist'];
 
@@ -8,8 +8,15 @@ const CustomerJourneyModal = ({ open, onClose, customer }) => {
   if (!open || !customer) return null;
 
   const currentStage = String(customer.lifecycle_stage || 'lead').toLowerCase();
-  const stageIndex = stageOrder.indexOf(currentStage);
+  const stageIndex = Math.max(0, stageOrder.indexOf(currentStage));
   const touchpoints = Array.isArray(customer.touchpoints) ? customer.touchpoints : [];
+  const stageTimestamps = customer.stage_timestamps || {}; // { lead: iso, prospect: iso, ... }
+
+  const timeInCurrentStageDays = (() => {
+    const started = stageTimestamps[currentStage] ? new Date(stageTimestamps[currentStage]) : null;
+    if (!started) return null;
+    return Math.max(0, Math.round((Date.now() - started.getTime()) / (1000*60*60*24)));
+  })();
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -31,12 +38,23 @@ const CustomerJourneyModal = ({ open, onClose, customer }) => {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Stages */}
+          {/* Stages with color legend */}
+          <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-indigo-500"></span> Current</div>
+            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-indigo-200"></span> Completed</div>
+            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-gray-200"></span> Upcoming</div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
             {stageOrder.map((stage, idx) => (
-              <div key={stage} className={`border rounded-lg p-4 text-center ${idx <= stageIndex ? 'bg-indigo-50 border-indigo-200' : 'bg-gray-50 border-gray-200'}`}>
-                <div className={`text-sm font-semibold capitalize ${idx <= stageIndex ? 'text-indigo-700' : 'text-gray-700'}`}>{stage}</div>
-                {idx === stageIndex && <div className="mt-1 text-xs text-indigo-700">Current</div>}
+              <div key={stage} className={`border rounded-lg p-4 text-center ${idx < stageIndex ? 'bg-indigo-100 border-indigo-200' : idx === stageIndex ? 'bg-indigo-500 border-indigo-600 text-white' : 'bg-gray-50 border-gray-200'}`}>
+                <div className={`text-sm font-semibold capitalize ${idx === stageIndex ? 'text-white' : 'text-gray-800'}`}>{stage}</div>
+                {idx === stageIndex && (
+                  <div className="mt-1 text-xs">Current</div>
+                )}
+                {idx < stageIndex && (
+                  <div className="mt-1 text-[10px] text-indigo-700">Reached {stageTimestamps[stage] ? new Date(stageTimestamps[stage]).toLocaleDateString() : ''}</div>
+                )}
               </div>
             ))}
           </div>
@@ -62,6 +80,17 @@ const CustomerJourneyModal = ({ open, onClose, customer }) => {
                 })}
               </div>
             )}
+          </div>
+
+          {/* Retention & Time-in-Stage */}
+          <div className="rounded-lg border p-4">
+            <div className="flex items-center gap-2 mb-3"><Clock className="w-4 h-4 text-gray-700" /><h3 className="font-semibold text-gray-900">Time in stage & retention</h3></div>
+            <div className="text-sm text-gray-800">
+              <div className="mb-2">Current stage: <span className="capitalize">{currentStage}</span>{timeInCurrentStageDays != null ? ` • ${timeInCurrentStageDays} days` : ''}</div>
+              {currentStage === 'customer' && (
+                <div className="text-xs text-gray-600">Retention signal: {customer.last_activity ? `active ${Math.max(0, Math.round((Date.now() - new Date(customer.last_activity).getTime())/(1000*60*60*24)))}d ago` : 'n/a'}</div>
+              )}
+            </div>
           </div>
         </div>
 

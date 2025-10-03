@@ -44,6 +44,8 @@ import {
 import CustomerProfileModal from '../modals/CustomerProfileModal.jsx';
 import CustomerHealthCheckModal from '../modals/CustomerHealthCheckModal.jsx';
 import CustomerJourneyModal from '../modals/CustomerJourneyModal.jsx';
+import ApprovalModal from '../modals/ApprovalModal';
+import { useCustomerActions } from '../../../services/customerIntelligenceAPI';
 
 const CustomerProfilesTab = ({ profiles }) => {
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -53,6 +55,9 @@ const CustomerProfilesTab = ({ profiles }) => {
   const [showFullProfileModal, setShowFullProfileModal] = useState(false);
   const [showHealthModal, setShowHealthModal] = useState(false);
   const [showJourneyModal, setShowJourneyModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalData, setApprovalData] = useState(null);
+  const { executeAction } = useCustomerActions();
 
   // Sort profiles
   const sortedProfiles = [...profiles].sort((a, b) => {
@@ -324,13 +329,12 @@ const CustomerProfilesTab = ({ profiles }) => {
                 </button>
               </div>
 
-              {/* Tab Navigation */}
+              {/* Tab Navigation (Journey tab removed; use dedicated View Journey modal) */}
               <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
                 {[
                   { id: 'overview', label: 'Overview', icon: BarChart3 },
                   { id: 'contact', label: 'Contact', icon: Mail },
-                  { id: 'engagement', label: 'Engagement', icon: Activity },
-                  { id: 'journey', label: 'Journey', icon: Target }
+                  { id: 'engagement', label: 'Engagement', icon: Activity }
                 ].map((tab) => {
                   const Icon = tab.icon;
                   return (
@@ -489,35 +493,7 @@ const CustomerProfilesTab = ({ profiles }) => {
                 </div>
               )}
 
-              {activeTab === 'journey' && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-900">Customer Journey</h4>
-                  <div className="space-y-4">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Current Stage</span>
-                      <p className="text-gray-600 capitalize">{selectedProfile.journey_stage}</p>
-                    </div>
-                    {selectedProfile.touchpoints && (
-                      <div>
-                        <span className="text-sm font-medium text-gray-700">Recent Touchpoints</span>
-                        <div className="space-y-2 mt-2">
-                          {selectedProfile.touchpoints.map((touchpoint, index) => (
-                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                <span className="text-sm capitalize">{touchpoint.type}</span>
-                              </div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(touchpoint.date).toLocaleDateString()}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              {/* Journey content removed; use View Journey button/modal instead */}
 
               {/* Action Buttons */}
               <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
@@ -564,6 +540,15 @@ const CustomerProfilesTab = ({ profiles }) => {
           open={showHealthModal}
           onClose={() => setShowHealthModal(false)}
           customer={selectedProfile}
+          onRunAction={(actionId, context) => {
+            setApprovalData({
+              title: 'Execute Recommendation',
+              message: `Run ${actionId.replace(/_/g,' ')} for ${selectedProfile.name}?`,
+              action: 'run_workflow',
+              data: { payload: { workflow: actionId, context: { customer: selectedProfile, ...context } } }
+            });
+            setShowApprovalModal(true);
+          }}
         />
       )}
 
@@ -572,6 +557,20 @@ const CustomerProfilesTab = ({ profiles }) => {
           open={showJourneyModal}
           onClose={() => setShowJourneyModal(false)}
           customer={selectedProfile}
+        />
+      )}
+
+      {showApprovalModal && approvalData && (
+        <ApprovalModal
+          isOpen={showApprovalModal}
+          onClose={() => setShowApprovalModal(false)}
+          onApprove={async (action, data) => {
+            try { await executeAction(action, data); } catch (e) { console.error(e); } finally { setShowApprovalModal(false); }
+          }}
+          title={approvalData.title}
+          message={approvalData.message}
+          action={approvalData.action}
+          data={approvalData.data}
         />
       )}
     </div>

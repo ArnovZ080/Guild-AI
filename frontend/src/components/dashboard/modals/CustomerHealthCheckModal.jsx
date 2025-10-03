@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Heart, Activity, AlertTriangle, CheckCircle, TrendingUp, TrendingDown, Info } from 'lucide-react';
 
-const CustomerHealthCheckModal = ({ open, onClose, customer }) => {
+const CustomerHealthCheckModal = ({ open, onClose, customer, onRunAction }) => {
   if (!open || !customer) return null;
 
   const riskColor = (risk) => (
@@ -20,16 +20,19 @@ const CustomerHealthCheckModal = ({ open, onClose, customer }) => {
     `Churn risk labeled '${customer.churn_risk}' based on recent activity and support tickets.`
   ];
 
-  const recommendedActions = [
-    customer.churn_risk === 'high' || customer.churn_risk === 'critical'
-      ? 'Trigger win-back sequence with personalized incentive'
-      : 'Schedule success check-in to reinforce value',
-    customer.engagement_score < 70
-      ? 'Enroll in onboarding refresh and send product tips'
-      : 'Offer advanced feature walkthrough or webinar invite',
-    customer.support_tickets > 2
-      ? 'Proactive support: review last tickets and send summary'
-      : 'Share best-practice guide tailored to segment'
+  const recommendations = [
+    {
+      id: (customer.churn_risk === 'high' || customer.churn_risk === 'critical') ? 'win_back_campaign' : 'success_check_in',
+      label: (customer.churn_risk === 'high' || customer.churn_risk === 'critical') ? 'Trigger win-back sequence with personalized incentive' : 'Schedule success check-in to reinforce value'
+    },
+    {
+      id: customer.engagement_score < 70 ? 'onboarding_refresh' : 'advanced_feature_walkthrough',
+      label: customer.engagement_score < 70 ? 'Enroll in onboarding refresh and send product tips' : 'Offer advanced feature walkthrough or webinar invite'
+    },
+    {
+      id: customer.support_tickets > 2 ? 'proactive_support_review' : 'share_best_practices',
+      label: customer.support_tickets > 2 ? 'Proactive support: review last tickets and send summary' : 'Share best-practice guide tailored to segment'
+    }
   ];
 
   return (
@@ -85,11 +88,16 @@ const CustomerHealthCheckModal = ({ open, onClose, customer }) => {
           {/* Recommendations */}
           <div className="rounded-lg border p-4">
             <div className="flex items-center gap-2 mb-3"><TrendingUp className="w-4 h-4 text-green-700" /><h3 className="font-semibold text-gray-900">Recommended next actions</h3></div>
-            <ul className="space-y-2 text-sm">
-              {recommendedActions.map((a, i) => (
-                <li key={i} className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />{a}</li>
+            <div className="space-y-2 text-sm">
+              {recommendations.map((rec, i) => (
+                <div key={rec.id} className="flex items-center justify-between p-2 bg-green-50 border border-green-200 rounded">
+                  <div className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />{rec.label}</div>
+                  {onRunAction && (
+                    <button onClick={() => onRunAction(rec.id, { reason: rec.label })} className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700">Run this</button>
+                  )}
+                </div>
               ))}
-            </ul>
+            </div>
             {(customer.health_score < 60) && (
               <div className="mt-3 flex items-start gap-2 text-yellow-800 bg-yellow-50 border border-yellow-200 rounded p-3 text-xs">
                 <AlertTriangle className="w-4 h-4 mt-0.5" />
