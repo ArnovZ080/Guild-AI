@@ -48,7 +48,8 @@ import {
   Minus,
   Play,
   Pause,
-  Settings
+  Settings,
+  X
 } from 'lucide-react';
 
 const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
