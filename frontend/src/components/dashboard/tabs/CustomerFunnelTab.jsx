@@ -42,6 +42,8 @@ import {
   Laptop,
   X
 } from 'lucide-react';
+import ApprovalModal from '../modals/ApprovalModal';
+import { useCustomerFunnel, useCustomerActions } from '../../services/customerIntelligenceAPI';
 
 const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView }) => {
   const [selectedStage, setSelectedStage] = useState(null);
@@ -49,11 +51,15 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
   const [timeframe, setTimeframe] = useState('30d');
   const [viewMode, setViewMode] = useState('funnel'); // funnel, journey, analytics
 
-  if (!funnel) {
-    return <CustomerFunnelSkeleton />;
-  }
+  const { funnel: agentFunnel } = useCustomerFunnel(timeframe);
+  const { executeAction } = useCustomerActions();
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalData, setApprovalData] = useState(null);
 
-  const { funnel_analysis } = funnel;
+  const effectiveFunnel = agentFunnel?.data?.funnel_analysis ? agentFunnel : funnel;
+  if (!effectiveFunnel) return <CustomerFunnelSkeleton />;
+
+  const { funnel_analysis } = effectiveFunnel;
   const stages = Object.entries(funnel_analysis.funnel_stages || {});
 
   const normalizeStage = (value) => String(value || '').toLowerCase();
@@ -482,16 +488,37 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                         </div>
                       ))}
                     </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setApprovalData({
+                            title: 'Reduce Drop-off',
+                            message: `Run optimization for ${selectedStage} stage?`,
+                            action: 'run_workflow',
+                            data: { payload: { workflow: `optimize_stage_${String(selectedStage).toLowerCase()}`, context: { stage: selectedStage, timeframe } } }
+                          });
+                          setShowApprovalModal(true);
+                        }}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                      >
+                        Run actions
+                      </button>
+                    </div>
                   </div>
                 </div>
                 {/* AI Insights */}
                 <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                   <h4 className="font-medium text-purple-900 mb-2">AI Insights</h4>
                   <ul className="space-y-1 text-sm text-purple-800">
-                    <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Top drop-off drivers inferred: friction in onboarding emails, long trial-to-value delay.</li>
-                    <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Positive drivers: webinar attendance, success call within 7 days, how-to content engagement.</li>
-                    <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Recommended actions: shorten time-to-value, send stage-specific playbooks, add CTA nudges on high-exit pages.</li>
+                    {(funnel_analysis.ai_insights?.[selectedStage]?.length ? funnel_analysis.ai_insights[selectedStage] : [
+                      'Top drop-off drivers inferred: friction in onboarding emails, long trial-to-value delay.',
+                      'Positive drivers: webinar attendance, success call within 7 days, how-to content engagement.',
+                      'Recommended actions: shorten time-to-value, send stage-specific playbooks, add CTA nudges on high-exit pages.'
+                    ]).map((text, idx) => (
+                      <li key={idx} className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> {text}</li>
+                    ))}
                   </ul>
+                  <div className="mt-2 text-xs text-purple-700">Source: Customer Intelligence Agent</div>
                 </div>
                 </>
                 )}
@@ -524,6 +551,20 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
             </div>
           </motion.div>
         </motion.div>
+      )}
+
+      {showApprovalModal && approvalData && (
+        <ApprovalModal
+          isOpen={showApprovalModal}
+          onClose={() => setShowApprovalModal(false)}
+          onApprove={async (action, data) => {
+            try { await executeAction(action, data); } catch (e) { console.error(e); } finally { setShowApprovalModal(false); }
+          }}
+          title={approvalData.title}
+          message={approvalData.message}
+          action={approvalData.action}
+          data={approvalData.data}
+        />
       )}
     </div>
   );
