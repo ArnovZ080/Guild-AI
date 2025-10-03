@@ -59,6 +59,108 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const [selectedPlaybook, setSelectedPlaybook] = useState(null);
   const [showPlaybookModal, setShowPlaybookModal] = useState(false);
   const [showRetentionModal, setShowRetentionModal] = useState(false);
+  const [showAICampaignModal, setShowAICampaignModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  
+  // Campaign form state
+  const [campaignForm, setCampaignForm] = useState({
+    name: '',
+    targetSegment: '',
+    campaignType: '', // 'email' or 'phone'
+    retentionStrategy: ''
+  });
+  
+  // Approval workflow state
+  const [approvalData, setApprovalData] = useState(null);
+
+  // Retention strategies based on segment
+  const getRetentionStrategies = (segment) => {
+    const strategies = {
+      'All at-risk customers': [
+        'Send personalized re-engagement email sequence',
+        'Offer exclusive discount or special promotion',
+        'Schedule proactive check-in calls',
+        'Provide value-added content and resources',
+        'Implement win-back campaign with loyalty incentives'
+      ],
+      'High-value customers only': [
+        'Assign dedicated customer success manager',
+        'Provide VIP support and priority handling',
+        'Offer exclusive early access to new features',
+        'Schedule executive-level relationship calls',
+        'Create personalized retention offers'
+      ],
+      'Inactive customers (30+ days)': [
+        'Send re-engagement email series with compelling content',
+        'Offer reactivation incentives and discounts',
+        'Survey for feedback on why they became inactive',
+        'Provide personalized onboarding refresh',
+        'Implement gamification and engagement triggers'
+      ],
+      'Support ticket escalations': [
+        'Proactive outreach to resolve outstanding issues',
+        'Assign senior support specialist for quick resolution',
+        'Offer compensation or goodwill gestures',
+        'Implement escalation prevention measures',
+        'Follow up with satisfaction surveys and improvements'
+      ]
+    };
+    return strategies[segment] || strategies['All at-risk customers'];
+  };
+
+  // Generate retention objective text
+  const generateRetentionObjective = (segment, campaignType) => {
+    const objectives = {
+      'All at-risk customers': `Create a comprehensive retention campaign targeting all at-risk customers to prevent churn and increase engagement through personalized outreach and value-added services.`,
+      'High-value customers only': `Develop a premium retention strategy for high-value customers to strengthen relationships, increase loyalty, and maximize lifetime value through exclusive benefits and personalized attention.`,
+      'Inactive customers (30+ days)': `Launch a re-engagement campaign to reactivate inactive customers who haven't interacted with the product/service in 30+ days through compelling content and attractive incentives.`,
+      'Support ticket escalations': `Implement a proactive retention campaign for customers with escalated support issues to resolve concerns quickly and rebuild trust through exceptional service recovery.`
+    };
+    
+    const baseObjective = objectives[segment] || objectives['All at-risk customers'];
+    const channelSpecific = campaignType === 'email' 
+      ? 'Focus on automated email sequences with personalized content and compelling calls-to-action.'
+      : 'Focus on personal phone outreach with direct relationship building and immediate problem resolution.';
+    
+    return `${baseObjective} ${channelSpecific}`;
+  };
+
+  // Handle campaign launch
+  const handleLaunchCampaign = () => {
+    if (!campaignForm.name || !campaignForm.targetSegment || !campaignForm.campaignType) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const retentionStrategies = getRetentionStrategies(campaignForm.targetSegment);
+    const retentionObjective = generateRetentionObjective(campaignForm.targetSegment, campaignForm.campaignType);
+    
+    // Set up approval data
+    setApprovalData({
+      title: 'Launch Retention Campaign',
+      message: `Launch "${campaignForm.name}" ${campaignForm.campaignType} campaign targeting ${campaignForm.targetSegment}?`,
+      action: 'launch_retention_campaign',
+      data: {
+        campaignName: campaignForm.name,
+        targetSegment: campaignForm.targetSegment,
+        campaignType: campaignForm.campaignType,
+        retentionStrategies: retentionStrategies,
+        retentionObjective: retentionObjective
+      }
+    });
+    
+    setShowApprovalModal(true);
+    setShowRetentionModal(false);
+  };
+
+  // Handle approval
+  const handleApproval = (approved) => {
+    if (approved && approvalData) {
+      // Open AI Campaign Modal with pre-populated data
+      setShowAICampaignModal(true);
+    }
+    setShowApprovalModal(false);
+  };
 
   // Mock retention data
   const retentionData = {
@@ -626,6 +728,8 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
                   <input
                     type="text"
+                    value={campaignForm.name}
+                    onChange={(e) => setCampaignForm(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="e.g., Q4 Retention Drive"
                   />
@@ -633,30 +737,61 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Target Segment</label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>All at-risk customers</option>
-                    <option>High-value customers only</option>
-                    <option>Inactive customers (30+ days)</option>
-                    <option>Support ticket escalations</option>
+                  <select 
+                    value={campaignForm.targetSegment}
+                    onChange={(e) => setCampaignForm(prev => ({ ...prev, targetSegment: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select target segment</option>
+                    <option value="All at-risk customers">All at-risk customers</option>
+                    <option value="High-value customers only">High-value customers only</option>
+                    <option value="Inactive customers (30+ days)">Inactive customers (30+ days)</option>
+                    <option value="Support ticket escalations">Support ticket escalations</option>
                   </select>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Type</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-blue-500">
+                    <div 
+                      onClick={() => setCampaignForm(prev => ({ ...prev, campaignType: 'email' }))}
+                      className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                        campaignForm.campaignType === 'email' 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-blue-500'
+                      }`}
+                    >
                       <div className="flex items-center space-x-2">
                         <Mail className="w-5 h-5 text-blue-600" />
                         <span className="font-medium">Email Sequence</span>
                       </div>
                       <p className="text-sm text-gray-600">Automated email campaigns</p>
+                      {campaignForm.campaignType === 'email' && (
+                        <div className="mt-2">
+                          <CheckCircle className="w-4 h-4 text-blue-600 inline mr-1" />
+                          <span className="text-xs text-blue-600 font-medium">Selected</span>
+                        </div>
+                      )}
                     </div>
-                    <div className="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-blue-500">
+                    <div 
+                      onClick={() => setCampaignForm(prev => ({ ...prev, campaignType: 'phone' }))}
+                      className={`border rounded-lg p-3 cursor-pointer transition-colors ${
+                        campaignForm.campaignType === 'phone' 
+                          ? 'border-green-500 bg-green-50' 
+                          : 'border-gray-200 hover:border-green-500'
+                      }`}
+                    >
                       <div className="flex items-center space-x-2">
                         <Phone className="w-5 h-5 text-green-600" />
                         <span className="font-medium">Phone Outreach</span>
                       </div>
                       <p className="text-sm text-gray-600">Personal calls and follow-ups</p>
+                      {campaignForm.campaignType === 'phone' && (
+                        <div className="mt-2">
+                          <CheckCircle className="w-4 h-4 text-green-600 inline mr-1" />
+                          <span className="text-xs text-green-600 font-medium">Selected</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -688,15 +823,214 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    console.log('Launching retention campaign...');
-                    setShowRetentionModal(false);
-                  }}
+                  onClick={handleLaunchCampaign}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
                 >
                   <Heart className="w-4 h-4 mr-2" />
                   Launch Campaign
                 </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Approval Modal */}
+      {showApprovalModal && approvalData && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowApprovalModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-lg shadow-xl max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <AlertTriangle className="w-6 h-6 text-yellow-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{approvalData.title}</h3>
+                  <p className="text-sm text-gray-600">Please review before proceeding</p>
+                </div>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">{approvalData.message}</p>
+                
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Campaign Details:</h4>
+                  <div className="space-y-2 text-sm">
+                    <div><span className="font-medium">Name:</span> {approvalData.data.campaignName}</div>
+                    <div><span className="font-medium">Target:</span> {approvalData.data.targetSegment}</div>
+                    <div><span className="font-medium">Type:</span> {approvalData.data.campaignType}</div>
+                    <div><span className="font-medium">Strategy:</span> {approvalData.data.retentionStrategies.length} retention tactics</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={() => handleApproval(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleApproval(true)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Approve & Continue
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* AI Campaign Modal */}
+      {showAICampaignModal && approvalData && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowAICampaignModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Brain className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">AI Campaign Creation</h3>
+                    <p className="text-sm text-gray-600">Pre-configured for retention strategy</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAICampaignModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <div className="space-y-6">
+                {/* Pre-populated Campaign Information */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-purple-600" />
+                    Pre-configured Campaign Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Campaign Name:</span>
+                      <p className="text-gray-600">{approvalData.data.campaignName}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Target Segment:</span>
+                      <p className="text-gray-600">{approvalData.data.targetSegment}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Campaign Type:</span>
+                      <p className="text-gray-600 capitalize">{approvalData.data.campaignType}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Retention Strategies:</span>
+                      <p className="text-gray-600">{approvalData.data.retentionStrategies.length} tactics</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* What do you want to achieve? - Pre-populated */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">What do you want to achieve? *</label>
+                  <textarea
+                    value={approvalData.data.retentionObjective}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-blue-50 text-gray-700"
+                    rows={4}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Pre-configured based on your retention strategy</p>
+                </div>
+
+                {/* Audience - Pre-populated */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Audience</label>
+                  <textarea
+                    value={`Target Segment: ${approvalData.data.targetSegment}\n\nCampaign Focus: ${approvalData.data.campaignType === 'email' ? 'Email-based retention sequence' : 'Phone-based retention outreach'}\n\nRetention Strategies:\n${approvalData.data.retentionStrategies.map(strategy => `• ${strategy}`).join('\n')}`}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-green-50 text-gray-700"
+                    rows={6}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Automatically configured for your selected segment</p>
+                </div>
+
+                {/* Segment or Tag - Pre-populated */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Segment or Tag (optional)</label>
+                  <input
+                    type="text"
+                    value={approvalData.data.targetSegment}
+                    readOnly
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-purple-50 text-gray-700"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Pre-configured with your selected target segment</p>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                    <h4 className="font-medium text-yellow-800">Ready to Launch</h4>
+                  </div>
+                  <p className="text-sm text-yellow-700">
+                    This campaign has been pre-configured with retention-specific strategies. 
+                    Click "Create Campaign" to launch with the Customer Intelligence Agent.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Brain className="w-4 h-4 text-purple-600" />
+                  <span>Powered by Customer Intelligence Agent</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowAICampaignModal(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('Creating AI campaign with retention data:', approvalData.data);
+                      setShowAICampaignModal(false);
+                      // Here you would trigger the actual AI campaign creation
+                      alert('Campaign created successfully! The Customer Intelligence Agent will now execute the retention strategy.');
+                    }}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+                  >
+                    <Brain className="w-4 h-4 mr-2" />
+                    Create Campaign
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
