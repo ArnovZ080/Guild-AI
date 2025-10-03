@@ -217,10 +217,7 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
     }
   };
 
-  // Auto-analyze messages on component mount
-  React.useEffect(() => {
-    analyzeAllMessages();
-  }, []);
+  // Note: Auto-analysis removed - now only runs when user clicks "Analyze Messages" button
 
   // Enhanced conversation data with intelligent analysis
   const conversations = [
