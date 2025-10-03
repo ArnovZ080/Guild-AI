@@ -81,6 +81,12 @@ export const handleCustomerAction = (action, data, context = {}) => {
     
     case 'export':
       return { type: 'download', format: 'csv', data };
+
+    case 'export_customers':
+      return { type: 'open_modal', modal: 'export_customers', data };
+
+    case 'import_customers':
+      return { type: 'open_modal', modal: 'import_customers', data };
     
     case 'analyze':
       return { type: 'open_modal', modal: 'ai_analysis', data };
