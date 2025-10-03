@@ -63,6 +63,8 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successData, setSuccessData] = useState(null);
+  const [showRetentionOutreachModal, setShowRetentionOutreachModal] = useState(false);
+  const [retentionOutreachData, setRetentionOutreachData] = useState(null);
   
   // Campaign form state
   const [campaignForm, setCampaignForm] = useState({
@@ -78,6 +80,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   // Playbook state management
   const [playbooks, setPlaybooks] = useState([]);
   const [editingPlaybook, setEditingPlaybook] = useState(null);
+  const [existingPlaybooksStatus, setExistingPlaybooksStatus] = useState({});
   const [playbookForm, setPlaybookForm] = useState({
     name: '',
     description: '',
@@ -178,6 +181,9 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
       } else if (approvalData.action === 'execute_playbook') {
         // Execute playbook with intelligent strategy
         executePlaybookWithStrategy(approvalData.data);
+      } else if (approvalData.action === 'retention_outreach') {
+        // Execute retention outreach
+        executeRetentionOutreach(approvalData.data);
       }
     }
     setShowApprovalModal(false);
@@ -202,6 +208,27 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
       playbook: playbook,
       strategy: strategy,
       executionPlan: executionPlan
+    });
+    setShowSuccessModal(true);
+  };
+
+  // Execute retention outreach
+  const executeRetentionOutreach = (data) => {
+    const { customer, recommendation } = data;
+    
+    console.log('Executing retention outreach:', {
+      customer: customer.name,
+      action: recommendation.action,
+      priority: recommendation.priority,
+      strategy: recommendation.strategy,
+      timeline: recommendation.timeline
+    });
+
+    // Set up success modal data
+    setSuccessData({
+      title: 'Retention Outreach Executed Successfully!',
+      customer: customer,
+      recommendation: recommendation
     });
     setShowSuccessModal(true);
   };
@@ -471,7 +498,8 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
 
   // Handle play/pause toggle
   const handlePlayPauseToggle = (playbook) => {
-    const newStatus = playbook.status === 'active' ? 'paused' : 'active';
+    const currentStatus = existingPlaybooksStatus[playbook.id] || playbook.status;
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     
     // Check if it's a user-created playbook
     const isUserPlaybook = playbooks.some(p => p.id === playbook.id);
@@ -481,10 +509,11 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         p.id === playbook.id ? { ...p, status: newStatus } : p
       ));
     } else {
-      // For existing playbooks, we need to update them in the retentionPlaybooks array
-      // Since retentionPlaybooks is a const array, we'll simulate the update
-      // In a real app, you'd update the backend or state management
-      console.log(`Toggling ${playbook.name} from ${playbook.status} to ${newStatus}`);
+      // Update existing playbook status
+      setExistingPlaybooksStatus(prev => ({
+        ...prev,
+        [playbook.id]: newStatus
+      }));
     }
   };
 
@@ -606,6 +635,121 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
       successRate: aiPlaybook.successRate,
       avgResponseTime: aiPlaybook.avgResponseTime
     }));
+  };
+
+  // Generate smart retention recommendation based on customer data
+  const generateSmartRetentionRecommendation = (customer) => {
+    const recommendations = [];
+    
+    // Analyze customer data to generate smart recommendations
+    if (customer.churn_risk === 'critical' || customer.churn_risk === 'high') {
+      recommendations.push({
+        action: 'Send urgent retention email',
+        priority: 'Critical',
+        reason: 'High churn risk detected',
+        strategy: 'Immediate intervention with personalized retention offer',
+        expectedOutcome: 'Prevent customer churn with 85% success rate',
+        timeline: 'Within 2 hours',
+        channels: ['Email', 'Phone'],
+        tactics: [
+          'Send personalized retention email with exclusive discount',
+          'Schedule urgent follow-up call',
+          'Offer priority support access',
+          'Provide personalized success manager assignment'
+        ]
+      });
+    }
+    
+    if (customer.engagement_score < 50) {
+      recommendations.push({
+        action: 'Send re-engagement email sequence',
+        priority: 'High',
+        reason: 'Low engagement score detected',
+        strategy: 'Re-engagement campaign with value-added content',
+        expectedOutcome: 'Increase engagement by 40% within 2 weeks',
+        timeline: 'Within 24 hours',
+        channels: ['Email'],
+        tactics: [
+          'Send personalized re-engagement email',
+          'Provide valuable content and resources',
+          'Offer gamification incentives',
+          'Schedule product demo'
+        ]
+      });
+    }
+    
+    if (customer.lifetime_value > 10000) {
+      recommendations.push({
+        action: 'VIP retention outreach',
+        priority: 'Premium',
+        reason: 'High-value customer requiring special attention',
+        strategy: 'Executive-level retention with premium benefits',
+        expectedOutcome: 'Maintain customer satisfaction with 95% success rate',
+        timeline: 'Within 1 hour',
+        channels: ['Phone', 'Email'],
+        tactics: [
+          'Executive-level personal call',
+          'Offer exclusive benefits and early access',
+          'Assign dedicated VIP success manager',
+          'Provide premium support tier'
+        ]
+      });
+    }
+    
+    if (customer.health_score < 60) {
+      recommendations.push({
+        action: 'Health recovery intervention',
+        priority: 'High',
+        reason: 'Declining health score requires attention',
+        strategy: 'Proactive health recovery with personalized support',
+        expectedOutcome: 'Improve health score by 25 points within 1 month',
+        timeline: 'Within 4 hours',
+        channels: ['Phone', 'Email', 'In-app'],
+        tactics: [
+          'Schedule health assessment call',
+          'Provide onboarding refresh and training',
+          'Offer personalized success coaching',
+          'Implement proactive monitoring'
+        ]
+      });
+    }
+    
+    // Default recommendation if no specific triggers
+    if (recommendations.length === 0) {
+      recommendations.push({
+        action: 'Send personalized retention email',
+        priority: 'Medium',
+        reason: 'Proactive retention outreach',
+        strategy: 'Standard retention with personalized messaging',
+        expectedOutcome: 'Maintain customer satisfaction and prevent churn',
+        timeline: 'Within 48 hours',
+        channels: ['Email'],
+        tactics: [
+          'Send personalized retention email',
+          'Schedule follow-up call',
+          'Provide value-added content',
+          'Monitor engagement metrics'
+        ]
+      });
+    }
+    
+    // Return the highest priority recommendation
+    return recommendations.sort((a, b) => {
+      const priorityOrder = { 'Critical': 4, 'Premium': 3, 'High': 2, 'Medium': 1 };
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    })[0];
+  };
+
+  // Handle retention outreach
+  const handleRetentionOutreach = (customer) => {
+    const recommendation = generateSmartRetentionRecommendation(customer);
+    
+    setRetentionOutreachData({
+      customer: customer,
+      recommendation: recommendation
+    });
+    
+    setShowRetentionOutreachModal(true);
   };
 
   // Mock retention data
@@ -810,47 +954,6 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search customers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <select
-              value={selectedRisk}
-              onChange={(e) => setSelectedRisk(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {riskLevels.map(risk => (
-                <option key={risk.id} value={risk.id}>
-                  {risk.label} ({risk.count})
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedHealth}
-              onChange={(e) => setSelectedHealth(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              {healthLevels.map(health => (
-                <option key={health.id} value={health.id}>
-                  {health.label} ({health.count})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* Retention Playbooks */}
@@ -879,9 +982,9 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               <div className="flex items-center justify-between mb-3">
                 <h5 className="font-semibold text-gray-900">{playbook.name}</h5>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  playbook.status === 'active' ? 'text-green-600 bg-green-100' : 'text-gray-600 bg-gray-100'
+                  (existingPlaybooksStatus[playbook.id] || playbook.status) === 'active' ? 'text-green-600 bg-green-100' : 'text-gray-600 bg-gray-100'
                 }`}>
-                  {playbook.status}
+                  {existingPlaybooksStatus[playbook.id] || playbook.status}
                 </span>
               </div>
               
@@ -919,12 +1022,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 <button
                   onClick={() => handlePlayPauseToggle(playbook)}
                   className={`px-3 py-2 rounded-md transition-colors ${
-                    playbook.status === 'active' 
+                    (existingPlaybooksStatus[playbook.id] || playbook.status) === 'active' 
                       ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
                   }`}
                 >
-                  {playbook.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {(existingPlaybooksStatus[playbook.id] || playbook.status) === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 </button>
               </div>
             </motion.div>
@@ -982,12 +1085,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 <button
                   onClick={() => handlePlayPauseToggle(playbook)}
                   className={`px-3 py-2 rounded-md transition-colors ${
-                    playbook.status === 'active' 
+                    (existingPlaybooksStatus[playbook.id] || playbook.status) === 'active' 
                       ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
                   }`}
                 >
-                  {playbook.status === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {(existingPlaybooksStatus[playbook.id] || playbook.status) === 'active' ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                 </button>
               </div>
             </motion.div>
@@ -999,14 +1102,47 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-lg font-semibold text-gray-900">At-Risk Customers</h4>
-          <div className="flex items-center space-x-2">
-            <button className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center">
-              <Send className="w-4 h-4 mr-2" />
-              Bulk Actions
-            </button>
-            <button className="px-3 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
-              <Download className="w-4 h-4" />
-            </button>
+        </div>
+
+        {/* Filters */}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4 mb-6">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search customers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <select
+              value={selectedRisk}
+              onChange={(e) => setSelectedRisk(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {riskLevels.map(risk => (
+                <option key={risk.id} value={risk.id}>
+                  {risk.label} ({risk.count})
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={selectedHealth}
+              onChange={(e) => setSelectedHealth(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {healthLevels.map(health => (
+                <option key={health.id} value={health.id}>
+                  {health.label} ({health.count})
+                </option>
+              ))}
+            </select>
           </div>
         </div>
         
@@ -1059,7 +1195,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   
                   <div className="flex items-center space-x-2">
                     <button
-                      onClick={() => onCustomerAction('retention_outreach', customer)}
+                      onClick={() => handleRetentionOutreach(customer)}
                       className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm flex items-center"
                     >
                       <Heart className="w-4 h-4 mr-1" />
@@ -1197,7 +1333,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                     </div>
                   </div>
                 )}
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Actions</label>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -1431,6 +1567,18 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                         <div><span className="font-medium">Actions:</span> {approvalData.data.strategy.tactics.length} tactics</div>
                       </div>
                     </>
+                  ) : approvalData.action === 'retention_outreach' ? (
+                    <>
+                      <h4 className="font-medium text-gray-900 mb-2">Retention Outreach Details:</h4>
+                      <div className="space-y-2 text-sm">
+                        <div><span className="font-medium">Customer:</span> {approvalData.data.customer.name}</div>
+                        <div><span className="font-medium">Action:</span> {approvalData.data.recommendation.action}</div>
+                        <div><span className="font-medium">Priority:</span> {approvalData.data.recommendation.priority}</div>
+                        <div><span className="font-medium">Timeline:</span> {approvalData.data.recommendation.timeline}</div>
+                        <div><span className="font-medium">Channels:</span> {approvalData.data.recommendation.channels.join(', ')}</div>
+                        <div><span className="font-medium">Strategy:</span> {approvalData.data.recommendation.strategy}</div>
+                      </div>
+                    </>
                   ) : (
                     <>
                       <h4 className="font-medium text-gray-900 mb-2">Campaign Details:</h4>
@@ -1644,29 +1792,52 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
 
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-6">
-                {/* Playbook Details */}
+                {/* Execution Details */}
                 <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
                   <h4 className="font-medium text-gray-900 mb-3 flex items-center">
                     <Target className="w-5 h-5 mr-2 text-green-600" />
-                    Executed Playbook Details
+                    {successData.playbook ? 'Executed Playbook Details' : 'Retention Outreach Details'}
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-700">Playbook:</span>
-                      <p className="text-gray-600">{successData.playbook.name}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Strategy:</span>
-                      <p className="text-gray-600">{successData.strategy.approach}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Priority:</span>
-                      <p className="text-gray-600">{successData.strategy.priority}</p>
-                    </div>
-                    <div>
-                      <span className="font-medium text-gray-700">Timeline:</span>
-                      <p className="text-gray-600">{successData.strategy.timeline}</p>
-                    </div>
+                    {successData.playbook ? (
+                      <>
+                        <div>
+                          <span className="font-medium text-gray-700">Playbook:</span>
+                          <p className="text-gray-600">{successData.playbook.name}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Strategy:</span>
+                          <p className="text-gray-600">{successData.strategy.approach}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Priority:</span>
+                          <p className="text-gray-600">{successData.strategy.priority}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Timeline:</span>
+                          <p className="text-gray-600">{successData.strategy.timeline}</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <span className="font-medium text-gray-700">Customer:</span>
+                          <p className="text-gray-600">{successData.customer.name}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Action:</span>
+                          <p className="text-gray-600">{successData.recommendation.action}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Priority:</span>
+                          <p className="text-gray-600">{successData.recommendation.priority}</p>
+                        </div>
+                        <div>
+                          <span className="font-medium text-gray-700">Timeline:</span>
+                          <p className="text-gray-600">{successData.recommendation.timeline}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -1677,44 +1848,61 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                     Execution Plan
                   </h4>
                   <div className="space-y-3">
-                    <div className="border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-medium text-gray-900">{successData.executionPlan.phase1.name}</h5>
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{successData.executionPlan.phase1.duration}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase1.expectedOutcome}</p>
-                      <ul className="text-xs text-gray-500 space-y-1">
-                        {successData.executionPlan.phase1.actions.map((action, index) => (
-                          <li key={index}>• {action}</li>
-                        ))}
-                      </ul>
-                    </div>
+                    {successData.playbook ? (
+                      // Playbook execution plan
+                      <>
+                        <div className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-gray-900">{successData.executionPlan.phase1.name}</h5>
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{successData.executionPlan.phase1.duration}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase1.expectedOutcome}</p>
+                          <ul className="text-xs text-gray-500 space-y-1">
+                            {successData.executionPlan.phase1.actions.map((action, index) => (
+                              <li key={index}>• {action}</li>
+                            ))}
+                          </ul>
+                        </div>
 
-                    <div className="border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-medium text-gray-900">{successData.executionPlan.phase2.name}</h5>
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{successData.executionPlan.phase2.duration}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase2.expectedOutcome}</p>
-                      <ul className="text-xs text-gray-500 space-y-1">
-                        {successData.executionPlan.phase2.actions.map((action, index) => (
-                          <li key={index}>• {action}</li>
-                        ))}
-                      </ul>
-                    </div>
+                        <div className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-gray-900">{successData.executionPlan.phase2.name}</h5>
+                            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{successData.executionPlan.phase2.duration}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase2.expectedOutcome}</p>
+                          <ul className="text-xs text-gray-500 space-y-1">
+                            {successData.executionPlan.phase2.actions.map((action, index) => (
+                              <li key={index}>• {action}</li>
+                            ))}
+                          </ul>
+                        </div>
 
-                    <div className="border border-gray-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <h5 className="font-medium text-gray-900">{successData.executionPlan.phase3.name}</h5>
-                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">{successData.executionPlan.phase3.duration}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase3.expectedOutcome}</p>
-                      <ul className="text-xs text-gray-500 space-y-1">
-                        {successData.executionPlan.phase3.actions.map((action, index) => (
-                          <li key={index}>• {action}</li>
+                        <div className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <h5 className="font-medium text-gray-900">{successData.executionPlan.phase3.name}</h5>
+                            <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">{successData.executionPlan.phase3.duration}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase3.expectedOutcome}</p>
+                          <ul className="text-xs text-gray-500 space-y-1">
+                            {successData.executionPlan.phase3.actions.map((action, index) => (
+                              <li key={index}>• {action}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </>
+                    ) : (
+                      // Retention outreach execution plan
+                      <div className="space-y-3">
+                        {successData.recommendation.tactics.map((tactic, index) => (
+                          <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                            <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+                              {index + 1}
+                            </div>
+                            <p className="text-sm text-gray-700">{tactic}</p>
+                          </div>
                         ))}
-                      </ul>
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -1743,6 +1931,174 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Got it!
                 </button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Retention Outreach Modal */}
+      {showRetentionOutreachModal && retentionOutreachData && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowRetentionOutreachModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-100 rounded-lg">
+                    <Heart className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Retention Outreach</h3>
+                    <p className="text-sm text-gray-600">AI-powered retention strategy for {retentionOutreachData.customer.name}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowRetentionOutreachModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="space-y-6">
+                {/* Customer Details */}
+                <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4 border border-red-200">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <User className="w-5 h-5 mr-2 text-red-600" />
+                    Customer Profile
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Customer:</span>
+                      <p className="text-gray-600">{retentionOutreachData.customer.name}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Health Score:</span>
+                      <p className="text-gray-600">{retentionOutreachData.customer.health_score}/100</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Churn Risk:</span>
+                      <p className="text-gray-600 capitalize">{retentionOutreachData.customer.churn_risk}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Lifetime Value:</span>
+                      <p className="text-gray-600">${retentionOutreachData.customer.lifetime_value.toLocaleString()}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Recommendation */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Brain className="w-5 h-5 mr-2 text-purple-600" />
+                    AI-Generated Recommendation
+                  </h4>
+                  <div className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-semibold text-gray-900">{retentionOutreachData.recommendation.action}</h5>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        retentionOutreachData.recommendation.priority === 'Critical' ? 'bg-red-100 text-red-800' :
+                        retentionOutreachData.recommendation.priority === 'Premium' ? 'bg-purple-100 text-purple-800' :
+                        retentionOutreachData.recommendation.priority === 'High' ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
+                        {retentionOutreachData.recommendation.priority} Priority
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{retentionOutreachData.recommendation.strategy}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium text-gray-700">Reason:</span>
+                        <p className="text-gray-600">{retentionOutreachData.recommendation.reason}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Timeline:</span>
+                        <p className="text-gray-600">{retentionOutreachData.recommendation.timeline}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Expected Outcome:</span>
+                        <p className="text-gray-600">{retentionOutreachData.recommendation.expectedOutcome}</p>
+                      </div>
+                      <div>
+                        <span className="font-medium text-gray-700">Channels:</span>
+                        <p className="text-gray-600">{retentionOutreachData.recommendation.channels.join(', ')}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Execution Plan */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Zap className="w-5 h-5 mr-2 text-blue-600" />
+                    Execution Plan
+                  </h4>
+                  <div className="space-y-3">
+                    {retentionOutreachData.recommendation.tactics.map((tactic, index) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
+                          {index + 1}
+                        </div>
+                        <p className="text-sm text-gray-700">{tactic}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                    <h4 className="font-medium text-yellow-800">What happens next?</h4>
+                  </div>
+                  <p className="text-sm text-yellow-700">
+                    The Customer Intelligence Agent will execute the retention strategy immediately and monitor customer response. You'll receive updates on engagement and success metrics.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Brain className="w-4 h-4 text-purple-600" />
+                  <span>Powered by Customer Intelligence Agent</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowRetentionOutreachModal(false)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setApprovalData({
+                        title: 'Execute Retention Outreach',
+                        message: `Execute "${retentionOutreachData.recommendation.action}" for ${retentionOutreachData.customer.name}?`,
+                        action: 'retention_outreach',
+                        data: retentionOutreachData
+                      });
+                      setShowRetentionOutreachModal(false);
+                      setShowApprovalModal(true);
+                    }}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                  >
+                    <Heart className="w-4 h-4 mr-2" />
+                    Execute Outreach
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
