@@ -45,6 +45,7 @@ import CustomerProfileModal from '../modals/CustomerProfileModal.jsx';
 import CustomerHealthCheckModal from '../modals/CustomerHealthCheckModal.jsx';
 import CustomerJourneyModal from '../modals/CustomerJourneyModal.jsx';
 import ApprovalModal from '../modals/ApprovalModal';
+import ExecutionSummaryModal from '../modals/ExecutionSummaryModal.jsx';
 import { useCustomerActions } from '../../../services/customerIntelligenceAPI';
 
 const CustomerProfilesTab = ({ profiles }) => {
@@ -57,6 +58,9 @@ const CustomerProfilesTab = ({ profiles }) => {
   const [showJourneyModal, setShowJourneyModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState(null);
+  const [showExecSummary, setShowExecSummary] = useState(false);
+  const [execSteps, setExecSteps] = useState([]);
+  const [execAgents, setExecAgents] = useState([]);
   const { executeAction } = useCustomerActions();
 
   // Sort profiles
@@ -559,6 +563,50 @@ const CustomerProfilesTab = ({ profiles }) => {
               action: 'run_workflow',
               data: { payload: { workflow: actionId, context: { customer: selectedProfile, ...context } } }
             });
+            // Prepare transparency summary based on action
+            const stepsMap = {
+              win_back_campaign: [
+                'Research at-risk signals and segmentation',
+                'Generate win-back copy and offer',
+                'Send campaign via preferred channel',
+                'Monitor engagement and follow up'
+              ],
+              success_check_in: [
+                'Prepare success check-in template',
+                'Schedule outreach via calendar',
+                'Send check-in and track response'
+              ],
+              onboarding_refresh: [
+                'Assemble onboarding refresher materials',
+                'Send tailored onboarding tips',
+                'Track activation completion'
+              ],
+              advanced_feature_walkthrough: [
+                'Identify advanced features relevant to usage',
+                'Invite to walkthrough or webinar',
+                'Capture feedback and next steps'
+              ],
+              proactive_support_review: [
+                'Review recent tickets and outcomes',
+                'Draft proactive support summary',
+                'Share improvements and invite feedback'
+              ],
+              share_best_practices: [
+                'Curate best-practice guide by segment',
+                'Send resource pack',
+                'Measure engagement with content'
+              ]
+            };
+            const agentsMap = {
+              win_back_campaign: ['orchestrator_agent', 'customer_intelligence_agent', 'crm_automation_agent', 'marketing_agent', 'judge_agent'],
+              success_check_in: ['orchestrator_agent', 'customer_success_agent', 'crm_agent', 'judge_agent'],
+              onboarding_refresh: ['orchestrator_agent', 'customer_success_agent', 'copywriter_agent', 'crm_automation_agent', 'judge_agent'],
+              advanced_feature_walkthrough: ['orchestrator_agent', 'customer_success_agent', 'voice_agent', 'judge_agent'],
+              proactive_support_review: ['orchestrator_agent', 'customer_support_agent', 'customer_success_agent', 'judge_agent'],
+              share_best_practices: ['orchestrator_agent', 'content_strategist_agent', 'copywriter_agent', 'judge_agent']
+            };
+            setExecSteps(stepsMap[actionId] || ['Run workflow']);
+            setExecAgents(agentsMap[actionId] || ['orchestrator_agent']);
             setShowApprovalModal(true);
           }}
         />
@@ -577,12 +625,23 @@ const CustomerProfilesTab = ({ profiles }) => {
           isOpen={showApprovalModal}
           onClose={() => setShowApprovalModal(false)}
           onApprove={async (action, data) => {
-            try { await executeAction(action, data); } catch (e) { console.error(e); } finally { setShowApprovalModal(false); }
+            try { await executeAction(action, data); } catch (e) { console.error(e); } finally { setShowApprovalModal(false); setShowExecSummary(true); }
           }}
           title={approvalData.title}
           message={approvalData.message}
           action={approvalData.action}
           data={approvalData.data}
+        />
+      )}
+
+      {/* Execution Summary for transparency */}
+      {showExecSummary && (
+        <ExecutionSummaryModal
+          open={showExecSummary}
+          onClose={() => setShowExecSummary(false)}
+          title="Workflow Submitted"
+          steps={execSteps}
+          agents={execAgents}
         />
       )}
     </div>
