@@ -184,9 +184,31 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h4 className="text-lg font-semibold text-gray-900 mb-6">Sales Funnel</h4>
           <div className="mb-8">
-            <SalesFunnelVisualizer data={{
-              stages: stages.map(([name, data]) => ({ name, value: data.count }))
-            }} />
+            {(() => {
+              // If agent-provided plan exists in funnel_analysis, use it; else infer from stages/profiles
+              const agentPlan = funnel_analysis?.funnel_plan;
+              const inferredStages = stages.map(([name, data]) => ({
+                name,
+                strategy: `Optimize ${name} with targeted playbooks`,
+                content_needed:
+                  name.toLowerCase() === 'lead' ? ['Lead magnets', 'Landing page copy'] :
+                  name.toLowerCase() === 'prospect' ? ['Case studies', 'Objection-handling emails'] :
+                  name.toLowerCase() === 'trial' ? ['Onboarding emails', 'How-to guides'] :
+                  name.toLowerCase() === 'customer' ? ['Adoption tips', 'Success stories'] :
+                  ['Referral CTA', 'Advocacy prompts']
+              }));
+
+              const inferredPlan = { stages: inferredStages };
+              const plan = agentPlan?.stages?.length ? agentPlan : inferredPlan;
+              const source = agentPlan?.stages?.length ? 'Connected funnel integrations' : 'Inferred from customer data';
+
+              return (
+                <>
+                  <SalesFunnelVisualizer funnelPlan={plan} />
+                  <div className="mt-2 text-xs text-gray-500">Source: {source}</div>
+                </>
+              );
+            })()}
           </div>
           <div className="space-y-4">
             {stages.map(([stageName, stageData], index) => {
