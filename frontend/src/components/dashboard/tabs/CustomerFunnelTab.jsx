@@ -43,8 +43,9 @@ import {
   X
 } from 'lucide-react';
 
-const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
+const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView }) => {
   const [selectedStage, setSelectedStage] = useState(null);
+  const [stageModalTab, setStageModalTab] = useState('analytics'); // analytics | customers
   const [timeframe, setTimeframe] = useState('30d');
   const [viewMode, setViewMode] = useState('funnel'); // funnel, journey, analytics
 
@@ -54,6 +55,12 @@ const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
 
   const { funnel_analysis } = funnel;
   const stages = Object.entries(funnel_analysis.funnel_stages || {});
+
+  const normalizeStage = (value) => String(value || '').toLowerCase();
+  const customersInStage = (stageName) => {
+    const s = normalizeStage(stageName);
+    return (profiles || []).filter(p => normalizeStage(p.lifecycle_stage || p.stage) === s);
+  };
 
   const getStageColor = (stageName) => {
     switch (stageName.toLowerCase()) {
@@ -177,7 +184,8 @@ const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="relative"
+                  className="relative cursor-pointer"
+                  onClick={() => setSelectedStage(stageName)}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-3">
@@ -409,7 +417,7 @@ const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-lg shadow-xl max-w-2xl w-full"
+            className="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6">
@@ -422,9 +430,25 @@ const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              {/* Tabs */}
+              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
+                {[
+                  { id: 'analytics', label: 'Funnel Step Analytics' },
+                  { id: 'customers', label: 'Customers in Step' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setStageModalTab(tab.id)}
+                    className={`px-4 py-2 rounded-md text-sm font-medium ${stageModalTab === tab.id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="space-y-6">
+                {stageModalTab === 'analytics' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
                     <h4 className="font-medium text-gray-900 mb-2">Stage Metrics</h4>
                     <div className="space-y-2 text-sm">
@@ -459,6 +483,41 @@ const CustomerFunnelTab = ({ funnel, onJourneyView }) => {
                     </div>
                   </div>
                 </div>
+                {/* AI Insights */}
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-medium text-purple-900 mb-2">AI Insights</h4>
+                  <ul className="space-y-1 text-sm text-purple-800">
+                    <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Top drop-off drivers inferred: friction in onboarding emails, long trial-to-value delay.</li>
+                    <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Positive drivers: webinar attendance, success call within 7 days, how-to content engagement.</li>
+                    <li className="flex items-start"><ArrowRight className="w-3 h-3 mr-2 mt-0.5" /> Recommended actions: shorten time-to-value, send stage-specific playbooks, add CTA nudges on high-exit pages.</li>
+                  </ul>
+                </div>
+                )}
+
+                {stageModalTab === 'customers' && (
+                <div className="p-4 bg-white border rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-3">Customers in this stage</h4>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {customersInStage(selectedStage).map((p) => (
+                      <div key={p.customer_id} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded">
+                        <div>
+                          <div className="font-medium text-gray-900">{p.name}</div>
+                          <div className="text-gray-600 text-xs">{p.email}</div>
+                        </div>
+                        <button
+                          onClick={() => onProfileView && onProfileView(p)}
+                          className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                        >
+                          View Full Profile
+                        </button>
+                      </div>
+                    ))}
+                    {customersInStage(selectedStage).length === 0 && (
+                      <div className="text-sm text-gray-600">No customers found for this stage.</div>
+                    )}
+                  </div>
+                </div>
+                )}
               </div>
             </div>
           </motion.div>

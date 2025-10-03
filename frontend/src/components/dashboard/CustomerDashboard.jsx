@@ -567,7 +567,9 @@ const CustomerDashboard = () => {
           {activeTab === 'funnel' && (
             <CustomerFunnelTab 
               funnel={funnelAnalysis}
+              profiles={profiles}
               onJourneyView={() => {}}
+              onProfileView={(p) => handleCustomerAction('view_profile', p)}
             />
           )}
           
