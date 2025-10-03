@@ -675,7 +675,7 @@ const CustomerDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900">Export Customers</h3>
               <p className="text-sm text-gray-600">Choose a format to export {exportData.length} customers.</p>
             </div>
-            <div className="p-6 space-y-3">
+            <div className="p-6 flex flex-col sm:flex-row sm:flex-wrap gap-3">
               <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={()=>console.log('Export CSV')}>Export CSV</button>
               <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={()=>console.log('Export Excel')}>Export Excel</button>
               <button className="px-4 py-2 bg-purple-600 text-white rounded" onClick={()=>console.log('Export Google Sheet')}>Export to Google Sheets</button>
@@ -694,14 +694,12 @@ const CustomerDashboard = () => {
               <h3 className="text-lg font-semibold text-gray-900">Import Customers</h3>
               <p className="text-sm text-gray-600">Import from CSV or connect a source (CRM, Google Drive, OneDrive, Dropbox).</p>
             </div>
-            <div className="p-6 space-y-3">
+            <div className="p-6 flex flex-col sm:flex-row sm:flex-wrap gap-3">
               <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={()=>console.log('Import CSV')}>Import CSV</button>
               <button className="px-4 py-2 bg-purple-600 text-white rounded" onClick={()=>console.log('Connect CRM')}>Connect CRM</button>
-              <div className="flex gap-2">
-                <button className="px-3 py-2 bg-gray-100 rounded">Google Drive</button>
-                <button className="px-3 py-2 bg-gray-100 rounded">OneDrive</button>
-                <button className="px-3 py-2 bg-gray-100 rounded">Dropbox</button>
-              </div>
+              <button className="px-4 py-2 bg-gray-100 rounded border" onClick={()=>console.log('Connect Google Drive')}>Google Drive</button>
+              <button className="px-4 py-2 bg-gray-100 rounded border" onClick={()=>console.log('Connect OneDrive')}>OneDrive</button>
+              <button className="px-4 py-2 bg-gray-100 rounded border" onClick={()=>console.log('Connect Dropbox')}>Dropbox</button>
             </div>
             <div className="p-6 border-t bg-gray-50 text-right">
               <button className="px-4 py-2 bg-gray-100 rounded" onClick={()=>setShowImportModal(false)}>Close</button>

@@ -521,14 +521,6 @@ const CustomerListTab = ({
                 </button>
                 
                 <button
-                  onClick={() => onCustomerAction('edit_profile', profile)}
-                  className="p-2 text-yellow-400 hover:text-yellow-600 transition-colors"
-                  title="Edit Customer"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                
-                <button
                   onClick={() => onCustomerAction('message', profile)}
                   className="p-2 text-green-400 hover:text-green-600 transition-colors"
                   title="Send Message"
@@ -585,13 +577,38 @@ const CustomerListTab = ({
                         <Phone className="w-3 h-3 mr-1" />
                         Call
                       </button>
-                      <button
-                        onClick={() => onCustomerAction('segment', profile)}
-                        className="px-3 py-1 bg-purple-100 text-purple-700 rounded text-xs hover:bg-purple-200 transition-colors flex items-center"
-                      >
-                        <Tag className="w-3 h-3 mr-1" />
-                        Segment
-                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={(e) => {
+                            const menu = e.currentTarget.nextSibling;
+                            if (menu) {
+                              menu.classList.toggle('hidden');
+                            }
+                          }}
+                          className="px-3 py-1 bg-purple-100 text-purple-700 rounded text-xs hover:bg-purple-200 transition-colors flex items-center"
+                        >
+                          <Tag className="w-3 h-3 mr-1" />
+                          Segment
+                        </button>
+                        <div className="absolute right-0 mt-1 w-56 bg-white border border-gray-200 rounded shadow-md hidden z-10">
+                          {Array.isArray(segments) && segments.length > 0 ? (
+                            <ul className="py-1 text-sm text-gray-700 max-h-60 overflow-y-auto">
+                              {segments.map((seg) => (
+                                <li key={seg.segment_id || seg.name}>
+                                  <button
+                                    onClick={() => onCustomerAction('view_segment', seg)}
+                                    className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                                  >
+                                    {seg.name}
+                                  </button>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <div className="px-3 py-2 text-sm text-gray-600">No segments defined yet</div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
