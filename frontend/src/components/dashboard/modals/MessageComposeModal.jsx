@@ -8,7 +8,7 @@ const channels = [
   { id: 'email', label: 'Email' }
 ];
 
-const MessageComposeModal = ({ open, onClose, customer }) => {
+const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
   const [channel, setChannel] = useState('whatsapp');
   const [to, setTo] = useState('');
   const [message, setMessage] = useState('');
@@ -19,7 +19,14 @@ const MessageComposeModal = ({ open, onClose, customer }) => {
       // naive default based on available contact
       setChannel(customer?.phone ? 'whatsapp' : 'email');
     }
-  }, [open, customer]);
+    
+    // Handle reply functionality
+    if (open && replyTo) {
+      setTo(replyTo.customer?.email || replyTo.customer?.phone || '');
+      setChannel(replyTo.channel === 'email' ? 'email' : replyTo.channel === 'phone' ? 'whatsapp' : 'whatsapp');
+      setMessage(`Re: ${replyTo.subject || 'your message'}\n\n`);
+    }
+  }, [open, customer, replyTo]);
 
   if (!open) return null;
 
@@ -39,7 +46,9 @@ const MessageComposeModal = ({ open, onClose, customer }) => {
         <div className="p-6 border-b flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <MessageSquare className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Compose Message</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {replyTo ? 'Reply to Message' : 'Compose Message'}
+            </h3>
           </div>
           <button onClick={() => onClose && onClose()} className="p-2 hover:bg-gray-100 rounded">
             <X className="w-5 h-5 text-gray-600" />

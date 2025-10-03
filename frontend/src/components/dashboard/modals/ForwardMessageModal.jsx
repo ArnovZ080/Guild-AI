@@ -47,7 +47,7 @@ const ForwardMessageModal = ({ open, onClose, message, onSend }) => {
             <div className="text-sm text-gray-800">
               <div className="font-medium mb-1">{message.subject || '(no subject)'}</div>
               <div className="text-xs text-gray-500 mb-2">{new Date(message.timestamp).toLocaleString()}</div>
-              <div className="whitespace-pre-wrap">{message.preview}</div>
+              <div className="whitespace-pre-wrap">{message.lastMessage || message.preview || 'No message content available'}</div>
             </div>
           </div>
         </div>

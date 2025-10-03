@@ -51,6 +51,20 @@ export const handleCustomerAction = (action, data, context = {}) => {
     case 'send_email':
       return { type: 'open_modal', modal: 'compose_email', data };
     
+    // Messaging Actions
+    case 'reply':
+      return { type: 'open_modal', modal: 'compose_message', data: { ...data, action: 'reply' } };
+    
+    case 'forward':
+      return { type: 'open_modal', modal: 'forward_message', data };
+    
+    case 'archive':
+      return { type: 'confirm_action', 
+        message: `Are you sure you want to archive this conversation with ${data.customer?.name || 'customer'}?`, 
+        action: 'archive_conversation', 
+        data 
+      };
+    
     // Campaign Actions
     case 'execute_campaign':
       return { type: 'open_modal', modal: 'approve_action',

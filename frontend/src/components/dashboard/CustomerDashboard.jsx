@@ -64,6 +64,7 @@ import CustomerProfileModal from './modals/CustomerProfileModal';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
 import MessageComposeModal from './modals/MessageComposeModal.jsx';
 import ScheduleCallModal from './modals/ScheduleCallModal.jsx';
+import ForwardMessageModal from './modals/ForwardMessageModal.jsx';
 import CreateCustomerModal from './modals/CreateCustomerModal.jsx';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
 import ApprovalModal from './modals/ApprovalModal';
@@ -96,6 +97,8 @@ const CustomerDashboard = () => {
   const [messageCustomer, setMessageCustomer] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleCustomer, setScheduleCustomer] = useState(null);
+  const [showForwardModal, setShowForwardModal] = useState(false);
+  const [forwardMessage, setForwardMessage] = useState(null);
   const [showCreateCustomer, setShowCreateCustomer] = useState(false);
   const { executeAction, executing } = useCustomerActions();
 
@@ -393,6 +396,9 @@ const CustomerDashboard = () => {
         } else if (result.modal === 'compose_message') {
           setMessageCustomer(data);
           setShowMessageModal(true);
+        } else if (result.modal === 'forward_message') {
+          setForwardMessage(data);
+          setShowForwardModal(true);
         }
         if (result.modal === 'export_customers') {
           setExportData(result.data || []);
@@ -657,7 +663,8 @@ const CustomerDashboard = () => {
         <MessageComposeModal
           open={showMessageModal}
           onClose={() => setShowMessageModal(false)}
-          customer={messageCustomer}
+          customer={messageCustomer?.customer || messageCustomer}
+          replyTo={messageCustomer?.action === 'reply' ? messageCustomer : null}
         />
       )}
 
@@ -671,6 +678,26 @@ const CustomerDashboard = () => {
             // Trigger orchestrator workflow
             setApprovalData({ title: 'Schedule Call', message: `Schedule ${payload.when}`, action: 'run_workflow', data: { payload: { workflow: 'schedule_call', context: payload } } });
             setShowApprovalModal(true);
+          }}
+        />
+      )}
+
+      {/* Forward Message */}
+      {showForwardModal && forwardMessage && (
+        <ForwardMessageModal
+          open={showForwardModal}
+          onClose={() => setShowForwardModal(false)}
+          message={forwardMessage}
+          onSend={(payload) => {
+            // Trigger orchestrator workflow for message forwarding
+            setApprovalData({ 
+              title: 'Forward Message', 
+              message: `Forward message to ${payload.to}?`, 
+              action: 'run_workflow', 
+              data: { payload: { workflow: 'forward_message', context: payload } } 
+            });
+            setShowApprovalModal(true);
+            setShowForwardModal(false);
           }}
         />
       )}
