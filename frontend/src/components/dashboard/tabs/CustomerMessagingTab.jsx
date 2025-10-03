@@ -66,6 +66,12 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
   const [analyzing, setAnalyzing] = useState(false);
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [analysisResults, setAnalysisResults] = useState([]);
+  const [analysisFilter, setAnalysisFilter] = useState({
+    priority: 'all',
+    sentiment: 'all',
+    channel: 'all',
+    search: ''
+  });
 
   // Analyze message content using Customer Intelligence Agent
   const analyzeMessage = async (message, customer, channel) => {
@@ -215,6 +221,37 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  // Filter analysis results based on current filter settings
+  const getFilteredAnalysisResults = () => {
+    return analysisResults.filter(result => {
+      const { priority, sentiment, channel, search } = analysisFilter;
+      
+      // Priority filter
+      if (priority !== 'all' && result.analysis.priority !== priority) {
+        return false;
+      }
+      
+      // Sentiment filter
+      if (sentiment !== 'all' && result.analysis.sentiment !== sentiment) {
+        return false;
+      }
+      
+      // Channel filter
+      if (channel !== 'all' && result.conversation.channel !== channel) {
+        return false;
+      }
+      
+      // Search filter
+      if (search && !result.conversation.customer?.name?.toLowerCase().includes(search.toLowerCase()) &&
+          !result.conversation.subject.toLowerCase().includes(search.toLowerCase()) &&
+          !result.conversation.lastMessage.toLowerCase().includes(search.toLowerCase())) {
+        return false;
+      }
+      
+      return true;
+    });
   };
 
   // Note: Auto-analysis removed - now only runs when user clicks "Analyze Messages" button
@@ -931,9 +968,76 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
               </div>
             </div>
 
+            {/* Filter Controls */}
+            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Search Filter */}
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search messages..."
+                    value={analysisFilter.search}
+                    onChange={(e) => setAnalysisFilter(prev => ({ ...prev, search: e.target.value }))}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Priority Filter */}
+                <select
+                  value={analysisFilter.priority}
+                  onChange={(e) => setAnalysisFilter(prev => ({ ...prev, priority: e.target.value }))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Priorities</option>
+                  <option value="high">High Priority</option>
+                  <option value="medium">Medium Priority</option>
+                  <option value="low">Low Priority</option>
+                </select>
+
+                {/* Sentiment Filter */}
+                <select
+                  value={analysisFilter.sentiment}
+                  onChange={(e) => setAnalysisFilter(prev => ({ ...prev, sentiment: e.target.value }))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Sentiments</option>
+                  <option value="positive">Positive</option>
+                  <option value="neutral">Neutral</option>
+                  <option value="negative">Negative</option>
+                </select>
+
+                {/* Channel Filter */}
+                <select
+                  value={analysisFilter.channel}
+                  onChange={(e) => setAnalysisFilter(prev => ({ ...prev, channel: e.target.value }))}
+                  className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Channels</option>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone</option>
+                  <option value="chat">Chat</option>
+                  <option value="social">Social</option>
+                </select>
+              </div>
+
+              {/* Filter Results Count */}
+              <div className="mt-3 flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing {getFilteredAnalysisResults().length} of {analysisResults.length} messages
+                </div>
+                <button
+                  onClick={() => setAnalysisFilter({ priority: 'all', sentiment: 'all', channel: 'all', search: '' })}
+                  className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               <div className="space-y-6">
-                {analysisResults.map((result, index) => (
+                {getFilteredAnalysisResults().map((result, index) => (
                   <div key={result.conversationId} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
@@ -1009,25 +1113,25 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div className="text-center">
                     <div className="font-semibold text-blue-600">
-                      {analysisResults.filter(r => r.analysis.priority === 'high').length}
+                      {getFilteredAnalysisResults().filter(r => r.analysis.priority === 'high').length}
                     </div>
                     <div className="text-gray-600">High Priority</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold text-yellow-600">
-                      {analysisResults.filter(r => r.analysis.priority === 'medium').length}
+                      {getFilteredAnalysisResults().filter(r => r.analysis.priority === 'medium').length}
                     </div>
                     <div className="text-gray-600">Medium Priority</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold text-green-600">
-                      {analysisResults.filter(r => r.analysis.sentiment === 'positive').length}
+                      {getFilteredAnalysisResults().filter(r => r.analysis.sentiment === 'positive').length}
                     </div>
                     <div className="text-gray-600">Positive Sentiment</div>
                   </div>
                   <div className="text-center">
                     <div className="font-semibold text-red-600">
-                      {analysisResults.filter(r => r.analysis.sentiment === 'negative').length}
+                      {getFilteredAnalysisResults().filter(r => r.analysis.sentiment === 'negative').length}
                     </div>
                     <div className="text-gray-600">Negative Sentiment</div>
                   </div>
