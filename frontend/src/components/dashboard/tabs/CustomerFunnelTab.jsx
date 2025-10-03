@@ -115,6 +115,16 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
     return { level: 'good', color: 'text-green-600 bg-green-100' };
   };
 
+  // Build profile-based counts per stage for consistent display
+  const profileCounts = stages.reduce((acc, [name]) => {
+    acc[name] = customersInStage(name).length;
+    return acc;
+  }, {} as Record<string, number>);
+  const hasProfileCounts = Object.values(profileCounts).some((v) => v > 0);
+  const totalDisplayLeads = hasProfileCounts
+    ? Object.values(profileCounts).reduce((a, b) => a + b, 0)
+    : funnel_analysis.total_leads;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -188,7 +198,11 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
           <div className="space-y-4">
             {stages.map(([stageName, stageData], index) => {
               const Icon = getStageIcon(stageName);
-              const width = (stageData.count / funnel_analysis.total_leads) * 100;
+              const displayCount = hasProfileCounts ? profileCounts[stageName] : stageData.count;
+              const prevDisplayCount = hasProfileCounts
+                ? (index > 0 ? profileCounts[stages[index - 1][0]] : displayCount)
+                : (index > 0 ? stages[index - 1][1].count : stageData.count);
+              const width = totalDisplayLeads > 0 ? (displayCount / totalDisplayLeads) * 100 : 0;
               const conversionRate = stageData.conversion_rate;
               const optimization = getOptimizationPriority(conversionRate);
               
@@ -212,7 +226,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900">{stageData.count}</div>
+                    <div className="text-2xl font-bold text-gray-900">{displayCount}</div>
                       <div className="flex items-center space-x-2">
                         <span className="text-sm text-gray-600">{conversionRate}% conversion</span>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${optimization.color}`}>
@@ -228,7 +242,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                       style={{ width: `${width}%` }}
                     >
                       <span className="text-white text-sm font-medium">
-                        {stageData.count}
+                        {displayCount}
                       </span>
                     </div>
                   </div>
@@ -241,7 +255,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                           {stageData.drop_off_rate}% drop-off rate
                         </span>
                         <span className="text-sm text-red-600">
-                          {stages[index - 1][1].count - stageData.count} lost customers
+                          {Math.max(0, prevDisplayCount - displayCount)} lost customers
                         </span>
                       </div>
                       {/* AI analysis of likely causes */}
@@ -314,7 +328,7 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
               <button
                 onClick={() => {
                   if (onConnectSources) onConnectSources();
-                  else if (typeof window !== 'undefined') window.location.assign('/integrations');
+                  else if (typeof window !== 'undefined') window.location.assign('/connectors');
                 }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
