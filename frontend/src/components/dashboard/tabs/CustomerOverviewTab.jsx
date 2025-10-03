@@ -437,9 +437,16 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
 
       {/* Insight Details Modal */}
       {showInsightModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInsightModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b flex items-center justify-between">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowInsightModal(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center mr-3">
                   <CheckCircle className="w-5 h-5 text-green-600" />
@@ -449,7 +456,11 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                   <p className="text-sm text-gray-600">Why we surfaced this insight and where it comes from</p>
                 </div>
               </div>
-              <button onClick={() => setShowInsightModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                <button onClick={() => setShowInsightModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <span className="sr-only">Close</span>
+                  ✕
+                </button>
+              </div>
             </div>
             <div className="p-6 space-y-6">
               {/* Insight Summary */}
@@ -516,7 +527,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 </ul>
               </div>
             </div>
-            <div className="p-4 border-t bg-gray-50 flex items-center justify-end space-x-2">
+            <div className="p-6 border-t bg-gray-50 flex items-center justify-end space-x-2">
               <button onClick={() => setShowInsightModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Close</button>
               <button
                 onClick={() => {
@@ -528,15 +539,22 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 Repeat Strategy
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
 
       {/* Action Details Modal */}
       {showActionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowActionModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b flex items-center justify-between">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowActionModal(false)}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b">
+              <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center mr-3">
                   <AlertTriangle className="w-5 h-5 text-red-600" />
@@ -546,7 +564,11 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                   <p className="text-sm text-gray-600">Why this action is recommended and what agents will do</p>
                 </div>
               </div>
-              <button onClick={() => setShowActionModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+                <button onClick={() => setShowActionModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <span className="sr-only">Close</span>
+                  ✕
+                </button>
+              </div>
             </div>
             <div className="p-6 space-y-6">
               {/* Action Required */}
@@ -605,7 +627,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 </ol>
               </div>
             </div>
-            <div className="p-4 border-t bg-gray-50 flex items-center justify-end space-x-2">
+            <div className="p-6 border-t bg-gray-50 flex items-center justify-end space-x-2">
               <button onClick={() => setShowActionModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Cancel</button>
               <button
                 onClick={() => {
@@ -617,7 +639,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 Execute Action
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
