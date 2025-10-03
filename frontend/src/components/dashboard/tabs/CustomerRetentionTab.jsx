@@ -753,6 +753,23 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
     setShowRetentionOutreachModal(true);
   };
 
+  // Determine priority level for customer cards
+  const getCustomerPriority = (customer) => {
+    if (customer.churn_risk === 'critical' || customer.churn_risk === 'high') {
+      return { level: 'Critical', color: 'bg-red-100 text-red-800', icon: '🔴' };
+    }
+    if (customer.lifetime_value > 10000) {
+      return { level: 'Premium', color: 'bg-purple-100 text-purple-800', icon: '💎' };
+    }
+    if (customer.health_score < 60) {
+      return { level: 'High', color: 'bg-orange-100 text-orange-800', icon: '⚠️' };
+    }
+    if (customer.engagement_score < 50) {
+      return { level: 'High', color: 'bg-orange-100 text-orange-800', icon: '📉' };
+    }
+    return { level: 'Medium', color: 'bg-blue-100 text-blue-800', icon: 'ℹ️' };
+  };
+
   // Mock retention data
   const retentionData = {
     overallRetention: 85.2,
@@ -1173,6 +1190,15 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getHealthColor(customer.healthScore)}`}>
                         Health: {customer.healthScore}
                       </span>
+                      {(() => {
+                        const priority = getCustomerPriority(customer);
+                        return (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${priority.color}`}>
+                            <span>{priority.icon}</span>
+                            <span>{priority.level}</span>
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div className="text-sm text-gray-500">
                       Last activity: {formatTimestamp(customer.lastActivity)}
@@ -1197,10 +1223,26 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleRetentionOutreach(customer)}
-                      className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm flex items-center"
+                      className={`px-3 py-2 text-white rounded-md transition-colors text-sm flex items-center ${
+                        (() => {
+                          const priority = getCustomerPriority(customer);
+                          switch (priority.level) {
+                            case 'Critical': return 'bg-red-600 hover:bg-red-700';
+                            case 'Premium': return 'bg-purple-600 hover:bg-purple-700';
+                            case 'High': return 'bg-orange-600 hover:bg-orange-700';
+                            default: return 'bg-blue-600 hover:bg-blue-700';
+                          }
+                        })()
+                      }`}
                     >
                       <Heart className="w-4 h-4 mr-1" />
                       Retention Outreach
+                      {(() => {
+                        const priority = getCustomerPriority(customer);
+                        return priority.level !== 'Medium' ? (
+                          <span className="ml-1 text-xs opacity-90">({priority.level})</span>
+                        ) : null;
+                      })()}
                     </button>
                     <button
                       onClick={() => onCustomerAction('schedule_call', customer)}
@@ -1289,6 +1331,30 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   </select>
                 </div>
 
+                {/* AI Create Playbook Button */}
+                {playbookForm.trigger && (
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <Brain className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">AI-Powered Playbook Generation</h4>
+                          <p className="text-sm text-gray-600">Let the Customer Intelligence Agent create an optimized playbook for this trigger</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleAICreatePlaybook}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+                      >
+                        <Brain className="w-4 h-4 mr-2" />
+                        Let AI Create Playbook
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Playbook Name *</label>
                   <input
@@ -1311,30 +1377,6 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                   />
                 </div>
                 
-                {/* AI Create Playbook Button */}
-                {playbookForm.trigger && (
-                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-purple-100 rounded-lg">
-                          <Brain className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                          <h4 className="font-medium text-gray-900">AI-Powered Playbook Generation</h4>
-                          <p className="text-sm text-gray-600">Let the Customer Intelligence Agent create an optimized playbook for this trigger</p>
-                    </div>
-                    </div>
-                      <button
-                        onClick={handleAICreatePlaybook}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
-                      >
-                        <Brain className="w-4 h-4 mr-2" />
-                        Let AI Create Playbook
-                      </button>
-                    </div>
-                    </div>
-                )}
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Actions</label>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
