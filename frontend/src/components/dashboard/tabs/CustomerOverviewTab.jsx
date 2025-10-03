@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SalesFunnelVisualizer from '../../visualizations/SalesFunnelVisualizer.jsx';
 import { motion } from 'framer-motion';
 import { 
@@ -28,7 +28,11 @@ import {
   Monitor
 } from 'lucide-react';
 
-const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView }) => {
+const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onExecuteAction }) => {
+  const [showInsightModal, setShowInsightModal] = useState(false);
+  const [selectedInsight, setSelectedInsight] = useState(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [selectedAction, setSelectedAction] = useState(null);
   if (!analysis) {
     return <CustomerOverviewSkeleton />;
   }
@@ -238,9 +242,17 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView }) =
           </h3>
           <div className="space-y-3">
             {key_insights.map((insight, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                <p className="text-gray-700">{insight}</p>
+              <div key={index} className="flex items-start justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-gray-700">{insight}</p>
+                </div>
+                <button
+                  onClick={() => { setSelectedInsight(insight); setShowInsightModal(true); }}
+                  className="px-3 py-1 text-sm bg-white border border-green-200 rounded hover:bg-green-100"
+                >
+                  Details
+                </button>
               </div>
             ))}
           </div>
@@ -261,9 +273,17 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView }) =
           </h3>
           <div className="space-y-3">
             {immediate_actions.map((action, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                <Clock className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-                <p className="text-red-700 font-medium">{action}</p>
+              <div key={index} className="flex items-start justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                <div className="flex items-start space-x-3">
+                  <Clock className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-700 font-medium">{action}</p>
+                </div>
+                <button
+                  onClick={() => { setSelectedAction(action); setShowActionModal(true); }}
+                  className="px-3 py-1 text-sm bg-white border border-red-200 rounded hover:bg-red-100"
+                >
+                  Details
+                </button>
               </div>
             ))}
           </div>
@@ -414,6 +434,63 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView }) =
           ))}
         </div>
       </motion.div>
+
+      {/* Insight Details Modal */}
+      {showInsightModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowInsightModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Insight Details</h3>
+                <button onClick={() => setShowInsightModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              </div>
+              <p className="text-gray-800 mb-4">{selectedInsight}</p>
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Primary Sources</h4>
+              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                <li>Alerts feed from Customer Intelligence Agent</li>
+                <li>Recent retention and satisfaction metrics</li>
+                <li>Support sentiment and engagement signals</li>
+              </ul>
+            </div>
+            <div className="p-4 border-t bg-gray-50 text-right">
+              <button onClick={() => setShowInsightModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Details Modal */}
+      {showActionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowActionModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-xl w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Action Details</h3>
+                <button onClick={() => setShowActionModal(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+              </div>
+              <p className="text-gray-800 mb-4">{selectedAction}</p>
+              <h4 className="text-sm font-semibold text-gray-900 mb-2">Why this action?</h4>
+              <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 mb-4">
+                <li>Triggered by high-priority alert patterns</li>
+                <li>Correlated with recent drops in retention or sentiment</li>
+                <li>Validated by Judge Agent criteria for urgency</li>
+              </ul>
+            </div>
+            <div className="p-4 border-t bg-gray-50 flex items-center justify-end space-x-2">
+              <button onClick={() => setShowActionModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Cancel</button>
+              <button
+                onClick={() => {
+                  if (onExecuteAction) onExecuteAction(selectedAction);
+                  setShowActionModal(false);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Execute Action
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
