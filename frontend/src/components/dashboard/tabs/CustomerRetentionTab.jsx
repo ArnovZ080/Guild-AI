@@ -250,10 +250,10 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         trigger: 'Churn risk score above 80%',
         actions: [
           'Send personalized retention email',
-          'Schedule urgent check-in call',
-          'Offer exclusive retention discount',
+          'Schedule follow-up call',
+          'Offer retention discount',
           'Assign dedicated success manager',
-          'Provide priority support access'
+          'Provide priority support'
         ],
         targetSegment: 'High-risk customers',
         successRate: 75,
@@ -267,11 +267,11 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         description: 'Win-back campaign for customers with no recent activity',
         trigger: 'No activity for 30+ days',
         actions: [
-          'Send re-engagement email sequence',
-          'Offer reactivation incentives',
-          'Survey for feedback on inactivity',
-          'Provide personalized content',
-          'Schedule relationship call'
+          'Send personalized retention email',
+          'Offer retention discount',
+          'Send survey for feedback',
+          'Provide value-added content',
+          'Schedule follow-up call'
         ],
         targetSegment: 'Inactive customers',
         successRate: 68,
@@ -285,11 +285,11 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         description: 'Premium retention strategy for high-value customers',
         trigger: 'LTV above $10,000',
         actions: [
-          'Assign VIP success manager',
-          'Provide exclusive early access',
-          'Schedule executive check-ins',
-          'Offer premium support tier',
-          'Create personalized retention offers'
+          'Assign dedicated success manager',
+          'Offer exclusive benefits',
+          'Schedule follow-up call',
+          'Provide priority support',
+          'Send personalized retention email'
         ],
         targetSegment: 'High-value customers',
         successRate: 92,
@@ -303,11 +303,11 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         description: 'Boost engagement for low-activity customers',
         trigger: 'Login frequency decreased by 50%',
         actions: [
-          'Send engagement-focused email series',
-          'Provide training and onboarding refresh',
-          'Offer gamification incentives',
+          'Send personalized retention email',
+          'Provide value-added content',
+          'Offer exclusive benefits',
           'Schedule product demo',
-          'Create personalized usage recommendations'
+          'Schedule follow-up call'
         ],
         targetSegment: 'Low engagement customers',
         successRate: 72,
@@ -495,12 +495,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         name: 'AI-Generated Re-engagement Campaign',
         description: 'Automated win-back strategy for inactive customers using personalized outreach and value-added incentives.',
         actions: [
-          'Send personalized re-engagement email sequence',
-          'Offer exclusive reactivation discount (25% off)',
-          'Schedule personal check-in call within 48 hours',
-          'Provide value-added content and resources',
-          'Implement gamification incentives',
-          'Send feedback survey to understand inactivity'
+          'Send personalized retention email',
+          'Schedule follow-up call',
+          'Offer retention discount',
+          'Provide value-added content',
+          'Send survey for feedback',
+          'Offer exclusive benefits'
         ],
         targetSegment: 'Inactive customers',
         successRate: 72,
@@ -510,12 +510,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         name: 'AI-Generated Health Recovery Plan',
         description: 'Proactive intervention strategy for at-risk customers with declining health scores.',
         actions: [
-          'Immediate phone outreach by senior success manager',
-          'Escalate to dedicated customer success team',
-          'Offer retention incentives and priority support',
-          'Provide personalized onboarding refresh',
-          'Schedule weekly check-in calls',
-          'Monitor engagement metrics closely'
+          'Schedule follow-up call',
+          'Escalate to senior team',
+          'Offer retention discount',
+          'Provide priority support',
+          'Assign dedicated success manager',
+          'Send survey for feedback'
         ],
         targetSegment: 'At-risk customers',
         successRate: 78,
@@ -525,12 +525,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         name: 'AI-Generated VIP Retention Program',
         description: 'Premium retention strategy for high-value customers with executive-level attention.',
         actions: [
-          'Assign dedicated VIP success manager',
-          'Provide exclusive early access to new features',
-          'Schedule executive-level relationship calls',
-          'Offer premium support tier with priority handling',
-          'Create personalized retention offers',
-          'Implement white-glove onboarding experience'
+          'Assign dedicated success manager',
+          'Schedule follow-up call',
+          'Offer exclusive benefits',
+          'Provide priority support',
+          'Send personalized retention email',
+          'Schedule product demo'
         ],
         targetSegment: 'High-value customers',
         successRate: 92,
@@ -540,12 +540,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         name: 'AI-Generated Support Recovery Campaign',
         description: 'Proactive outreach strategy for customers with unresolved support issues.',
         actions: [
-          'Immediate escalation to senior support specialist',
-          'Offer compensation or goodwill gestures',
-          'Provide priority support access',
-          'Schedule follow-up satisfaction surveys',
-          'Implement escalation prevention measures',
-          'Assign dedicated support contact'
+          'Escalate to senior team',
+          'Provide priority support',
+          'Schedule follow-up call',
+          'Send survey for feedback',
+          'Assign dedicated success manager',
+          'Send personalized retention email'
         ],
         targetSegment: 'Support escalation customers',
         successRate: 85,
@@ -555,12 +555,12 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         name: 'AI-Generated Churn Prevention Protocol',
         description: 'Critical intervention strategy for customers at highest risk of churning.',
         actions: [
-          'Urgent phone outreach within 2 hours',
-          'Offer exclusive retention discount (30% off)',
-          'Assign dedicated retention specialist',
-          'Provide priority feature access',
-          'Schedule daily check-ins for first week',
-          'Implement win-back campaign with loyalty incentives'
+          'Schedule follow-up call',
+          'Offer retention discount',
+          'Assign dedicated success manager',
+          'Provide priority support',
+          'Send personalized retention email',
+          'Offer exclusive benefits'
         ],
         targetSegment: 'Critical churn risk customers',
         successRate: 68,
@@ -577,8 +577,8 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
         'Schedule follow-up call',
         'Offer retention discount',
         'Provide value-added content',
-        'Monitor engagement closely',
-        'Implement feedback collection'
+        'Send survey for feedback',
+        'Offer exclusive benefits'
       ],
       targetSegment: 'Targeted customers',
       successRate: 75,
@@ -874,7 +874,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col h-full"
             >
               <div className="flex items-center justify-between mb-3">
                 <h5 className="font-semibold text-gray-900">{playbook.name}</h5>
@@ -887,7 +887,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               
               <p className="text-gray-600 text-sm mb-3">{playbook.description}</p>
               
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-4 flex-grow">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Success Rate:</span>
                   <span className="font-medium text-green-600">{playbook.successRate}%</span>
@@ -902,7 +902,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mt-auto">
                 <button
                   onClick={() => handleExecutePlaybook(playbook)}
                   className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm flex items-center justify-center"
@@ -937,7 +937,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: (retentionPlaybooks.length + index) * 0.1 }}
-              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow flex flex-col h-full"
             >
               <div className="flex items-center justify-between mb-3">
                 <h5 className="font-semibold text-gray-900">{playbook.name}</h5>
@@ -950,7 +950,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               
               <p className="text-gray-600 text-sm mb-3">{playbook.description}</p>
               
-              <div className="space-y-2 mb-4">
+              <div className="space-y-2 mb-4 flex-grow">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Success Rate:</span>
                   <span className="font-medium text-green-600">{playbook.successRate}%</span>
@@ -965,7 +965,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mt-auto">
                 <button
                   onClick={() => handleExecutePlaybook(playbook)}
                   className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm flex items-center justify-center"
@@ -1139,6 +1139,20 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               
               <div className="space-y-4">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Condition *</label>
+                  <select 
+                    value={playbookForm.trigger}
+                    onChange={(e) => setPlaybookForm(prev => ({ ...prev, trigger: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select trigger condition</option>
+                    {triggerOptions.map((trigger, index) => (
+                      <option key={index} value={trigger}>{trigger}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Playbook Name *</label>
                   <input
                     type="text"
@@ -1158,20 +1172,6 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Describe the playbook's purpose and goals"
                   />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Trigger Condition *</label>
-                  <select 
-                    value={playbookForm.trigger}
-                    onChange={(e) => setPlaybookForm(prev => ({ ...prev, trigger: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select trigger condition</option>
-                    {triggerOptions.map((trigger, index) => (
-                      <option key={index} value={trigger}>{trigger}</option>
-                    ))}
-                  </select>
                 </div>
 
                 {/* AI Create Playbook Button */}
@@ -1619,7 +1619,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full"
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200">
@@ -1642,7 +1642,7 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-6">
                 {/* Playbook Details */}
                 <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
