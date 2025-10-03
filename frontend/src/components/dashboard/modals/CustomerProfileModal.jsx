@@ -58,9 +58,9 @@ import {
   XCircle
 } from 'lucide-react';
 
-import ComposeEmailModal from '../ComposeEmailModal.jsx';
-import MessageComposeModal from '../MessageComposeModal.jsx';
-import ScheduleCallModal from '../ScheduleCallModal.jsx';
+import ComposeEmailModal from './ComposeEmailModal.jsx';
+import MessageComposeModal from './MessageComposeModal.jsx';
+import ScheduleCallModal from './ScheduleCallModal.jsx';
 import ForwardMessageModal from './ForwardMessageModal.jsx';
 
 const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) => {
