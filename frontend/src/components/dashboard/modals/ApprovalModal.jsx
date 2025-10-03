@@ -216,12 +216,11 @@ const ApprovalModal = ({
 
         {/* Footer */}
         <div className="p-6 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Clock className="w-4 h-4" />
-              <span>This action will be executed immediately upon approval</span>
-            </div>
-            
+          <div className="text-sm text-gray-500 flex items-center space-x-2 mb-3">
+            <Clock className="w-4 h-4" />
+            <span>This action will be executed immediately upon approval</span>
+          </div>
+          <div className="flex items-center justify-end">
             <div className="flex items-center space-x-3">
               <button
                 onClick={onClose}

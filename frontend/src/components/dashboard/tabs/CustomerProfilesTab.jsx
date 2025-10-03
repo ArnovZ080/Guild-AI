@@ -256,26 +256,38 @@ const CustomerProfilesTab = ({ profiles }) => {
               </div>
             </div>
 
-            {/* Health Indicators */}
-            {profile.health_indicators && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium text-gray-700 mb-2">Health Indicators</h5>
-                <div className="space-y-1">
-                  {Object.entries(profile.health_indicators).map(([key, trend]) => {
-                    const { icon: Icon, color } = getEngagementTrend(trend);
-                    return (
-                      <div key={key} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 capitalize">{key.replace('_', ' ')}</span>
-                        <div className={`flex items-center ${color}`}>
-                          <Icon className="w-3 h-3 mr-1" />
-                          <span className="capitalize">{trend}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+              {/* Health Indicators */}
+              {(() => {
+                const indicators = profile.health_indicators || {
+                  usage_frequency: profile.engagement_score >= 80 ? 'increasing' : profile.engagement_score >= 60 ? 'stable' : 'decreasing',
+                  feature_adoption_depth: profile.total_orders >= 10 ? 'increasing' : profile.total_orders >= 5 ? 'stable' : 'decreasing',
+                  recent_activity_recency: (() => {
+                    const days = Math.max(0, Math.round((Date.now() - new Date(profile.last_activity).getTime())/(1000*60*60*24)));
+                    return days <= 7 ? 'increasing' : days <= 21 ? 'stable' : 'decreasing';
+                  })(),
+                  ticket_volume_escalations: profile.support_tickets <= 1 ? 'increasing' : profile.support_tickets <= 3 ? 'stable' : 'decreasing',
+                  sentiment_trend: (profile.sentiment_score || 0.7) >= 0.8 ? 'increasing' : (profile.sentiment_score || 0.7) >= 0.65 ? 'stable' : 'decreasing'
+                };
+                return (
+                  <div className="mb-4">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Health Indicators</h5>
+                    <div className="space-y-1">
+                      {Object.entries(indicators).map(([key, trend]) => {
+                        const { icon: Icon, color } = getEngagementTrend(trend);
+                        return (
+                          <div key={key} className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 capitalize">{key.replace(/_/g, ' ')}</span>
+                            <div className={`flex items-center ${color}`}>
+                              <Icon className="w-3 h-3 mr-1" />
+                              <span className="capitalize">{trend}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
             {/* Footer info only; redundant icon actions removed */}
             <div className="mt-3 pt-3 border-t">
