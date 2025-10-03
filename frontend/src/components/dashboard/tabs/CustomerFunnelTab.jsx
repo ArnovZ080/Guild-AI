@@ -43,6 +43,7 @@ import {
   X
 } from 'lucide-react';
 import ApprovalModal from '../modals/ApprovalModal';
+import ExecutionSummaryModal from '../modals/ExecutionSummaryModal.jsx';
 import { useCustomerFunnel, useCustomerActions } from '../../../services/customerIntelligenceAPI';
 
 const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView }) => {
@@ -55,6 +56,9 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
   const { executeAction } = useCustomerActions();
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState(null);
+  const [showExecSummary, setShowExecSummary] = useState(false);
+  const [execSteps, setExecSteps] = useState([]);
+  const [execAgents, setExecAgents] = useState([]);
 
   const effectiveFunnel = agentFunnel?.data?.funnel_analysis ? agentFunnel : funnel;
   if (!effectiveFunnel) return <CustomerFunnelSkeleton />;
@@ -63,9 +67,16 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
   const stages = Object.entries(funnel_analysis.funnel_stages || {});
 
   const normalizeStage = (value) => String(value || '').toLowerCase();
+  const mapLifecycleToStage = (value) => {
+    const v = normalizeStage(value);
+    if (['lead','prospect','trial','customer','evangelist'].includes(v)) return v;
+    if (['retention','onboarding','activation','adoption','growth'].includes(v)) return 'customer';
+    if (['advocacy','loyalty','referral','evangelism'].includes(v)) return 'evangelist';
+    return v;
+  };
   const customersInStage = (stageName) => {
     const s = normalizeStage(stageName);
-    return (profiles || []).filter(p => normalizeStage(p.lifecycle_stage || p.stage) === s);
+    return (profiles || []).filter(p => mapLifecycleToStage(p.lifecycle_stage || p.stage || p.journey_stage) === s);
   };
 
   const getStageColor = (stageName) => {
@@ -491,6 +502,15 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
                     <div className="mt-3 flex items-center gap-2">
                       <button
                         onClick={() => {
+                          const steps = [
+                            'Analyze stage performance and drop-off signals',
+                            'Generate targeted optimization plan',
+                            'Execute messaging/campaign adjustments',
+                            'Monitor engagement and iterate'
+                          ];
+                          const agents = ['orchestrator_agent','customer_intelligence_agent','marketing_agent','crm_automation_agent','judge_agent'];
+                          setExecSteps(steps);
+                          setExecAgents(agents);
                           setApprovalData({
                             title: 'Reduce Drop-off',
                             message: `Run optimization for ${selectedStage} stage?`,
@@ -558,12 +578,22 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
           isOpen={showApprovalModal}
           onClose={() => setShowApprovalModal(false)}
           onApprove={async (action, data) => {
-            try { await executeAction(action, data); } catch (e) { console.error(e); } finally { setShowApprovalModal(false); }
+            try { await executeAction(action, data); } catch (e) { console.error(e); } finally { setShowApprovalModal(false); setShowExecSummary(true); }
           }}
           title={approvalData.title}
           message={approvalData.message}
           action={approvalData.action}
           data={approvalData.data}
+        />
+      )}
+
+      {showExecSummary && (
+        <ExecutionSummaryModal
+          open={showExecSummary}
+          onClose={() => setShowExecSummary(false)}
+          title="Workflow Submitted"
+          steps={execSteps}
+          agents={execAgents}
         />
       )}
     </div>
