@@ -280,6 +280,17 @@ const CustomerDashboard = () => {
     { id: 'opportunities', label: 'Opportunities', icon: TrendingUp }
   ];
 
+  // Overview: execute action via approval flow
+  const handleExecuteOverviewAction = (actionText) => {
+    setApprovalData({
+      title: 'Execute Action',
+      message: actionText,
+      action: 'activate_agents',
+      data: { source: 'overview', actionText }
+    });
+    setShowApprovalModal(true);
+  };
+
   // Build Overview analysis shape for CustomerOverviewTab
   const overviewAnalysis = (() => {
     const cd = customerData;
@@ -482,6 +493,7 @@ const CustomerDashboard = () => {
               segments={segments}
               metaKPIs={[]}
               onInsightsView={() => {}}
+              onExecuteAction={handleExecuteOverviewAction}
             />
           )}
           
