@@ -11,7 +11,7 @@ const empty = {
   notes: ''
 };
 
-const CreateCustomerModal = ({ open, onClose, onCreate }) => {
+const CreateCustomerModal = ({ open, onClose, onCreate, segments = [] }) => {
   const [form, setForm] = useState(empty);
   const [saving, setSaving] = useState(false);
 
@@ -92,10 +92,19 @@ const CreateCustomerModal = ({ open, onClose, onCreate }) => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Segment</label>
-              <div className="relative">
-                <Tag className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input value={form.segment} onChange={e=>set('segment', e.target.value)} className="w-full pl-9 pr-3 py-2 border rounded" placeholder="VIP / Enterprise / New Customers" />
-              </div>
+              {Array.isArray(segments) && segments.length > 0 ? (
+                <select value={form.segment} onChange={e=>set('segment', e.target.value)} className="w-full px-3 py-2 border rounded">
+                  <option value="">No segment</option>
+                  {segments.map(seg => (
+                    <option key={seg.segment_id || seg.name} value={seg.name}>{seg.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="relative">
+                  <Tag className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input value={form.segment} onChange={e=>set('segment', e.target.value)} className="w-full pl-9 pr-3 py-2 border rounded" placeholder="VIP / Enterprise / New Customers" />
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>

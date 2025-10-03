@@ -674,6 +674,7 @@ const CustomerDashboard = () => {
         <CreateCustomerModal
           open={showCreateCustomer}
           onClose={()=>setShowCreateCustomer(false)}
+          segments={segments}
           onCreate={(customer)=>{
             // Optimistically add to profiles list for now
             if (profiles && Array.isArray(profiles)) {
@@ -687,6 +688,20 @@ const CustomerDashboard = () => {
               data: { payload: { workflow: 'create_contact', context: { customer } } }
             });
             setShowApprovalModal(true);
+            // If a segment was picked, also assign it
+            if (customer.tags && customer.tags.length > 0) {
+              const segName = customer.tags[0];
+              const seg = (segments || []).find(s => s.name === segName);
+              if (seg) {
+                setApprovalData({
+                  title: 'Assign Segment',
+                  message: `Assign ${customer.name} to ${seg.name}?`,
+                  action: 'run_workflow',
+                  data: { payload: { workflow: 'assign_segment', context: { customer, segment: seg } } }
+                });
+                setShowApprovalModal(true);
+              }
+            }
           }}
         />
       )}
