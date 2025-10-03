@@ -567,40 +567,44 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 </div>
               </div>
 
-              {/* Workflow */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">How Agents Worked Together</h4>
-                <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                  <li>Customer Intelligence fetched latest KPIs and alerts</li>
-                  <li>Judge Agent scored the signal and approved the insight</li>
-                  <li>CRM Automation generated eligible segments for action</li>
-                  <li>Orchestrator prepared a recommended playbook</li>
-                </ol>
-              </div>
-
-              {/* Useful Tips */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Useful Tips</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                  <li>Double down on cohorts with improving retention trends</li>
-                  <li>Automate follow-ups for segments with rising churn signals</li>
-                  <li>Use A/B tests on outreach content to lift conversion</li>
+              {/* Workflow (lavender panel with numbered badges) */}
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-5">
+                <h4 className="text-sm font-semibold text-purple-900 mb-3">How Agents Worked Together</h4>
+                <ul className="space-y-2">
+                  {[
+                    'Advanced Scraper Agent collected data from all connected platforms',
+                    'Analytics Agent processed performance metrics and engagement data',
+                    'Content Intelligence Agent identified patterns and generated insights',
+                    'Strategy Agent validated findings against business objectives',
+                    'Reporting Agent formatted insights for dashboard display'
+                  ].map((step, idx) => (
+                    <li key={idx} className="flex items-start text-sm text-purple-800">
+                      <span className="mt-0.5 mr-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-600 text-white text-xs font-semibold">{idx + 1}</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
-              {/* Attribution Chips */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Content Attribution</h4>
-                <div className="flex flex-wrap gap-3">
+              {/* Useful Tips (yellow info panel) */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
+                <h4 className="text-sm font-semibold text-yellow-900 mb-2">Useful Tips</h4>
+                <p className="text-sm text-yellow-800">This insight is based on real performance data from your connected social media platforms, email marketing tools, and website analytics. The analysis considers engagement rates, reach metrics, and conversion data to provide actionable recommendations.</p>
+              </div>
+
+              {/* Content Attribution (blue container with bordered chips) */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
+                <h4 className="text-sm font-semibold text-blue-900 mb-3">Content Attribution</h4>
+                <div className="flex flex-wrap gap-4">
                   {[
                     { platform: 'Instagram', detail: 'Reels', impact: '+300% engagement' },
                     { platform: 'LinkedIn', detail: 'Articles', impact: '+150% lead quality' }
                   ].map((chip) => (
-                    <div key={`${chip.platform}-${chip.detail}`} className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-white border border-gray-300 text-gray-900">
+                    <div key={`${chip.platform}-${chip.detail}`} className="flex items-center gap-3">
+                      <span className="px-4 py-2 rounded-full text-sm font-semibold bg-white border-2 border-gray-300 text-gray-900">
                         {chip.platform} <span className="font-normal text-gray-500 ml-1">{chip.detail}</span>
                       </span>
-                      <span className="px-3 py-1 rounded-full text-sm font-semibold bg-green-50 text-green-700 border border-green-200">
+                      <span className="px-4 py-2 rounded-full text-sm font-semibold bg-green-50 text-green-700 border-2 border-green-200">
                         {chip.impact}
                       </span>
                     </div>
@@ -615,8 +619,9 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                   if (onExecuteAction) onExecuteAction({ type: 'repeat_strategy', insight: selectedInsight });
                   setShowInsightModal(false);
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center"
               >
+                <span className="mr-2">↻</span>
                 Repeat Strategy
               </button>
             </div>
