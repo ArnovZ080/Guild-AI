@@ -570,6 +570,10 @@ const CustomerDashboard = () => {
               profiles={profiles}
               onJourneyView={() => {}}
               onProfileView={(p) => handleCustomerAction('view_profile', p)}
+              onConnectSources={() => {
+                // Route to integrations page or open integrations modal
+                window.location.assign('/integrations');
+              }}
             />
           )}
           

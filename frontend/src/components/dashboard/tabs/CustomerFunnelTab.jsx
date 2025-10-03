@@ -47,7 +47,7 @@ import ApprovalModal from '../modals/ApprovalModal';
 import ExecutionSummaryModal from '../modals/ExecutionSummaryModal.jsx';
 import { useCustomerFunnel, useCustomerActions } from '../../../services/customerIntelligenceAPI';
 
-const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView }) => {
+const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView, onConnectSources }) => {
   const [selectedStage, setSelectedStage] = useState(null);
   const [stageModalTab, setStageModalTab] = useState('analytics'); // analytics | customers
   const [timeframe, setTimeframe] = useState('30d');
@@ -309,6 +309,17 @@ const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView
           <div className="mt-10">
             <div className="mb-2 text-sm text-gray-700">
               This visual playbook shows your funnel steps, strategy, and required assets. It reflects connected funnel tools when available, otherwise it’s inferred from customer data.
+            </div>
+            <div className="mb-4">
+              <button
+                onClick={() => {
+                  if (onConnectSources) onConnectSources();
+                  else if (typeof window !== 'undefined') window.location.assign('/integrations');
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+              >
+                Connect Funnel Sources
+              </button>
             </div>
             {(() => {
               const externalPlan = integratedPlan;
