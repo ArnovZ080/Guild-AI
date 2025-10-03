@@ -41,11 +41,18 @@ import {
   X
 } from 'lucide-react';
 
-const CustomerProfilesTab = ({ profiles, onProfileView, onHealthCheck, onJourneyView }) => {
+import CustomerProfileModal from '../modals/CustomerProfileModal.jsx';
+import CustomerHealthCheckModal from '../modals/CustomerHealthCheckModal.jsx';
+import CustomerJourneyModal from '../modals/CustomerJourneyModal.jsx';
+
+const CustomerProfilesTab = ({ profiles }) => {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [sortBy, setSortBy] = useState('health_score');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [showFullProfileModal, setShowFullProfileModal] = useState(false);
+  const [showHealthModal, setShowHealthModal] = useState(false);
+  const [showJourneyModal, setShowJourneyModal] = useState(false);
 
   // Sort profiles
   const sortedProfiles = [...profiles].sort((a, b) => {
@@ -265,49 +272,12 @@ const CustomerProfilesTab = ({ profiles, onProfileView, onHealthCheck, onJourney
               </div>
             )}
 
-            {/* Quick Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onProfileView(profile);
-                  }}
-                  className="p-2 text-blue-400 hover:text-blue-600 transition-colors"
-                  title="View Full Profile"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onHealthCheck(profile);
-                  }}
-                  className="p-2 text-green-400 hover:text-green-600 transition-colors"
-                  title="Health Check"
-                >
-                  <Heart className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onJourneyView(profile);
-                  }}
-                  className="p-2 text-purple-400 hover:text-purple-600 transition-colors"
-                  title="View Journey"
-                >
-                  <Target className="w-4 h-4" />
-                </button>
+            {/* Footer info only; redundant icon actions removed */}
+            <div className="mt-3 pt-3 border-t">
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>Last Activity:</span>
+                <span>{new Date(profile.last_activity).toLocaleDateString()}</span>
               </div>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedProfile(profile);
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </button>
             </div>
           </motion.div>
         ))}
@@ -552,21 +522,21 @@ const CustomerProfilesTab = ({ profiles, onProfileView, onHealthCheck, onJourney
               {/* Action Buttons */}
               <div className="flex items-center justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
                 <button
-                  onClick={() => onProfileView(selectedProfile)}
+                  onClick={() => { setShowFullProfileModal(true); }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
                 >
                   <Eye className="w-4 h-4 mr-2" />
                   View Full Profile
                 </button>
                 <button
-                  onClick={() => onHealthCheck(selectedProfile)}
+                  onClick={() => { setShowHealthModal(true); }}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
                 >
                   <Heart className="w-4 h-4 mr-2" />
                   Health Check
                 </button>
                 <button
-                  onClick={() => onJourneyView(selectedProfile)}
+                  onClick={() => { setShowJourneyModal(true); }}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
                 >
                   <Target className="w-4 h-4 mr-2" />
@@ -576,6 +546,33 @@ const CustomerProfilesTab = ({ profiles, onProfileView, onHealthCheck, onJourney
             </div>
           </motion.div>
         </motion.div>
+      )}
+
+      {/* Real Modals */}
+      {showFullProfileModal && selectedProfile && (
+        <CustomerProfileModal
+          customer={selectedProfile}
+          isOpen={showFullProfileModal}
+          onClose={() => setShowFullProfileModal(false)}
+          onSave={() => setShowFullProfileModal(false)}
+          onAction={() => {}}
+        />
+      )}
+
+      {showHealthModal && selectedProfile && (
+        <CustomerHealthCheckModal
+          open={showHealthModal}
+          onClose={() => setShowHealthModal(false)}
+          customer={selectedProfile}
+        />
+      )}
+
+      {showJourneyModal && selectedProfile && (
+        <CustomerJourneyModal
+          open={showJourneyModal}
+          onClose={() => setShowJourneyModal(false)}
+          customer={selectedProfile}
+        />
       )}
     </div>
   );
