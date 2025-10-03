@@ -43,7 +43,7 @@ import {
   X
 } from 'lucide-react';
 import ApprovalModal from '../modals/ApprovalModal';
-import { useCustomerFunnel, useCustomerActions } from '../../services/customerIntelligenceAPI';
+import { useCustomerFunnel, useCustomerActions } from '../../../services/customerIntelligenceAPI';
 
 const CustomerFunnelTab = ({ funnel, profiles = [], onJourneyView, onProfileView }) => {
   const [selectedStage, setSelectedStage] = useState(null);
