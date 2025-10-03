@@ -679,6 +679,14 @@ const CustomerDashboard = () => {
             if (profiles && Array.isArray(profiles)) {
               profiles.unshift(customer);
             }
+            // Transparency: request approval to run create_contact workflow
+            setApprovalData({
+              title: 'Create Contact',
+              message: `Create contact for ${customer.name}`,
+              action: 'run_workflow',
+              data: { payload: { workflow: 'create_contact', context: { customer } } }
+            });
+            setShowApprovalModal(true);
           }}
         />
       )}
