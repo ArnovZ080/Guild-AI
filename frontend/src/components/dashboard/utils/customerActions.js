@@ -154,6 +154,14 @@ export const formatModalData = (action, data) => {
     
     case 'segment':
       return { type: 'open_modal', modal: 'customer_segment', data };
+
+    case 'assign_segment':
+      return { 
+        type: 'confirm_action', 
+        message: `Assign ${data?.customer?.name || 'customer'} to segment "${data?.segment?.name || ''}"?`,
+        action: 'run_workflow',
+        data: { payload: { workflow: 'assign_segment', context: data } }
+      };
     
     default:
       return data;

@@ -594,12 +594,13 @@ const CustomerListTab = ({
                           {Array.isArray(segments) && segments.length > 0 ? (
                             <ul className="py-1 text-sm text-gray-700 max-h-60 overflow-y-auto">
                               {segments.map((seg) => (
-                                <li key={seg.segment_id || seg.name}>
+                                <li key={seg.segment_id || seg.name} className="px-3 py-2 hover:bg-gray-50 flex items-center justify-between">
+                                  <span className="text-sm">{seg.name}</span>
                                   <button
-                                    onClick={() => onCustomerAction('view_segment', seg)}
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-50"
+                                    onClick={() => onCustomerAction('assign_segment', { customer: profile, segment: seg })}
+                                    className="text-xs text-blue-600 hover:text-blue-800"
                                   >
-                                    {seg.name}
+                                    Assign
                                   </button>
                                 </li>
                               ))}
