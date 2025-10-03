@@ -283,12 +283,12 @@ const CustomerDashboard = () => {
   ];
 
   // Overview: execute action via approval flow
-  const handleExecuteOverviewAction = (actionText) => {
+  const handleExecuteOverviewAction = (actionPayload) => {
     setApprovalData({
       title: 'Execute Action',
-      message: actionText,
-      action: 'activate_agents',
-      data: { source: 'overview', actionText }
+      message: typeof actionPayload === 'string' ? actionPayload : (actionPayload?.context?.insight_text || actionPayload?.context?.action_text || 'Run workflow'),
+      action: 'run_workflow',
+      data: { source: 'customer_overview', payload: actionPayload }
     });
     setShowApprovalModal(true);
   };

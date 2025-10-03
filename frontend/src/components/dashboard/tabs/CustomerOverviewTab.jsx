@@ -461,15 +461,15 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
           >
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center mr-3">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
+              <div className="flex items-center">
+                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
                     <h3 className="text-xl font-bold text-gray-900">Strategy Insight Details</h3>
                     <p className="text-sm text-gray-500">Why we surfaced this insight and where it comes from</p>
                   </div>
-                </div>
+              </div>
                 <button onClick={() => setShowInsightModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <span className="sr-only">Close</span>
                   ✕
@@ -560,7 +560,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                       <div className={`w-2 h-2 rounded-full mt-1 mr-3 ${row.color}`}></div>
                       <div>
                         <p className="text-sm font-semibold text-gray-900">{row.agent}</p>
-                        <p className="text-xs text-gray-600">{row.role}</p>
+                      <p className="text-xs text-gray-600">{row.role}</p>
                       </div>
                     </div>
                   ))}
@@ -616,7 +616,20 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
               <button onClick={() => setShowInsightModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Close</button>
               <button
                 onClick={() => {
-                  if (onExecuteAction) onExecuteAction({ type: 'repeat_strategy', insight: selectedInsight });
+                  if (onExecuteAction) onExecuteAction({
+                    workflow: 'repeat_strategy',
+                    intent: 'replicate_success',
+                    context: {
+                      insight_text: selectedInsight,
+                      kpis: {
+                        retention_rate: customer_metrics?.retention_metrics?.retention_rate?.current,
+                        churn_rate: customer_metrics?.retention_metrics?.churn_rate?.current,
+                        funnel_conversion: customer_metrics?.acquisition_metrics?.funnel_conversion_rate?.current,
+                        nps_score: customer_metrics?.satisfaction_metrics?.nps_score?.current
+                      }
+                    },
+                    requested_by: 'customer_overview'
+                  });
                   setShowInsightModal(false);
                 }}
                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center"
@@ -641,15 +654,15 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
           >
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center mr-3">
-                    <AlertTriangle className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div>
+              <div className="flex items-center">
+                <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                  <AlertTriangle className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
                     <h3 className="text-xl font-bold text-gray-900">Action Details</h3>
                     <p className="text-sm text-gray-500">Why this action is recommended and what agents will do</p>
                   </div>
-                </div>
+              </div>
                 <button onClick={() => setShowActionModal(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                   <span className="sr-only">Close</span>
                   ✕
@@ -658,7 +671,7 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
             </div>
             <div className="p-6 space-y-6">
               {/* Action Required */}
-               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <h4 className="text-sm font-semibold text-red-900 mb-2">Action Required</h4>
                 <p className="text-gray-800">{selectedAction}</p>
                  <div className="mt-3 bg-white rounded-md border border-gray-200 p-3">
@@ -785,7 +798,26 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
               <button onClick={() => setShowActionModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Close</button>
               <button
                 onClick={() => {
-                  if (onExecuteAction) onExecuteAction({ type: 'improve_metrics', action: selectedAction });
+                  if (onExecuteAction) onExecuteAction({
+                    workflow: 'improve_metric',
+                    intent: 'close_gap',
+                    context: {
+                      action_text: selectedAction,
+                      target_metrics: {
+                        retention_rate: 85,
+                        churn_rate: 10,
+                        funnel_conversion: 25
+                      }
+                    },
+                    planned_steps: [
+                      'orchestrator_analyze',
+                      'strategy_design',
+                      'content_creation',
+                      'scheduler_optimize',
+                      'analytics_monitor'
+                    ],
+                    requested_by: 'customer_overview'
+                  });
                   setShowActionModal(false);
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center"
