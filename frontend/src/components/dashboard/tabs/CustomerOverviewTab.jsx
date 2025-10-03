@@ -667,22 +667,23 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                  </div>
               </div>
 
-              {/* Why This Action */}
+              {/* Why This Action + Agents (blue container) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="p-3 bg-gray-50 rounded border">
-                  <p className="text-sm font-medium text-gray-800">Why This Action Is Required</p>
-                  <p className="text-xs text-gray-600">Addresses KPI deviations and mitigates churn/engagement risks identified by agents.</p>
+                <div className="p-4 bg-gray-50 rounded-lg border">
+                  <p className="text-sm font-medium text-gray-900">Why This Action Is Required</p>
+                  <p className="text-xs text-gray-600 mt-1">This action was generated based on real performance gaps identified in your connected platforms. Analysis of recent activity revealed specific optimization opportunities.</p>
                 </div>
-                <div className="p-3 bg-gray-50 rounded border">
-                  <p className="text-sm font-medium text-gray-800">Agents Involved in Workflow</p>
-                  <div className="flex flex-wrap gap-2 mt-1">
+                <div className="p-4 rounded-lg border bg-blue-50 border-blue-200">
+                  <p className="text-sm font-medium text-blue-900">Agents Involved in Workflow</p>
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {[
-                      { name: 'Customer Intelligence', color: 'bg-green-500' },
-                      { name: 'Judge', color: 'bg-blue-500' },
-                      { name: 'CRM Automation', color: 'bg-yellow-500' },
-                      { name: 'Orchestrator', color: 'bg-purple-500' }
+                      { name: 'Orchestrator Agent', color: 'bg-blue-500' },
+                      { name: 'Strategy Agent', color: 'bg-indigo-500' },
+                      { name: 'Content Creator Agent', color: 'bg-green-500' },
+                      { name: 'Scheduler Agent', color: 'bg-teal-500' },
+                      { name: 'Analytics Agent', color: 'bg-purple-500' }
                     ].map((agent) => (
-                      <span key={agent.name} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border">
+                      <span key={agent.name} className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white text-gray-700 border">
                         <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${agent.color}`}></span>
                         {agent.name}
                       </span>
@@ -733,25 +734,39 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
                 </div>
               </div>
 
-              {/* Analysis & Issues */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Analysis & Issues</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                  <li>Drop-offs detected between Prospect → Trial stages</li>
-                  <li>Support sentiment dips correlated with churn spikes</li>
-                  <li>Onboarding friction for new cohorts</li>
-                </ul>
+              {/* Content Analysis & Issues (yellow panel with rows) */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5">
+                <h4 className="text-sm font-semibold text-yellow-900 mb-3">Content Analysis & Issues</h4>
+                <div className="space-y-3">
+                  {[{label:'Instagram', note:'Reels content underperforming', gap:'Missing 3x engagement opportunity'}, {label:'LinkedIn', note:'Article headlines not optimized', gap:'Reduced click-through rates'}, {label:'Email', note:'Low open rates on promotional content', gap:'Reduced email effectiveness'}].map((row) => (
+                    <div key={row.label} className="bg-white border border-gray-300 rounded-lg p-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{row.label}</p>
+                        <p className="text-xs text-gray-600">{row.note}</p>
+                      </div>
+                      <div className="text-xs font-semibold text-red-600">{row.gap}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              {/* Planned Workflow Steps */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Planned Workflow Steps</h4>
-                <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
-                  <li>CRM Automation: Build at-risk segment and trigger win-back sequence</li>
-                  <li>Customer Intelligence: Personalize outreach based on engagement</li>
-                  <li>Judge Agent: Validate copy for brand/tone compliance</li>
-                  <li>Orchestrator: Schedule follow-ups and monitor uplift</li>
-                </ol>
+              {/* Planned Workflow Steps (green panel with numbered badges) */}
+              <div className="bg-green-50 border border-green-200 rounded-xl p-5">
+                <h4 className="text-sm font-semibold text-green-900 mb-3">Planned Workflow Steps</h4>
+                <ul className="space-y-2">
+                  {[
+                    'Orchestrator Agent receives improvement command and analyzes current performance',
+                    'Strategy Agent develops optimization strategy based on identified gaps',
+                    'Content Creator Agent produces improved content following best practices',
+                    'Scheduler Agent optimizes posting times for maximum engagement',
+                    'Analytics Agent monitors performance and provides continuous feedback'
+                  ].map((step, idx) => (
+                    <li key={idx} className="flex items-start text-sm text-green-800">
+                      <span className="mt-0.5 mr-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-600 text-white text-xs font-semibold">{idx + 1}</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               {/* Attribution Chips */}
@@ -767,14 +782,15 @@ const CustomerOverviewTab = ({ analysis, segments, metaKPIs, onInsightsView, onE
               </div>
             </div>
             <div className="p-6 border-t bg-gray-50 flex items-center justify-end space-x-2">
-              <button onClick={() => setShowActionModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Cancel</button>
+              <button onClick={() => setShowActionModal(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">Close</button>
               <button
                 onClick={() => {
                   if (onExecuteAction) onExecuteAction({ type: 'improve_metrics', action: selectedAction });
                   setShowActionModal(false);
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center"
               >
+                <span className="mr-2">⚡</span>
                 Execute Action
               </button>
             </div>

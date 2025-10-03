@@ -307,6 +307,21 @@ const CustomerDashboard = () => {
       return acc;
     }, {});
 
+    // Split alerts into positive insights vs action-required items
+    const alerts = cd.alerts || [];
+    const isPositiveAlert = (a) => {
+      const positiveTypes = ['opportunity', 'growth', 'win', 'upgrade'];
+      const text = (a.message || '').toLowerCase();
+      return (
+        (a.type && positiveTypes.includes(String(a.type).toLowerCase())) ||
+        /(ready|improv|increase|growing|up\b|upsell|upgrade|advocate|high engagement|positive)/.test(text)
+      );
+    };
+    const positiveInsights = alerts.filter(isPositiveAlert).map((a) => a.message);
+    const needsAttention = alerts
+      .filter((a) => !isPositiveAlert(a) || String(a.priority).toLowerCase() === 'high')
+      .map((a) => a.message);
+
     return {
       customer_metrics: {
         acquisition_metrics: {
@@ -326,8 +341,8 @@ const CustomerDashboard = () => {
         }
       },
       customer_segments: segmentsObj,
-      key_insights: (cd.alerts || []).map(a => a.message),
-      immediate_actions: (cd.alerts || []).filter(a => a.priority === 'high').map(a => a.message)
+      key_insights: positiveInsights,
+      immediate_actions: needsAttention
     };
   })();
 
