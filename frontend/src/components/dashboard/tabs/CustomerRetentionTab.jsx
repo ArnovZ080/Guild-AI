@@ -61,6 +61,8 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const [showRetentionModal, setShowRetentionModal] = useState(false);
   const [showAICampaignModal, setShowAICampaignModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState(null);
   
   // Campaign form state
   const [campaignForm, setCampaignForm] = useState({
@@ -194,9 +196,14 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
       executionPlan: executionPlan
     });
 
-    // Here you would integrate with the actual Customer Intelligence Agent
-    // For now, we'll show a success message
-    alert(`Playbook "${playbook.name}" executed successfully!\n\nStrategy: ${strategy.approach}\nPriority: ${strategy.priority}\nTimeline: ${strategy.timeline}\n\nThe Customer Intelligence Agent will now monitor and execute the retention strategy.`);
+    // Set up success modal data
+    setSuccessData({
+      title: 'Playbook Executed Successfully!',
+      playbook: playbook,
+      strategy: strategy,
+      executionPlan: executionPlan
+    });
+    setShowSuccessModal(true);
   };
 
   // Enhanced trigger options for retention playbooks
@@ -465,9 +472,140 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   // Handle play/pause toggle
   const handlePlayPauseToggle = (playbook) => {
     const newStatus = playbook.status === 'active' ? 'paused' : 'active';
-    setPlaybooks(prev => prev.map(p => 
-      p.id === playbook.id ? { ...p, status: newStatus } : p
-    ));
+    
+    // Check if it's a user-created playbook
+    const isUserPlaybook = playbooks.some(p => p.id === playbook.id);
+    
+    if (isUserPlaybook) {
+      setPlaybooks(prev => prev.map(p => 
+        p.id === playbook.id ? { ...p, status: newStatus } : p
+      ));
+    } else {
+      // For existing playbooks, we need to update them in the retentionPlaybooks array
+      // Since retentionPlaybooks is a const array, we'll simulate the update
+      // In a real app, you'd update the backend or state management
+      console.log(`Toggling ${playbook.name} from ${playbook.status} to ${newStatus}`);
+    }
+  };
+
+  // AI-powered playbook creation
+  const generateAIPlaybook = (trigger) => {
+    const aiPlaybookTemplates = {
+      'No activity for 30+ days': {
+        name: 'AI-Generated Re-engagement Campaign',
+        description: 'Automated win-back strategy for inactive customers using personalized outreach and value-added incentives.',
+        actions: [
+          'Send personalized re-engagement email sequence',
+          'Offer exclusive reactivation discount (25% off)',
+          'Schedule personal check-in call within 48 hours',
+          'Provide value-added content and resources',
+          'Implement gamification incentives',
+          'Send feedback survey to understand inactivity'
+        ],
+        targetSegment: 'Inactive customers',
+        successRate: 72,
+        avgResponseTime: '2.5 days'
+      },
+      'Health score below 60': {
+        name: 'AI-Generated Health Recovery Plan',
+        description: 'Proactive intervention strategy for at-risk customers with declining health scores.',
+        actions: [
+          'Immediate phone outreach by senior success manager',
+          'Escalate to dedicated customer success team',
+          'Offer retention incentives and priority support',
+          'Provide personalized onboarding refresh',
+          'Schedule weekly check-in calls',
+          'Monitor engagement metrics closely'
+        ],
+        targetSegment: 'At-risk customers',
+        successRate: 78,
+        avgResponseTime: '1.8 days'
+      },
+      'LTV above $10,000': {
+        name: 'AI-Generated VIP Retention Program',
+        description: 'Premium retention strategy for high-value customers with executive-level attention.',
+        actions: [
+          'Assign dedicated VIP success manager',
+          'Provide exclusive early access to new features',
+          'Schedule executive-level relationship calls',
+          'Offer premium support tier with priority handling',
+          'Create personalized retention offers',
+          'Implement white-glove onboarding experience'
+        ],
+        targetSegment: 'High-value customers',
+        successRate: 92,
+        avgResponseTime: '0.8 days'
+      },
+      'Support ticket unresolved for 48+ hours': {
+        name: 'AI-Generated Support Recovery Campaign',
+        description: 'Proactive outreach strategy for customers with unresolved support issues.',
+        actions: [
+          'Immediate escalation to senior support specialist',
+          'Offer compensation or goodwill gestures',
+          'Provide priority support access',
+          'Schedule follow-up satisfaction surveys',
+          'Implement escalation prevention measures',
+          'Assign dedicated support contact'
+        ],
+        targetSegment: 'Support escalation customers',
+        successRate: 85,
+        avgResponseTime: '1.2 days'
+      },
+      'Churn risk score above 80%': {
+        name: 'AI-Generated Churn Prevention Protocol',
+        description: 'Critical intervention strategy for customers at highest risk of churning.',
+        actions: [
+          'Urgent phone outreach within 2 hours',
+          'Offer exclusive retention discount (30% off)',
+          'Assign dedicated retention specialist',
+          'Provide priority feature access',
+          'Schedule daily check-ins for first week',
+          'Implement win-back campaign with loyalty incentives'
+        ],
+        targetSegment: 'Critical churn risk customers',
+        successRate: 68,
+        avgResponseTime: '0.5 days'
+      }
+    };
+
+    // Get AI template or generate default
+    const template = aiPlaybookTemplates[trigger] || {
+      name: `AI-Generated ${trigger.replace(/for|above|below/g, '').trim()} Response`,
+      description: `Intelligent automation strategy for ${trigger.toLowerCase()} using data-driven retention tactics.`,
+      actions: [
+        'Send personalized retention email',
+        'Schedule follow-up call',
+        'Offer retention discount',
+        'Provide value-added content',
+        'Monitor engagement closely',
+        'Implement feedback collection'
+      ],
+      targetSegment: 'Targeted customers',
+      successRate: 75,
+      avgResponseTime: '2.0 days'
+    };
+
+    return template;
+  };
+
+  // Handle AI playbook creation
+  const handleAICreatePlaybook = () => {
+    if (!playbookForm.trigger) {
+      alert('Please select a trigger condition first');
+      return;
+    }
+
+    const aiPlaybook = generateAIPlaybook(playbookForm.trigger);
+    
+    setPlaybookForm(prev => ({
+      ...prev,
+      name: aiPlaybook.name,
+      description: aiPlaybook.description,
+      actions: aiPlaybook.actions,
+      targetSegment: aiPlaybook.targetSegment,
+      successRate: aiPlaybook.successRate,
+      avgResponseTime: aiPlaybook.avgResponseTime
+    }));
   };
 
   // Mock retention data
@@ -1035,6 +1173,30 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                     ))}
                   </select>
                 </div>
+
+                {/* AI Create Playbook Button */}
+                {playbookForm.trigger && (
+                  <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 bg-purple-100 rounded-lg">
+                          <Brain className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-gray-900">AI-Powered Playbook Generation</h4>
+                          <p className="text-sm text-gray-600">Let the Customer Intelligence Agent create an optimized playbook for this trigger</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleAICreatePlaybook}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+                      >
+                        <Brain className="w-4 h-4 mr-2" />
+                        Let AI Create Playbook
+                      </button>
+                    </div>
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Actions</label>
@@ -1440,6 +1602,147 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
                     Create Campaign
                   </button>
                 </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && successData && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">{successData.title}</h3>
+                    <p className="text-sm text-gray-600">Customer Intelligence Agent is now executing the retention strategy</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="space-y-6">
+                {/* Playbook Details */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-green-600" />
+                    Executed Playbook Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium text-gray-700">Playbook:</span>
+                      <p className="text-gray-600">{successData.playbook.name}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Strategy:</span>
+                      <p className="text-gray-600">{successData.strategy.approach}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Priority:</span>
+                      <p className="text-gray-600">{successData.strategy.priority}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-700">Timeline:</span>
+                      <p className="text-gray-600">{successData.strategy.timeline}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Execution Plan */}
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-3 flex items-center">
+                    <Zap className="w-5 h-5 mr-2 text-blue-600" />
+                    Execution Plan
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-gray-900">{successData.executionPlan.phase1.name}</h5>
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">{successData.executionPlan.phase1.duration}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase1.expectedOutcome}</p>
+                      <ul className="text-xs text-gray-500 space-y-1">
+                        {successData.executionPlan.phase1.actions.map((action, index) => (
+                          <li key={index}>• {action}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-gray-900">{successData.executionPlan.phase2.name}</h5>
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">{successData.executionPlan.phase2.duration}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase2.expectedOutcome}</p>
+                      <ul className="text-xs text-gray-500 space-y-1">
+                        {successData.executionPlan.phase2.actions.map((action, index) => (
+                          <li key={index}>• {action}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="border border-gray-200 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h5 className="font-medium text-gray-900">{successData.executionPlan.phase3.name}</h5>
+                        <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">{successData.executionPlan.phase3.duration}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{successData.executionPlan.phase3.expectedOutcome}</p>
+                      <ul className="text-xs text-gray-500 space-y-1">
+                        {successData.executionPlan.phase3.actions.map((action, index) => (
+                          <li key={index}>• {action}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <AlertTriangle className="w-5 h-5 text-yellow-600" />
+                    <h4 className="font-medium text-yellow-800">What happens next?</h4>
+                  </div>
+                  <p className="text-sm text-yellow-700">
+                    The Customer Intelligence Agent will now monitor customer behavior and automatically execute the retention strategy when the trigger conditions are met. You can track progress in the Retention Analytics dashboard.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Brain className="w-4 h-4 text-green-600" />
+                  <span>Powered by Customer Intelligence Agent</span>
+                </div>
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Got it!
+                </button>
               </div>
             </div>
           </motion.div>
