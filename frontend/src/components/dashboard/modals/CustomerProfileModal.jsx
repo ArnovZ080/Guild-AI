@@ -661,7 +661,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
           )}
         </div>
 
-        {/* Footer Actions */
+        {/* Footer Actions */}
         <div className="p-6 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
