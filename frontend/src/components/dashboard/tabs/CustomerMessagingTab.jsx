@@ -63,6 +63,8 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
   });
   const [messageAnalysis, setMessageAnalysis] = useState({});
   const [analyzing, setAnalyzing] = useState(false);
+  const [showAnalysisModal, setShowAnalysisModal] = useState(false);
+  const [analysisResults, setAnalysisResults] = useState([]);
 
   // Analyze message content using Customer Intelligence Agent
   const analyzeMessage = async (message, customer, channel) => {
@@ -196,10 +198,16 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
           conversation.customer, 
           conversation.channel
         );
-        return { conversationId: conversation.id, analysis };
+        return { 
+          conversationId: conversation.id, 
+          conversation: conversation,
+          analysis 
+        };
       });
       
-      await Promise.all(analysisPromises);
+      const results = await Promise.all(analysisPromises);
+      setAnalysisResults(results);
+      setShowAnalysisModal(true);
       console.log('All messages analyzed by Customer Intelligence Agent');
     } catch (error) {
       console.error('Error analyzing messages:', error);
@@ -227,8 +235,8 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
       sentiment: 'positive', // Will be analyzed by agent: "Contains positive sentiment indicators"
       tags: ['inquiry', 'pricing'],
       analysis: {
-        priority: 'high',
-        sentiment: 'positive',
+      priority: 'high',
+      sentiment: 'positive',
         confidence: 0.85,
         reasoning: 'Priority: Sales opportunity detected. Sentiment: Contains positive sentiment indicators.',
         agent_used: 'Customer Intelligence Agent'
@@ -247,7 +255,7 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
       tags: ['support', 'login'],
       analysis: {
         priority: 'high',
-        sentiment: 'neutral',
+      sentiment: 'neutral',
         confidence: 0.75,
         reasoning: 'Priority: Contains problem/complaint indicators. Sentiment: Urgent communication with neutral sentiment.',
         agent_used: 'Customer Intelligence Agent'
@@ -265,8 +273,8 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
       sentiment: 'positive', // Will be analyzed by agent: "Contains positive sentiment indicators"
       tags: ['feature', 'request'],
       analysis: {
-        priority: 'low',
-        sentiment: 'positive',
+      priority: 'low',
+      sentiment: 'positive',
         confidence: 0.70,
         reasoning: 'Priority: Standard business communication. Sentiment: Contains positive sentiment indicators.',
         agent_used: 'Customer Intelligence Agent'
@@ -572,23 +580,23 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-3">
-                    <h4 className="text-lg font-semibold text-gray-900">{conversation.customer.name}</h4>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getChannelColor(conversation.channel)}`}>
+                    <div className="flex items-center space-x-3">
+                      <h4 className="text-lg font-semibold text-gray-900">{conversation.customer.name}</h4>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getChannelColor(conversation.channel)}`}>
                       {conversation.channel === 'social' && conversation.platform 
                         ? `${conversation.platform.charAt(0).toUpperCase() + conversation.platform.slice(1)}`
                         : conversation.channel}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(conversation.status)}`}>
-                      {conversation.status}
-                    </span>
-                  </div>
+                      </span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(conversation.status)}`}>
+                        {conversation.status}
+                      </span>
+                    </div>
                     <div className="flex items-center space-x-2">
                       <div className="relative group">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getPriorityColor(conversation.priority)}`}>
                           <Brain className="w-3 h-3" />
                           <span>{conversation.priority}</span>
-                        </span>
+                      </span>
                         {/* Agent Analysis Tooltip */}
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 w-64">
                           <div className="flex items-center space-x-1 mb-1">
@@ -610,7 +618,7 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center space-x-1 ${getSentimentColor(conversation.sentiment)}`}>
                           <Zap className="w-3 h-3" />
                           <span>{conversation.sentiment}</span>
-                        </span>
+                      </span>
                         {/* Agent Analysis Tooltip */}
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10 w-64">
                           <div className="flex items-center space-x-1 mb-1">
@@ -883,6 +891,164 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
                     {formatTimestamp(selectedConversation.timestamp)}
                   </div>
                 </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Analysis Results Modal */}
+      {showAnalysisModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowAnalysisModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Brain className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Message Analysis Results</h3>
+                    <p className="text-sm text-gray-600">Customer Intelligence Agent Analysis Report</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowAnalysisModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              <div className="space-y-6">
+                {analysisResults.map((result, index) => (
+                  <div key={result.conversationId} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 mb-1">
+                          {result.conversation.customer?.name || 'Unknown Customer'}
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-2">{result.conversation.subject}</p>
+                        <p className="text-sm text-gray-500 italic">
+                          "{result.conversation.lastMessage.substring(0, 100)}..."
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(result.analysis.priority)}`}>
+                          <Brain className="w-3 h-3 inline mr-1" />
+                          {result.analysis.priority}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSentimentColor(result.analysis.sentiment)}`}>
+                          <Zap className="w-3 h-3 inline mr-1" />
+                          {result.analysis.sentiment}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-medium text-gray-700 flex items-center">
+                          <Brain className="w-4 h-4 mr-1 text-blue-500" />
+                          Priority Analysis
+                        </h5>
+                        <div className="bg-blue-50 rounded-lg p-3">
+                          <p className="text-sm text-blue-800">
+                            {result.analysis.reasoning?.split('. ')[0] || 'Standard business communication'}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-blue-600">Confidence: {Math.round(result.analysis.confidence * 100)}%</span>
+                            <span className="text-xs text-blue-600">{result.analysis.agent_used?.split('(')[0] || 'Customer Intelligence Agent'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h5 className="text-sm font-medium text-gray-700 flex items-center">
+                          <Zap className="w-4 h-4 mr-1 text-green-500" />
+                          Sentiment Analysis
+                        </h5>
+                        <div className="bg-green-50 rounded-lg p-3">
+                          <p className="text-sm text-green-800">
+                            {result.analysis.reasoning?.split('. ')[1] || 'Neutral business communication'}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-green-600">Confidence: {Math.round(result.analysis.confidence * 100)}%</span>
+                            <span className="text-xs text-green-600">{result.analysis.agent_used?.split('(')[0] || 'Customer Intelligence Agent'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <span>Analyzed: {new Date(result.analysis.analyzed_at).toLocaleTimeString()}</span>
+                        <span>Channel: {result.conversation.channel}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Info className="w-5 h-5 text-purple-600" />
+                  <h4 className="font-medium text-gray-900">Analysis Summary</h4>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="font-semibold text-blue-600">
+                      {analysisResults.filter(r => r.analysis.priority === 'high').length}
+                    </div>
+                    <div className="text-gray-600">High Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-yellow-600">
+                      {analysisResults.filter(r => r.analysis.priority === 'medium').length}
+                    </div>
+                    <div className="text-gray-600">Medium Priority</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-green-600">
+                      {analysisResults.filter(r => r.analysis.sentiment === 'positive').length}
+                    </div>
+                    <div className="text-gray-600">Positive Sentiment</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-red-600">
+                      {analysisResults.filter(r => r.analysis.sentiment === 'negative').length}
+                    </div>
+                    <div className="text-gray-600">Negative Sentiment</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Brain className="w-4 h-4 text-purple-600" />
+                  <span>Powered by Customer Intelligence Agent</span>
+                </div>
+                <button
+                  onClick={() => setShowAnalysisModal(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </motion.div>
