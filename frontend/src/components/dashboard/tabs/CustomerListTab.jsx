@@ -44,14 +44,14 @@ import {
 
 const CustomerListTab = ({ 
   profiles, 
-  segments, 
-  searchTerm, 
-  setSearchTerm, 
-  selectedSegment, 
-  setSelectedSegment, 
-  onCustomerAction, 
-  onProfileView,
-  onSegmentAction 
+  segments = [], 
+  searchTerm = '', 
+  setSearchTerm = () => {}, 
+  selectedSegment = 'all', 
+  setSelectedSegment = () => {}, 
+  onCustomerAction = () => {}, 
+  onProfileView = () => {},
+  onSegmentAction = () => {} 
 }) => {
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
@@ -66,10 +66,15 @@ const CustomerListTab = ({
   });
 
   // Filter and search profiles
-  const filteredProfiles = profiles?.filter(profile => {
-    const matchesSearch = profile.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         profile.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (profile.company && profile.company.toLowerCase().includes(searchTerm.toLowerCase()));
+  const normalizedSearch = (searchTerm || '').toString().toLowerCase();
+  const filteredProfiles = (profiles || []).filter(profile => {
+    const nameStr = (profile?.name ?? '').toString().toLowerCase();
+    const emailStr = (profile?.email ?? '').toString().toLowerCase();
+    const companyStr = (profile?.company ?? '').toString().toLowerCase();
+    const matchesSearch = normalizedSearch.length === 0 ||
+                         nameStr.includes(normalizedSearch) ||
+                         emailStr.includes(normalizedSearch) ||
+                         companyStr.includes(normalizedSearch);
     const matchesSegment = selectedSegment === 'all' || profile.customer_segment === selectedSegment;
     const matchesHealthScore = profile.health_score >= filters.healthScore.min && 
                               profile.health_score <= filters.healthScore.max;
