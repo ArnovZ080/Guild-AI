@@ -286,29 +286,13 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                   </button>
                 </>
               ) : (
-                <>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => onAction('message', customer)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                  >
-                    <MessageIcon className="w-4 h-4 mr-2" />
-                    Message
-                  </button>
-                  <button
-                    onClick={() => onAction('call', customer)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
-                  >
-                    <PhoneIcon className="w-4 h-4 mr-2" />
-                    Call
-                  </button>
-                </>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </button>
               )}
               <button
                 onClick={onClose}
@@ -654,14 +638,14 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                 Send Message
               </button>
               <button
-                onClick={() => onAction('call', customer)}
+                onClick={() => onAction('schedule_call', customer)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
               >
                 <PhoneIcon className="w-4 h-4 mr-2" />
                 Schedule Call
               </button>
               <button
-                onClick={() => onAction('email', customer)}
+                onClick={() => onAction('send_email', customer)}
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
               >
                 <MailIcon className="w-4 h-4 mr-2" />

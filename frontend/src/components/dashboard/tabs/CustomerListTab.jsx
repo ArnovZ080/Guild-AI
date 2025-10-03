@@ -186,7 +186,7 @@ const CustomerListTab = ({
               Filters
             </button>
             <button
-              onClick={() => window.print()}
+              onClick={() => onCustomerAction('export_customers', sortedProfiles)}
               className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -514,7 +514,7 @@ const CustomerListTab = ({
                 </button>
                 
                 <button
-                  onClick={() => onCustomerAction('edit', profile)}
+                  onClick={() => onCustomerAction('edit_profile', profile)}
                   className="p-2 text-yellow-400 hover:text-yellow-600 transition-colors"
                   title="Edit Customer"
                 >

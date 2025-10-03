@@ -83,6 +83,9 @@ const CustomerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportData, setExportData] = useState([]);
+  const [showImportModal, setShowImportModal] = useState(false);
   const { executeAction, executing } = useCustomerActions();
 
   // API hooks
@@ -382,8 +385,16 @@ const CustomerDashboard = () => {
         setShowApprovalModal(true);
         break;
       case 'download':
-        // Handle download
         console.log('Downloading:', result.format, result.data);
+        break;
+      case 'open_modal':
+        if (result.modal === 'export_customers') {
+          setExportData(result.data || []);
+          setShowExportModal(true);
+        }
+        if (result.modal === 'import_customers') {
+          setShowImportModal(true);
+        }
         break;
       case 'error':
         console.error(result.message);
@@ -603,6 +614,49 @@ const CustomerDashboard = () => {
           action={approvalData.action}
           data={approvalData.data}
         />
+      )}
+
+      {/* Export/Import Modals - Coming soon placeholders */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowExportModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full" onClick={(e)=>e.stopPropagation()}>
+            <div className="p-6 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Export Customers</h3>
+              <p className="text-sm text-gray-600">Choose a format to export {exportData.length} customers.</p>
+            </div>
+            <div className="p-6 space-y-3">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={()=>console.log('Export CSV')}>Export CSV</button>
+              <button className="px-4 py-2 bg-green-600 text-white rounded" onClick={()=>console.log('Export Excel')}>Export Excel</button>
+              <button className="px-4 py-2 bg-purple-600 text-white rounded" onClick={()=>console.log('Export Google Sheet')}>Export to Google Sheets</button>
+            </div>
+            <div className="p-6 border-t bg-gray-50 text-right">
+              <button className="px-4 py-2 bg-gray-100 rounded" onClick={()=>setShowExportModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showImportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999] p-4" onClick={() => setShowImportModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full" onClick={(e)=>e.stopPropagation()}>
+            <div className="p-6 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Import Customers</h3>
+              <p className="text-sm text-gray-600">Import from CSV or connect a source (CRM, Google Drive, OneDrive, Dropbox).</p>
+            </div>
+            <div className="p-6 space-y-3">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded" onClick={()=>console.log('Import CSV')}>Import CSV</button>
+              <button className="px-4 py-2 bg-purple-600 text-white rounded" onClick={()=>console.log('Connect CRM')}>Connect CRM</button>
+              <div className="flex gap-2">
+                <button className="px-3 py-2 bg-gray-100 rounded">Google Drive</button>
+                <button className="px-3 py-2 bg-gray-100 rounded">OneDrive</button>
+                <button className="px-3 py-2 bg-gray-100 rounded">Dropbox</button>
+              </div>
+            </div>
+            <div className="p-6 border-t bg-gray-50 text-right">
+              <button className="px-4 py-2 bg-gray-100 rounded" onClick={()=>setShowImportModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
