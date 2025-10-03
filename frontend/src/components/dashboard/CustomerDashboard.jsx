@@ -662,7 +662,29 @@ const CustomerDashboard = () => {
       {showMessageModal && (
         <MessageComposeModal
           open={showMessageModal}
-          onClose={() => setShowMessageModal(false)}
+          onClose={(result) => {
+            setShowMessageModal(false);
+            if (result?.success && result?.payload) {
+              // Trigger orchestrator workflow with enhanced platform information
+              setApprovalData({
+                title: 'Send Message',
+                message: `Send ${result.payload.channel} message${result.payload.isReply ? ' (reply)' : ''} to ${result.payload.customer?.name || 'customer'}?`,
+                action: 'run_workflow',
+                data: {
+                  payload: {
+                    workflow: 'send_message',
+                    context: {
+                      ...result.payload,
+                      platform: result.payload.channel === 'email' ? 'email' : 
+                               result.payload.channel === 'whatsapp' ? 'whatsapp' :
+                               result.payload.platform || result.payload.channel
+                    }
+                  }
+                }
+              });
+              setShowApprovalModal(true);
+            }
+          }}
           customer={messageCustomer?.customer || messageCustomer}
           replyTo={messageCustomer?.action === 'reply' ? messageCustomer : null}
         />

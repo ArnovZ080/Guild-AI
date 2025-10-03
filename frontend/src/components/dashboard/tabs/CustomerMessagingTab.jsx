@@ -116,6 +116,9 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
       id: 'conv_005',
       customer: profiles[4],
       channel: 'social',
+      platform: 'instagram',
+      platformId: 'user_12345',
+      threadId: 'thread_67890',
       subject: 'Social media mention',
       lastMessage: 'Just tried your new feature and it\'s amazing! Great work team!',
       timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
@@ -123,6 +126,36 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
       priority: 'low',
       sentiment: 'positive',
       tags: ['praise', 'social']
+    },
+    {
+      id: 'conv_006',
+      customer: profiles[0],
+      channel: 'social',
+      platform: 'linkedin',
+      platformId: 'profile_98765',
+      threadId: 'message_54321',
+      subject: 'LinkedIn connection request',
+      lastMessage: 'Hi! I saw your post about AI automation. Would love to connect and learn more about your work.',
+      timestamp: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+      status: 'unread',
+      priority: 'medium',
+      sentiment: 'positive',
+      tags: ['networking', 'linkedin']
+    },
+    {
+      id: 'conv_007',
+      customer: profiles[2],
+      channel: 'social',
+      platform: 'facebook',
+      platformId: 'page_11111',
+      threadId: 'conversation_22222',
+      subject: 'Facebook Messenger inquiry',
+      lastMessage: 'Do you offer custom integrations for small businesses?',
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      status: 'read',
+      priority: 'medium',
+      sentiment: 'neutral',
+      tags: ['inquiry', 'facebook', 'business']
     }
   ];
 
@@ -335,15 +368,17 @@ const CustomerMessagingTab = ({ profiles, onCustomerAction }) => {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center space-x-3">
-                      <h4 className="text-lg font-semibold text-gray-900">{conversation.customer.name}</h4>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getChannelColor(conversation.channel)}`}>
-                        {conversation.channel}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(conversation.status)}`}>
-                        {conversation.status}
-                      </span>
-                    </div>
+                  <div className="flex items-center space-x-3">
+                    <h4 className="text-lg font-semibold text-gray-900">{conversation.customer.name}</h4>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getChannelColor(conversation.channel)}`}>
+                      {conversation.channel === 'social' && conversation.platform 
+                        ? `${conversation.platform.charAt(0).toUpperCase() + conversation.platform.slice(1)}`
+                        : conversation.channel}
+                    </span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(conversation.status)}`}>
+                      {conversation.status}
+                    </span>
+                  </div>
                     <div className="flex items-center space-x-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(conversation.priority)}`}>
                         {conversation.priority}

@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, MessageSquare, Phone, Mail } from 'lucide-react';
+import { X, Send, MessageSquare, Phone, Mail, Instagram, Facebook, Linkedin, MessageCircle } from 'lucide-react';
 
-const channels = [
-  { id: 'whatsapp', label: 'WhatsApp' },
-  { id: 'sms', label: 'SMS' },
-  { id: 'social', label: 'Social DM' },
-  { id: 'email', label: 'Email' }
+const baseChannels = [
+  { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
+  { id: 'sms', label: 'SMS', icon: Phone },
+  { id: 'email', label: 'Email', icon: Mail }
+];
+
+const socialChannels = [
+  { id: 'instagram', label: 'Instagram DM', icon: Instagram },
+  { id: 'facebook', label: 'Facebook Messenger', icon: Facebook },
+  { id: 'linkedin', label: 'LinkedIn Message', icon: Linkedin },
+  { id: 'twitter', label: 'Twitter DM', icon: MessageCircle },
+  { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare }
 ];
 
 const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
@@ -13,28 +20,79 @@ const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
   const [to, setTo] = useState('');
   const [message, setMessage] = useState('');
 
-  useEffect(() => {
-    if (open && customer) {
-      setTo(customer?.phone || customer?.email || '');
-      // naive default based on available contact
-      setChannel(customer?.phone ? 'whatsapp' : 'email');
+  // Determine which channels to show based on context
+  const getAvailableChannels = () => {
+    if (replyTo && replyTo.channel === 'social') {
+      // If replying to social message, show social platforms
+      return socialChannels;
     }
-    
-    // Handle reply functionality
-    if (open && replyTo) {
-      setTo(replyTo.customer?.email || replyTo.customer?.phone || '');
-      setChannel(replyTo.channel === 'email' ? 'email' : replyTo.channel === 'phone' ? 'whatsapp' : 'whatsapp');
-      setMessage(`Re: ${replyTo.subject || 'your message'}\n\n`);
+    return baseChannels;
+  };
+
+  const getDefaultChannel = () => {
+    if (replyTo) {
+      if (replyTo.channel === 'email') return 'email';
+      if (replyTo.channel === 'phone') return 'whatsapp';
+      if (replyTo.channel === 'social' && replyTo.platform) {
+        // Use the same platform for reply
+        return replyTo.platform;
+      }
+      return 'whatsapp';
+    }
+    // Default for new messages
+    return customer?.phone ? 'whatsapp' : 'email';
+  };
+
+  const getDefaultRecipient = () => {
+    if (replyTo) {
+      if (replyTo.channel === 'email') return replyTo.customer?.email || '';
+      if (replyTo.channel === 'phone') return replyTo.customer?.phone || '';
+      if (replyTo.channel === 'social') {
+        // For social, we'll use the platform ID or customer info
+        return replyTo.platformId || replyTo.customer?.email || replyTo.customer?.phone || '';
+      }
+    }
+    return customer?.phone || customer?.email || '';
+  };
+
+  useEffect(() => {
+    if (open) {
+      setChannel(getDefaultChannel());
+      setTo(getDefaultRecipient());
+      
+      // Handle reply functionality
+      if (replyTo) {
+        setMessage(`Re: ${replyTo.subject || 'your message'}\n\n`);
+      } else {
+        setMessage('');
+      }
     }
   }, [open, customer, replyTo]);
 
   if (!open) return null;
 
   const sendNow = async () => {
-    // Placeholder: call workflow to send message via selected channel
+    // Prepare message payload with platform information
+    const messagePayload = {
+      channel,
+      platform: replyTo?.platform || null,
+      platformId: replyTo?.platformId || null,
+      threadId: replyTo?.threadId || null,
+      to,
+      message,
+      customer,
+      isReply: !!replyTo,
+      originalMessage: replyTo ? {
+        id: replyTo.id,
+        subject: replyTo.subject,
+        platform: replyTo.platform,
+        channel: replyTo.channel
+      } : null
+    };
+
     try {
-      console.log('Send message payload', { channel, to, message, customer });
-      onClose && onClose({ success: true });
+      console.log('Send message payload', messagePayload);
+      onClose && onClose({ success: true, payload: messagePayload });
     } catch {
       onClose && onClose({ success: false });
     }
@@ -56,12 +114,24 @@ const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Channel</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Channel {replyTo && replyTo.channel === 'social' && replyTo.platform && (
+                <span className="text-xs text-gray-500">(Replying to {replyTo.platform})</span>
+              )}
+            </label>
             <select value={channel} onChange={e=>setChannel(e.target.value)} className="w-full px-3 py-2 border rounded">
-              {channels.map(c=> (
-                <option key={c.id} value={c.id}>{c.label}</option>
-              ))}
+              {getAvailableChannels().map(c=> {
+                const IconComponent = c.icon;
+                return (
+                  <option key={c.id} value={c.id}>{c.label}</option>
+                );
+              })}
             </select>
+            {replyTo && replyTo.channel === 'social' && (
+              <p className="text-xs text-blue-600 mt-1">
+                💡 Replying to {replyTo.platform} message. You can switch platforms if needed.
+              </p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">To</label>

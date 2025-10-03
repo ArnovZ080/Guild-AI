@@ -25,7 +25,12 @@ const ForwardMessageModal = ({ open, onClose, message, onSend }) => {
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Forward Message</h2>
-              <p className="text-sm text-gray-600 capitalize">Channel: {message.channel}</p>
+              <p className="text-sm text-gray-600 capitalize">
+                Channel: {message.channel}
+                {message.platform && message.channel === 'social' && (
+                  <span className="ml-2 text-blue-600">({message.platform})</span>
+                )}
+              </p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg"><X className="w-5 h-5 text-gray-500" /></button>
@@ -53,7 +58,17 @@ const ForwardMessageModal = ({ open, onClose, message, onSend }) => {
         </div>
 
         <div className="p-6 border-t bg-gray-50 text-right">
-          <button onClick={()=>onSend && onSend({ to, note, message })} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">Send</button>
+          <button onClick={()=>onSend && onSend({ 
+            to, 
+            note, 
+            message,
+            originalPlatform: message.platform,
+            originalChannel: message.channel,
+            platformId: message.platformId,
+            threadId: message.threadId
+          })} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">
+            Forward
+          </button>
         </div>
       </motion.div>
     </div>
