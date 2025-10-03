@@ -1,13 +1,9 @@
 [build]
   publish = "dist"
-  command = "npm install && npm run build"
+  command = "corepack enable && corepack prepare pnpm@10.18.0 --activate && pnpm install --frozen-lockfile=false && pnpm build"
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_CONFIG_PACKAGE_MANAGER = "npm"
-  NPM_FLAGS = "--version"
-  NPM_CONFIG_FUND = "false"
-  NPM_CONFIG_AUDIT = "false"
   CI = "false"
 
 [[redirects]]
