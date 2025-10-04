@@ -89,6 +89,8 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
   // Proposal state
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [proposalData, setProposalData] = useState(null);
+  const [showEmailComposeModal, setShowEmailComposeModal] = useState(false);
+  const [emailData, setEmailData] = useState(null);
   
   // Campaign status tracking
   const [campaignStatuses, setCampaignStatuses] = useState({});
@@ -389,13 +391,23 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
         'Performance tracking and optimization',
         'Automated follow-up sequences'
       ],
-      duration: campaignForm.duration
+      duration: campaignForm.duration,
+      created_at: new Date().toISOString(),
+      created_from: 'opportunities_dashboard'
     };
 
     if (editingCampaign) {
       setCampaigns(prev => prev.map(c => c.id === editingCampaign.id ? { ...newCampaign, id: editingCampaign.id } : c));
     } else {
       setCampaigns(prev => [...prev, newCampaign]);
+      
+      // Dispatch campaign to global state for Content Dashboard integration
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        const campaignEvent = new CustomEvent('campaignCreated', {
+          detail: newCampaign
+        });
+        window.dispatchEvent(campaignEvent);
+      }
     }
 
     setCampaignForm({
@@ -430,17 +442,19 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
       
       setShowSuccessModal(true);
     } else if (approvalData.action === 'send_proposal') {
-      // Execute the proposal
-      const proposal = approvalData.proposal;
+      // Execute the proposal email
+      const emailData = approvalData.emailData;
       
       setSuccessData({
-        title: 'Proposal Sent Successfully!',
-        message: `AI-optimized proposal has been sent to ${proposal.customer.name}.`,
+        title: 'Proposal Email Sent Successfully!',
+        message: `AI-optimized proposal email has been sent to ${emailData.customer.name}.`,
         details: {
-          customer: proposal.customer.name,
-          opportunity: proposal.opportunity,
-          expectedValue: `$${proposal.expectedValue.toLocaleString()}`,
-          confidence: `${proposal.confidence}%`,
+          customer: emailData.customer.name,
+          email: emailData.to,
+          subject: emailData.subject,
+          opportunity: emailData.proposal.opportunity,
+          expectedValue: `$${emailData.proposal.expectedValue.toLocaleString()}`,
+          confidence: `${emailData.proposal.confidence}%`,
           agents: ['Customer Intelligence Agent', 'Copywriter Agent', 'Orchestrator Agent']
         }
       });
@@ -465,7 +479,38 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
           'Provide exclusive upgrade pricing',
           'Share success stories from similar customers',
           'Offer implementation support and training'
-        ]
+        ],
+        emailSubject: `Exclusive Premium Upgrade Opportunity - ${customer.name}`,
+        emailContent: `Dear ${customer.name},
+
+I hope this email finds you well. Based on your excellent engagement with our platform and your impressive results, I wanted to reach out with an exclusive opportunity that could significantly enhance your current experience.
+
+Our Customer Intelligence Agent has identified you as an ideal candidate for our Premium Feature Suite, which includes:
+
+• Advanced Analytics Dashboard with real-time insights
+• Priority Customer Support with dedicated success manager
+• Custom Automation Workflows tailored to your business
+• Advanced Integration Capabilities with your existing tools
+• Monthly Strategy Sessions with our growth experts
+
+Given your current usage patterns and the ${customer.lifetime_value > 10000 ? 'significant' : 'strong'} value you're already deriving from our platform ($${customer.lifetime_value.toLocaleString()} lifetime value), this upgrade could potentially increase your ROI by 40-60%.
+
+I'd love to schedule a brief 15-minute call this week to demonstrate these features and discuss how they align with your business goals. As a valued customer, you'll receive:
+
+✓ 30% discount on the first year
+✓ Free setup and migration assistance
+✓ 60-day money-back guarantee
+✓ Priority onboarding with our team
+
+Would you be available for a quick call this week? I can accommodate your schedule.
+
+Looking forward to helping you unlock even greater value from our platform.
+
+Best regards,
+[Your Name]
+Customer Success Manager
+
+P.S. This exclusive offer is only available to our top-tier customers like yourself. I'd love to share some success stories from similar businesses who've seen remarkable results with these premium features.`
       },
       'cross-sell': {
         opportunity: 'Additional Product Integration',
@@ -478,7 +523,44 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
           'Create customized bundle proposal',
           'Provide integration roadmap',
           'Offer implementation assistance'
-        ]
+        ],
+        emailSubject: `Perfect Product Pairing for ${customer.name} - Limited Time Offer`,
+        emailContent: `Hi ${customer.name},
+
+I hope you're continuing to see great results with our platform! I wanted to share something exciting with you.
+
+Our AI analysis of your usage patterns shows you're getting tremendous value from our current solution ($${customer.lifetime_value.toLocaleString()} lifetime value - impressive!), and I believe there's an even greater opportunity for you.
+
+We've identified a perfect product pairing that could amplify your results by 50-70%:
+
+🚀 Advanced Integration Suite
+• Seamless connection with your existing tools
+• Automated data synchronization
+• Custom workflow automation
+• Real-time performance monitoring
+
+🎯 Why This Makes Perfect Sense for You:
+Based on your engagement patterns and business goals, this integration suite would be a natural extension of your current success. Similar customers have seen:
+• 45% reduction in manual work
+• 60% faster decision-making
+• 35% increase in overall efficiency
+
+💡 Special Opportunity:
+As one of our valued customers, I'd like to offer you:
+• 40% off the integration suite for the first year
+• Free setup and configuration (normally $2,500)
+• Dedicated support during implementation
+• 90-day performance guarantee
+
+I'd love to show you exactly how this would work for your specific use case. Would you be open to a brief 20-minute demo this week?
+
+This offer is exclusively for our top customers, and I'd hate for you to miss out on the efficiency gains your peers are experiencing.
+
+Best regards,
+[Your Name]
+Customer Success Manager
+
+P.S. I've prepared a customized integration roadmap specifically for your business. I think you'll be impressed with the potential ROI.`
       },
       expansion: {
         opportunity: 'Enterprise Plan Upgrade',
@@ -491,7 +573,46 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
           'Prepare ROI analysis and business case',
           'Arrange executive presentation',
           'Provide migration support plan'
-        ]
+        ],
+        emailSubject: `Enterprise Growth Opportunity - ${customer.name}`,
+        emailContent: `Dear ${customer.name},
+
+I hope this message finds you well. I'm reaching out because our Customer Intelligence Agent has identified a significant growth opportunity for your business.
+
+Your impressive results with our platform ($${customer.lifetime_value.toLocaleString()} lifetime value) and growing usage patterns indicate you're ready for our Enterprise solution, which could potentially triple your current ROI.
+
+🎯 Enterprise Plan Benefits:
+• Unlimited users and advanced team collaboration
+• Custom reporting and analytics dashboard
+• Dedicated account manager and priority support
+• Advanced security and compliance features
+• API access for custom integrations
+• Monthly strategy sessions with our growth experts
+
+📊 Projected ROI Analysis:
+Based on your current performance metrics:
+• Current Monthly Value: $${Math.round(customer.lifetime_value / 12).toLocaleString()}
+• Projected Enterprise Value: $${Math.round(customer.lifetime_value * 0.6 / 12).toLocaleString()}/month
+• Break-even period: 3-4 months
+• 12-month projected return: 300%+ ROI
+
+💼 Enterprise Transition Package:
+• Free migration and setup (valued at $5,000)
+• 6-month performance guarantee
+• Dedicated onboarding specialist
+• Executive-level support and reporting
+
+I'd love to schedule a brief call with you and your team to discuss how this enterprise solution aligns with your growth objectives. Would you be available for a 30-minute executive briefing this week?
+
+This is an exclusive opportunity for our top-performing customers, and I believe it could be a game-changer for your business growth.
+
+Looking forward to hearing from you.
+
+Best regards,
+[Your Name]
+Enterprise Account Manager
+
+P.S. I've prepared a detailed ROI analysis and case studies from similar businesses who've made this transition. The results have been remarkable.`
       }
     };
 
@@ -510,8 +631,16 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
   const handleSendProposal = (customer) => {
     const proposal = generateSmartProposal(customer);
     
-    setProposalData(proposal);
-    setShowProposalModal(true);
+    // Set up email data for composition modal
+    setEmailData({
+      to: customer.email,
+      subject: proposal.emailSubject,
+      message: proposal.emailContent,
+      customer: customer,
+      proposal: proposal
+    });
+    
+    setShowEmailComposeModal(true);
   };
 
   return (
@@ -1298,17 +1427,19 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
                   </div>
                 </div>
 
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <Info className="w-5 h-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-blue-800">Next Steps</h4>
-                      <p className="text-sm text-blue-700 mt-1">
-                        The action has been queued for execution. You can monitor progress and results in the Content Dashboard under the Campaigns tab.
-                      </p>
+                {!successData.title.includes('Proposal Email') && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-3">
+                      <Info className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div>
+                        <h4 className="font-medium text-blue-800">Next Steps</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          The action has been queued for execution. You can monitor progress and results in the Content Dashboard under the Campaigns tab.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
@@ -1324,33 +1455,33 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
         </motion.div>
       )}
 
-      {/* Proposal Modal */}
-      {showProposalModal && proposalData && (
+      {/* Email Compose Modal */}
+      {showEmailComposeModal && emailData && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowProposalModal(false)}
+          onClick={() => setShowEmailComposeModal(false)}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 bg-green-100 rounded-lg">
-                    <Send className="w-6 h-6 text-green-600" />
+                    <Mail className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">AI-Optimized Proposal</h3>
-                    <p className="text-sm text-gray-600">Review the personalized proposal before sending</p>
+                    <h3 className="text-xl font-semibold text-gray-900">AI-Generated Proposal Email</h3>
+                    <p className="text-sm text-gray-600">Review and authorize the personalized proposal email</p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setShowProposalModal(false)}
+                  onClick={() => setShowEmailComposeModal(false)}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X className="w-5 h-5" />
@@ -1360,78 +1491,91 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
 
             <div className="p-6 overflow-y-auto flex-1">
               <div className="space-y-6">
+                {/* Customer Profile */}
                 <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4 border border-green-200">
                   <h4 className="font-medium text-gray-900 mb-3 flex items-center">
                     <User className="w-5 h-5 mr-2 text-green-600" />
                     Customer Profile
                   </h4>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
                       <span className="text-sm font-medium text-gray-700">Name:</span>
-                      <span className="ml-2 text-sm text-gray-900">{proposalData.customer.name}</span>
+                      <span className="ml-2 text-sm text-gray-900">{emailData.customer.name}</span>
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-700">Email:</span>
-                      <span className="ml-2 text-sm text-gray-900">{proposalData.customer.email}</span>
+                      <span className="ml-2 text-sm text-gray-900">{emailData.customer.email}</span>
                     </div>
                     <div>
                       <span className="text-sm font-medium text-gray-700">Lifetime Value:</span>
-                      <span className="ml-2 text-sm text-green-600 font-medium">${proposalData.customer.lifetime_value.toLocaleString()}</span>
+                      <span className="ml-2 text-sm text-green-600 font-medium">${emailData.customer.lifetime_value.toLocaleString()}</span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">Confidence:</span>
+                      <span className="ml-2 text-sm text-blue-600 font-medium">{emailData.proposal.confidence}%</span>
                     </div>
                   </div>
                 </div>
 
+                {/* AI Reasoning */}
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3 flex items-center">
                     <Brain className="w-5 h-5 mr-2 text-purple-600" />
-                    AI-Generated Recommendation
+                    AI Recommendation Reasoning
                   </h4>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Opportunity:</span>
-                      <p className="text-sm text-gray-900 mt-1">{proposalData.opportunity}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Expected Value:</span>
-                      <span className="ml-2 text-sm text-green-600 font-medium">${proposalData.expectedValue.toLocaleString()}</span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Confidence Score:</span>
-                      <span className="ml-2 text-sm text-blue-600 font-medium">{proposalData.confidence}%</span>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-700">Reasoning:</span>
-                      <p className="text-sm text-gray-700 mt-1">{proposalData.reasoning}</p>
-                    </div>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-sm text-gray-700">{emailData.proposal.reasoning}</p>
                   </div>
                 </div>
 
+                {/* Email Content */}
                 <div>
                   <h4 className="font-medium text-gray-900 mb-3 flex items-center">
-                    <Zap className="w-5 h-5 mr-2 text-blue-600" />
-                    Execution Plan
+                    <Mail className="w-5 h-5 mr-2 text-blue-600" />
+                    Email Content
                   </h4>
-                  <div className="space-y-2">
-                    {proposalData.tactics.map((tactic, index) => (
-                      <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg">
-                        <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium">
-                          {index + 1}
-                        </div>
-                        <p className="text-sm text-gray-700">{tactic}</p>
-                      </div>
-                    ))}
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">To:</label>
+                      <input
+                        type="email"
+                        value={emailData.to}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Subject:</label>
+                      <input
+                        type="text"
+                        value={emailData.subject}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Message:</label>
+                      <textarea
+                        rows={12}
+                        value={emailData.message}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900 resize-none"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                {/* Opportunity Details */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-900 mb-2">Opportunity Summary</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <h4 className="font-medium text-yellow-800">What happens next?</h4>
-                      <p className="text-sm text-yellow-700 mt-1">
-                        Once approved, the Customer Intelligence Agent and Copywriter Agent will create and send 
-                        a personalized proposal email to this customer.
-                      </p>
+                      <span className="text-blue-700 font-medium">Opportunity:</span>
+                      <span className="ml-2 text-blue-800">{emailData.proposal.opportunity}</span>
+                    </div>
+                    <div>
+                      <span className="text-blue-700 font-medium">Expected Value:</span>
+                      <span className="ml-2 text-blue-800 font-semibold">${emailData.proposal.expectedValue.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -1441,7 +1585,7 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
             <div className="p-6 border-t border-gray-200 bg-gray-50">
               <div className="flex items-center justify-end space-x-3">
                 <button
-                  onClick={() => setShowProposalModal(false)}
+                  onClick={() => setShowEmailComposeModal(false)}
                   className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                 >
                   Cancel
@@ -1450,15 +1594,15 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
                   onClick={() => {
                     setApprovalData({
                       action: 'send_proposal',
-                      proposal: proposalData
+                      emailData: emailData
                     });
-                    setShowProposalModal(false);
+                    setShowEmailComposeModal(false);
                     setShowApprovalModal(true);
                   }}
                   className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  Send Proposal
+                  Send Email
                 </button>
               </div>
             </div>

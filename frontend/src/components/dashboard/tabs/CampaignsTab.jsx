@@ -87,6 +87,7 @@ const SentimentBlock = ({ comments = [] }) => {
   );
 };
 import { getBenchmarks, getEmailBenchmarks, getCompetitiveBenchmarks, loadCampaignAssets, loadAnomalyThresholds, saveAnomalyThresholds, loadABResults, saveABResults, computeABWinner, analyzeSentiment, loadCampaignActivity, logCampaignActivity, loadAttribution, fetchLearningRecommendations } from '../../../services/campaignInsightsApi';
+import campaignStore from '../../../services/campaignStore';
 
 const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRefreshCampaigns }) => {
   const [selectedView, setSelectedView] = useState('overview');
@@ -98,6 +99,26 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
   const [showAIWorkflowModal, setShowAIWorkflowModal] = useState(false);
   const [showMicroRules, setShowMicroRules] = useState(false);
   const [rulesSegment, setRulesSegment] = useState(null);
+  
+  // Global campaign state from campaign store
+  const [globalCampaigns, setGlobalCampaigns] = useState([]);
+  
+  // Subscribe to global campaign store
+  useEffect(() => {
+    // Initialize with existing campaigns from store
+    setGlobalCampaigns(campaignStore.getAllCampaigns());
+    
+    // Subscribe to campaign store updates
+    const unsubscribe = campaignStore.subscribe((campaigns) => {
+      setGlobalCampaigns(campaigns);
+    });
+    
+    return unsubscribe;
+  }, []);
+  
+  // Combine local campaigns with global campaigns
+  const allCampaigns = [...campaigns, ...globalCampaigns];
+  
   const [showImplementModal, setShowImplementModal] = useState(false);
   const [implementRecommendation, setImplementRecommendation] = useState(null);
   const [showAICreate, setShowAICreate] = useState(false);
@@ -578,8 +599,8 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
     return 'active';
   };
 
-  // Filter campaigns with null checks
-  const filteredCampaigns = (campaigns || []).filter(campaign => {
+  // Filter campaigns with null checks (using combined local and global campaigns)
+  const filteredCampaigns = (allCampaigns || []).filter(campaign => {
     if (!campaign) return false;
     const displayStatus = normalizeStatus(campaign);
     const matchesStatus = filterStatus === 'all' || displayStatus === filterStatus;
