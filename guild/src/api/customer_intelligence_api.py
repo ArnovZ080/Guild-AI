@@ -721,3 +721,111 @@ async def _generate_funnel_recommendations(stage_performance: Dict[str, Any]) ->
     except Exception as e:
         logging.error(f"Failed to generate funnel recommendations: {e}")
         return []
+
+# Proactive Customer Success Endpoints
+@router.post("/proactive-interventions/{customer_id}")
+async def analyze_customer_for_interventions(
+    customer_id: str,
+    request_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Analyze customer for proactive interventions."""
+    try:
+        customer_data = request_data.get('customer_data', {})
+        result = await customer_intelligence_agent.analyze_customer_for_proactive_interventions(customer_id, customer_data)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to analyze customer for interventions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/interventions/execute/{intervention_id}")
+async def execute_customer_intervention(
+    intervention_id: str,
+    background_tasks: BackgroundTasks
+):
+    """Execute a customer intervention."""
+    try:
+        result = await customer_intelligence_agent.execute_customer_intervention(intervention_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to execute customer intervention: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/interventions/active")
+@router.get("/interventions/active/{customer_id}")
+async def get_active_customer_interventions(
+    customer_id: Optional[str] = None,
+    background_tasks: BackgroundTasks = None
+):
+    """Get active customer interventions."""
+    try:
+        result = await customer_intelligence_agent.get_active_customer_interventions(customer_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to get active customer interventions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Intelligent Resolution System Endpoints
+@router.post("/issues/detect")
+async def detect_and_resolve_customer_issue(
+    request_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Detect and resolve customer issue."""
+    try:
+        customer_id = request_data.get('customer_id')
+        issue_data = request_data.get('issue_data', {})
+        
+        if not customer_id:
+            raise HTTPException(status_code=400, detail="customer_id is required")
+        
+        result = await customer_intelligence_agent.detect_and_resolve_customer_issue(customer_id, issue_data)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to detect and resolve customer issue: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/issues/active")
+@router.get("/issues/active/{customer_id}")
+async def get_active_customer_issues(
+    customer_id: Optional[str] = None,
+    background_tasks: BackgroundTasks = None
+):
+    """Get active customer issues."""
+    try:
+        result = await customer_intelligence_agent.get_active_customer_issues(customer_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to get active customer issues: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Predictive Action Engine Endpoints
+@router.post("/next-best-actions/{customer_id}")
+async def generate_next_best_actions(
+    customer_id: str,
+    request_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Generate next best action recommendations."""
+    try:
+        customer_data = request_data.get('customer_data', {})
+        result = await customer_intelligence_agent.generate_next_best_actions(customer_id, customer_data)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to generate next best actions: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/journey-optimization/{customer_id}")
+async def optimize_customer_journey(
+    customer_id: str,
+    request_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Optimize customer journey."""
+    try:
+        customer_data = request_data.get('customer_data', {})
+        result = await customer_intelligence_agent.optimize_customer_journey(customer_id, customer_data)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to optimize customer journey: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

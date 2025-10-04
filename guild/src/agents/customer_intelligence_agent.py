@@ -336,15 +336,45 @@ class CustomerIntelligenceAgent:
             self.journey_tracker = None
             JOURNEY_TRACKING_AVAILABLE = False
         
-        # Customer communication timeline integration
-        try:
-            from guild.src.core.customer_communication_timeline import customer_communication_timeline
-            self.communication_timeline = customer_communication_timeline
-            COMMUNICATION_TIMELINE_AVAILABLE = True
-        except ImportError as e:
-            logging.warning(f"Customer communication timeline not available: {e}")
-            self.communication_timeline = None
-            COMMUNICATION_TIMELINE_AVAILABLE = False
+# Customer communication timeline integration
+try:
+    from guild.src.core.customer_communication_timeline import customer_communication_timeline
+    self.communication_timeline = customer_communication_timeline
+    COMMUNICATION_TIMELINE_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Customer communication timeline not available: {e}")
+    self.communication_timeline = None
+    COMMUNICATION_TIMELINE_AVAILABLE = False
+
+# Proactive customer success integration
+try:
+    from guild.src.core.proactive_customer_success import proactive_customer_success
+    self.proactive_success = proactive_customer_success
+    PROACTIVE_SUCCESS_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Proactive customer success not available: {e}")
+    self.proactive_success = None
+    PROACTIVE_SUCCESS_AVAILABLE = False
+
+# Intelligent resolution system integration
+try:
+    from guild.src.core.intelligent_resolution_system import intelligent_resolution_system
+    self.resolution_system = intelligent_resolution_system
+    RESOLUTION_SYSTEM_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Intelligent resolution system not available: {e}")
+    self.resolution_system = None
+    RESOLUTION_SYSTEM_AVAILABLE = False
+
+# Predictive action engine integration
+try:
+    from guild.src.core.predictive_action_engine import predictive_action_engine
+    self.action_engine = predictive_action_engine
+    ACTION_ENGINE_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Predictive action engine not available: {e}")
+    self.action_engine = None
+    ACTION_ENGINE_AVAILABLE = False
     
     def _initialize_coordination_agents(self):
         """Initialize coordination agents for seamless collaboration."""
@@ -1917,28 +1947,215 @@ class CustomerIntelligenceAgent:
             logging.error(f"Failed to get customer communication timeline: {e}")
             return []
     
-    async def get_customer_communication_summary(self, customer_id: str) -> Dict[str, Any]:
-        """Get customer communication summary."""
-        try:
-            if COMMUNICATION_TIMELINE_AVAILABLE and self.communication_timeline:
-                summary = await self.communication_timeline.get_communication_summary(customer_id)
-                if summary:
+        async def get_customer_communication_summary(self, customer_id: str) -> Dict[str, Any]:
+            """Get customer communication summary."""
+            try:
+                if COMMUNICATION_TIMELINE_AVAILABLE and self.communication_timeline:
+                    summary = await self.communication_timeline.get_communication_summary(customer_id)
+                    if summary:
+                        return {
+                            "customer_id": customer_id,
+                            "total_communications": summary.total_communications,
+                            "inbound_count": summary.inbound_count,
+                            "outbound_count": summary.outbound_count,
+                            "response_rate": summary.response_rate,
+                            "average_response_time": summary.average_response_time,
+                            "satisfaction_score": summary.satisfaction_score,
+                            "active_conversations": summary.active_conversations,
+                            "pending_follow_ups": summary.pending_follow_ups,
+                            "urgent_items": summary.urgent_items
+                        }
+                    else:
+                        return {"customer_id": customer_id, "summary": None}
+                else:
+                    return {"error": "Communication timeline not available"}
+            except Exception as e:
+                logging.error(f"Failed to get customer communication summary: {e}")
+                return {"error": str(e)}
+        
+        # Proactive Customer Success Methods
+        async def analyze_customer_for_proactive_interventions(self, customer_id: str, customer_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Analyze customer for proactive interventions."""
+            try:
+                if PROACTIVE_SUCCESS_AVAILABLE and self.proactive_success:
+                    interventions = await self.proactive_success.analyze_customer_for_interventions(customer_id, customer_data)
+                    return [
+                        {
+                            "intervention_id": intervention.intervention_id,
+                            "customer_id": intervention.customer_id,
+                            "intervention_type": intervention.intervention_type.value,
+                            "priority": intervention.priority.value,
+                            "status": intervention.status.value,
+                            "trigger_reason": intervention.trigger_reason,
+                            "predicted_impact": intervention.predicted_impact,
+                            "success_probability": intervention.success_probability,
+                            "created_at": intervention.created_at.isoformat(),
+                            "scheduled_for": intervention.scheduled_for.isoformat() if intervention.scheduled_for else None,
+                            "action_plan": intervention.action_plan,
+                            "execution_steps": intervention.execution_steps,
+                            "success_metrics": intervention.success_metrics
+                        }
+                        for intervention in interventions
+                    ]
+                else:
+                    return []
+            except Exception as e:
+                logging.error(f"Failed to analyze customer for proactive interventions: {e}")
+                return []
+        
+        async def execute_customer_intervention(self, intervention_id: str) -> Dict[str, Any]:
+            """Execute a customer intervention."""
+            try:
+                if PROACTIVE_SUCCESS_AVAILABLE and self.proactive_success:
+                    result = await self.proactive_success.execute_intervention(intervention_id)
+                    return result
+                else:
+                    return {"error": "Proactive success system not available"}
+            except Exception as e:
+                logging.error(f"Failed to execute customer intervention: {e}")
+                return {"error": str(e)}
+        
+        async def get_active_customer_interventions(self, customer_id: Optional[str] = None) -> List[Dict[str, Any]]:
+            """Get active customer interventions."""
+            try:
+                if PROACTIVE_SUCCESS_AVAILABLE and self.proactive_success:
+                    interventions = await self.proactive_success.get_active_interventions(customer_id)
+                    return [
+                        {
+                            "intervention_id": intervention.intervention_id,
+                            "customer_id": intervention.customer_id,
+                            "intervention_type": intervention.intervention_type.value,
+                            "priority": intervention.priority.value,
+                            "status": intervention.status.value,
+                            "trigger_reason": intervention.trigger_reason,
+                            "predicted_impact": intervention.predicted_impact,
+                            "success_probability": intervention.success_probability,
+                            "created_at": intervention.created_at.isoformat(),
+                            "scheduled_for": intervention.scheduled_for.isoformat() if intervention.scheduled_for else None,
+                            "action_plan": intervention.action_plan,
+                            "execution_steps": intervention.execution_steps,
+                            "success_metrics": intervention.success_metrics
+                        }
+                        for intervention in interventions
+                    ]
+                else:
+                    return []
+            except Exception as e:
+                logging.error(f"Failed to get active customer interventions: {e}")
+                return []
+        
+        # Intelligent Resolution System Methods
+        async def detect_and_resolve_customer_issue(self, customer_id: str, issue_data: Dict[str, Any]) -> Dict[str, Any]:
+            """Detect and resolve customer issue."""
+            try:
+                if RESOLUTION_SYSTEM_AVAILABLE and self.resolution_system:
+                    issue = await self.resolution_system.detect_and_analyze_issue(customer_id, issue_data)
                     return {
-                        "customer_id": customer_id,
-                        "total_communications": summary.total_communications,
-                        "inbound_count": summary.inbound_count,
-                        "outbound_count": summary.outbound_count,
-                        "response_rate": summary.response_rate,
-                        "average_response_time": summary.average_response_time,
-                        "satisfaction_score": summary.satisfaction_score,
-                        "active_conversations": summary.active_conversations,
-                        "pending_follow_ups": summary.pending_follow_ups,
-                        "urgent_items": summary.urgent_items
+                        "issue_id": issue.issue_id,
+                        "customer_id": issue.customer_id,
+                        "issue_type": issue.issue_type.value,
+                        "severity": issue.severity.value,
+                        "title": issue.title,
+                        "description": issue.description,
+                        "status": issue.status.value,
+                        "created_at": issue.created_at.isoformat(),
+                        "detected_by": issue.detected_by,
+                        "priority_score": issue.priority_score,
+                        "resolution_method": issue.resolution_method.value if issue.resolution_method else None,
+                        "resolution_steps": issue.resolution_steps,
+                        "escalation_reason": issue.escalation_reason
                     }
                 else:
-                    return {"customer_id": customer_id, "summary": None}
-            else:
-                return {"error": "Communication timeline not available"}
-        except Exception as e:
-            logging.error(f"Failed to get customer communication summary: {e}")
-            return {"error": str(e)}
+                    return {"error": "Resolution system not available"}
+            except Exception as e:
+                logging.error(f"Failed to detect and resolve customer issue: {e}")
+                return {"error": str(e)}
+        
+        async def get_active_customer_issues(self, customer_id: Optional[str] = None) -> List[Dict[str, Any]]:
+            """Get active customer issues."""
+            try:
+                if RESOLUTION_SYSTEM_AVAILABLE and self.resolution_system:
+                    issues = await self.resolution_system.get_active_issues(customer_id)
+                    return [
+                        {
+                            "issue_id": issue.issue_id,
+                            "customer_id": issue.customer_id,
+                            "issue_type": issue.issue_type.value,
+                            "severity": issue.severity.value,
+                            "title": issue.title,
+                            "description": issue.description,
+                            "status": issue.status.value,
+                            "created_at": issue.created_at.isoformat(),
+                            "detected_by": issue.detected_by,
+                            "priority_score": issue.priority_score,
+                            "resolution_method": issue.resolution_method.value if issue.resolution_method else None,
+                            "resolution_steps": issue.resolution_steps,
+                            "escalation_reason": issue.escalation_reason
+                        }
+                        for issue in issues
+                    ]
+                else:
+                    return []
+            except Exception as e:
+                logging.error(f"Failed to get active customer issues: {e}")
+                return []
+        
+        # Predictive Action Engine Methods
+        async def generate_next_best_actions(self, customer_id: str, customer_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+            """Generate next best action recommendations."""
+            try:
+                if ACTION_ENGINE_AVAILABLE and self.action_engine:
+                    actions = await self.action_engine.generate_next_best_actions(customer_id, customer_data)
+                    return [
+                        {
+                            "action_id": action.action_id,
+                            "customer_id": action.customer_id,
+                            "action_type": action.action_type.value,
+                            "priority": action.priority.value,
+                            "context": action.context.value,
+                            "title": action.title,
+                            "description": action.description,
+                            "confidence_score": action.confidence_score,
+                            "expected_impact": action.expected_impact,
+                            "success_probability": action.success_probability,
+                            "urgency_score": action.urgency_score,
+                            "created_at": action.created_at.isoformat(),
+                            "recommended_for": action.recommended_for.isoformat() if action.recommended_for else None,
+                            "status": action.status.value,
+                            "execution_plan": action.execution_plan,
+                            "success_metrics": action.success_metrics,
+                            "risk_factors": action.risk_factors,
+                            "dependencies": action.dependencies,
+                            "estimated_duration": action.estimated_duration,
+                            "assigned_agent": action.assigned_agent
+                        }
+                        for action in actions
+                    ]
+                else:
+                    return []
+            except Exception as e:
+                logging.error(f"Failed to generate next best actions: {e}")
+                return []
+        
+        async def optimize_customer_journey(self, customer_id: str, customer_data: Dict[str, Any]) -> Dict[str, Any]:
+            """Optimize customer journey."""
+            try:
+                if ACTION_ENGINE_AVAILABLE and self.action_engine:
+                    optimization = await self.action_engine.optimize_customer_journey(customer_id, customer_data)
+                    return {
+                        "optimization_id": optimization.optimization_id,
+                        "customer_id": optimization.customer_id,
+                        "journey_stage": optimization.journey_stage,
+                        "optimization_type": optimization.optimization_type,
+                        "current_metrics": optimization.current_metrics,
+                        "target_metrics": optimization.target_metrics,
+                        "recommended_actions": optimization.recommended_actions,
+                        "expected_improvement": optimization.expected_improvement,
+                        "implementation_plan": optimization.implementation_plan,
+                        "success_criteria": optimization.success_criteria
+                    }
+                else:
+                    return {"error": "Action engine not available"}
+            except Exception as e:
+                logging.error(f"Failed to optimize customer journey: {e}")
+                return {"error": str(e)}
