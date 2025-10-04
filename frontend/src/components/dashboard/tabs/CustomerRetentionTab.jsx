@@ -52,6 +52,7 @@ import {
   Settings,
   X
 } from 'lucide-react';
+import campaignStore from '../../services/campaignStore';
 
 const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const [selectedRisk, setSelectedRisk] = useState('all');
@@ -177,8 +178,8 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const handleApproval = (approved) => {
     if (approved && approvalData) {
       if (approvalData.action === 'launch_retention_campaign') {
-        // Open AI Campaign Modal with pre-populated data
-        setShowAICampaignModal(true);
+        // Create retention campaign and add to global store
+        createRetentionCampaign(approvalData.data);
       } else if (approvalData.action === 'execute_playbook') {
         // Execute playbook with intelligent strategy
         executePlaybookWithStrategy(approvalData.data);
@@ -190,25 +191,111 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
     setShowApprovalModal(false);
   };
 
+  // Create retention campaign and add to global store
+  const createRetentionCampaign = (data) => {
+    const { campaignName, targetSegment, campaignType, retentionStrategies, retentionObjective } = data;
+    
+    const newCampaign = {
+      id: `retention_${Date.now()}`,
+      campaign_id: `retention_${Date.now()}`,
+      name: campaignName,
+      type: 'retention',
+      platform: campaignType === 'email' ? 'email' : 'phone',
+      status: 'active',
+      created_from: 'retention_dashboard',
+      created_at: new Date().toISOString(),
+      target_audience: targetSegment,
+      objective: retentionObjective,
+      budget: campaignType === 'email' ? 500 : 2000,
+      duration: 30,
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      retention_strategies: retentionStrategies,
+      campaign_type: campaignType,
+      // Mock metrics for display
+      reach: 0,
+      impressions: 0,
+      clicks: 0,
+      conversions: 0,
+      ctr: 0,
+      roas: 0,
+      // Additional retention-specific data
+      retention_metrics: {
+        target_retention_improvement: '15-25%',
+        expected_customers_reached: 150,
+        churn_reduction_target: '20%'
+      }
+    };
+
+    // Add to global campaign store
+    campaignStore.addCampaign(newCampaign);
+    
+    // Dispatch custom event for immediate UI updates
+    window.dispatchEvent(new CustomEvent('campaignCreated', { detail: newCampaign }));
+    
+    console.log('Retention campaign created and added to global store:', newCampaign);
+    
+    // Set up success modal data
+    setSuccessData({
+      title: 'Retention Campaign Launched!',
+      campaign: newCampaign,
+      message: `Your retention campaign "${campaignName}" has been successfully launched and is now active.`
+    });
+    setShowSuccessModal(true);
+  };
+
   // Execute playbook with intelligent strategy
   const executePlaybookWithStrategy = (data) => {
     const { playbook, strategy, executionPlan } = data;
     
-    console.log('Executing playbook with strategy:', {
-      playbook: playbook.name,
-      strategy: strategy.approach,
-      priority: strategy.priority,
-      channels: strategy.channels,
-      timeline: strategy.timeline,
-      executionPlan: executionPlan
-    });
+    // Create a playbook campaign and add to global store
+    const playbookCampaign = {
+      id: `playbook_${Date.now()}`,
+      campaign_id: `playbook_${Date.now()}`,
+      name: `Playbook: ${playbook.name}`,
+      type: 'playbook',
+      platform: strategy.channels.includes('email') ? 'email' : 'automation',
+      status: 'active',
+      created_from: 'retention_dashboard',
+      created_at: new Date().toISOString(),
+      target_audience: playbook.targetSegment,
+      objective: `Execute ${playbook.name} playbook for ${playbook.trigger}`,
+      budget: 300,
+      duration: parseInt(playbook.avgResponseTime) || 14,
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + (parseInt(playbook.avgResponseTime) || 14) * 24 * 60 * 60 * 1000).toISOString(),
+      playbook_data: {
+        trigger: playbook.trigger,
+        actions: playbook.actions,
+        success_rate: playbook.successRate,
+        avg_response_time: playbook.avgResponseTime,
+        strategy: strategy,
+        execution_plan: executionPlan
+      },
+      // Mock metrics for display
+      reach: 0,
+      impressions: 0,
+      clicks: 0,
+      conversions: 0,
+      ctr: 0,
+      roas: 0
+    };
+
+    // Add to global campaign store
+    campaignStore.addCampaign(playbookCampaign);
+    
+    // Dispatch custom event for immediate UI updates
+    window.dispatchEvent(new CustomEvent('campaignCreated', { detail: playbookCampaign }));
+    
+    console.log('Playbook campaign created and added to global store:', playbookCampaign);
 
     // Set up success modal data
     setSuccessData({
       title: 'Playbook Executed Successfully!',
       playbook: playbook,
       strategy: strategy,
-      executionPlan: executionPlan
+      executionPlan: executionPlan,
+      campaign: playbookCampaign
     });
     setShowSuccessModal(true);
   };
@@ -217,19 +304,52 @@ const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const executeRetentionOutreach = (data) => {
     const { customer, recommendation } = data;
     
-    console.log('Executing retention outreach:', {
-      customer: customer.name,
-      action: recommendation.action,
-      priority: recommendation.priority,
-      strategy: recommendation.strategy,
-      timeline: recommendation.timeline
-    });
+    // Create a retention outreach campaign and add to global store
+    const outreachCampaign = {
+      id: `outreach_${Date.now()}`,
+      campaign_id: `outreach_${Date.now()}`,
+      name: `Outreach: ${customer.name}`,
+      type: 'outreach',
+      platform: recommendation.channels.includes('email') ? 'email' : 'phone',
+      status: 'active',
+      created_from: 'retention_dashboard',
+      created_at: new Date().toISOString(),
+      target_audience: `${customer.name} (${customer.segment})`,
+      objective: recommendation.action,
+      budget: 100,
+      duration: parseInt(recommendation.timeline.replace('days', '')) || 7,
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + (parseInt(recommendation.timeline.replace('days', '')) || 7) * 24 * 60 * 60 * 1000).toISOString(),
+      outreach_data: {
+        customer: customer,
+        recommendation: recommendation,
+        priority: recommendation.priority,
+        strategy: recommendation.strategy,
+        tactics: recommendation.tactics
+      },
+      // Mock metrics for display
+      reach: 1,
+      impressions: 0,
+      clicks: 0,
+      conversions: 0,
+      ctr: 0,
+      roas: 0
+    };
+
+    // Add to global campaign store
+    campaignStore.addCampaign(outreachCampaign);
+    
+    // Dispatch custom event for immediate UI updates
+    window.dispatchEvent(new CustomEvent('campaignCreated', { detail: outreachCampaign }));
+    
+    console.log('Retention outreach campaign created and added to global store:', outreachCampaign);
 
     // Set up success modal data
     setSuccessData({
       title: 'Retention Outreach Executed Successfully!',
       customer: customer,
-      recommendation: recommendation
+      recommendation: recommendation,
+      campaign: outreachCampaign
     });
     setShowSuccessModal(true);
   };
