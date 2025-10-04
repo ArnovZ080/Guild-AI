@@ -91,6 +91,8 @@ const CustomerOpportunitiesTab = ({ profiles, onCustomerAction }) => {
   const [proposalData, setProposalData] = useState(null);
   const [showEmailComposeModal, setShowEmailComposeModal] = useState(false);
   const [emailData, setEmailData] = useState(null);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [editedEmailData, setEditedEmailData] = useState(null);
   
   // Campaign status tracking
   const [campaignStatuses, setCampaignStatuses] = useState({});
@@ -507,7 +509,7 @@ Would you be available for a quick call this week? I can accommodate your schedu
 Looking forward to helping you unlock even greater value from our platform.
 
 Best regards,
-[Your Name]
+[Your Name - Edit this with your actual name]
 Customer Success Manager
 
 P.S. This exclusive offer is only available to our top-tier customers like yourself. I'd love to share some success stories from similar businesses who've seen remarkable results with these premium features.`
@@ -557,7 +559,7 @@ I'd love to show you exactly how this would work for your specific use case. Wou
 This offer is exclusively for our top customers, and I'd hate for you to miss out on the efficiency gains your peers are experiencing.
 
 Best regards,
-[Your Name]
+[Your Name - Edit this with your actual name]
 Customer Success Manager
 
 P.S. I've prepared a customized integration roadmap specifically for your business. I think you'll be impressed with the potential ROI.`
@@ -609,7 +611,7 @@ This is an exclusive opportunity for our top-performing customers, and I believe
 Looking forward to hearing from you.
 
 Best regards,
-[Your Name]
+[Your Name - Edit this with your actual name]
 Enterprise Account Manager
 
 P.S. I've prepared a detailed ROI analysis and case studies from similar businesses who've made this transition. The results have been remarkable.`
@@ -632,15 +634,40 @@ P.S. I've prepared a detailed ROI analysis and case studies from similar busines
     const proposal = generateSmartProposal(customer);
     
     // Set up email data for composition modal
-    setEmailData({
+    const emailContent = {
       to: customer.email,
       subject: proposal.emailSubject,
       message: proposal.emailContent,
       customer: customer,
       proposal: proposal
-    });
+    };
     
+    setEmailData(emailContent);
+    setEditedEmailData({ ...emailContent }); // Initialize editable copy
+    setIsEditingEmail(false); // Start in view mode
     setShowEmailComposeModal(true);
+  };
+
+  // Email editing functions
+  const handleEditEmail = () => {
+    setIsEditingEmail(true);
+  };
+
+  const handleSaveEmail = () => {
+    setEmailData(editedEmailData);
+    setIsEditingEmail(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedEmailData({ ...emailData }); // Reset to original
+    setIsEditingEmail(false);
+  };
+
+  const handleEmailFieldChange = (field, value) => {
+    setEditedEmailData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -1475,11 +1502,23 @@ P.S. I've prepared a detailed ROI analysis and case studies from similar busines
                   <div className="p-2 bg-green-100 rounded-lg">
                     <Mail className="w-6 h-6 text-green-600" />
                   </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">AI-Generated Proposal Email</h3>
-                    <p className="text-sm text-gray-600">Review and authorize the personalized proposal email</p>
-                  </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">AI-Generated Proposal Email</h3>
+                  <p className="text-sm text-gray-600">
+                    {isEditingEmail ? 'Edit the email content to your preference' : 'Review and authorize the personalized proposal email'}
+                  </p>
                 </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                {!isEditingEmail && (
+                  <button
+                    onClick={handleEditEmail}
+                    className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors text-sm flex items-center"
+                  >
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
+                  </button>
+                )}
                 <button
                   onClick={() => setShowEmailComposeModal(false)}
                   className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
@@ -1487,6 +1526,7 @@ P.S. I've prepared a detailed ROI analysis and case studies from similar busines
                   <X className="w-5 h-5" />
                 </button>
               </div>
+            </div>
             </div>
 
             <div className="p-6 overflow-y-auto flex-1">
@@ -1533,34 +1573,59 @@ P.S. I've prepared a detailed ROI analysis and case studies from similar busines
                   <h4 className="font-medium text-gray-900 mb-3 flex items-center">
                     <Mail className="w-5 h-5 mr-2 text-blue-600" />
                     Email Content
+                    {isEditingEmail && (
+                      <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">
+                        Editing Mode
+                      </span>
+                    )}
                   </h4>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">To:</label>
                       <input
                         type="email"
-                        value={emailData.to}
-                        readOnly
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
+                        value={isEditingEmail ? editedEmailData?.to : emailData.to}
+                        onChange={isEditingEmail ? (e) => handleEmailFieldChange('to', e.target.value) : undefined}
+                        readOnly={!isEditingEmail}
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          isEditingEmail 
+                            ? 'border-blue-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
+                            : 'border-gray-300 bg-gray-50 text-gray-900'
+                        }`}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Subject:</label>
                       <input
                         type="text"
-                        value={emailData.subject}
-                        readOnly
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900"
+                        value={isEditingEmail ? editedEmailData?.subject : emailData.subject}
+                        onChange={isEditingEmail ? (e) => handleEmailFieldChange('subject', e.target.value) : undefined}
+                        readOnly={!isEditingEmail}
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          isEditingEmail 
+                            ? 'border-blue-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
+                            : 'border-gray-300 bg-gray-50 text-gray-900'
+                        }`}
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Message:</label>
                       <textarea
                         rows={12}
-                        value={emailData.message}
-                        readOnly
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-900 resize-none"
+                        value={isEditingEmail ? editedEmailData?.message : emailData.message}
+                        onChange={isEditingEmail ? (e) => handleEmailFieldChange('message', e.target.value) : undefined}
+                        readOnly={!isEditingEmail}
+                        className={`w-full px-3 py-2 border rounded-md resize-none ${
+                          isEditingEmail 
+                            ? 'border-blue-300 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
+                            : 'border-gray-300 bg-gray-50 text-gray-900'
+                        }`}
                       />
+                      {isEditingEmail && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          💡 Tip: You can edit any part of the email including the signature and personalization
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1583,27 +1648,52 @@ P.S. I've prepared a detailed ROI analysis and case studies from similar busines
             </div>
 
             <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-end space-x-3">
-                <button
-                  onClick={() => setShowEmailComposeModal(false)}
-                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => {
-                    setApprovalData({
-                      action: 'send_proposal',
-                      emailData: emailData
-                    });
-                    setShowEmailComposeModal(false);
-                    setShowApprovalModal(true);
-                  }}
-                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Email
-                </button>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  {isEditingEmail ? 'Make your changes and save to continue' : 'Ready to send this personalized proposal email'}
+                </div>
+                <div className="flex items-center space-x-3">
+                  {isEditingEmail ? (
+                    <>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel Edit
+                      </button>
+                      <button
+                        onClick={handleSaveEmail}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Save Changes
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setShowEmailComposeModal(false)}
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          setApprovalData({
+                            action: 'send_proposal',
+                            emailData: emailData
+                          });
+                          setShowEmailComposeModal(false);
+                          setShowApprovalModal(true);
+                        }}
+                        className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Email
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
