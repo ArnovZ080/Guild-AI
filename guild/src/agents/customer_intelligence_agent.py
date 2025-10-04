@@ -312,9 +312,39 @@ class CustomerIntelligenceAgent:
                 self.sentiment_cache = {}
                 self.sentiment_analysis_history = []
                 
-                # Data enrichment tracking
-                self.enrichment_queue = []
-                self.enrichment_history = []
+        # Data enrichment tracking
+        self.enrichment_queue = []
+        self.enrichment_history = []
+        
+        # Customer health monitoring integration
+        try:
+            from guild.src.core.customer_health_monitoring import customer_health_monitor
+            self.health_monitor = customer_health_monitor
+            HEALTH_MONITORING_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Customer health monitoring not available: {e}")
+            self.health_monitor = None
+            HEALTH_MONITORING_AVAILABLE = False
+        
+        # Customer journey tracking integration
+        try:
+            from guild.src.core.customer_journey_tracking import customer_journey_tracker
+            self.journey_tracker = customer_journey_tracker
+            JOURNEY_TRACKING_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Customer journey tracking not available: {e}")
+            self.journey_tracker = None
+            JOURNEY_TRACKING_AVAILABLE = False
+        
+        # Customer communication timeline integration
+        try:
+            from guild.src.core.customer_communication_timeline import customer_communication_timeline
+            self.communication_timeline = customer_communication_timeline
+            COMMUNICATION_TIMELINE_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Customer communication timeline not available: {e}")
+            self.communication_timeline = None
+            COMMUNICATION_TIMELINE_AVAILABLE = False
     
     def _initialize_coordination_agents(self):
         """Initialize coordination agents for seamless collaboration."""
@@ -1688,3 +1718,227 @@ class CustomerIntelligenceAgent:
                 "judge_layer_integration": "Quality assurance for all customer management actions"
             }
         }
+    
+    # Customer Health Monitoring Methods
+    
+    async def calculate_customer_health_score(self, customer_id: str, customer_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate comprehensive customer health score."""
+        try:
+            if HEALTH_MONITORING_AVAILABLE and self.health_monitor:
+                health_score = await self.health_monitor.calculate_customer_health(customer_id, customer_data)
+                return {
+                    "customer_id": customer_id,
+                    "overall_score": health_score.overall_score,
+                    "health_status": health_score.health_status.value,
+                    "individual_metrics": [
+                        {
+                            "metric_name": metric.metric_name,
+                            "value": metric.value,
+                            "status": metric.status.value,
+                            "trend": metric.trend
+                        }
+                        for metric in health_score.individual_metrics
+                    ],
+                    "risk_factors": health_score.risk_factors,
+                    "positive_indicators": health_score.positive_indicators,
+                    "recommendations": health_score.recommendations,
+                    "last_calculated": health_score.last_calculated.isoformat()
+                }
+            else:
+                return {"error": "Health monitoring not available"}
+        except Exception as e:
+            logging.error(f"Failed to calculate customer health score: {e}")
+            return {"error": str(e)}
+    
+    async def get_customer_health_alerts(self, customer_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get active health alerts for customer or all customers."""
+        try:
+            if HEALTH_MONITORING_AVAILABLE and self.health_monitor:
+                alerts = await self.health_monitor.get_active_alerts(customer_id)
+                return [
+                    {
+                        "alert_id": alert.alert_id,
+                        "customer_id": alert.customer_id,
+                        "alert_type": alert.alert_type.value,
+                        "severity": alert.severity,
+                        "title": alert.title,
+                        "description": alert.description,
+                        "triggered_at": alert.triggered_at.isoformat(),
+                        "action_required": alert.action_required
+                    }
+                    for alert in alerts
+                ]
+            else:
+                return []
+        except Exception as e:
+            logging.error(f"Failed to get health alerts: {e}")
+            return []
+    
+    # Customer Journey Tracking Methods
+    
+    async def track_customer_touchpoint(self, customer_id: str, touchpoint_type: str, 
+                                      channel: str, platform: str, **kwargs) -> Dict[str, Any]:
+        """Track a customer touchpoint in their journey."""
+        try:
+            if JOURNEY_TRACKING_AVAILABLE and self.journey_tracker:
+                from guild.src.core.customer_journey_tracking import TouchpointType
+                touchpoint = await self.journey_tracker.track_touchpoint(
+                    customer_id, TouchpointType(touchpoint_type), channel, platform, **kwargs
+                )
+                return {
+                    "touchpoint_id": touchpoint.touchpoint_id,
+                    "customer_id": touchpoint.customer_id,
+                    "touchpoint_type": touchpoint.touchpoint_type.value,
+                    "stage": touchpoint.stage.value,
+                    "timestamp": touchpoint.timestamp.isoformat(),
+                    "channel": touchpoint.channel,
+                    "platform": touchpoint.platform
+                }
+            else:
+                return {"error": "Journey tracking not available"}
+        except Exception as e:
+            logging.error(f"Failed to track customer touchpoint: {e}")
+            return {"error": str(e)}
+    
+    async def get_customer_journey_data(self, customer_id: str) -> Dict[str, Any]:
+        """Get complete customer journey data."""
+        try:
+            if JOURNEY_TRACKING_AVAILABLE and self.journey_tracker:
+                journey = await self.journey_tracker.get_customer_journey(customer_id)
+                if journey:
+                    return {
+                        "customer_id": customer_id,
+                        "current_stage": journey.current_stage.value,
+                        "journey_start": journey.journey_start.isoformat(),
+                        "last_activity": journey.last_activity.isoformat(),
+                        "journey_score": journey.journey_score,
+                        "next_likely_stage": journey.next_likely_stage.value if journey.next_likely_stage else None,
+                        "time_in_current_stage": journey.time_in_current_stage,
+                        "total_journey_duration": journey.total_journey_duration,
+                        "conversion_probability": journey.conversion_probability,
+                        "churn_risk": journey.churn_risk,
+                        "journey_health": journey.journey_health,
+                        "touchpoints": [
+                            {
+                                "touchpoint_id": tp.touchpoint_id,
+                                "touchpoint_type": tp.touchpoint_type.value,
+                                "stage": tp.stage.value,
+                                "timestamp": tp.timestamp.isoformat(),
+                                "channel": tp.channel,
+                                "platform": tp.platform,
+                                "content": tp.content,
+                                "outcome": tp.outcome
+                            }
+                            for tp in journey.touchpoints
+                        ],
+                        "milestones": [
+                            {
+                                "milestone_id": m.milestone_id,
+                                "event_type": m.event_type.value,
+                                "stage": m.stage.value,
+                                "timestamp": m.timestamp.isoformat(),
+                                "description": m.description,
+                                "impact_score": m.impact_score
+                            }
+                            for m in journey.milestones
+                        ]
+                    }
+                else:
+                    return {"customer_id": customer_id, "journey": None}
+            else:
+                return {"error": "Journey tracking not available"}
+        except Exception as e:
+            logging.error(f"Failed to get customer journey data: {e}")
+            return {"error": str(e)}
+    
+    # Customer Communication Timeline Methods
+    
+    async def log_customer_communication(self, customer_id: str, communication_type: str,
+                                       direction: str, **kwargs) -> Dict[str, Any]:
+        """Log a customer communication event."""
+        try:
+            if COMMUNICATION_TIMELINE_AVAILABLE and self.communication_timeline:
+                from guild.src.core.customer_communication_timeline import CommunicationType, CommunicationDirection
+                communication = await self.communication_timeline.log_communication(
+                    customer_id, CommunicationType(communication_type), 
+                    CommunicationDirection(direction), **kwargs
+                )
+                return {
+                    "communication_id": communication.communication_id,
+                    "customer_id": communication.customer_id,
+                    "communication_type": communication.communication_type.value,
+                    "direction": communication.direction.value,
+                    "status": communication.status.value,
+                    "timestamp": communication.timestamp.isoformat(),
+                    "subject": communication.subject,
+                    "content": communication.content,
+                    "sentiment": communication.sentiment.value if communication.sentiment else None,
+                    "sentiment_score": communication.sentiment_score
+                }
+            else:
+                return {"error": "Communication timeline not available"}
+        except Exception as e:
+            logging.error(f"Failed to log customer communication: {e}")
+            return {"error": str(e)}
+    
+    async def get_customer_communication_timeline(self, customer_id: str, 
+                                                start_date: Optional[datetime] = None,
+                                                end_date: Optional[datetime] = None) -> List[Dict[str, Any]]:
+        """Get customer communication timeline."""
+        try:
+            if COMMUNICATION_TIMELINE_AVAILABLE and self.communication_timeline:
+                communications = await self.communication_timeline.get_communication_timeline(
+                    customer_id, start_date, end_date
+                )
+                return [
+                    {
+                        "communication_id": comm.communication_id,
+                        "communication_type": comm.communication_type.value,
+                        "direction": comm.direction.value,
+                        "status": comm.status.value,
+                        "timestamp": comm.timestamp.isoformat(),
+                        "subject": comm.subject,
+                        "content": comm.content,
+                        "sender": comm.sender,
+                        "recipient": comm.recipient,
+                        "channel": comm.channel,
+                        "platform": comm.platform,
+                        "sentiment": comm.sentiment.value if comm.sentiment else None,
+                        "sentiment_score": comm.sentiment_score,
+                        "priority": comm.priority,
+                        "outcome": comm.outcome,
+                        "satisfaction_rating": comm.satisfaction_rating
+                    }
+                    for comm in communications
+                ]
+            else:
+                return []
+        except Exception as e:
+            logging.error(f"Failed to get customer communication timeline: {e}")
+            return []
+    
+    async def get_customer_communication_summary(self, customer_id: str) -> Dict[str, Any]:
+        """Get customer communication summary."""
+        try:
+            if COMMUNICATION_TIMELINE_AVAILABLE and self.communication_timeline:
+                summary = await self.communication_timeline.get_communication_summary(customer_id)
+                if summary:
+                    return {
+                        "customer_id": customer_id,
+                        "total_communications": summary.total_communications,
+                        "inbound_count": summary.inbound_count,
+                        "outbound_count": summary.outbound_count,
+                        "response_rate": summary.response_rate,
+                        "average_response_time": summary.average_response_time,
+                        "satisfaction_score": summary.satisfaction_score,
+                        "active_conversations": summary.active_conversations,
+                        "pending_follow_ups": summary.pending_follow_ups,
+                        "urgent_items": summary.urgent_items
+                    }
+                else:
+                    return {"customer_id": customer_id, "summary": None}
+            else:
+                return {"error": "Communication timeline not available"}
+        except Exception as e:
+            logging.error(f"Failed to get customer communication summary: {e}")
+            return {"error": str(e)}
