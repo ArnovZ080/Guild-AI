@@ -47,7 +47,10 @@ import {
   Play,
   Pause,
   Save,
-  X
+  X,
+  Bot,
+  Workflow,
+  FileText
 } from 'lucide-react';
 
 // Import tabs
@@ -68,6 +71,8 @@ import ForwardMessageModal from './modals/ForwardMessageModal.jsx';
 import CreateCustomerModal from './modals/CreateCustomerModal.jsx';
 import CustomerSegmentModal from './modals/CustomerSegmentModal';
 import ApprovalModal from './modals/ApprovalModal';
+import WorkflowTransparencyModal from './modals/WorkflowTransparencyModal';
+import EnhancedApprovalModal from './modals/EnhancedApprovalModal';
 import { useCustomerActions } from '../../services/customerIntelligenceAPI';
 
 // Import utilities
@@ -88,6 +93,10 @@ const CustomerDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState(null);
+  const [showWorkflowTransparencyModal, setShowWorkflowTransparencyModal] = useState(false);
+  const [showEnhancedApprovalModal, setShowEnhancedApprovalModal] = useState(false);
+  const [workflowData, setWorkflowData] = useState(null);
+  const [activeWorkflows, setActiveWorkflows] = useState([]);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportData, setExportData] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -299,8 +308,117 @@ const CustomerDashboard = () => {
     { id: 'opportunities', label: 'Opportunities', icon: TrendingUp }
   ];
 
+  // Handle autonomous workflow execution
+  const handleAutonomousWorkflow = async (workflowType, parameters) => {
+    try {
+      console.log('Initiating autonomous workflow:', workflowType, parameters);
+      
+      // Show enhanced approval modal for workflow
+      setApprovalData({
+        action_type: 'autonomous_workflow',
+        action_title: `${workflowType.replace('_', ' ')} Workflow`,
+        action_description: `Execute autonomous ${workflowType} workflow with full transparency and Judge Layer integration`,
+        workflow_type: workflowType,
+        workflow_parameters: parameters,
+        risk_level: 'medium',
+        initiating_agent: 'autonomous_workflow_executor',
+        estimated_duration: 300, // 5 minutes
+        requested_at: new Date().toISOString(),
+        transparency_level: 'full',
+        judge_integration: true,
+        autonomous_execution: true
+      });
+      
+      setShowEnhancedApprovalModal(true);
+      
+    } catch (error) {
+      console.error('Error initiating autonomous workflow:', error);
+    }
+  };
+
+  // Handle workflow approval
+  const handleWorkflowApproval = async (approved, workflowData) => {
+    try {
+      if (approved) {
+        // Create and execute workflow
+        const response = await fetch('/api/autonomous-workflows/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            template_name: workflowData.workflow_type,
+            parameters: workflowData.workflow_parameters,
+            initiated_by: 'user',
+            priority: 'high'
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          // Execute the workflow
+          const executeResponse = await fetch('/api/autonomous-workflows/execute', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workflow_id: result.workflow_id })
+          });
+          
+          // Show workflow transparency modal
+          setWorkflowData({ workflow_id: result.workflow_id, status: 'running' });
+          setShowWorkflowTransparencyModal(true);
+          setShowEnhancedApprovalModal(false);
+        }
+      } else {
+        setShowEnhancedApprovalModal(false);
+      }
+    } catch (error) {
+      console.error('Error handling workflow approval:', error);
+    }
+  };
+
+  // Handle workflow step approval
+  const handleWorkflowStepApproval = async (workflowId, stepId, approved) => {
+    try {
+      const response = await fetch('/api/autonomous-workflows/approve-step', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workflow_id: workflowId,
+          step_id: stepId,
+          approved: approved,
+          user_id: 'current_user'
+        })
+      });
+      
+      const result = await response.json();
+      console.log('Workflow step approval result:', result);
+      
+    } catch (error) {
+      console.error('Error approving workflow step:', error);
+    }
+  };
+
+  // Refresh workflow data
+  const refreshWorkflowData = async (workflowId) => {
+    try {
+      const response = await fetch(`/api/autonomous-workflows/status/${workflowId}`);
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        setWorkflowData(result.workflow);
+      }
+    } catch (error) {
+      console.error('Error refreshing workflow data:', error);
+    }
+  };
+
   // Overview: execute action via approval flow
   const handleExecuteOverviewAction = (actionPayload) => {
+    // Check if this should trigger an autonomous workflow
+    if (typeof actionPayload === 'object' && actionPayload.workflowType) {
+      handleAutonomousWorkflow(actionPayload.workflowType, actionPayload.parameters);
+      return;
+    }
+    
     setApprovalData({
       title: 'Execute Action',
       message: typeof actionPayload === 'string' ? actionPayload : (actionPayload?.context?.insight_text || actionPayload?.context?.action_text || 'Run workflow'),
@@ -798,6 +916,34 @@ const CustomerDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Workflow Transparency Modal */}
+      {showWorkflowTransparencyModal && (
+        <WorkflowTransparencyModal
+          isOpen={showWorkflowTransparencyModal}
+          onClose={() => setShowWorkflowTransparencyModal(false)}
+          workflowId={workflowData?.workflow_id}
+          workflowData={workflowData}
+          onApproveStep={handleWorkflowStepApproval}
+          onRejectStep={handleWorkflowStepApproval}
+          onRefreshWorkflow={refreshWorkflowData}
+        />
+      )}
+
+      {/* Enhanced Approval Modal */}
+      {showEnhancedApprovalModal && (
+        <EnhancedApprovalModal
+          isOpen={showEnhancedApprovalModal}
+          onClose={() => setShowEnhancedApprovalModal(false)}
+          approvalData={approvalData}
+          onApprove={(data) => handleWorkflowApproval(true, data)}
+          onReject={(data) => handleWorkflowApproval(false, data)}
+          onRequestMoreInfo={(data) => {
+            console.log('Request more info for:', data);
+            // Implement more info request logic
+          }}
+        />
       )}
     </div>
   );
