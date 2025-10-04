@@ -11,6 +11,33 @@ from datetime import datetime, timedelta
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+from typing import Union
+
+# Import other agents for coordination
+try:
+    from .customer_support_agent import CustomerSupportAgent
+    from .crm_agent import CRMAgent
+    from .scraper_agent import ScraperAgent
+    from .strategy_agent import StrategyAgent
+    from .content_intelligence_agent import ContentIntelligenceAgent
+    from .orchestrator_agent import OrchestratorAgent
+    from .judge_agent import JudgeAgent
+    AGENT_COORDINATION_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Some coordination agents not available: {e}")
+    AGENT_COORDINATION_AVAILABLE = False
+
+# Import inter-agent communication system
+try:
+    from guild.src.core.inter_agent_communication import (
+        create_agent_client, MessageType, MessagePriority, 
+        InterAgentMessage, get_communication_hub
+    )
+    COMMUNICATION_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Inter-agent communication not available: {e}")
+    COMMUNICATION_AVAILABLE = False
 
 @inject_knowledge
 async def generate_comprehensive_customer_intelligence_strategy(
@@ -245,7 +272,10 @@ class CustomerIntelligenceAgent:
             "Support Intelligence",
             "Voice of Customer Analysis",
             "Customer Health Scoring",
-            "Cross-Agent Collaboration"
+            "Cross-Agent Collaboration",
+            "Sentiment Analysis & Real-time Monitoring",
+            "Data Enrichment & Profile Enhancement",
+            "Autonomous Workflow Orchestration"
         ]
         self.capabilities = [
             "360° customer profile creation from multiple data sources",
@@ -255,7 +285,11 @@ class CustomerIntelligenceAgent:
             "Automated customer support and sentiment analysis",
             "Voice of customer insights and feedback analysis",
             "Customer lifetime value optimization",
-            "Cross-agent collaboration for unified customer insights"
+            "Cross-agent collaboration for unified customer insights",
+            "Real-time sentiment analysis from customer interactions",
+            "Automatic customer data enrichment via scraper integration",
+            "Seamless coordination with Content Intelligence Agent",
+            "Autonomous workflow execution with Judge Layer integration"
         ]
         self.metrics_library = {}
         self.kpi_metrics = {}
@@ -263,6 +297,603 @@ class CustomerIntelligenceAgent:
         self.customer_segments = {}
         self.cross_agent_meta_kpis = {}
         self.retention_strategies = {}
+        
+                # Initialize coordination agents
+                self.coordination_agents = {}
+                if AGENT_COORDINATION_AVAILABLE:
+                    self._initialize_coordination_agents()
+                
+                # Initialize inter-agent communication
+                self.communication_client = None
+                if COMMUNICATION_AVAILABLE:
+                    self._initialize_communication()
+                
+                # Sentiment analysis cache
+                self.sentiment_cache = {}
+                self.sentiment_analysis_history = []
+                
+                # Data enrichment tracking
+                self.enrichment_queue = []
+                self.enrichment_history = []
+    
+    def _initialize_coordination_agents(self):
+        """Initialize coordination agents for seamless collaboration."""
+        try:
+            self.coordination_agents = {
+                'customer_support': CustomerSupportAgent(),
+                'crm': CRMAgent(),
+                'scraper': ScraperAgent(),
+                'strategy': StrategyAgent(),
+                'content_intelligence': ContentIntelligenceAgent(),
+                'orchestrator': OrchestratorAgent(),
+                'judge': JudgeAgent()
+            }
+            logging.info("Customer Intelligence Agent: Coordination agents initialized successfully")
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: Failed to initialize coordination agents: {e}")
+            self.coordination_agents = {}
+    
+    def _initialize_communication(self):
+        """Initialize inter-agent communication client."""
+        try:
+            self.communication_client = create_agent_client("customer_intelligence_agent")
+            
+            # Define agent capabilities
+            capabilities = [
+                "customer_data_analysis",
+                "sentiment_analysis", 
+                "customer_segmentation",
+                "retention_optimization",
+                "churn_prevention",
+                "customer_health_scoring",
+                "data_enrichment",
+                "cross_dashboard_sync"
+            ]
+            
+            # Initialize communication client
+            asyncio.create_task(self.communication_client.initialize(capabilities))
+            
+            # Register message handlers
+            self.communication_client.register_handler(
+                MessageType.DATA_SYNC, 
+                self._handle_data_sync_message
+            )
+            self.communication_client.register_handler(
+                MessageType.COORDINATION, 
+                self._handle_coordination_message
+            )
+            self.communication_client.register_handler(
+                MessageType.INSIGHT_SHARE, 
+                self._handle_insight_share_message
+            )
+            
+            logging.info("Customer Intelligence Agent communication initialized successfully")
+            
+        except Exception as e:
+            logging.error(f"Failed to initialize communication: {e}")
+            self.communication_client = None
+    
+    async def _handle_data_sync_message(self, message: InterAgentMessage):
+        """Handle data synchronization messages from other agents."""
+        try:
+            sender = message.sender_agent
+            payload = message.payload
+            
+            if sender == "content_intelligence_agent":
+                # Handle content intelligence data sync
+                await self._sync_content_intelligence_data(payload)
+            elif sender == "crm_agent":
+                # Handle CRM data sync
+                await self._sync_crm_data(payload)
+            elif sender == "scraper_agent":
+                # Handle scraper data sync
+                await self._sync_scraper_data(payload)
+            
+            logging.info(f"Data sync message handled from {sender}")
+            
+        except Exception as e:
+            logging.error(f"Failed to handle data sync message: {e}")
+    
+    async def _handle_coordination_message(self, message: InterAgentMessage):
+        """Handle coordination messages from other agents."""
+        try:
+            sender = message.sender_agent
+            payload = message.payload
+            
+            coordination_type = payload.get("type")
+            customer_id = payload.get("customer_id")
+            
+            if coordination_type == "content_campaign_request":
+                # Handle content campaign coordination
+                response = await self._coordinate_content_campaign(customer_id, payload)
+            elif coordination_type == "customer_segmentation_request":
+                # Handle customer segmentation coordination
+                response = await self._coordinate_customer_segmentation(payload)
+            elif coordination_type == "sentiment_analysis_request":
+                # Handle sentiment analysis coordination
+                response = await self._coordinate_sentiment_analysis(payload)
+            else:
+                response = {"status": "unknown_coordination_type", "error": "Unsupported coordination type"}
+            
+            # Send response if required
+            if message.requires_response and self.communication_client:
+                await self.communication_client.hub.send_response(message.message_id, response)
+            
+            logging.info(f"Coordination message handled from {sender}")
+            
+        except Exception as e:
+            logging.error(f"Failed to handle coordination message: {e}")
+    
+    async def _handle_insight_share_message(self, message: InterAgentMessage):
+        """Handle insight sharing messages from other agents."""
+        try:
+            sender = message.sender_agent
+            insights = message.payload
+            
+            # Store insights for cross-agent analysis
+            if not hasattr(self, 'shared_insights'):
+                self.shared_insights = {}
+            
+            if sender not in self.shared_insights:
+                self.shared_insights[sender] = []
+            
+            self.shared_insights[sender].append({
+                "insights": insights,
+                "timestamp": message.timestamp,
+                "message_id": message.message_id
+            })
+            
+            # Trigger cross-agent insight analysis
+            await self._analyze_cross_agent_insights()
+            
+            logging.info(f"Insight share message handled from {sender}")
+            
+        except Exception as e:
+            logging.error(f"Failed to handle insight share message: {e}")
+    
+    async def sync_with_content_intelligence(self, customer_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Sync customer data with Content Intelligence Agent for unified insights."""
+        try:
+            if not self.communication_client:
+                return {"status": "error", "message": "Communication client not available"}
+            
+            # Prepare customer data for content intelligence
+            sync_data = {
+                "customer_id": customer_data.get("customer_id"),
+                "customer_profile": customer_data.get("profile", {}),
+                "engagement_history": customer_data.get("engagement_history", []),
+                "content_preferences": customer_data.get("content_preferences", {}),
+                "sentiment_analysis": customer_data.get("sentiment_analysis", {}),
+                "sync_timestamp": datetime.now().isoformat()
+            }
+            
+            # Send data sync message
+            success = await self.communication_client.send_data_sync(
+                "content_intelligence_agent", 
+                sync_data,
+                MessagePriority.HIGH
+            )
+            
+            if success:
+                # Request coordinated insights
+                coordination_data = {
+                    "type": "customer_content_coordination",
+                    "customer_id": customer_data.get("customer_id"),
+                    "request_insights": True,
+                    "coordination_timestamp": datetime.now().isoformat()
+                }
+                
+                response = await self.communication_client.send_coordination_request(
+                    "content_intelligence_agent",
+                    coordination_data,
+                    requires_response=True
+                )
+                
+                return {
+                    "status": "success",
+                    "sync_completed": True,
+                    "coordination_response": response,
+                    "sync_timestamp": datetime.now().isoformat()
+                }
+            else:
+                return {"status": "error", "message": "Failed to send data sync"}
+                
+        except Exception as e:
+            logging.error(f"Content intelligence sync failed: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    async def _sync_content_intelligence_data(self, payload: Dict[str, Any]):
+        """Handle incoming content intelligence data synchronization."""
+        try:
+            customer_id = payload.get("customer_id")
+            content_performance = payload.get("content_performance", {})
+            engagement_metrics = payload.get("engagement_metrics", {})
+            
+            # Update customer profile with content insights
+            if customer_id in self.customer_profiles:
+                profile = self.customer_profiles[customer_id]
+                profile["content_engagement"] = engagement_metrics
+                profile["content_performance"] = content_performance
+                profile["last_content_sync"] = datetime.now().isoformat()
+                
+                # Recalculate customer health score with content data
+                profile["health_score"] = await self._calculate_enhanced_health_score(profile)
+            
+            logging.info(f"Content intelligence data synced for customer {customer_id}")
+            
+        except Exception as e:
+            logging.error(f"Failed to sync content intelligence data: {e}")
+    
+    async def _sync_crm_data(self, payload: Dict[str, Any]):
+        """Handle incoming CRM data synchronization."""
+        try:
+            customer_updates = payload.get("customer_updates", [])
+            
+            for update in customer_updates:
+                customer_id = update.get("customer_id")
+                if customer_id in self.customer_profiles:
+                    # Merge CRM updates with existing profile
+                    self.customer_profiles[customer_id].update(update.get("data", {}))
+                    self.customer_profiles[customer_id]["last_crm_sync"] = datetime.now().isoformat()
+            
+            logging.info(f"CRM data synced for {len(customer_updates)} customers")
+            
+        except Exception as e:
+            logging.error(f"Failed to sync CRM data: {e}")
+    
+    async def _sync_scraper_data(self, payload: Dict[str, Any]):
+        """Handle incoming scraper data synchronization."""
+        try:
+            enrichment_data = payload.get("enrichment_data", {})
+            customer_id = payload.get("customer_id")
+            
+            if customer_id in self.customer_profiles:
+                # Merge enrichment data
+                profile = self.customer_profiles[customer_id]
+                profile["enriched_data"] = enrichment_data
+                profile["enrichment_score"] = payload.get("enrichment_score", 0)
+                profile["last_enrichment"] = datetime.now().isoformat()
+                
+                # Update segmentation if enrichment reveals new insights
+                await self._update_segmentation_from_enrichment(customer_id, enrichment_data)
+            
+            logging.info(f"Scraper data synced for customer {customer_id}")
+            
+        except Exception as e:
+            logging.error(f"Failed to sync scraper data: {e}")
+    
+    async def coordinate_with_customer_support(self, customer_id: str, issue_context: Dict[str, Any]) -> Dict[str, Any]:
+        """Coordinate with Customer Support Agent for issue resolution."""
+        try:
+            if 'customer_support' in self.coordination_agents:
+                support_agent = self.coordination_agents['customer_support']
+                # Get customer profile for context
+                customer_profile = await self.get_customer_profile(customer_id)
+                
+                # Generate support strategy
+                support_result = await support_agent.run(
+                    f"Customer {customer_id} issue: {issue_context.get('description', 'Support request')}"
+                )
+                
+                return {
+                    'status': 'success',
+                    'support_strategy': support_result,
+                    'customer_context': customer_profile,
+                    'coordinated_by': 'Customer Intelligence Agent'
+                }
+            else:
+                return {'status': 'error', 'message': 'Customer Support Agent not available'}
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: Support coordination failed: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    async def coordinate_with_crm_agent(self, customer_data: Dict[str, Any], action: str) -> Dict[str, Any]:
+        """Coordinate with CRM Agent for customer relationship management."""
+        try:
+            if 'crm' in self.coordination_agents:
+                crm_agent = self.coordination_agents['crm']
+                
+                # Determine CRM action based on customer data
+                crm_input = f"{action} for customer: {customer_data.get('name', 'Unknown')} - {customer_data.get('segment', 'Standard')} segment"
+                
+                crm_result = await crm_agent.run(crm_input)
+                
+                return {
+                    'status': 'success',
+                    'crm_strategy': crm_result,
+                    'customer_data': customer_data,
+                    'coordinated_by': 'Customer Intelligence Agent'
+                }
+            else:
+                return {'status': 'error', 'message': 'CRM Agent not available'}
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: CRM coordination failed: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    async def enrich_customer_data(self, customer_id: str, enrichment_type: str = 'comprehensive') -> Dict[str, Any]:
+        """Enrich customer data using Scraper Agent."""
+        try:
+            if 'scraper' in self.coordination_agents:
+                scraper_agent = self.coordination_agents['scraper']
+                
+                # Get existing customer profile
+                customer_profile = await self.get_customer_profile(customer_id)
+                
+                # Generate enrichment query
+                if enrichment_type == 'comprehensive':
+                    query = f"{customer_profile.get('company', '')} {customer_profile.get('name', '')} contact information"
+                else:
+                    query = f"{customer_profile.get('name', '')} professional profile"
+                
+                # Execute scraping
+                enrichment_result = await scraper_agent.run(query)
+                
+                # Update customer profile with enriched data
+                enriched_data = self._merge_enrichment_data(customer_profile, enrichment_result)
+                
+                # Store enrichment history
+                self.enrichment_history.append({
+                    'customer_id': customer_id,
+                    'timestamp': datetime.now().isoformat(),
+                    'enrichment_type': enrichment_type,
+                    'new_data': enriched_data
+                })
+                
+                return {
+                    'status': 'success',
+                    'enriched_profile': enriched_data,
+                    'enrichment_source': 'Scraper Agent',
+                    'coordinated_by': 'Customer Intelligence Agent'
+                }
+            else:
+                return {'status': 'error', 'message': 'Scraper Agent not available'}
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: Data enrichment failed: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    async def sync_with_content_intelligence(self, customer_segment: str, content_performance: Dict[str, Any]) -> Dict[str, Any]:
+        """Sync customer data with Content Intelligence Agent for unified insights."""
+        try:
+            if 'content_intelligence' in self.coordination_agents:
+                content_agent = self.coordination_agents['content_intelligence']
+                
+                # Get customer segment data
+                segment_data = await self.get_customer_segment(customer_segment)
+                
+                # Create sync payload
+                sync_payload = {
+                    'customer_segment': segment_data,
+                    'content_performance': content_performance,
+                    'sync_request': 'unified_customer_content_insights'
+                }
+                
+                # Execute sync with Content Intelligence Agent
+                sync_result = await content_agent.run(
+                    f"Sync customer segment {customer_segment} with content performance data"
+                )
+                
+                return {
+                    'status': 'success',
+                    'sync_result': sync_result,
+                    'customer_segment': segment_data,
+                    'content_performance': content_performance,
+                    'coordinated_by': 'Customer Intelligence Agent'
+                }
+            else:
+                return {'status': 'error', 'message': 'Content Intelligence Agent not available'}
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: Content sync failed: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    async def execute_autonomous_workflow(self, workflow_type: str, context: Dict[str, Any], user_approval: bool = False) -> Dict[str, Any]:
+        """Execute autonomous workflow with Judge Layer integration."""
+        try:
+            if not user_approval:
+                return {
+                    'status': 'pending_approval',
+                    'workflow_type': workflow_type,
+                    'context': context,
+                    'message': 'User approval required before executing autonomous workflow'
+                }
+            
+            if 'orchestrator' in self.coordination_agents and 'judge' in self.coordination_agents:
+                orchestrator = self.coordination_agents['orchestrator']
+                judge = self.coordination_agents['judge']
+                
+                # Create workflow contract
+                workflow_contract = {
+                    'workflow_type': workflow_type,
+                    'context': context,
+                    'quality_requirements': {
+                        'customer_satisfaction': 0.9,
+                        'data_accuracy': 0.95,
+                        'response_time': 2.0,
+                        'compliance': 1.0
+                    },
+                    'agents_involved': ['Customer Intelligence Agent', 'Judge Agent', 'Orchestrator Agent'],
+                    'expected_outcome': f"Execute {workflow_type} with highest quality standards"
+                }
+                
+                # Execute workflow with Judge Layer
+                workflow_result = await orchestrator.run(
+                    f"Execute {workflow_type} workflow with Judge Layer quality assurance"
+                )
+                
+                # Judge the results
+                judgment = await judge.run(
+                    f"Evaluate {workflow_type} workflow results against quality standards"
+                )
+                
+                return {
+                    'status': 'completed',
+                    'workflow_type': workflow_type,
+                    'execution_result': workflow_result,
+                    'quality_judgment': judgment,
+                    'contract': workflow_contract,
+                    'coordinated_by': 'Customer Intelligence Agent'
+                }
+            else:
+                return {'status': 'error', 'message': 'Orchestrator or Judge Agent not available'}
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: Autonomous workflow execution failed: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    async def analyze_customer_sentiment(self, customer_id: str, interaction_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Perform real-time sentiment analysis on customer interactions."""
+        try:
+            # Check cache first
+            cache_key = f"{customer_id}_{datetime.now().strftime('%Y%m%d')}"
+            if cache_key in self.sentiment_cache:
+                return self.sentiment_cache[cache_key]
+            
+            # Analyze sentiment from interactions
+            sentiment_scores = []
+            sentiment_details = []
+            
+            for interaction in interaction_data:
+                # Simple sentiment analysis (in production, use proper NLP)
+                text = interaction.get('content', '') + ' ' + interaction.get('feedback', '')
+                sentiment_score = self._calculate_sentiment_score(text)
+                
+                sentiment_scores.append(sentiment_score)
+                sentiment_details.append({
+                    'interaction_id': interaction.get('id'),
+                    'timestamp': interaction.get('timestamp'),
+                    'sentiment_score': sentiment_score,
+                    'sentiment_label': self._get_sentiment_label(sentiment_score),
+                    'text_sample': text[:100] + '...' if len(text) > 100 else text
+                })
+            
+            # Calculate overall sentiment
+            overall_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0.5
+            
+            # Determine sentiment trend
+            sentiment_trend = self._calculate_sentiment_trend(customer_id, overall_sentiment)
+            
+            result = {
+                'customer_id': customer_id,
+                'overall_sentiment': overall_sentiment,
+                'sentiment_label': self._get_sentiment_label(overall_sentiment),
+                'sentiment_trend': sentiment_trend,
+                'interaction_count': len(interaction_data),
+                'sentiment_details': sentiment_details,
+                'analysis_timestamp': datetime.now().isoformat(),
+                'confidence_score': self._calculate_sentiment_confidence(sentiment_scores)
+            }
+            
+            # Cache the result
+            self.sentiment_cache[cache_key] = result
+            self.sentiment_analysis_history.append(result)
+            
+            return result
+            
+        except Exception as e:
+            logging.error(f"Customer Intelligence Agent: Sentiment analysis failed: {e}")
+            return {'status': 'error', 'message': str(e)}
+    
+    def _calculate_sentiment_score(self, text: str) -> float:
+        """Calculate sentiment score for text (simplified implementation)."""
+        if not text:
+            return 0.5
+        
+        positive_words = ['good', 'great', 'excellent', 'amazing', 'love', 'happy', 'satisfied', 'perfect', 'wonderful']
+        negative_words = ['bad', 'terrible', 'awful', 'hate', 'angry', 'frustrated', 'disappointed', 'poor', 'horrible']
+        
+        text_lower = text.lower()
+        positive_count = sum(1 for word in positive_words if word in text_lower)
+        negative_count = sum(1 for word in negative_words if word in text_lower)
+        
+        if positive_count == 0 and negative_count == 0:
+            return 0.5
+        
+        total_words = positive_count + negative_count
+        sentiment_score = positive_count / total_words
+        
+        return sentiment_score
+    
+    def _get_sentiment_label(self, score: float) -> str:
+        """Convert sentiment score to label."""
+        if score >= 0.7:
+            return 'positive'
+        elif score >= 0.4:
+            return 'neutral'
+        else:
+            return 'negative'
+    
+    def _calculate_sentiment_trend(self, customer_id: str, current_sentiment: float) -> str:
+        """Calculate sentiment trend for customer."""
+        # Get historical sentiment for this customer
+        historical_sentiments = [
+            entry['overall_sentiment'] 
+            for entry in self.sentiment_analysis_history 
+            if entry['customer_id'] == customer_id
+        ]
+        
+        if len(historical_sentiments) < 2:
+            return 'stable'
+        
+        recent_avg = sum(historical_sentiments[-3:]) / len(historical_sentiments[-3:])
+        
+        if current_sentiment > recent_avg + 0.1:
+            return 'improving'
+        elif current_sentiment < recent_avg - 0.1:
+            return 'declining'
+        else:
+            return 'stable'
+    
+    def _calculate_sentiment_confidence(self, sentiment_scores: List[float]) -> float:
+        """Calculate confidence score for sentiment analysis."""
+        if not sentiment_scores:
+            return 0.0
+        
+        # Higher confidence for scores closer to extremes (0 or 1)
+        confidence_scores = [abs(score - 0.5) * 2 for score in sentiment_scores]
+        return sum(confidence_scores) / len(confidence_scores)
+    
+    def _merge_enrichment_data(self, existing_profile: Dict[str, Any], enrichment_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge enriched data with existing customer profile."""
+        enriched_profile = existing_profile.copy()
+        
+        # Extract useful data from enrichment result
+        if 'execution_result' in enrichment_result and 'leads_data' in enrichment_result['execution_result']:
+            leads = enrichment_result['execution_result']['leads_data']
+            if leads:
+                lead_data = leads[0]  # Use first lead as most relevant
+                
+                # Update profile with enriched data
+                enriched_profile.update({
+                    'enriched_email': lead_data.get('email', existing_profile.get('email')),
+                    'enriched_linkedin': lead_data.get('linkedin_url', ''),
+                    'enriched_company': lead_data.get('company', existing_profile.get('company')),
+                    'enrichment_timestamp': datetime.now().isoformat(),
+                    'enrichment_confidence': lead_data.get('confidence_score', 0.0)
+                })
+        
+        return enriched_profile
+    
+    async def get_customer_profile(self, customer_id: str) -> Dict[str, Any]:
+        """Get customer profile by ID."""
+        # This would typically query a database
+        # For now, return a mock profile
+        return {
+            'customer_id': customer_id,
+            'name': f'Customer {customer_id}',
+            'email': f'customer{customer_id}@example.com',
+            'segment': 'premium',
+            'company': f'Company {customer_id}',
+            'created_at': datetime.now().isoformat()
+        }
+    
+    async def get_customer_segment(self, segment_name: str) -> Dict[str, Any]:
+        """Get customer segment data."""
+        # This would typically query a database
+        return {
+            'segment_name': segment_name,
+            'customer_count': 25,
+            'avg_lifetime_value': 5000,
+            'churn_rate': 0.15,
+            'growth_rate': 0.25
+        }
     
     async def run(self, user_input: str = None) -> Dict[str, Any]:
         """
@@ -1038,5 +1669,22 @@ class CustomerIntelligenceAgent:
                 "funnel_dashboard": "Customer journey and conversion tracking",
                 "retention_dashboard": "Churn prevention and retention analytics",
                 "segmentation_dashboard": "Customer segmentation and targeting"
+            },
+            "agent_coordination": {
+                "customer_support_agent": "Coordinate issue resolution and support workflows",
+                "crm_agent": "Collaborate on customer relationship management strategies",
+                "scraper_agent": "Enrich customer profiles with external data sources",
+                "strategy_agent": "Align customer strategies with business objectives",
+                "content_intelligence_agent": "Sync customer insights with content performance",
+                "orchestrator_agent": "Execute autonomous workflows with quality assurance",
+                "judge_agent": "Ensure all customer actions meet quality standards"
+            },
+            "advanced_capabilities": {
+                "real_time_sentiment_analysis": "Analyze customer sentiment from all interactions",
+                "automatic_data_enrichment": "Continuously enhance customer profiles",
+                "autonomous_workflow_execution": "Execute customer management workflows independently",
+                "cross_dashboard_synchronization": "Sync with Content Dashboard for unified insights",
+                "transparent_agent_actions": "Full visibility into all agent operations",
+                "judge_layer_integration": "Quality assurance for all customer management actions"
             }
         }

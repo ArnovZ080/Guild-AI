@@ -11,6 +11,18 @@ from datetime import datetime, timedelta
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+# Import inter-agent communication system
+try:
+    from guild.src.core.inter_agent_communication import (
+        create_agent_client, MessageType, MessagePriority, 
+        InterAgentMessage, get_communication_hub
+    )
+    COMMUNICATION_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Inter-agent communication not available: {e}")
+    COMMUNICATION_AVAILABLE = False
 
 @inject_knowledge
 async def generate_comprehensive_content_intelligence_strategy(
@@ -273,6 +285,378 @@ class ContentIntelligenceAgent:
         self.content_campaigns = {}
         self.performance_data = {}
         self.content_calendar = {}
+        
+        # Initialize inter-agent communication
+        self.communication_client = None
+        if COMMUNICATION_AVAILABLE:
+            self._initialize_communication()
+        
+        # Customer insights cache for cross-dashboard sync
+        self.customer_insights_cache = {}
+        self.content_customer_mapping = {}
+    
+    def _initialize_communication(self):
+        """Initialize inter-agent communication client."""
+        try:
+            self.communication_client = create_agent_client("content_intelligence_agent")
+            
+            # Define agent capabilities
+            capabilities = [
+                "content_planning_strategy",
+                "content_creation_distribution", 
+                "campaign_management",
+                "performance_analytics",
+                "brand_consistency",
+                "audience_targeting",
+                "ab_testing",
+                "cross_platform_integration",
+                "customer_content_engagement"
+            ]
+            
+            # Initialize communication client
+            asyncio.create_task(self.communication_client.initialize(capabilities))
+            
+            # Register message handlers
+            self.communication_client.register_handler(
+                MessageType.DATA_SYNC, 
+                self._handle_data_sync_message
+            )
+            self.communication_client.register_handler(
+                MessageType.COORDINATION, 
+                self._handle_coordination_message
+            )
+            self.communication_client.register_handler(
+                MessageType.INSIGHT_SHARE, 
+                self._handle_insight_share_message
+            )
+            
+            logging.info("Content Intelligence Agent communication initialized successfully")
+            
+        except Exception as e:
+            logging.error(f"Failed to initialize communication: {e}")
+            self.communication_client = None
+    
+    async def _handle_data_sync_message(self, message: InterAgentMessage):
+        """Handle data synchronization messages from other agents."""
+        try:
+            sender = message.sender_agent
+            payload = message.payload
+            
+            if sender == "customer_intelligence_agent":
+                # Handle customer intelligence data sync
+                await self._sync_customer_intelligence_data(payload)
+            elif sender == "marketing_agent":
+                # Handle marketing data sync
+                await self._sync_marketing_data(payload)
+            elif sender == "strategy_agent":
+                # Handle strategy data sync
+                await self._sync_strategy_data(payload)
+            
+            logging.info(f"Data sync message handled from {sender}")
+            
+        except Exception as e:
+            logging.error(f"Failed to handle data sync message: {e}")
+    
+    async def _handle_coordination_message(self, message: InterAgentMessage):
+        """Handle coordination messages from other agents."""
+        try:
+            sender = message.sender_agent
+            payload = message.payload
+            
+            coordination_type = payload.get("type")
+            
+            if coordination_type == "customer_content_coordination":
+                # Handle customer-content coordination
+                response = await self._coordinate_customer_content(payload)
+            elif coordination_type == "campaign_coordination_request":
+                # Handle campaign coordination
+                response = await self._coordinate_campaign(payload)
+            elif coordination_type == "content_performance_request":
+                # Handle content performance coordination
+                response = await self._coordinate_content_performance(payload)
+            else:
+                response = {"status": "unknown_coordination_type", "error": "Unsupported coordination type"}
+            
+            # Send response if required
+            if message.requires_response and self.communication_client:
+                await self.communication_client.hub.send_response(message.message_id, response)
+            
+            logging.info(f"Coordination message handled from {sender}")
+            
+        except Exception as e:
+            logging.error(f"Failed to handle coordination message: {e}")
+    
+    async def _handle_insight_share_message(self, message: InterAgentMessage):
+        """Handle insight sharing messages from other agents."""
+        try:
+            sender = message.sender_agent
+            insights = message.payload
+            
+            # Store insights for cross-agent analysis
+            if not hasattr(self, 'shared_insights'):
+                self.shared_insights = {}
+            
+            if sender not in self.shared_insights:
+                self.shared_insights[sender] = []
+            
+            self.shared_insights[sender].append({
+                "insights": insights,
+                "timestamp": message.timestamp,
+                "message_id": message.message_id
+            })
+            
+            # Trigger cross-agent insight analysis
+            await self._analyze_cross_agent_content_insights()
+            
+            logging.info(f"Insight share message handled from {sender}")
+            
+        except Exception as e:
+            logging.error(f"Failed to handle insight share message: {e}")
+    
+    async def sync_with_customer_intelligence(self, content_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Sync content data with Customer Intelligence Agent for unified insights."""
+        try:
+            if not self.communication_client:
+                return {"status": "error", "message": "Communication client not available"}
+            
+            # Prepare content data for customer intelligence
+            sync_data = {
+                "content_id": content_data.get("content_id"),
+                "content_metrics": content_data.get("metrics", {}),
+                "engagement_data": content_data.get("engagement", {}),
+                "customer_segments": content_data.get("target_segments", []),
+                "performance_insights": content_data.get("insights", {}),
+                "sync_timestamp": datetime.now().isoformat()
+            }
+            
+            # Send data sync message
+            success = await self.communication_client.send_data_sync(
+                "customer_intelligence_agent", 
+                sync_data,
+                MessagePriority.HIGH
+            )
+            
+            if success:
+                # Request coordinated insights
+                coordination_data = {
+                    "type": "content_performance_coordination",
+                    "content_id": content_data.get("content_id"),
+                    "request_customer_insights": True,
+                    "coordination_timestamp": datetime.now().isoformat()
+                }
+                
+                response = await self.communication_client.send_coordination_request(
+                    "customer_intelligence_agent",
+                    coordination_data,
+                    requires_response=True
+                )
+                
+                return {
+                    "status": "success",
+                    "sync_completed": True,
+                    "coordination_response": response,
+                    "sync_timestamp": datetime.now().isoformat()
+                }
+            else:
+                return {"status": "error", "message": "Failed to send data sync"}
+                
+        except Exception as e:
+            logging.error(f"Customer intelligence sync failed: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    async def _sync_customer_intelligence_data(self, payload: Dict[str, Any]):
+        """Handle incoming customer intelligence data synchronization."""
+        try:
+            customer_id = payload.get("customer_id")
+            customer_profile = payload.get("customer_profile", {})
+            engagement_history = payload.get("engagement_history", [])
+            sentiment_analysis = payload.get("sentiment_analysis", {})
+            
+            # Store customer insights for content optimization
+            self.customer_insights_cache[customer_id] = {
+                "profile": customer_profile,
+                "engagement_history": engagement_history,
+                "sentiment_analysis": sentiment_analysis,
+                "last_sync": datetime.now().isoformat()
+            }
+            
+            # Update content-customer mapping
+            content_preferences = customer_profile.get("content_preferences", {})
+            if content_preferences:
+                for content_type, preference_score in content_preferences.items():
+                    if content_type not in self.content_customer_mapping:
+                        self.content_customer_mapping[content_type] = []
+                    self.content_customer_mapping[content_type].append({
+                        "customer_id": customer_id,
+                        "preference_score": preference_score,
+                        "last_updated": datetime.now().isoformat()
+                    })
+            
+            logging.info(f"Customer intelligence data synced for customer {customer_id}")
+            
+        except Exception as e:
+            logging.error(f"Failed to sync customer intelligence data: {e}")
+    
+    async def _sync_marketing_data(self, payload: Dict[str, Any]):
+        """Handle incoming marketing data synchronization."""
+        try:
+            campaign_updates = payload.get("campaign_updates", [])
+            
+            for update in campaign_updates:
+                campaign_id = update.get("campaign_id")
+                if campaign_id in self.content_campaigns:
+                    # Merge marketing updates with existing campaign
+                    self.content_campaigns[campaign_id].update(update.get("data", {}))
+                    self.content_campaigns[campaign_id]["last_marketing_sync"] = datetime.now().isoformat()
+            
+            logging.info(f"Marketing data synced for {len(campaign_updates)} campaigns")
+            
+        except Exception as e:
+            logging.error(f"Failed to sync marketing data: {e}")
+    
+    async def _sync_strategy_data(self, payload: Dict[str, Any]):
+        """Handle incoming strategy data synchronization."""
+        try:
+            strategy_updates = payload.get("strategy_updates", {})
+            
+            # Update content strategy based on business strategy
+            if "content_direction" in strategy_updates:
+                self.content_strategy = strategy_updates["content_direction"]
+            
+            if "target_audience" in strategy_updates:
+                self.target_audience = strategy_updates["target_audience"]
+            
+            if "brand_guidelines" in strategy_updates:
+                self.brand_guidelines = strategy_updates["brand_guidelines"]
+            
+            logging.info("Strategy data synced successfully")
+            
+        except Exception as e:
+            logging.error(f"Failed to sync strategy data: {e}")
+    
+    async def _coordinate_customer_content(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+        """Coordinate content strategy with customer intelligence."""
+        try:
+            customer_id = payload.get("customer_id")
+            request_insights = payload.get("request_insights", False)
+            
+            if customer_id in self.customer_insights_cache:
+                customer_insights = self.customer_insights_cache[customer_id]
+                
+                # Generate content recommendations based on customer insights
+                content_recommendations = await self._generate_customer_specific_content_recommendations(
+                    customer_insights
+                )
+                
+                # Analyze content performance for this customer
+                content_performance = await self._analyze_customer_content_performance(customer_id)
+                
+                return {
+                    "status": "success",
+                    "customer_id": customer_id,
+                    "content_recommendations": content_recommendations,
+                    "content_performance": content_performance,
+                    "engagement_insights": customer_insights.get("engagement_history", []),
+                    "sentiment_insights": customer_insights.get("sentiment_analysis", {}),
+                    "coordination_timestamp": datetime.now().isoformat()
+                }
+            else:
+                return {
+                    "status": "error", 
+                    "message": f"No insights available for customer {customer_id}",
+                    "customer_id": customer_id
+                }
+                
+        except Exception as e:
+            logging.error(f"Failed to coordinate customer content: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    async def _generate_customer_specific_content_recommendations(self, customer_insights: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Generate content recommendations based on customer insights."""
+        try:
+            recommendations = []
+            profile = customer_insights.get("profile", {})
+            engagement_history = customer_insights.get("engagement_history", [])
+            sentiment = customer_insights.get("sentiment_analysis", {})
+            
+            # Analyze engagement patterns
+            preferred_content_types = []
+            optimal_send_times = []
+            
+            for engagement in engagement_history:
+                content_type = engagement.get("content_type")
+                if content_type and engagement.get("engagement_score", 0) > 0.7:
+                    preferred_content_types.append(content_type)
+                
+                send_time = engagement.get("send_time")
+                if send_time and engagement.get("open_rate", 0) > 0.8:
+                    optimal_send_times.append(send_time)
+            
+            # Generate recommendations
+            if preferred_content_types:
+                recommendations.append({
+                    "type": "content_type_optimization",
+                    "recommendation": f"Focus on {', '.join(set(preferred_content_types))} content",
+                    "confidence": 0.8,
+                    "expected_impact": "Increase engagement by 25-40%"
+                })
+            
+            if optimal_send_times:
+                recommendations.append({
+                    "type": "timing_optimization",
+                    "recommendation": f"Schedule content for {', '.join(set(optimal_send_times))}",
+                    "confidence": 0.7,
+                    "expected_impact": "Improve open rates by 30-50%"
+                })
+            
+            # Sentiment-based recommendations
+            sentiment_score = sentiment.get("sentiment_score", 0)
+            if sentiment_score < 0.3:
+                recommendations.append({
+                    "type": "sentiment_improvement",
+                    "recommendation": "Create positive, uplifting content to improve sentiment",
+                    "confidence": 0.9,
+                    "expected_impact": "Improve customer sentiment and retention"
+                })
+            
+            return recommendations
+            
+        except Exception as e:
+            logging.error(f"Failed to generate customer-specific recommendations: {e}")
+            return []
+    
+    async def _analyze_customer_content_performance(self, customer_id: str) -> Dict[str, Any]:
+        """Analyze content performance for a specific customer."""
+        try:
+            if customer_id not in self.customer_insights_cache:
+                return {"error": "No customer data available"}
+            
+            customer_insights = self.customer_insights_cache[customer_id]
+            engagement_history = customer_insights.get("engagement_history", [])
+            
+            # Calculate performance metrics
+            total_engagements = len(engagement_history)
+            avg_engagement_score = sum(e.get("engagement_score", 0) for e in engagement_history) / max(total_engagements, 1)
+            avg_open_rate = sum(e.get("open_rate", 0) for e in engagement_history) / max(total_engagements, 1)
+            avg_click_rate = sum(e.get("click_rate", 0) for e in engagement_history) / max(total_engagements, 1)
+            
+            # Identify best performing content
+            best_content = max(engagement_history, key=lambda x: x.get("engagement_score", 0), default={})
+            
+            return {
+                "customer_id": customer_id,
+                "total_engagements": total_engagements,
+                "avg_engagement_score": round(avg_engagement_score, 2),
+                "avg_open_rate": round(avg_open_rate, 2),
+                "avg_click_rate": round(avg_click_rate, 2),
+                "best_content_type": best_content.get("content_type", "unknown"),
+                "best_engagement_score": best_content.get("engagement_score", 0),
+                "analysis_timestamp": datetime.now().isoformat()
+            }
+            
+        except Exception as e:
+            logging.error(f"Failed to analyze customer content performance: {e}")
+            return {"error": str(e)}
     
     async def run(self, user_input: str = None) -> Dict[str, Any]:
         """
