@@ -375,6 +375,16 @@ except ImportError as e:
     logging.warning(f"Predictive action engine not available: {e}")
     self.action_engine = None
     ACTION_ENGINE_AVAILABLE = False
+
+# Voice customer intelligence integration
+try:
+    from guild.src.core.voice_customer_intelligence import voice_customer_intelligence
+    self.voice_intelligence = voice_customer_intelligence
+    VOICE_INTELLIGENCE_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Voice customer intelligence not available: {e}")
+    self.voice_intelligence = None
+    VOICE_INTELLIGENCE_AVAILABLE = False
     
     def _initialize_coordination_agents(self):
         """Initialize coordination agents for seamless collaboration."""
@@ -2158,4 +2168,94 @@ except ImportError as e:
                     return {"error": "Action engine not available"}
             except Exception as e:
                 logging.error(f"Failed to optimize customer journey: {e}")
+                return {"error": str(e)}
+        
+        # Voice Customer Intelligence Methods
+        async def create_voice_intervention(self, customer_id: str, intervention_data: Dict[str, Any]) -> Dict[str, Any]:
+            """Create a voice-based customer intervention."""
+            try:
+                if VOICE_INTELLIGENCE_AVAILABLE and self.voice_intelligence:
+                    voice_call = await self.voice_intelligence.create_voice_intervention(customer_id, intervention_data)
+                    return {
+                        "call_id": voice_call.call_id,
+                        "customer_id": voice_call.customer_id,
+                        "call_type": voice_call.call_type.value,
+                        "priority": voice_call.priority.value,
+                        "status": voice_call.status.value,
+                        "phone_number": voice_call.phone_number,
+                        "purpose": voice_call.purpose,
+                        "script": voice_call.script,
+                        "emotional_context": voice_call.emotional_context,
+                        "created_at": voice_call.created_at.isoformat(),
+                        "scheduled_for": voice_call.scheduled_for.isoformat() if voice_call.scheduled_for else None
+                    }
+                else:
+                    return {"error": "Voice intelligence not available"}
+            except Exception as e:
+                logging.error(f"Failed to create voice intervention: {e}")
+                return {"error": str(e)}
+        
+        async def execute_voice_call(self, call_id: str) -> Dict[str, Any]:
+            """Execute a voice call with emotional intelligence."""
+            try:
+                if VOICE_INTELLIGENCE_AVAILABLE and self.voice_intelligence:
+                    result = await self.voice_intelligence.execute_voice_call(call_id)
+                    return result
+                else:
+                    return {"error": "Voice intelligence not available"}
+            except Exception as e:
+                logging.error(f"Failed to execute voice call: {e}")
+                return {"error": str(e)}
+        
+        async def create_voice_workflow(self, customer_id: str, workflow_type: str, workflow_data: Dict[str, Any]) -> Dict[str, Any]:
+            """Create a multi-call voice workflow."""
+            try:
+                if VOICE_INTELLIGENCE_AVAILABLE and self.voice_intelligence:
+                    voice_workflow = await self.voice_intelligence.create_voice_workflow(customer_id, workflow_type, workflow_data)
+                    return {
+                        "workflow_id": voice_workflow.workflow_id,
+                        "customer_id": voice_workflow.customer_id,
+                        "workflow_type": voice_workflow.workflow_type,
+                        "call_sequence": [
+                            {
+                                "call_id": call.call_id,
+                                "call_type": call.call_type.value,
+                                "priority": call.priority.value,
+                                "purpose": call.purpose
+                            }
+                            for call in voice_workflow.call_sequence
+                        ],
+                        "success_criteria": voice_workflow.success_criteria,
+                        "escalation_rules": voice_workflow.escalation_rules,
+                        "created_at": voice_workflow.created_at.isoformat(),
+                        "status": voice_workflow.status
+                    }
+                else:
+                    return {"error": "Voice intelligence not available"}
+            except Exception as e:
+                logging.error(f"Failed to create voice workflow: {e}")
+                return {"error": str(e)}
+        
+        async def execute_voice_workflow(self, workflow_id: str) -> Dict[str, Any]:
+            """Execute a voice workflow."""
+            try:
+                if VOICE_INTELLIGENCE_AVAILABLE and self.voice_intelligence:
+                    result = await self.voice_intelligence.execute_voice_workflow(workflow_id)
+                    return result
+                else:
+                    return {"error": "Voice intelligence not available"}
+            except Exception as e:
+                logging.error(f"Failed to execute voice workflow: {e}")
+                return {"error": str(e)}
+        
+        async def get_voice_call_analytics(self) -> Dict[str, Any]:
+            """Get voice call analytics and performance metrics."""
+            try:
+                if VOICE_INTELLIGENCE_AVAILABLE and self.voice_intelligence:
+                    result = await self.voice_intelligence.get_voice_call_analytics()
+                    return result
+                else:
+                    return {"error": "Voice intelligence not available"}
+            except Exception as e:
+                logging.error(f"Failed to get voice call analytics: {e}")
                 return {"error": str(e)}

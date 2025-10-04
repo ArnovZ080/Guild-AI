@@ -829,3 +829,77 @@ async def optimize_customer_journey(
     except Exception as e:
         logging.error(f"Failed to optimize customer journey: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Voice Customer Intelligence Endpoints
+@router.post("/voice-intervention/{customer_id}")
+async def create_voice_intervention(
+    customer_id: str,
+    request_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Create a voice-based customer intervention."""
+    try:
+        intervention_data = request_data.get('intervention_data', {})
+        result = await customer_intelligence_agent.create_voice_intervention(customer_id, intervention_data)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to create voice intervention: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/voice-call/execute/{call_id}")
+async def execute_voice_call(
+    call_id: str,
+    background_tasks: BackgroundTasks
+):
+    """Execute a voice call with emotional intelligence."""
+    try:
+        result = await customer_intelligence_agent.execute_voice_call(call_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to execute voice call: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/voice-workflow/{customer_id}")
+async def create_voice_workflow(
+    customer_id: str,
+    request_data: dict,
+    background_tasks: BackgroundTasks
+):
+    """Create a multi-call voice workflow."""
+    try:
+        workflow_type = request_data.get('workflow_type')
+        workflow_data = request_data.get('workflow_data', {})
+        
+        if not workflow_type:
+            raise HTTPException(status_code=400, detail="workflow_type is required")
+        
+        result = await customer_intelligence_agent.create_voice_workflow(customer_id, workflow_type, workflow_data)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to create voice workflow: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/voice-workflow/execute/{workflow_id}")
+async def execute_voice_workflow(
+    workflow_id: str,
+    background_tasks: BackgroundTasks
+):
+    """Execute a voice workflow."""
+    try:
+        result = await customer_intelligence_agent.execute_voice_workflow(workflow_id)
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to execute voice workflow: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/voice-analytics")
+async def get_voice_call_analytics(
+    background_tasks: BackgroundTasks = None
+):
+    """Get voice call analytics and performance metrics."""
+    try:
+        result = await customer_intelligence_agent.get_voice_call_analytics()
+        return {"status": "success", "data": result}
+    except Exception as e:
+        logging.error(f"Failed to get voice call analytics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
