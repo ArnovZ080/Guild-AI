@@ -24,6 +24,17 @@ except ImportError as e:
     logging.warning(f"Inter-agent communication not available: {e}")
     COMMUNICATION_AVAILABLE = False
 
+# Import content connector integration
+try:
+    from guild.src.core.content_connector_integration import (
+        content_connector_integrator, start_content_sync, get_content_performance_summary_from_connectors,
+        get_platform_analytics_from_connectors, ContentDataSourceType
+    )
+    CONTENT_CONNECTORS_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Content connector integration not available: {e}")
+    CONTENT_CONNECTORS_AVAILABLE = False
+
 @inject_knowledge
 async def generate_comprehensive_content_intelligence_strategy(
     content_objective: str,
@@ -294,6 +305,11 @@ class ContentIntelligenceAgent:
         # Customer insights cache for cross-dashboard sync
         self.customer_insights_cache = {}
         self.content_customer_mapping = {}
+        
+        # Content connector integration
+        self.content_connector_integrator = None
+        if CONTENT_CONNECTORS_AVAILABLE:
+            self.content_connector_integrator = content_connector_integrator
     
     def _initialize_communication(self):
         """Initialize inter-agent communication client."""
@@ -1582,4 +1598,85 @@ class ContentIntelligenceAgent:
                     "Quality assurance oversight"
                 ]
             }
+        }
+    
+    # Content Connector Integration Methods
+    
+    async def _initialize_content_connectors(self):
+        """Initialize content connector synchronization."""
+        try:
+            if CONTENT_CONNECTORS_AVAILABLE and self.content_connector_integrator:
+                # Start initial sync for all content sources
+                await start_content_sync()
+                logging.info("Content Intelligence Agent: Content connector sync initialized")
+        except Exception as e:
+            logging.error(f"Failed to initialize content connectors: {e}")
+    
+    async def get_real_content_performance_data(self) -> Dict[str, Any]:
+        """Get real content performance data from connected platforms."""
+        try:
+            if CONTENT_CONNECTORS_AVAILABLE:
+                performance_data = await get_content_performance_summary_from_connectors()
+                return performance_data
+            else:
+                return self._get_fallback_content_data()
+        except Exception as e:
+            logging.error(f"Failed to get real content performance data: {e}")
+            return self._get_fallback_content_data()
+    
+    async def get_platform_specific_analytics(self, platform: str) -> Dict[str, Any]:
+        """Get analytics for a specific platform from connectors."""
+        try:
+            if CONTENT_CONNECTORS_AVAILABLE:
+                analytics = await get_platform_analytics_from_connectors(platform)
+                return analytics
+            else:
+                return {"error": "Content connectors not available"}
+        except Exception as e:
+            logging.error(f"Failed to get platform analytics for {platform}: {e}")
+            return {"error": str(e)}
+    
+    async def sync_content_from_platforms(self, platform: Optional[str] = None) -> Dict[str, Any]:
+        """Sync content data from connected platforms."""
+        try:
+            if CONTENT_CONNECTORS_AVAILABLE:
+                await start_content_sync(platform)
+                return {
+                    "status": "success",
+                    "message": f"Content sync initiated{' for ' + platform if platform else ' for all platforms'}"
+                }
+            else:
+                return {"status": "error", "message": "Content connectors not available"}
+        except Exception as e:
+            logging.error(f"Failed to sync content from platforms: {e}")
+            return {"status": "error", "message": str(e)}
+    
+    async def get_connected_platforms_status(self) -> Dict[str, Any]:
+        """Get status of all connected content platforms."""
+        try:
+            if CONTENT_CONNECTORS_AVAILABLE and self.content_connector_integrator:
+                sync_status = self.content_connector_integrator.get_content_sync_status()
+                return sync_status
+            else:
+                return {"error": "Content connectors not available"}
+        except Exception as e:
+            logging.error(f"Failed to get connected platforms status: {e}")
+            return {"error": str(e)}
+    
+    def _get_fallback_content_data(self) -> Dict[str, Any]:
+        """Get fallback content data when connectors are not available."""
+        return {
+            "total_content_items": 0,
+            "platforms": {},
+            "content_types": {},
+            "engagement_metrics": {
+                "total_likes": 0,
+                "total_comments": 0,
+                "total_shares": 0,
+                "total_impressions": 0,
+                "average_engagement_rate": 0
+            },
+            "top_performing_content": [],
+            "last_updated": datetime.now().isoformat(),
+            "source": "fallback_data"
         }
