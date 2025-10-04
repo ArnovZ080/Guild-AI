@@ -52,7 +52,7 @@ import {
   Settings,
   X
 } from 'lucide-react';
-import campaignStore from '../../services/campaignStore';
+import campaignStore from '../../../services/campaignStore';
 
 const CustomerRetentionTab = ({ profiles, onCustomerAction }) => {
   const [selectedRisk, setSelectedRisk] = useState('all');
