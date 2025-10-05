@@ -63,6 +63,61 @@ const CustomerDetailModal = ({
     }));
   };
 
+  const toggleConversationMessages = (conversationIndex) => {
+    const sectionKey = `conversation_${conversationIndex}`;
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionKey]: !prev[sectionKey]
+    }));
+  };
+
+  // Generate mock conversation messages (in production, this would come from the API)
+  const getConversationMessages = (conversation) => {
+    const messages = [];
+    const messageCount = conversation.messageCount || 5;
+    
+    // Generate a conversation thread
+    for (let i = 0; i < messageCount; i++) {
+      const isCustomer = i % 2 === 0;
+      const timestamp = new Date(conversation.createdAt);
+      timestamp.setMinutes(timestamp.getMinutes() + (i * 30));
+      
+      messages.push({
+        id: `${conversation.id}_msg_${i}`,
+        sender: isCustomer ? 'customer' : 'agent',
+        content: isCustomer 
+          ? generateCustomerMessage(i, conversation)
+          : generateAgentMessage(i, conversation),
+        timestamp: timestamp,
+        type: conversation.type
+      });
+    }
+    
+    return messages;
+  };
+
+  const generateCustomerMessage = (index, conversation) => {
+    const customerMessages = [
+      `Hi, I'm interested in learning more about your services.`,
+      `That sounds great! Can you tell me more about the pricing?`,
+      `When would be a good time for a demo?`,
+      `Thank you for the information. I'll review it and get back to you.`,
+      `I have a few more questions about the implementation process.`
+    ];
+    return customerMessages[index % customerMessages.length];
+  };
+
+  const generateAgentMessage = (index, conversation) => {
+    const agentMessages = [
+      `Hello! I'd be happy to help you learn more about our services. Let me send you some information.`,
+      `I've attached our pricing sheet and feature comparison. Would you like to schedule a call to discuss?`,
+      `I can set up a demo for next Tuesday at 2 PM. Does that work for you?`,
+      `Perfect! I'll send you the calendar invite and demo materials.`,
+      `Absolutely! I'm here to help with any questions you have about our implementation process.`
+    ];
+    return agentMessages[index % agentMessages.length];
+  };
+
   // Get conversation type styling
   const getTypeStyle = (type) => {
     const styles = {
@@ -375,6 +430,37 @@ const CustomerDetailModal = ({
                           </div>
                           
                           <p className="text-gray-700 text-sm mb-3">{conversation.lastMessage}</p>
+                          
+                          {/* Conversation Messages */}
+                          <div className="mt-3">
+                            <button
+                              onClick={() => toggleConversationMessages(index)}
+                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                            >
+                              {expandedSections[`conversation_${index}`] ? 'Hide Messages' : `Show All ${conversation.messageCount} Messages`}
+                            </button>
+                            {expandedSections[`conversation_${index}`] && (
+                              <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
+                                {getConversationMessages(conversation).map((message, msgIndex) => (
+                                  <div key={msgIndex} className={`p-3 rounded-lg ${
+                                    message.sender === 'customer' 
+                                      ? 'bg-gray-50 ml-4' 
+                                      : 'bg-blue-50 mr-4'
+                                  }`}>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-sm font-medium text-gray-700">
+                                        {message.sender === 'customer' ? customer.name : `${conversation.agentType} Agent`}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(message.timestamp).toLocaleString()}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-800">{message.content}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
