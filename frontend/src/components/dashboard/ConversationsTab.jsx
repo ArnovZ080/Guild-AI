@@ -3,6 +3,9 @@ import { MessageSquare, Star, Archive, Bot, Search, Filter } from 'lucide-react'
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
+import ActionConfirmationModal from './modals/ActionConfirmationModal.jsx';
+import StarCustomerModal from './modals/StarCustomerModal.jsx';
+import ReplyModal from './modals/ReplyModal.jsx';
 
 const ConversationsTab = () => {
   const [conversations, setConversations] = useState([]);
@@ -10,6 +13,11 @@ const ConversationsTab = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
+  const [showActionConfirmation, setShowActionConfirmation] = useState(false);
+  const [showStarModal, setShowStarModal] = useState(false);
+  const [showReplyModal, setShowReplyModal] = useState(false);
+  const [selectedInsight, setSelectedInsight] = useState(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -105,10 +113,8 @@ const ConversationsTab = () => {
   };
 
   const handleStarCustomer = (customer) => {
-    console.log('Starring customer:', customer.name);
-    // In real implementation, this would call an API to star the customer
-    // and show a modal to add them to customer segments/tags
-    alert(`Starring ${customer.name}. In production, this would open a modal to add them to customer segments.`);
+    setSelectedCustomer(customer);
+    setShowStarModal(true);
   };
 
   const handleArchiveCustomer = (customer) => {
@@ -117,8 +123,42 @@ const ConversationsTab = () => {
     setConversations(prev => prev.filter(conv => 
       !conv.participants.some(p => p.email === customer.email)
     ));
-    alert(`${customer.name} has been archived and removed from the current list.`);
     setShowModal(false);
+  };
+
+  const handleReply = (conversation) => {
+    setSelectedConversation(conversation);
+    setShowReplyModal(true);
+  };
+
+  const handleOrchestrateAction = (actionData) => {
+    setSelectedInsight(actionData);
+    setShowActionConfirmation(true);
+  };
+
+  const handleAcceptAction = (actionData) => {
+    console.log('Accepting AI action:', actionData);
+    // In real implementation, this would call orchestrator_agent.py
+    setShowActionConfirmation(false);
+    setShowAgentInsights(false);
+  };
+
+  const handleRejectAction = () => {
+    console.log('Rejecting AI action');
+    setShowActionConfirmation(false);
+  };
+
+  const handleConfirmStar = (starData) => {
+    console.log('Starring customer:', starData);
+    // In real implementation, this would call API to star customer and add tags
+    setShowStarModal(false);
+    setShowModal(false);
+  };
+
+  const handleSendReply = (replyData) => {
+    console.log('Sending reply:', replyData);
+    // In real implementation, this would send the reply through appropriate channel
+    setShowReplyModal(false);
   };
 
   // Filter customers based on search and filters
@@ -298,21 +338,13 @@ const ConversationsTab = () => {
             setShowModal(false);
             setSelectedCustomer(null);
           }}
-          onReply={(conversation) => {
-            console.log('Reply clicked for conversation:', conversation.subject);
-            // In real implementation, this would open platform-specific modal
-            alert(`Opening reply modal for ${conversation.type} conversation. In production, this would open the appropriate compose modal (email, chat, etc.).`);
-          }}
+          onReply={handleReply}
           onStar={handleStarCustomer}
           onArchive={handleArchiveCustomer}
           onPlayRecording={() => console.log('Play recording')}
           onDownloadRecording={() => console.log('Download recording')}
           onInitiateAction={() => console.log('Initiate action')}
-          onOrchestrateAction={(actionData) => {
-            console.log('Orchestrating AI insight action:', actionData);
-            // In real implementation, this would call the orchestrator_agent.py
-            alert(`Applying AI insight: "${actionData.insight.title}". In production, this would trigger the orchestrator agent to implement the recommendation.`);
-          }}
+          onOrchestrateAction={handleOrchestrateAction}
         />
       )}
 
@@ -320,12 +352,49 @@ const ConversationsTab = () => {
       {showAgentInsights && (
         <AgentInsightsModal
           onClose={() => setShowAgentInsights(false)}
-          onOrchestrateAction={(actionData) => {
-            console.log('Orchestrating AI insight action:', actionData);
-            // In real implementation, this would call the orchestrator_agent.py
-            alert(`Applying AI insight: "${actionData.insight.title}". In production, this would trigger the orchestrator agent to implement the recommendation.`);
-          }}
+          onOrchestrateAction={handleOrchestrateAction}
           conversations={conversations}
+        />
+      )}
+
+      {/* Action Confirmation Modal */}
+      {showActionConfirmation && selectedInsight && (
+        <ActionConfirmationModal
+          insight={selectedInsight.insight}
+          onClose={() => {
+            setShowActionConfirmation(false);
+            setSelectedInsight(null);
+          }}
+          onAccept={handleAcceptAction}
+          onReject={handleRejectAction}
+          onEdit={(editedData) => {
+            console.log('Edited actions:', editedData);
+            setSelectedInsight({ ...selectedInsight, actions: editedData.actions });
+          }}
+        />
+      )}
+
+      {/* Star Customer Modal */}
+      {showStarModal && selectedCustomer && (
+        <StarCustomerModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setShowStarModal(false);
+            setSelectedCustomer(null);
+          }}
+          onConfirm={handleConfirmStar}
+        />
+      )}
+
+      {/* Reply Modal */}
+      {showReplyModal && selectedConversation && (
+        <ReplyModal
+          conversation={selectedConversation}
+          onClose={() => {
+            setShowReplyModal(false);
+            setSelectedConversation(null);
+          }}
+          onSend={handleSendReply}
         />
       )}
     </div>
