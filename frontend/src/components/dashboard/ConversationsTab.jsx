@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
 import ConversationDetailModal from './modals/ConversationDetailModal.jsx';
-import { fetchConversations, getConversationAnalytics, getAgentInsights } from '../../services/conversationsApi.js';
+import { fetchConversations as fetchConversationsApi, getConversationAnalytics, getAgentInsights } from '../../services/conversationsApi.js';
 
 // Mock conversation data
 const mockConversations = [
@@ -203,7 +203,7 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
         search: searchTerm || undefined
       };
 
-      const conversationsData = await fetchConversations(filters);
+      const conversationsData = await fetchConversationsApi(filters);
       setConversations(conversationsData);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -258,7 +258,7 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
 
 
   // Filter and sort conversations
-  const filteredConversations = conversations
+  const filteredConversations = (conversations || [])
     .filter(conversation => {
       const matchesSearch = conversation.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            conversation.participants.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -467,6 +467,10 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
 
   // Get conversation analytics
   const getConversationAnalytics = () => {
+    if (!conversations || !Array.isArray(conversations)) {
+      return { total: 0, active: 0, resolved: 0, automated: 0, highValue: 0, recent: 0 };
+    }
+    
     const total = conversations.length;
     const active = conversations.filter(c => c.status === 'active').length;
     const resolved = conversations.filter(c => c.status === 'resolved').length;
@@ -738,7 +742,7 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
 
         {/* Results Summary */}
         <div className="text-sm text-gray-600 mb-4">
-          Showing {filteredConversations.length} of {conversations.length} conversations
+          Showing {filteredConversations.length} of {conversations?.length || 0} conversations
           {isLoading && <span className="ml-2 text-blue-600">(Loading...)</span>}
         </div>
       </div>
