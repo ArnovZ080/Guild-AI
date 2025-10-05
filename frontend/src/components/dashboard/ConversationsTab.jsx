@@ -35,7 +35,6 @@ import {
   Mail as MailIcon,
   Smartphone
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
 import { fetchConversations as fetchConversationsApi, getConversationAnalytics, getAgentInsights } from '../../services/conversationsApi.js';
@@ -175,7 +174,6 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
   const [sortBy, setSortBy] = useState('lastActivity');
   const [isLoading, setIsLoading] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
-  const { triggerCelebration } = useCelebrations();
 
   // Fetch conversations from agents
   useEffect(() => {
@@ -222,10 +220,6 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
 
   const handleReply = (conversation) => {
     console.log('Replying to conversation:', conversation.id);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Replying to: ${conversation.subject} 💬`,
-      intensity: 'normal'
-    });
     // In real implementation, this would open a reply form
   };
 
@@ -236,10 +230,6 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
         ? { ...conv, starred: !conv.starred }
         : conv
     ));
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: conversation.starred ? 'Unstarred conversation' : 'Starred conversation ⭐',
-      intensity: 'normal'
-    });
   };
 
   const handleArchive = (conversation) => {
@@ -249,20 +239,12 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
         ? { ...conv, status: 'archived' }
         : conv
     ));
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Archived: ${conversation.subject} 📁`,
-      intensity: 'normal'
-    });
     setShowConversationModal(false);
   };
 
   // Orchestrate action handler
   const handleOrchestrateAction = async (actionData) => {
     console.log('Orchestrating action:', actionData);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: "Agent action initiated! 🚀",
-      intensity: 'normal'
-    });
 
     try {
       // In real implementation, this would call the orchestrator_agent.py
@@ -900,17 +882,9 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
           onArchive={handleArchive}
           onPlayRecording={(recordingUrl) => {
             console.log('Playing recording:', recordingUrl);
-            triggerCelebration(CelebrationType.TASK_COMPLETE, {
-              message: "Playing call recording 🎵",
-              intensity: 'normal'
-            });
           }}
           onDownloadRecording={(recordingUrl) => {
             console.log('Downloading recording:', recordingUrl);
-            triggerCelebration(CelebrationType.TASK_COMPLETE, {
-              message: "Recording downloaded 📥",
-              intensity: 'normal'
-            });
           }}
           onInitiateAction={handleInitiateAction}
           onOrchestrateAction={handleOrchestrateAction}

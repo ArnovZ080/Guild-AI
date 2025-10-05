@@ -19,8 +19,8 @@ const mockConversationsData = [
     status: 'active',
     priority: 'high',
     lastMessage: 'Looking forward to the demo next week. Please send calendar invite.',
-    lastActivity: new Date(2024, 0, 12, 14, 30),
-    createdAt: new Date(2024, 0, 8, 10, 15),
+    lastActivity: () => new Date(2024, 0, 12, 14, 30),
+    createdAt: () => new Date(2024, 0, 8, 10, 15),
     messageCount: 8,
     tags: ['demo', 'enterprise', 'hot-lead'],
     agentType: 'sales',
@@ -28,7 +28,7 @@ const mockConversationsData = [
     summary: 'Customer interested in enterprise package. Demo scheduled for next week.',
     sentiment: 'positive',
     nextAction: 'Send calendar invite and demo materials',
-    nextActionDate: new Date(2024, 0, 15),
+    nextActionDate: () => new Date(2024, 0, 15),
     estimatedValue: 50000,
     actualValue: 0,
     source: 'customer_intelligence_agent',
@@ -45,8 +45,8 @@ const mockConversationsData = [
     status: 'resolved',
     priority: 'medium',
     lastMessage: 'Issue resolved. Customer satisfied with solution.',
-    lastActivity: new Date(2024, 0, 11, 16, 45),
-    createdAt: new Date(2024, 0, 11, 15, 20),
+    lastActivity: () => new Date(2024, 0, 11, 16, 45),
+    createdAt: () => new Date(2024, 0, 11, 15, 20),
     messageCount: 1,
     tags: ['support', 'resolved', 'billing'],
     agentType: 'support',
@@ -71,8 +71,8 @@ const mockConversationsData = [
     status: 'active',
     priority: 'medium',
     lastMessage: 'Can you send me more information about the startup package?',
-    lastActivity: new Date(2024, 0, 12, 11, 20),
-    createdAt: new Date(2024, 0, 12, 11, 15),
+    lastActivity: () => new Date(2024, 0, 12, 11, 20),
+    createdAt: () => new Date(2024, 0, 12, 11, 15),
     messageCount: 12,
     tags: ['pricing', 'startup', 'inquiry'],
     agentType: 'chat',
@@ -80,7 +80,7 @@ const mockConversationsData = [
     summary: 'Startup founder inquiring about pricing. Interested in basic package.',
     sentiment: 'positive',
     nextAction: 'Send pricing information and schedule follow-up call',
-    nextActionDate: new Date(2024, 0, 13),
+    nextActionDate: () => new Date(2024, 0, 13),
     estimatedValue: 5000,
     actualValue: 0,
     source: 'content_intelligence_agent',
@@ -97,8 +97,8 @@ const mockConversationsData = [
     status: 'active',
     priority: 'high',
     lastMessage: 'Would love to discuss a potential partnership. When can we meet?',
-    lastActivity: new Date(2024, 0, 10, 9, 30),
-    createdAt: new Date(2024, 0, 10, 9, 25),
+    lastActivity: () => new Date(2024, 0, 10, 9, 30),
+    createdAt: () => new Date(2024, 0, 10, 9, 25),
     messageCount: 6,
     tags: ['partnership', 'linkedin', 'enterprise'],
     agentType: 'partnerships',
@@ -106,7 +106,7 @@ const mockConversationsData = [
     summary: 'Enterprise client interested in partnership opportunities.',
     sentiment: 'positive',
     nextAction: 'Schedule partnership meeting',
-    nextActionDate: new Date(2024, 0, 16),
+    nextActionDate: () => new Date(2024, 0, 16),
     estimatedValue: 100000,
     actualValue: 0,
     source: 'business_intelligence_agent',
@@ -123,8 +123,8 @@ const mockConversationsData = [
     status: 'automated',
     priority: 'low',
     lastMessage: 'Welcome to our newsletter! Here are some tips to get started...',
-    lastActivity: new Date(2024, 0, 12, 8, 0),
-    createdAt: new Date(2024, 0, 12, 8, 0),
+    lastActivity: () => new Date(2024, 0, 12, 8, 0),
+    createdAt: () => new Date(2024, 0, 12, 8, 0),
     messageCount: 1,
     tags: ['newsletter', 'automated', 'welcome'],
     agentType: 'email',
@@ -178,7 +178,15 @@ export async function fetchConversations(filters = {}) {
  * @returns {Array} Filtered conversations
  */
 function filterMockConversations(conversations, filters) {
-  let filtered = [...conversations];
+  // Convert date functions to actual dates
+  const conversationsWithDates = conversations.map(conv => ({
+    ...conv,
+    lastActivity: typeof conv.lastActivity === 'function' ? conv.lastActivity() : conv.lastActivity,
+    createdAt: typeof conv.createdAt === 'function' ? conv.createdAt() : conv.createdAt,
+    nextActionDate: typeof conv.nextActionDate === 'function' ? conv.nextActionDate() : conv.nextActionDate
+  }));
+  
+  let filtered = [...conversationsWithDates];
 
   if (filters.type && filters.type !== 'all') {
     filtered = filtered.filter(conv => conv.type === filters.type);
@@ -280,7 +288,8 @@ export async function getConversationAnalytics() {
         automated: mockConversationsData.filter(c => c.status === 'automated').length,
         highValue: mockConversationsData.filter(c => (c.estimatedValue || 0) >= 50000).length,
         recent: mockConversationsData.filter(c => {
-          const daysDiff = Math.floor((new Date() - new Date(c.lastActivity)) / (1000 * 60 * 60 * 24));
+          const lastActivity = typeof c.lastActivity === 'function' ? c.lastActivity() : c.lastActivity;
+          const daysDiff = Math.floor((new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24));
           return daysDiff <= 7;
         }).length
       };
