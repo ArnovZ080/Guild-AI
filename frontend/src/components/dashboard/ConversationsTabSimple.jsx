@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Star, Archive } from 'lucide-react';
+import { MessageSquare, Star, Archive, Bot } from 'lucide-react';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
+import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
 
 const ConversationsTabSimple = () => {
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showAgentInsights, setShowAgentInsights] = useState(false);
 
   useEffect(() => {
     fetchConversations();
@@ -53,8 +55,19 @@ const ConversationsTabSimple = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow-lg p-6">
-        <h3 className="text-xl font-semibold text-gray-900">Conversations Dashboard</h3>
-        <p className="text-sm text-gray-600">Unified inbox for all customer communications</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Conversations Dashboard</h3>
+            <p className="text-sm text-gray-600">Unified inbox for all customer communications</p>
+          </div>
+          <button
+            onClick={() => setShowAgentInsights(true)}
+            className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+          >
+            <Bot className="w-4 h-4 mr-2" />
+            Agent Insights
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -102,6 +115,15 @@ const ConversationsTabSimple = () => {
           onDownloadRecording={() => console.log('Download recording')}
           onInitiateAction={() => console.log('Initiate action')}
           onOrchestrateAction={() => console.log('Orchestrate action')}
+        />
+      )}
+
+      {/* Agent Insights Modal */}
+      {showAgentInsights && (
+        <AgentInsightsModal
+          onClose={() => setShowAgentInsights(false)}
+          onOrchestrateAction={() => console.log('Orchestrate action')}
+          conversations={conversations}
         />
       )}
     </div>
