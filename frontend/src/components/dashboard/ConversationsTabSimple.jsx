@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Phone, Mail, Bot, Star, Archive } from 'lucide-react';
+import { MessageSquare, Star, Archive } from 'lucide-react';
+import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 
 const ConversationsTabSimple = () => {
   const [conversations, setConversations] = useState([]);
@@ -12,20 +13,8 @@ const ConversationsTabSimple = () => {
   const fetchConversations = async () => {
     setIsLoading(true);
     try {
-      // Simple mock data without dates
-      const mockData = [
-        {
-          id: '1',
-          type: 'email',
-          subject: 'Product Demo Request',
-          status: 'active',
-          priority: 'high',
-          participants: [
-            { name: 'Sarah Johnson', email: 'sarah@example.com', role: 'customer' }
-          ]
-        }
-      ];
-      setConversations(mockData);
+      const data = await fetchConversationsApi({});
+      setConversations(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
