@@ -36,7 +36,8 @@ import {
   Smartphone
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
-import ConversationDetailModal from './modals/ConversationDetailModal.jsx';
+import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
+import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
 import { fetchConversations as fetchConversationsApi, getConversationAnalytics, getAgentInsights } from '../../services/conversationsApi.js';
 
 // Mock conversation data
@@ -173,7 +174,6 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
   const [filterDateRange, setFilterDateRange] = useState('all');
   const [sortBy, setSortBy] = useState('lastActivity');
   const [isLoading, setIsLoading] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
   const { triggerCelebration } = useCelebrations();
 
@@ -214,9 +214,9 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
     }
   };
 
-  // Conversation modal handlers
-  const handleConversationClick = (conversation) => {
-    setSelectedConversation(conversation);
+  // Customer modal handlers
+  const handleCustomerClick = (customer) => {
+    setSelectedConversation(customer); // Reusing the same state for customer
     setShowConversationModal(true);
   };
 
@@ -256,21 +256,73 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
     setShowConversationModal(false);
   };
 
+  // Orchestrate action handler
+  const handleOrchestrateAction = async (actionData) => {
+    console.log('Orchestrating action:', actionData);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "Agent action initiated! 🚀",
+      intensity: 'normal'
+    });
 
-  // Filter and sort conversations
-  const filteredConversations = (conversations || [])
-    .filter(conversation => {
-      const matchesSearch = conversation.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           conversation.participants.some(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-      const matchesType = filterType === 'all' || conversation.type === filterType;
-      const matchesStatus = filterStatus === 'all' || conversation.status === filterStatus;
-      const matchesAgent = filterAgent === 'all' || conversation.agentType === filterAgent;
-      const matchesPriority = filterPriority === 'all' || conversation.priority === filterPriority;
+    try {
+      // In real implementation, this would call the orchestrator_agent.py
+      const response = await fetch('/api/orchestrator/action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: actionData.action,
+          type: actionData.type || 'customer_action',
+          data: actionData
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Orchestration result:', result);
+        // Refresh conversations after action
+        fetchConversations();
+      } else {
+        console.error('Failed to orchestrate action');
+      }
+    } catch (error) {
+      console.error('Error orchestrating action:', error);
+    }
+  };
+
+  // Initiate action handler for customers
+  const handleInitiateAction = async (customer) => {
+    console.log('Initiating action for customer:', customer.name);
+    
+    const actionData = {
+      type: 'customer_action',
+      action: `Initiate comprehensive customer engagement for ${customer.name}`,
+      customer: customer,
+      priority: customer.priority,
+      value: customer.totalValue,
+      sentiment: customer.sentiment
+    };
+
+    await handleOrchestrateAction(actionData);
+  };
+
+
+  // Get customer data and filter
+  const customerData = getCustomerData();
+  const filteredCustomers = customerData
+    .filter(customer => {
+      const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesType = filterType === 'all' || customer.channels.includes(filterType);
+      const matchesStatus = filterStatus === 'all' || customer.status === filterStatus;
+      const matchesAgent = filterAgent === 'all' || customer.agents.includes(filterAgent);
+      const matchesPriority = filterPriority === 'all' || customer.priority === filterPriority;
       
       // Value range filter
       const matchesValue = (() => {
         if (filterValueRange === 'all') return true;
-        const value = conversation.estimatedValue || conversation.actualValue || 0;
+        const value = customer.totalValue || 0;
         switch (filterValueRange) {
           case 'high': return value >= 50000;
           case 'medium': return value >= 10000 && value < 50000;
@@ -284,8 +336,8 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
       const matchesDate = (() => {
         if (filterDateRange === 'all') return true;
         const now = new Date();
-        const conversationDate = new Date(conversation.lastActivity);
-        const daysDiff = Math.floor((now - conversationDate) / (1000 * 60 * 60 * 24));
+        const lastActivity = new Date(customer.lastActivity);
+        const daysDiff = Math.floor((now - lastActivity) / (1000 * 60 * 60 * 24));
         
         switch (filterDateRange) {
           case 'today': return daysDiff === 0;
@@ -310,9 +362,7 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
         case 'messageCount':
           return b.messageCount - a.messageCount;
         case 'value':
-          const aValue = a.estimatedValue || a.actualValue || 0;
-          const bValue = b.estimatedValue || b.actualValue || 0;
-          return bValue - aValue;
+          return b.totalValue - a.totalValue;
         case 'urgency':
           // Sort by priority first, then by date
           const priorityOrder2 = { high: 3, medium: 2, low: 1 };
@@ -380,82 +430,108 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
     return styles[sentiment] || 'text-gray-600';
   };
 
-  // Conversation list item
-  const ConversationItem = ({ conversation }) => {
-    const TypeIcon = getTypeIcon(conversation.type);
+  // Customer card component
+  const CustomerCard = ({ customer }) => {
+    const getSentimentStyle = (sentiment) => {
+      const styles = {
+        positive: 'text-green-600',
+        negative: 'text-red-600',
+        neutral: 'text-gray-600'
+      };
+      return styles[sentiment] || 'text-gray-600';
+    };
+
+    const getChannelIcons = (channels) => {
+      const icons = {
+        email: MailIcon,
+        voice: Phone,
+        chat: MessageSquare,
+        social: MessageCircle,
+        sms: Smartphone
+      };
+      return channels.slice(0, 3).map(channel => {
+        const Icon = icons[channel] || MessageSquare;
+        return (
+          <div key={channel} className={`p-1 rounded ${getTypeStyle(channel)}`}>
+            <Icon className="w-3 h-3" />
+          </div>
+        );
+      });
+    };
     
     return (
       <motion.div
-        className={`bg-white rounded-lg shadow-sm border ${getPriorityStyle(conversation.priority)} cursor-pointer hover:shadow-md transition-shadow`}
+        className={`bg-white rounded-lg shadow-sm border ${getPriorityStyle(customer.priority)} cursor-pointer hover:shadow-md transition-shadow`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        onClick={() => handleConversationClick(conversation)}
+        onClick={() => handleCustomerClick(customer)}
       >
         <div className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-lg ${getTypeStyle(conversation.type)}`}>
-                <TypeIcon className="w-4 h-4" />
+              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
+                {customer.name[0]}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{conversation.subject}</h3>
+                <h3 className="font-semibold text-gray-900">{customer.name}</h3>
                 <div className="flex items-center space-x-2 mt-1">
-                  <span className="text-sm text-gray-600">
-                    {conversation.participants.find(p => p.role === 'customer')?.name}
-                  </span>
+                  <span className="text-sm text-gray-600">{customer.email}</span>
                   <span className="text-gray-400">•</span>
-                  <span className="text-sm text-gray-600">
-                    {conversation.participants.find(p => p.role === 'agent')?.name}
-                  </span>
+                  <span className="text-sm text-gray-600">{customer.conversationCount} conversations</span>
                 </div>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(conversation.status)}`}>
-                {conversation.status}
+              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(customer.status)}`}>
+                {customer.status}
               </span>
-              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getTypeStyle(conversation.type)}`}>
-                {conversation.type}
+              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getSentimentStyle(customer.sentiment)}`}>
+                {customer.sentiment}
               </span>
             </div>
           </div>
 
-          <p className="text-gray-700 text-sm mb-3 line-clamp-2">{conversation.lastMessage}</p>
+          <div className="mb-3">
+            <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+              <span>Channels: {customer.channels.join(', ')}</span>
+              <span>Agents: {customer.agents.join(', ')}</span>
+            </div>
+            <div className="flex items-center space-x-2 mb-2">
+              {getChannelIcons(customer.channels)}
+              {customer.channels.length > 3 && (
+                <span className="text-xs text-gray-500">+{customer.channels.length - 3} more</span>
+              )}
+            </div>
+          </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <div className="flex items-center space-x-1">
                 <Clock className="w-4 h-4" />
-                <span>{conversation.lastActivity.toLocaleString()}</span>
+                <span>{new Date(customer.lastActivity).toLocaleString()}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <MessageSquare className="w-4 h-4" />
-                <span>{conversation.messageCount} messages</span>
+                <span>{customer.messageCount} messages</span>
               </div>
-              {(conversation.estimatedValue || conversation.actualValue) && (
+              {customer.totalValue > 0 && (
                 <div className="flex items-center space-x-1">
                   <DollarSign className="w-4 h-4" />
                   <span className="font-medium text-green-600">
-                    ${(conversation.estimatedValue || conversation.actualValue || 0).toLocaleString()}
+                    ${customer.totalValue.toLocaleString()}
                   </span>
-                </div>
-              )}
-              {conversation.duration && (
-                <div className="flex items-center space-x-1">
-                  <Phone className="w-4 h-4" />
-                  <span>{conversation.duration}min</span>
                 </div>
               )}
             </div>
             <div className="flex items-center space-x-2">
-              {conversation.tags.slice(0, 2).map(tag => (
+              {customer.tags.slice(0, 2).map(tag => (
                 <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
                   {tag}
                 </span>
               ))}
-              {conversation.tags.length > 2 && (
-                <span className="text-xs text-gray-500">+{conversation.tags.length - 2}</span>
+              {customer.tags.length > 2 && (
+                <span className="text-xs text-gray-500">+{customer.tags.length - 2}</span>
               )}
             </div>
           </div>
@@ -464,6 +540,72 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
     );
   };
 
+
+  // Group conversations by customer
+  const getCustomerData = () => {
+    if (!conversations || !Array.isArray(conversations)) {
+      return [];
+    }
+
+    const customerMap = new Map();
+
+    conversations.forEach(conversation => {
+      const customer = conversation.participants.find(p => p.role === 'customer');
+      if (!customer || !customer.email) return;
+
+      const customerKey = customer.email;
+      
+      if (!customerMap.has(customerKey)) {
+        customerMap.set(customerKey, {
+          id: customerKey,
+          name: customer.name,
+          email: customer.email,
+          conversations: [],
+          totalValue: 0,
+          lastActivity: conversation.lastActivity,
+          status: conversation.status,
+          priority: conversation.priority,
+          tags: new Set(),
+          agents: new Set(),
+          channels: new Set(),
+          sentiment: conversation.sentiment,
+          messageCount: 0,
+          createdAt: conversation.createdAt
+        });
+      }
+
+      const customerData = customerMap.get(customerKey);
+      customerData.conversations.push(conversation);
+      customerData.totalValue += (conversation.estimatedValue || conversation.actualValue || 0);
+      customerData.messageCount += conversation.messageCount;
+      
+      // Update last activity
+      if (new Date(conversation.lastActivity) > new Date(customerData.lastActivity)) {
+        customerData.lastActivity = conversation.lastActivity;
+        customerData.status = conversation.status;
+        customerData.priority = conversation.priority;
+        customerData.sentiment = conversation.sentiment;
+      }
+
+      // Collect tags, agents, and channels
+      conversation.tags.forEach(tag => customerData.tags.add(tag));
+      customerData.agents.add(conversation.agentType);
+      customerData.channels.add(conversation.type);
+    });
+
+    // Convert to array and format data
+    return Array.from(customerMap.values()).map(customer => ({
+      ...customer,
+      tags: Array.from(customer.tags),
+      agents: Array.from(customer.agents),
+      channels: Array.from(customer.channels),
+      conversationCount: customer.conversations.length,
+      avgSentiment: customer.conversations.reduce((sum, conv) => {
+        const sentimentScores = { positive: 1, neutral: 0.5, negative: 0 };
+        return sum + (sentimentScores[conv.sentiment] || 0.5);
+      }, 0) / customer.conversations.length
+    }));
+  };
 
   // Get conversation analytics
   const getConversationAnalytics = () => {
@@ -500,17 +642,8 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
           </div>
           
           <div className="space-y-3">
-            {/* Top Row: Analytics, Agent Insights */}
+            {/* Top Row: Agent Insights, Refresh */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Analytics Button */}
-              <button 
-                onClick={() => setShowAnalytics(!showAnalytics)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Analytics
-              </button>
-
               {/* Agent Insights Button */}
               <button 
                 onClick={() => setShowAgentInsights(!showAgentInsights)}
@@ -533,9 +666,8 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
           </div>
         </div>
 
-        {/* Analytics Summary */}
-        {showAnalytics && (
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
+        {/* Analytics Summary - Always Visible */}
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <BarChart3 className="w-5 h-5 text-purple-500 mr-2" />
               Conversation Analytics
@@ -579,7 +711,6 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
               </div>
             </div>
           </div>
-        )}
 
         {/* Agent Insights Section */}
         {showAgentInsights && (
@@ -742,24 +873,24 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
 
         {/* Results Summary */}
         <div className="text-sm text-gray-600 mb-4">
-          Showing {filteredConversations.length} of {conversations?.length || 0} conversations
+          Showing {filteredCustomers.length} of {customerData.length} customers
           {isLoading && <span className="ml-2 text-blue-600">(Loading...)</span>}
         </div>
       </div>
 
-      {/* Conversations List */}
+      {/* Customer List */}
       <div className="space-y-4">
         <AnimatePresence>
-          {filteredConversations.map(conversation => (
-            <ConversationItem key={conversation.id} conversation={conversation} />
+          {filteredCustomers.map(customer => (
+            <CustomerCard key={customer.id} customer={customer} />
           ))}
         </AnimatePresence>
       </div>
 
-      {/* Conversation Detail Modal */}
+      {/* Customer Detail Modal */}
       {showConversationModal && selectedConversation && (
-        <ConversationDetailModal
-          conversation={selectedConversation}
+        <CustomerDetailModal
+          customer={selectedConversation}
           onClose={() => {
             setShowConversationModal(false);
             setSelectedConversation(null);
@@ -781,6 +912,17 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
               intensity: 'normal'
             });
           }}
+          onInitiateAction={handleInitiateAction}
+          onOrchestrateAction={handleOrchestrateAction}
+        />
+      )}
+
+      {/* Agent Insights Modal */}
+      {showAgentInsights && (
+        <AgentInsightsModal
+          onClose={() => setShowAgentInsights(false)}
+          onOrchestrateAction={handleOrchestrateAction}
+          conversations={conversations}
         />
       )}
     </div>
