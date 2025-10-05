@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Star, Archive } from 'lucide-react';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
+import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 
 const ConversationsTabSimple = () => {
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchConversations();
@@ -22,6 +25,31 @@ const ConversationsTabSimple = () => {
     }
   };
 
+  const handleCustomerClick = (conversation) => {
+    // Create a simple customer object from conversation
+    const customer = {
+      id: conversation.id,
+      name: conversation.participants?.[0]?.name || 'Unknown Customer',
+      email: conversation.participants?.[0]?.email || 'unknown@example.com',
+      conversations: [conversation],
+      totalValue: conversation.estimatedValue || 0,
+      lastActivity: conversation.lastActivity,
+      status: conversation.status,
+      priority: conversation.priority,
+      tags: conversation.tags || [],
+      agents: [conversation.agentType || 'unknown'],
+      channels: [conversation.type],
+      sentiment: conversation.sentiment || 'neutral',
+      messageCount: conversation.messageCount || 0,
+      createdAt: conversation.createdAt,
+      conversationCount: 1,
+      avgSentiment: 0.5
+    };
+    
+    setSelectedCustomer(customer);
+    setShowModal(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -36,7 +64,7 @@ const ConversationsTabSimple = () => {
       ) : (
         <div className="space-y-4">
           {conversations.map(conversation => (
-            <div key={conversation.id} className="bg-white rounded-lg shadow-sm border p-4">
+            <div key={conversation.id} className="bg-white rounded-lg shadow-sm border p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCustomerClick(conversation)}>
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-lg bg-blue-100">
                   <MessageSquare className="w-4 h-4 text-blue-600" />
@@ -57,6 +85,24 @@ const ConversationsTabSimple = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Customer Detail Modal */}
+      {showModal && selectedCustomer && (
+        <CustomerDetailModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setShowModal(false);
+            setSelectedCustomer(null);
+          }}
+          onReply={() => console.log('Reply clicked')}
+          onStar={() => console.log('Star clicked')}
+          onArchive={() => console.log('Archive clicked')}
+          onPlayRecording={() => console.log('Play recording')}
+          onDownloadRecording={() => console.log('Download recording')}
+          onInitiateAction={() => console.log('Initiate action')}
+          onOrchestrateAction={() => console.log('Orchestrate action')}
+        />
       )}
     </div>
   );
