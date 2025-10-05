@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   Bot,
   Brain,
@@ -167,12 +166,7 @@ const AgentInsightsModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <motion.div 
-        className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2 }}
-      >
+      <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -323,7 +317,7 @@ const AgentInsightsModal = ({
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageSquare, 
   Phone, 
@@ -442,11 +441,8 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
     };
     
     return (
-      <motion.div
+      <div
         className={`bg-white rounded-lg shadow-sm border ${getPriorityStyle(customer.priority)} cursor-pointer hover:shadow-md transition-shadow`}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
         onClick={() => handleCustomerClick(customer)}
       >
         <div className="p-4">
@@ -518,7 +514,7 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     );
   };
 
@@ -862,11 +858,9 @@ const ConversationsTab = ({ hiredAgents = [] }) => {
 
       {/* Customer List */}
       <div className="space-y-4">
-        <AnimatePresence>
-          {filteredCustomers.map(customer => (
-            <CustomerCard key={customer.id} customer={customer} />
-          ))}
-        </AnimatePresence>
+        {filteredCustomers.map(customer => (
+          <CustomerCard key={customer.id} customer={customer} />
+        ))}
       </div>
 
       {/* Customer Detail Modal */}
