@@ -475,13 +475,6 @@ const CustomerDetailModal = ({
               {/* Actions */}
               <div className="space-y-3">
                 <button 
-                  onClick={() => onInitiateAction && onInitiateAction(customer)}
-                  className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  <Zap className="w-4 h-4" />
-                  <span>Initiate Action</span>
-                </button>
-                <button 
                   onClick={() => onStar && onStar(customer)}
                   className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
                 >

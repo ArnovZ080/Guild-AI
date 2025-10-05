@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Star, Archive, Bot } from 'lucide-react';
+import { MessageSquare, Star, Archive, Bot, Search, Filter } from 'lucide-react';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
@@ -11,6 +11,11 @@ const ConversationsTab = () => {
   const [showModal, setShowModal] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterAgent, setFilterAgent] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
+  const [filterValueRange, setFilterValueRange] = useState('all');
 
   useEffect(() => {
     fetchConversations();
@@ -99,15 +104,60 @@ const ConversationsTab = () => {
     setShowModal(true);
   };
 
-  // Filter customers based on search
+  const handleStarCustomer = (customer) => {
+    console.log('Starring customer:', customer.name);
+    // In real implementation, this would call an API to star the customer
+    // and show a modal to add them to customer segments/tags
+    alert(`Starring ${customer.name}. In production, this would open a modal to add them to customer segments.`);
+  };
+
+  const handleArchiveCustomer = (customer) => {
+    console.log('Archiving customer:', customer.name);
+    // In real implementation, this would remove from current list and archive
+    setConversations(prev => prev.filter(conv => 
+      !conv.participants.some(p => p.email === customer.email)
+    ));
+    alert(`${customer.name} has been archived and removed from the current list.`);
+    setShowModal(false);
+  };
+
+  // Filter customers based on search and filters
   const getFilteredCustomers = () => {
     const customers = getCustomerData();
-    if (!searchTerm) return customers;
     
-    return customers.filter(customer => 
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return customers.filter(customer => {
+      // Search filter
+      const matchesSearch = !searchTerm || 
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      // Type filter (channels)
+      const matchesType = filterType === 'all' || customer.channels.includes(filterType);
+      
+      // Status filter
+      const matchesStatus = filterStatus === 'all' || customer.status === filterStatus;
+      
+      // Agent filter
+      const matchesAgent = filterAgent === 'all' || customer.agents.includes(filterAgent);
+      
+      // Priority filter
+      const matchesPriority = filterPriority === 'all' || customer.priority === filterPriority;
+      
+      // Value range filter
+      const matchesValue = (() => {
+        if (filterValueRange === 'all') return true;
+        const value = customer.totalValue || 0;
+        switch (filterValueRange) {
+          case 'high': return value >= 50000;
+          case 'medium': return value >= 10000 && value < 50000;
+          case 'low': return value > 0 && value < 10000;
+          case 'none': return value === 0;
+          default: return true;
+        }
+      })();
+      
+      return matchesSearch && matchesType && matchesStatus && matchesAgent && matchesPriority && matchesValue;
+    });
   };
 
   return (
@@ -127,15 +177,83 @@ const ConversationsTab = () => {
           </button>
         </div>
 
+        {/* Search and Filters */}
+        <div className="mt-4 space-y-4">
             {/* Search */}
-        <div className="mt-4">
+          <div>
               <input
                 type="text"
-            placeholder="Search customers..."
+              placeholder="Search customers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          />
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+
+            {/* Filters */}
+          <div className="flex flex-wrap items-center gap-4">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Channels</option>
+              <option value="email">Email</option>
+              <option value="voice">Voice</option>
+              <option value="chat">Chat</option>
+              <option value="social">Social</option>
+              <option value="sms">SMS</option>
+            </select>
+
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="resolved">Resolved</option>
+              <option value="pending">Pending</option>
+              <option value="automated">Automated</option>
+              <option value="archived">Archived</option>
+            </select>
+
+            <select
+              value={filterAgent}
+              onChange={(e) => setFilterAgent(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Agents</option>
+              <option value="sales">Sales</option>
+              <option value="support">Support</option>
+              <option value="chat">Chat</option>
+              <option value="partnerships">Partnerships</option>
+              <option value="email">Email</option>
+            </select>
+
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Priorities</option>
+              <option value="high">High Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="low">Low Priority</option>
+            </select>
+
+            <select
+              value={filterValueRange}
+              onChange={(e) => setFilterValueRange(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Values</option>
+              <option value="high">High Value ($50K+)</option>
+              <option value="medium">Medium Value ($10K-$50K)</option>
+              <option value="low">Low Value ($1K-$10K)</option>
+              <option value="none">No Value</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -144,7 +262,7 @@ const ConversationsTab = () => {
           <p>Loading conversations...</p>
         </div>
       ) : (
-        <div className="space-y-4">
+      <div className="space-y-4">
           {getFilteredCustomers().map(customer => (
             <div key={customer.id} className="bg-white rounded-lg shadow-sm border p-4 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleCustomerClick(customer)}>
               <div className="flex items-center space-x-3">
@@ -180,13 +298,21 @@ const ConversationsTab = () => {
             setShowModal(false);
             setSelectedCustomer(null);
           }}
-          onReply={() => console.log('Reply clicked')}
-          onStar={() => console.log('Star clicked')}
-          onArchive={() => console.log('Archive clicked')}
+          onReply={(conversation) => {
+            console.log('Reply clicked for conversation:', conversation.subject);
+            // In real implementation, this would open platform-specific modal
+            alert(`Opening reply modal for ${conversation.type} conversation. In production, this would open the appropriate compose modal (email, chat, etc.).`);
+          }}
+          onStar={handleStarCustomer}
+          onArchive={handleArchiveCustomer}
           onPlayRecording={() => console.log('Play recording')}
           onDownloadRecording={() => console.log('Download recording')}
           onInitiateAction={() => console.log('Initiate action')}
-          onOrchestrateAction={() => console.log('Orchestrate action')}
+          onOrchestrateAction={(actionData) => {
+            console.log('Orchestrating AI insight action:', actionData);
+            // In real implementation, this would call the orchestrator_agent.py
+            alert(`Applying AI insight: "${actionData.insight.title}". In production, this would trigger the orchestrator agent to implement the recommendation.`);
+          }}
         />
       )}
 
@@ -194,7 +320,11 @@ const ConversationsTab = () => {
       {showAgentInsights && (
         <AgentInsightsModal
           onClose={() => setShowAgentInsights(false)}
-          onOrchestrateAction={() => console.log('Orchestrate action')}
+          onOrchestrateAction={(actionData) => {
+            console.log('Orchestrating AI insight action:', actionData);
+            // In real implementation, this would call the orchestrator_agent.py
+            alert(`Applying AI insight: "${actionData.insight.title}". In production, this would trigger the orchestrator agent to implement the recommendation.`);
+          }}
           conversations={conversations}
         />
       )}
