@@ -203,6 +203,8 @@ const ConversationsTab = () => {
   };
 
   const handleReply = (conversation) => {
+    // ensure detail modal closes so compose modal is interactable and visible
+    setShowConversationDetail(false);
     setSelectedConversation(conversation);
     if (conversation.type === 'email') {
       setShowEmailModal(true);
@@ -235,6 +237,8 @@ const ConversationsTab = () => {
   };
 
   const handleInitiateAction = async (conversation) => {
+    // Close detail modal before opening approval for clear focus
+    setShowConversationDetail(false);
     // Open EnhancedApprovalModal configured with conversation context
     setApprovalData({
       action_type: 'Initiate Recommended Action',
@@ -260,12 +264,17 @@ const ConversationsTab = () => {
     const customer = selectedCustomer || { email: conversation?.participants?.find(p => p.role === 'customer')?.email };
     if (!customer?.email) return;
     handleStarCustomer({ email: customer.email, id: customer.email, name: customer.name || customer.email });
+    // Keep the detail modal open and provide immediate visual feedback by toggling local state
+    // no-op UI change here since star indicator is on the customer card; we could also toast if desired
   };
 
   const handleArchiveConversation = (conversation) => {
     if (!conversation) return;
     setConversations(prev => prev.filter(c => c.id !== conversation.id));
     setShowConversationDetail(false);
+    // Ensure compose modals are not inadvertently open
+    setShowEmailModal(false);
+    setShowMessageModal(false);
   };
 
   const handleOrchestrateAction = (actionData) => {
