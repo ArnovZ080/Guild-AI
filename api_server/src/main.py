@@ -56,6 +56,8 @@ from .routes import profile, content
 from .routes import conversations
 from .routes import campaign_agents, asset_agents
 from .routes import growth_opportunities
+from .routes import calendar
+from .routes import calendar_oauth
 
 # Include routers
 app.include_router(agents.router)
@@ -85,6 +87,9 @@ from .routes import goals
 app.include_router(goals.router)
 # Growth opportunities router
 app.include_router(growth_opportunities.router)
+# Calendar router
+app.include_router(calendar.router)
+app.include_router(calendar_oauth.router)
 # app.include_router(business_metrics.router)  # Module doesn't exist
 
 # Comment out other routes that depend on database

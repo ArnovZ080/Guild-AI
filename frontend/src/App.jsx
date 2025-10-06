@@ -11,7 +11,7 @@ import AnalyticsView from './views/AnalyticsView.jsx';
 import FinancialDashboardView from './views/FinancialDashboardView.jsx';
 import ComingSoonView from './views/ComingSoonView.jsx';
 import ChatInterface from './components/chat/ChatInterface.jsx';
-import CalendarView from './views/CalendarView.jsx';
+import CalendarPage from './components/dashboard/CalendarPage.jsx';
 import CustomersView from './views/CustomersView.jsx';
 import GoalsView from './views/GoalsView.jsx';
 import ConversationsTab from './components/dashboard/ConversationsTab.jsx';
@@ -95,7 +95,7 @@ function App() {
               } />
               <Route path="/calendar" element={
                 <DashboardLayout>
-                  <CalendarView />
+                  <CalendarPage />
                 </DashboardLayout>
               } />
               <Route path="/conversations" element={
