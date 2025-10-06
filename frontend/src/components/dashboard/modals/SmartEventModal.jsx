@@ -28,6 +28,36 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate, onDelete, onDelegat
   const [showDelegateModal, setShowDelegateModal] = useState(false);
   const [showPrepMaterialsModal, setShowPrepMaterialsModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    title: '',
+    type: '',
+    date: '',
+    time: '',
+    duration: 0,
+    location: '',
+    description: '',
+    priority: '',
+    attendees: ''
+  });
+
+  // Initialize edit form when event changes or editing mode is toggled
+  React.useEffect(() => {
+    if (event && isEditing) {
+      setEditForm({
+        title: event.title || '',
+        type: event.type || 'meeting',
+        date: event.date instanceof Date ? event.date.toISOString().split('T')[0] : new Date(event.date).toISOString().split('T')[0],
+        time: event.time || '09:00',
+        duration: event.duration || 60,
+        location: event.location || '',
+        description: event.description || '',
+        priority: event.priority || 'medium',
+        attendees: Array.isArray(event.attendees) ? event.attendees.join(', ') : ''
+      });
+    }
+  }, [event, isEditing]);
 
   if (!event) return null;
 
@@ -56,6 +86,32 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate, onDelete, onDelegat
     if (onReschedule) {
       onReschedule(event);
     }
+  };
+
+  const handleSaveEdit = () => {
+    if (!editForm.title.trim()) return;
+    
+    const updatedEvent = {
+      ...event,
+      title: editForm.title,
+      type: editForm.type,
+      date: new Date(editForm.date),
+      time: editForm.time,
+      duration: parseInt(editForm.duration),
+      location: editForm.location,
+      description: editForm.description,
+      priority: editForm.priority,
+      attendees: editForm.attendees ? editForm.attendees.split(',').map(a => a.trim()).filter(Boolean) : []
+    };
+    
+    if (onUpdate) {
+      onUpdate(updatedEvent);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
   };
 
   return (
@@ -106,8 +162,154 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate, onDelete, onDelegat
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Event Details */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Editing Mode */}
+          {isEditing ? (
+            <div className="space-y-4">
+              {/* Title */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Event Title *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Team standup meeting"
+                  required
+                />
+              </div>
+
+              {/* Type and Priority */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Event Type *</label>
+                  <select
+                    value={editForm.type}
+                    onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="meeting">👥 Meeting</option>
+                    <option value="financial">💰 Financial</option>
+                    <option value="goal">🎯 Goal/Task</option>
+                    <option value="personal">✨ Personal</option>
+                    <option value="reminder">⏰ Reminder</option>
+                    <option value="content">📝 Content</option>
+                    <option value="wellness">💚 Wellness</option>
+                    <option value="agent_task">🤖 Agent Task</option>
+                    <option value="break">☕ Break</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Priority *</label>
+                  <select
+                    value={editForm.priority}
+                    onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="low">🟢 Low</option>
+                    <option value="medium">🟡 Medium</option>
+                    <option value="high">🔴 High</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Date and Time */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Date *</label>
+                  <input
+                    type="date"
+                    value={editForm.date}
+                    onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Time *</label>
+                  <input
+                    type="time"
+                    value={editForm.time}
+                    onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-900 mb-2">Duration (min) *</label>
+                  <input
+                    type="number"
+                    value={editForm.duration}
+                    onChange={(e) => setEditForm({ ...editForm, duration: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="15"
+                    step="15"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Location</label>
+                <input
+                  type="text"
+                  value={editForm.location}
+                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Conference Room A, Zoom, etc."
+                />
+              </div>
+
+              {/* Attendees */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">
+                  Attendees (comma separated)
+                </label>
+                <input
+                  type="text"
+                  value={editForm.attendees}
+                  onChange={(e) => setEditForm({ ...editForm, attendees: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., John Smith, Sarah Johnson"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-900 mb-2">Description</label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  rows="4"
+                  placeholder="Additional details about the event..."
+                />
+              </div>
+
+              {/* Edit Actions */}
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t">
+                <button
+                  onClick={handleCancelEdit}
+                  className="px-6 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  disabled={!editForm.title.trim()}
+                  className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Save Changes</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Event Details */}
+              <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
               <Clock className="w-5 h-5 text-blue-600" />
               <div>
@@ -335,6 +537,8 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate, onDelete, onDelegat
               </button>
             </div>
           </div>
+            </>
+          )}
         </div>
       </motion.div>
 

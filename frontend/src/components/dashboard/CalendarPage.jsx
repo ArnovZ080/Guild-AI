@@ -526,7 +526,59 @@ const CalendarPage = () => {
             event={selectedEvent}
             onUpdate={(updated) => {
               setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+              setSelectedEvent(updated); // Keep modal open with updated event
+              triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                message: 'Event updated! ✏️',
+                intensity: 'normal'
+              });
+            }}
+            onDelete={(eventId) => {
+              setEvents(events.filter(e => e.id !== eventId));
               setSelectedEvent(null);
+              triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                message: 'Event deleted! 🗑️',
+                intensity: 'normal'
+              });
+            }}
+            onDelegate={(data) => {
+              console.log('Delegating event:', data);
+              setEvents(events.map(e => 
+                e.id === data.eventId 
+                  ? { ...e, delegatedTo: data.agent, delegationNotes: data.notes }
+                  : e
+              ));
+              triggerCelebration(CelebrationType.AGENT_TASK, {
+                message: `Event delegated to ${data.agent}! 🤖`,
+                intensity: 'high'
+              });
+            }}
+            onAddMaterials={(data) => {
+              console.log('Adding prep materials:', data);
+              setEvents(events.map(e => 
+                e.id === data.eventId 
+                  ? { ...e, prepMaterials: [...(e.prepMaterials || []), ...data.materials] }
+                  : e
+              ));
+              // Update the selected event to show new materials
+              setSelectedEvent(prev => ({
+                ...prev,
+                prepMaterials: [...(prev.prepMaterials || []), ...data.materials]
+              }));
+              triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                message: `${data.materials.length} prep material(s) added! 📎`,
+                intensity: 'normal'
+              });
+            }}
+            onShare={(data) => {
+              console.log('Sharing event:', data);
+              triggerCelebration(CelebrationType.TASK_COMPLETE, {
+                message: `Event shared via ${data.method}! 📤`,
+                intensity: 'normal'
+              });
+            }}
+            onReschedule={(event) => {
+              setSelectedEvent(null);
+              setShowSmartReschedule(true);
             }}
           />
         )}
