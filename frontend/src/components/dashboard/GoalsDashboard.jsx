@@ -254,7 +254,7 @@ const GoalsDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <AnimatePresence>
           {filteredGoals.map((goal) => (
-            <GoalCard key={goal.id} goal={goal} onClick={handleGoalClick} />
+            <GoalCard key={goal?.id || Math.random().toString(36).slice(2)} goal={goal || { title: '', description: '', progress: 0 }} onClick={handleGoalClick} />
           ))}
         </AnimatePresence>
       </div>
