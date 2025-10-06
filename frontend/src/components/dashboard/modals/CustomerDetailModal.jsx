@@ -443,7 +443,7 @@ const CustomerDetailModal = ({
                                         {message.sender === 'customer' ? customer.name : `${conversation.agentType} Agent`}
                                       </span>
                                       <span className="text-xs text-gray-500">
-                                        {new Date(message.timestamp).toLocaleString()}
+                                        {new Date(typeof message.timestamp === 'function' ? message.timestamp() : message.timestamp).toLocaleString()}
                                       </span>
                                     </div>
                                     <p className="text-sm text-gray-800">{message.content}</p>
@@ -455,7 +455,7 @@ const CustomerDetailModal = ({
                           
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
-                              <span>{new Date(conversation.lastActivity).toLocaleString()}</span>
+                              <span>{new Date(typeof conversation.lastActivity === 'function' ? conversation.lastActivity() : conversation.lastActivity).toLocaleString()}</span>
                               {(conversation.estimatedValue || conversation.actualValue) && (
                                 <span className="font-medium text-green-600">
                                   ${(conversation.estimatedValue || conversation.actualValue || 0).toLocaleString()}

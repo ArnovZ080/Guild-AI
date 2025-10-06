@@ -176,7 +176,7 @@ const ConversationDetailModal = ({
                         <div className="flex items-center space-x-2">
                           <DollarSign className="w-4 h-4 text-green-600" />
                           <span className="text-sm font-medium text-green-600">
-                            ${conversation.estimatedValue.toLocaleString()}
+                            ${(conversation.estimatedValue || 0).toLocaleString()}
                           </span>
                         </div>
                       )}
@@ -208,7 +208,7 @@ const ConversationDetailModal = ({
                           <p className="text-gray-900">Hello, I'm interested in learning more about your product.</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          {conversation.createdAt.toLocaleString()}
+                          {new Date(typeof conversation.createdAt === 'function' ? conversation.createdAt() : conversation.createdAt).toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -219,7 +219,7 @@ const ConversationDetailModal = ({
                           <p>Thank you for your interest! I'd be happy to help you learn more about our product.</p>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          {conversation.lastActivity.toLocaleString()}
+                          {new Date(typeof conversation.lastActivity === 'function' ? conversation.lastActivity() : conversation.lastActivity).toLocaleString()}
                         </p>
                       </div>
                       <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">
@@ -237,7 +237,7 @@ const ConversationDetailModal = ({
                             <p className="text-gray-900">{conversation.lastMessage}</p>
                           </div>
                           <p className="text-xs text-gray-500 mt-1">
-                            {conversation.lastActivity.toLocaleString()}
+                            {new Date(typeof conversation.lastActivity === 'function' ? conversation.lastActivity() : conversation.lastActivity).toLocaleString()}
                           </p>
                         </div>
                       </div>
