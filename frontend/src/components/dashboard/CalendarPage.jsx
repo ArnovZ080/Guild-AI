@@ -336,6 +336,21 @@ const CalendarPage = () => {
     });
   };
 
+  const handleRescheduleEvent = (eventId, newDate, newTime) => {
+    console.log('Drag-and-drop reschedule:', eventId, newDate, newTime);
+    const updatedEvents = events.map(event => {
+      if (event.id === eventId) {
+        return { ...event, date: newDate, time: newTime };
+      }
+      return event;
+    });
+    setEvents(updatedEvents);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: 'Event rescheduled! 🔄',
+      intensity: 'normal'
+    });
+  };
+
   const handleImplementOptimizations = (optimizations, remember) => {
     console.log('Implementing optimizations:', optimizations, 'Remember:', remember);
     triggerCelebration(CelebrationType.MILESTONE, {
@@ -432,6 +447,7 @@ const CalendarPage = () => {
               onOptimizeDay={handleOptimizeDay}
               onPrepareReports={handlePrepareReports}
               onReschedule={handleReschedule}
+              onRescheduleEvent={handleRescheduleEvent}
             />
           </div>
 

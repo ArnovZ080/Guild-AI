@@ -18,7 +18,8 @@ const CalendarLeftPanel = ({
   aiInsights,
   onOptimizeDay,
   onPrepareReports,
-  onReschedule
+  onReschedule,
+  onRescheduleEvent
 }) => {
   return (
     <div className="space-y-6">
@@ -65,15 +66,16 @@ const CalendarLeftPanel = ({
           />
         )}
         
-        {viewMode === 'day' && (
-          <DayView
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            events={events}
-            onEventClick={onEventClick}
-            onAddEvent={onAddEvent}
-          />
-        )}
+              {viewMode === 'day' && (
+                <DayViewWithDragDrop
+                  selectedDate={selectedDate}
+                  setSelectedDate={setSelectedDate}
+                  events={events}
+                  onEventClick={onEventClick}
+                  onAddEvent={onAddEvent}
+                  onRescheduleEvent={onRescheduleEvent}
+                />
+              )}
       </motion.div>
     </div>
   );
