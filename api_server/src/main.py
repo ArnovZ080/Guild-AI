@@ -85,6 +85,9 @@ app.include_router(conversations.router)
 # Goals router
 from .routes import goals
 app.include_router(goals.router)
+# Achievements router
+from .routes import achievements
+app.include_router(achievements.router)
 # Growth opportunities router
 app.include_router(growth_opportunities.router)
 # Calendar router
