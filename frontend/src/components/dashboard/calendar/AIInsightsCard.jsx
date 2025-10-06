@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
 
-const AIInsightsCard = ({ insights, isExpanded, onToggle, onShowOptimizations }) => {
+const AIInsightsCard = ({ insights, isExpanded, onToggle, onShowOptimizations, onShowFullReport }) => {
   const defaultInsights = {
     weekLoad: 72,
     productivityTrend: 'up',
@@ -119,7 +119,7 @@ const AIInsightsCard = ({ insights, isExpanded, onToggle, onShowOptimizations })
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Full Report functionality will be added here
+                      if (onShowFullReport) onShowFullReport();
                     }}
                     className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
                   >

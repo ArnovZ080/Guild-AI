@@ -61,6 +61,7 @@ const CalendarRightPanel = ({
         isExpanded={expandedCards.aiInsights}
         onToggle={() => toggleCard('aiInsights')}
         onShowOptimizations={onShowOptimizationRecommendations}
+        onShowFullReport={onShowTimeUseReport}
       />
 
       {/* Well-being Pulse */}
