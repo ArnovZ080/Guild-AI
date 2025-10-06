@@ -167,17 +167,30 @@ class AddGoalModal extends React.Component {
                       onClick={() => {
                         this.setState({
                           title: r.title,
+                          description: r.description || '',
                           type: r.type || 'general',
                           priority: r.priority || 'medium',
                           timeframe: r.timeframe || 'medium-term',
                         });
                       }}
-                      className="text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                      className="text-left px-4 py-3 border-2 border-purple-200 rounded-xl hover:bg-purple-50 hover:border-purple-400 transition-all"
                     >
-                      <div className="font-medium text-gray-900">{r.title}</div>
-                      <div className="text-xs text-gray-500 capitalize">
-                        {r.type} · {r.priority} · {r.timeframe}
+                      <div className="flex items-start gap-2 mb-1">
+                        <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                          r.priority === 'high' ? 'bg-red-100 text-red-700' :
+                          r.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {(r.priority || 'medium').toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-500 capitalize">{r.type} · {r.timeframe}</span>
                       </div>
+                      <div className="font-semibold text-gray-900 mb-1">{r.title}</div>
+                      {r.description && <div className="text-xs text-gray-600 mb-1">{r.description}</div>}
+                      {r.rationale && <div className="text-xs text-purple-700 italic flex items-start gap-1">
+                        <span className="mt-0.5">💡</span>
+                        {r.rationale}
+                      </div>}
                     </button>
                   ))}
                 </div>
