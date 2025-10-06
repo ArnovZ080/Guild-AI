@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Star, Archive, Bot, Search, Filter, RefreshCw, Download } from 'lucide-react';
+import ConversationDetailModal from './modals/ConversationDetailModal.jsx';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import { getMessagesForCustomer } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
@@ -23,6 +24,7 @@ const ConversationsTab = () => {
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterAgent, setFilterAgent] = useState('all');
+  const [filterSource, setFilterSource] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterValueRange, setFilterValueRange] = useState('all');
   const [filterStarred, setFilterStarred] = useState('all');
@@ -52,7 +54,8 @@ const ConversationsTab = () => {
         status: filterStatus,
         agent: filterAgent,
         priority: filterPriority,
-        search: searchTerm
+        search: searchTerm,
+        source: filterSource
       });
       setConversations(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -61,6 +64,28 @@ const ConversationsTab = () => {
       setIsLoading(false);
     }
   };
+
+  // Try to subscribe to a conversations websocket if available; fallback is the polling above
+  useEffect(() => {
+    const base = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    try {
+      const wsUrl = base.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/conversations';
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = () => {
+        // console.log('Conversations WS connected');
+      };
+      ws.onmessage = () => {
+        // Any message triggers a refresh
+        fetchConversations();
+      };
+      ws.onerror = () => {
+        // ignore, polling continues
+      };
+      return () => {
+        try { ws.close(); } catch {}
+      };
+    } catch {}
+  }, []);
 
   // Group conversations by customer
   const getCustomerData = () => {
@@ -192,9 +217,15 @@ const ConversationsTab = () => {
     
     return customers.filter(customer => {
       // Search filter
-      const matchesSearch = !searchTerm || 
-        customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = (() => {
+        if (!searchTerm) return true;
+        const s = searchTerm.toLowerCase();
+        if (customer.name.toLowerCase().includes(s) || customer.email.toLowerCase().includes(s)) return true;
+        // search across conversation subjects and last messages
+        return (customer.conversations || []).some(c =>
+          (c.subject || '').toLowerCase().includes(s) || (c.lastMessage || '').toLowerCase().includes(s)
+        );
+      })();
       
       // Type filter (channels)
       const matchesType = filterType === 'all' || customer.channels.includes(filterType);
@@ -204,6 +235,9 @@ const ConversationsTab = () => {
       
       // Agent filter
       const matchesAgent = filterAgent === 'all' || customer.agents.includes(filterAgent);
+
+      // Source filter
+      const matchesSource = filterSource === 'all' || (customer.conversations || []).some(c => (c.source || '') === filterSource);
       
       // Priority filter
       const matchesPriority = filterPriority === 'all' || customer.priority === filterPriority;
@@ -227,7 +261,7 @@ const ConversationsTab = () => {
         }
       })();
       
-      return matchesSearch && matchesType && matchesStatus && matchesAgent && matchesPriority && matchesStarred && matchesValue;
+      return matchesSearch && matchesType && matchesStatus && matchesAgent && matchesPriority && matchesStarred && matchesValue && matchesSource;
     });
   };
 
@@ -343,6 +377,17 @@ const ConversationsTab = () => {
               <option value="chat">Chat</option>
               <option value="partnerships">Partnerships</option>
               <option value="email">Email</option>
+            </select>
+
+            <select
+              value={filterSource}
+              onChange={(e) => setFilterSource(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Sources</option>
+              <option value="customer_intelligence_agent">Customer Intelligence</option>
+              <option value="content_intelligence_agent">Content Intelligence</option>
+              <option value="business_intelligence_agent">Business Intelligence</option>
             </select>
 
             <select
