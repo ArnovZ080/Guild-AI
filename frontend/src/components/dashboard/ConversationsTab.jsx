@@ -319,7 +319,7 @@ const ConversationsTab = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="space-y-4">
             {getFilteredCustomers().map(customer => (
-              <div key={customer.id} className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => handleCustomerClick(customer)}>
+              <div key={customer.id} className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg" onClick={() => handleCustomerClick(customer)}>
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
                     {customer.name[0]}
@@ -335,6 +335,17 @@ const ConversationsTab = () => {
                     )}
                     <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                       {customer.status}
+                    </span>
+                    {/* Sentiment Indicator */}
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full flex items-center ${
+                      customer.sentiment === 'positive' ? 'bg-green-100 text-green-800' :
+                      customer.sentiment === 'negative' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      {customer.sentiment || 'neutral'}
                     </span>
                     {customer.totalValue && customer.totalValue > 0 && (
                       <span className="text-sm font-medium text-green-600">
