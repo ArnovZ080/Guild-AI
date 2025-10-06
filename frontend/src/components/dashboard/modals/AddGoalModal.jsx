@@ -14,6 +14,7 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [workflowPlan, setWorkflowPlan] = useState(null);
   const [showApproval, setShowApproval] = useState(false);
+  const [goalId, setGoalId] = useState(null);
 
   React.useEffect(() => {
     if (isOpen) {
@@ -64,6 +65,7 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
       if (!res.ok) throw new Error('Failed to create goal');
       const data = await res.json();
       setWorkflowPlan(data?.workflow_plan || null);
+      setGoalId(data?.id || null);
       setShowApproval(true);
     } catch (e) {
       setError(e.message);
@@ -74,14 +76,17 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
 
   const approve = async () => {
     try {
-      // We need the goal id from the create response, so require it
-      const goalId = (workflowPlan && workflowPlan.goal_id) || (workflowPlan && workflowPlan.id) || null;
       if (goalId) {
         await fetch(`/api/goals/${goalId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ workflow_plan: workflowPlan }) });
       }
       // even if approve endpoint ignores id mismatch, continue UX
     } catch {}
     onCreated && onCreated();
+  };
+
+  const closeReset = () => {
+    setTitle(''); setObjective(''); setDescription(''); setType('financial'); setPriority('medium'); setTimeframe('medium-term'); setTargetDate(''); setMetrics({}); setSubmitting(false); setError(null); setRecommendations([]); setWorkflowPlan(null); setShowApproval(false); setGoalId(null);
+    onClose && onClose();
   };
 
   React.useEffect(() => {
@@ -159,7 +164,7 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
 
         {!showApproval ? (
           <div className="mt-6 flex space-x-3">
-            <button onClick={onClose} className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200">Cancel</button>
+          <button onClick={closeReset} className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200">Cancel</button>
             <button disabled={submitting} onClick={submit} className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">{submitting ? 'Creating…' : 'Create Goal'}</button>
           </div>
         ) : (
