@@ -190,11 +190,22 @@ Focus on opportunities that can be implemented within the next 30-90 days.
 """
 
     try:
-        # Create LLM client
-        from guild.src.models.llm import Llm
-        client = LlmClient(Llm(provider="ollama", model="llama2"))
+        # Create LLM client - supports both local (Ollama) and production (Vertex AI)
+        import os
+        use_vertex = os.getenv("USE_VERTEX_AI", "false").lower() == "true"
         
-        # Generate opportunities
+        if use_vertex:
+            # Production: Use Google Cloud Vertex AI
+            from guild.src.core.vertex_ai_client import VertexAIClientFactory
+            client = VertexAIClientFactory.create_growth_agent_client()
+            logger.info("Using Vertex AI for growth opportunity analysis")
+        else:
+            # Development: Use local Ollama
+            from guild.src.models.llm import Llm
+            client = LlmClient(Llm(provider="ollama", model="llama2"))
+            logger.info("Using Ollama for growth opportunity analysis")
+        
+        # Generate opportunities (same interface for both)
         response = await client.chat(prompt)
         
         # Parse response
