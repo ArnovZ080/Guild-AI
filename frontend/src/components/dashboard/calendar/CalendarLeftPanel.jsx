@@ -2,7 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import AIBriefingCard from './AIBriefingCard';
 import MonthView from './MonthView';
+import MonthViewWithDragDrop from './MonthViewWithDragDrop';
 import WeekView from './WeekView';
+import WeekViewWithDragDrop from './WeekViewWithDragDrop';
 import DayView from './DayView';
 import DayViewWithDragDrop from './DayViewWithDragDrop';
 
@@ -42,7 +44,7 @@ const CalendarLeftPanel = ({
         transition={{ duration: 0.3 }}
       >
         {viewMode === 'month' && (
-          <MonthView
+          <MonthViewWithDragDrop
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedDate={selectedDate}
@@ -53,17 +55,19 @@ const CalendarLeftPanel = ({
               setSelectedDate(day);
               setViewMode('day');
             }}
+            onRescheduleEvent={onRescheduleEvent}
           />
         )}
         
         {viewMode === 'week' && (
-          <WeekView
+          <WeekViewWithDragDrop
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
             events={events}
             onEventClick={onEventClick}
+            onRescheduleEvent={onRescheduleEvent}
           />
         )}
         
