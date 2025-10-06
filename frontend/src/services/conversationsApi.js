@@ -247,6 +247,67 @@ export async function getConversationById(conversationId) {
 }
 
 /**
+ * Get all conversations for a specific customer and flatten to message-like entries
+ * Ensures the Customer Profile modal messaging tab stays in sync with dashboard
+ * @param {Object} customer - expects at least { email, name }
+ * @returns {Promise<Array>} Array of message-like objects
+ */
+export async function getMessagesForCustomer(customer) {
+  try {
+    // For now, we derive from mock conversations
+    const all = filterMockConversations(mockConversationsData, {});
+    const email = (customer?.email || '').toLowerCase();
+    const relevant = all.filter(conv => (conv.participants || []).some(p => (p.role === 'customer') && (p.email || '').toLowerCase() === email));
+
+    // Synthesize message-like rows from conversations for UI consumption
+    const messages = relevant.flatMap((conv, idx) => {
+      const customerParticipant = (conv.participants || []).find(p => p.role === 'customer') || {};
+      const agentParticipant = (conv.participants || []).find(p => p.role === 'agent') || {};
+
+      // Create a basic two-turn thread preview per conversation as fallback
+      const createdAt = typeof conv.createdAt === 'function' ? conv.createdAt() : conv.createdAt;
+      const lastActivity = typeof conv.lastActivity === 'function' ? conv.lastActivity() : conv.lastActivity;
+
+      const subject = conv.subject || `${conv.type?.toUpperCase() || 'MSG'} with ${customerParticipant.name || customer.name || 'Customer'}`;
+      const preview = conv.lastMessage || conv.summary || '';
+
+      const base = [
+        {
+          id: `m_${conv.id}_in`,
+          channel: conv.type === 'voice' ? 'phone' : (conv.type || 'chat'),
+          direction: 'in',
+          subject,
+          timestamp: createdAt || new Date().toISOString(),
+          preview: preview || 'Conversation started',
+          sentiment: conv.sentiment || 'neutral',
+          source: conv.source || 'customer_intelligence_agent',
+          tags: conv.tags || [],
+        },
+        {
+          id: `m_${conv.id}_out`,
+          channel: conv.type === 'voice' ? 'phone' : (conv.type || 'chat'),
+          direction: 'out',
+          subject,
+          timestamp: lastActivity || createdAt || new Date().toISOString(),
+          preview: preview,
+          sentiment: conv.sentiment || 'neutral',
+          source: conv.source || 'customer_intelligence_agent',
+          tags: conv.tags || [],
+        }
+      ];
+
+      return base;
+    });
+
+    // Sort newest first
+    return messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  } catch (e) {
+    console.error('Error building messages for customer:', e);
+    return [];
+  }
+}
+
+/**
  * Update conversation status
  * @param {string} conversationId - Unique conversation identifier
  * @param {Object} updates - Updates to apply
@@ -374,5 +435,6 @@ export default {
   getConversationById,
   updateConversation,
   getConversationAnalytics,
-  getAgentInsights
+  getAgentInsights,
+  getMessagesForCustomer
 };

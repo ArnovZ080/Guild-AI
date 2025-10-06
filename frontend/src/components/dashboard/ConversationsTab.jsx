@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Star, Archive, Bot, Search, Filter } from 'lucide-react';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
+import { getMessagesForCustomer } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
@@ -138,11 +139,18 @@ const ConversationsTab = () => {
     setShowModal(false);
   };
 
-  const handleViewProfile = (customer) => {
-    setSelectedCustomer(customer);
-    setShowCustomerProfile(true);
-    // Close the current customer detail modal
-    setShowModal(false);
+  const handleViewProfile = async (customer) => {
+    try {
+      const messages = await getMessagesForCustomer(customer);
+      const customerWithMessages = { ...customer, messages };
+      setSelectedCustomer(customerWithMessages);
+    } catch (e) {
+      setSelectedCustomer(customer);
+    } finally {
+      setShowCustomerProfile(true);
+      // Close the current customer detail modal
+      setShowModal(false);
+    }
   };
 
   const handleReply = (conversation) => {
