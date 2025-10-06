@@ -15,6 +15,7 @@ class AddGoalModal extends React.Component {
       submitting: false,
       error: null,
       recommendations: [],
+      showRecommendations: true,
       workflowPlan: null,
       showApproval: false,
       goalId: null,
@@ -188,11 +189,16 @@ class AddGoalModal extends React.Component {
       submitting: false,
       error: null,
       recommendations: [],
+      showRecommendations: true,
       workflowPlan: null,
       showApproval: false,
       goalId: null,
     });
     this.props.onClose && this.props.onClose();
+  };
+
+  toggleRecommendations = () => {
+    this.setState({ showRecommendations: !this.state.showRecommendations });
   };
 
   render() {
@@ -219,14 +225,24 @@ class AddGoalModal extends React.Component {
             </div>
             {this.state.recommendations.length > 0 && (
               <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4 border-2 border-purple-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-2xl">🤖</span>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900">AI Recommended Goals</h3>
-                    <p className="text-xs text-gray-600">Smart suggestions based on your business data</p>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🤖</span>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">AI Recommended Goals</h3>
+                      <p className="text-xs text-gray-600">Smart suggestions based on your business data</p>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={this.toggleRecommendations}
+                    className="px-3 py-1 text-xs font-medium text-purple-700 bg-white border border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
+                  >
+                    {this.state.showRecommendations ? 'Hide' : 'Show'}
+                  </button>
                 </div>
-                <div className="grid grid-cols-1 gap-3">
+                {this.state.showRecommendations && (
+                  <div className="grid grid-cols-1 gap-3">
                   {this.state.recommendations.map((r, idx) => (
                     <button
                       key={idx}
@@ -260,7 +276,8 @@ class AddGoalModal extends React.Component {
                       </div>}
                     </button>
                   ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
             <div>
