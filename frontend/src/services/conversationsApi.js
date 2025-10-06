@@ -144,7 +144,13 @@ const mockConversationsData = [
  */
 export async function fetchConversations(filters = {}) {
   try {
+    // For now, always use mock data since backend isn't running
     // In production, this would make actual API calls to the agents
+    console.log('Using mock conversations data for development');
+    return filterMockConversations(mockConversationsData, filters);
+    
+    // Uncomment this section when backend is ready:
+    /*
     const response = await fetch(`${API_BASE_URL}/api/conversations`, {
       method: 'POST',
       headers: {
@@ -160,10 +166,10 @@ export async function fetchConversations(filters = {}) {
       const data = await response.json();
       return data.conversations || [];
     } else {
-      // Fallback to mock data for development
       console.warn('API not available, using mock data');
       return filterMockConversations(mockConversationsData, filters);
     }
+    */
   } catch (error) {
     console.error('Error fetching conversations:', error);
     // Return filtered mock data as fallback

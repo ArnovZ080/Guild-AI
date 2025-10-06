@@ -78,7 +78,7 @@ const ConversationsTab = () => {
       const customerData = customerMap.get(customerKey);
       customerData.conversations.push(conversation);
       customerData.totalValue += (conversation.estimatedValue || conversation.actualValue || 0);
-      customerData.messageCount += conversation.messageCount;
+      customerData.messageCount += (conversation.messageCount || 0);
       
       // Update last activity
       if (new Date(conversation.lastActivity) > new Date(customerData.lastActivity)) {
@@ -97,6 +97,7 @@ const ConversationsTab = () => {
     // Convert to array and format data
     return Array.from(customerMap.values()).map(customer => ({
       ...customer,
+      totalValue: Number(customer.totalValue) || 0, // Ensure totalValue is always a number
       tags: Array.from(customer.tags),
       agents: Array.from(customer.agents),
       channels: Array.from(customer.channels),
@@ -334,7 +335,7 @@ const ConversationsTab = () => {
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                     {customer.status}
                   </span>
-                  {customer.totalValue > 0 && (
+                  {customer.totalValue && customer.totalValue > 0 && (
                     <span className="text-sm font-medium text-green-600">
                       ${customer.totalValue.toLocaleString()}
                     </span>
