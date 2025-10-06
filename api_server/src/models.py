@@ -23,6 +23,59 @@ class OutcomeContract(Base):
     workflows = relationship('Workflow', back_populates='contract')
 
 
+# --- Goals & Progress Tracking ---
+class Goal(Base):
+    __tablename__ = 'goals'
+
+    id = Column(String(50), primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    type = Column(String(50), nullable=False, default='general')
+    priority = Column(String(20), nullable=False, default='medium')
+    timeframe = Column(String(20), nullable=False, default='medium-term')
+    target_date = Column(DateTime, nullable=False)
+    status = Column(String(20), nullable=False, default='planning')
+    progress = Column(Integer, nullable=False, default=0)
+    metrics = Column(JSON, default=lambda: {})
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Link to orchestrated workflow (if any)
+    workflow_id = Column(String(50), nullable=True)
+    contract_id = Column(String(50), nullable=True)
+
+    milestones = relationship('GoalMilestone', back_populates='goal', cascade="all, delete-orphan")
+    actions = relationship('AgentActionLog', back_populates='goal', cascade="all, delete-orphan")
+
+
+class GoalMilestone(Base):
+    __tablename__ = 'goal_milestones'
+
+    id = Column(String(50), primary_key=True, index=True)
+    goal_id = Column(String(50), ForeignKey('goals.id'), nullable=False, index=True)
+    title = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    due_date = Column(DateTime, nullable=True)
+    completed = Column(Boolean, default=False)
+    completed_at = Column(DateTime, nullable=True)
+
+    goal = relationship('Goal', back_populates='milestones')
+
+
+class AgentActionLog(Base):
+    __tablename__ = 'agent_action_logs'
+
+    id = Column(String(50), primary_key=True, index=True)
+    goal_id = Column(String(50), ForeignKey('goals.id'), nullable=False, index=True)
+    agent_type = Column(String(100), nullable=False)
+    action = Column(Text, nullable=False)
+    rationale = Column(Text, nullable=True)
+    metadata = Column(JSON, default=lambda: {})
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    goal = relationship('Goal', back_populates='actions')
+
+
 class Workflow(Base):
     __tablename__ = 'workflows'
 

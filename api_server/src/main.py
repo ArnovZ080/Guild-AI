@@ -79,6 +79,9 @@ app.include_router(campaign_agents.router)
 app.include_router(asset_agents.router)
 # Conversations aggregation endpoints
 app.include_router(conversations.router)
+# Goals router
+from .routes import goals
+app.include_router(goals.router)
 # app.include_router(business_metrics.router)  # Module doesn't exist
 
 # Comment out other routes that depend on database
