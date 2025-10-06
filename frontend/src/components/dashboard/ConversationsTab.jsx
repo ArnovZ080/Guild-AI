@@ -4,6 +4,7 @@ import { fetchConversations as fetchConversationsApi } from '../../services/conv
 import { getMessagesForCustomer } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
+import AgentActionsConfirmModal from './modals/AgentActionsConfirmModal.jsx';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
 import MessageComposeModal from './modals/MessageComposeModal.jsx';
 import CustomerProfileModal from './modals/CustomerProfileModal.jsx';
@@ -16,6 +17,7 @@ const ConversationsTab = () => {
   const [starredCustomers, setStarredCustomers] = useState(new Set());
   const [showModal, setShowModal] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
+  const [confirmActionOpen, setConfirmActionOpen] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [showCustomerProfile, setShowCustomerProfile] = useState(false);
@@ -223,14 +225,16 @@ const ConversationsTab = () => {
     }
   };
 
+  const handleSelectConversationInModal = async (conversationId) => {
+    if (!selectedCustomer) return;
+    const conv = (selectedCustomer.conversations || []).find(c => c.id === conversationId);
+    if (!conv) return;
+    setSelectedConversation(conv);
+  };
+
   const handleInitiateAction = async (conversation) => {
-    try {
-      // Placeholder: delegate to orchestrator via API when backend endpoint is available
-      console.log('Delegating next action to Orchestrator for conversation:', conversation.id);
-      // await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/workflows/approve`, { method: 'POST', ... })
-    } catch (e) {
-      console.error('Failed to initiate action', e);
-    }
+    // Open confirm modal; orchestration will be triggered upon confirm
+    setConfirmActionOpen(true);
   };
 
   const handleStarConversation = (conversation) => {
@@ -520,6 +524,38 @@ const ConversationsTab = () => {
                     View Customer
                   </button>
                   <button
+                    className="px-3 py-1 text-xs bg-gray-100 border border-gray-200 rounded hover:bg-gray-200"
+                    onClick={async () => {
+                      try {
+                        const messages = await getMessagesForCustomer(customer);
+                        const header = ['conversationId','direction','channel','subject','timestamp','preview','sentiment','source','tags'];
+                        const rows = messages.map(m => ({
+                          conversationId: m.conversationId,
+                          direction: m.direction,
+                          channel: m.channel,
+                          subject: (m.subject || '').replace(/\"/g,'\"\"'),
+                          timestamp: typeof m.timestamp === 'function' ? m.timestamp().toISOString() : (m.timestamp || ''),
+                          preview: (m.preview || '').replace(/\"/g,'\"\"'),
+                          sentiment: m.sentiment || '',
+                          source: m.source || '',
+                          tags: (m.tags || []).join('|')
+                        }));
+                        const csv = [header.join(','), ...rows.map(r => header.map(h => `${String(r[h] ?? '')}`).join(','))].join('\n');
+                        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${(customer.name || customer.email || 'customer').replace(/\s+/g,'_')}_conversations.csv`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                      } catch (e) {
+                        console.error('Customer CSV export failed', e);
+                      }
+                    }}
+                  >
+                    Export Customer CSV
+                  </button>
+                  <button
                     className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
                     onClick={() => openConversationDetail(customer)}
                   >
@@ -530,6 +566,27 @@ const ConversationsTab = () => {
             ))}
           </div>
         </div>
+      )}
+
+      {confirmActionOpen && selectedConversation && (
+        <AgentActionsConfirmModal
+          open={confirmActionOpen}
+          onClose={() => setConfirmActionOpen(false)}
+          actionSummary={{
+            title: 'Initiate Recommended Action',
+            description: selectedConversation.nextAction || 'Proceed with the recommended next step for this conversation.',
+            impact: 'Agents will coordinate to execute the action and log all steps under this conversation.'
+          }}
+          onConfirm={async () => {
+            setConfirmActionOpen(false);
+            try {
+              // Placeholder: call orchestrator; log success
+              console.log('Confirmed: delegating to Orchestrator for conversation', selectedConversation.id);
+            } catch (e) {
+              console.error('Orchestrator delegation failed', e);
+            }
+          }}
+        />
       )}
 
       {/* Customer Detail Modal */}
@@ -617,6 +674,9 @@ const ConversationsTab = () => {
       {showConversationDetail && selectedConversation && (
         <ConversationDetailModal
           conversation={selectedConversation}
+          conversations={(selectedCustomer?.conversations || [])}
+          selectedConversationId={selectedConversation?.id}
+          onSelectConversation={handleSelectConversationInModal}
           messages={conversationMessages}
           onClose={() => {
             setShowConversationDetail(false);
