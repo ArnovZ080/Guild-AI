@@ -711,6 +711,7 @@ const ConversationsTab = () => {
           selectedConversationId={selectedConversation?.id}
           onSelectConversation={handleSelectConversationInModal}
           messages={conversationMessages}
+          isStarred={starredCustomers.has((selectedCustomer?.email || selectedCustomer?.id))}
           onClose={() => {
             setShowConversationDetail(false);
             setSelectedConversation(null);

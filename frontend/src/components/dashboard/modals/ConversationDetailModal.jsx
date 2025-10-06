@@ -38,6 +38,8 @@ const ConversationDetailModal = ({
   onDownloadRecording,
   onInitiateAction,
   messages = []
+  ,
+  isStarred = false
 }) => {
   const [expandedSections, setExpandedSections] = useState({
     messages: true,
@@ -131,7 +133,14 @@ const ConversationDetailModal = ({
                 <TypeIcon className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">{activeConversation.subject}</h2>
+                <div className="flex items-center space-x-2">
+                  <h2 className="text-2xl font-bold text-gray-900">{activeConversation.subject}</h2>
+                  {isStarred && (
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                      <Star className="w-3 h-3 mr-1 fill-current" /> Starred
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center space-x-4 mt-1">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(activeConversation.status)}`}>
                     {activeConversation.status}
