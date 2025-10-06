@@ -165,7 +165,7 @@ const ConversationDetailModal = ({
             {/* Main Content */}
               <div className="lg:col-span-2 space-y-6">
               {/* Conversation Selector */}
-              {Array.isArray(conversations) && conversations.length > 1 && (
+              {Array.isArray(conversations) && conversations.length > 0 && (
                 <div className="bg-white border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-md font-semibold text-gray-900">Select Conversation</h3>
