@@ -332,16 +332,6 @@ const CustomerDetailModal = ({
                                 <p className="text-sm text-gray-700 mt-1">{insight.description}</p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => onOrchestrateAction && onOrchestrateAction({
-                                action: insight.action,
-                                customer: customer,
-                                insight: insight
-                              })}
-                              className="px-3 py-1 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 transition-colors"
-                            >
-                              Apply
-                            </button>
                           </div>
                         </div>
                       );

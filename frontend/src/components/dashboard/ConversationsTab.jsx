@@ -114,6 +114,7 @@ const ConversationsTab = () => {
   const handleStarCustomer = (customer) => {
     console.log('Starring customer:', customer.name);
     // In real implementation, this would call API to star customer
+    alert(`${customer.name} has been starred! In production, this would call the API to star the customer and add them to customer segments.`);
   };
 
   const handleArchiveCustomer = (customer) => {
@@ -128,6 +129,8 @@ const ConversationsTab = () => {
   const handleViewProfile = (customer) => {
     setSelectedCustomer(customer);
     setShowCustomerProfile(true);
+    // Close the current customer detail modal
+    setShowModal(false);
   };
 
   const handleReply = (conversation) => {

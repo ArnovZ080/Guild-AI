@@ -3,8 +3,8 @@ import { X, Send, MessageSquare, Phone, Mail, Instagram, Facebook, Linkedin, Mes
 
 const baseChannels = [
   { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare },
-  { id: 'sms', label: 'SMS', icon: Phone },
-  { id: 'email', label: 'Email', icon: Mail }
+  { id: 'social', label: 'Social Platform', icon: MessageCircle },
+  { id: 'sms', label: 'SMS', icon: Phone }
 ];
 
 const socialChannels = [
@@ -17,6 +17,7 @@ const socialChannels = [
 
 const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
   const [channel, setChannel] = useState('whatsapp');
+  const [socialPlatform, setSocialPlatform] = useState('instagram');
   const [to, setTo] = useState('');
   const [message, setMessage] = useState('');
 
@@ -31,16 +32,17 @@ const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
 
   const getDefaultChannel = () => {
     if (replyTo) {
-      if (replyTo.channel === 'email') return 'email';
-      if (replyTo.channel === 'phone') return 'whatsapp';
+      if (replyTo.channel === 'email') return 'whatsapp'; // Email replies now go to WhatsApp
+      if (replyTo.channel === 'voice' || replyTo.channel === 'phone') return 'whatsapp';
       if (replyTo.channel === 'social' && replyTo.platform) {
         // Use the same platform for reply
         return replyTo.platform;
       }
+      if (replyTo.channel === 'chat') return 'whatsapp';
       return 'whatsapp';
     }
     // Default for new messages
-    return customer?.phone ? 'whatsapp' : 'email';
+    return customer?.phone ? 'whatsapp' : 'social';
   };
 
   const getDefaultRecipient = () => {
@@ -75,7 +77,7 @@ const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
     // Prepare message payload with platform information
     const messagePayload = {
       channel,
-      platform: replyTo?.platform || null,
+      platform: channel === 'social' ? socialPlatform : (replyTo?.platform || null),
       platformId: replyTo?.platformId || null,
       threadId: replyTo?.threadId || null,
       to,
@@ -133,6 +135,29 @@ const MessageComposeModal = ({ open, onClose, customer, replyTo }) => {
               </p>
             )}
           </div>
+
+          {/* Social Platform Selection */}
+          {channel === 'social' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Social Platform
+              </label>
+              <select 
+                value={socialPlatform} 
+                onChange={e => setSocialPlatform(e.target.value)} 
+                className="w-full px-3 py-2 border rounded"
+              >
+                {socialChannels.map(platform => {
+                  const IconComponent = platform.icon;
+                  return (
+                    <option key={platform.id} value={platform.id}>
+                      {platform.label}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">To</label>
             <input value={to} onChange={e=>setTo(e.target.value)} className="w-full px-3 py-2 border rounded" placeholder="recipient" />
