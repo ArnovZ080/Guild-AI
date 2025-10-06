@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   Clock,
@@ -13,30 +13,49 @@ import {
   Share2,
   Bot,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  FileText,
+  Link as LinkIcon,
+  Upload
 } from 'lucide-react';
+import DelegateEventModal from './DelegateEventModal';
+import AddPrepMaterialsModal from './AddPrepMaterialsModal';
+import ShareEventModal from './ShareEventModal';
 
-const SmartEventModal = ({ isOpen, onClose, event, onUpdate }) => {
+const SmartEventModal = ({ isOpen, onClose, event, onUpdate, onDelete, onDelegate, onAddMaterials, onShare, onReschedule }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [showDelegateModal, setShowDelegateModal] = useState(false);
+  const [showPrepMaterialsModal, setShowPrepMaterialsModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   if (!event) return null;
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this event?')) {
-      // Handle delete
+      if (onDelete) {
+        onDelete(event.id);
+      }
       onClose();
     }
   };
 
   const handleDelegate = () => {
-    alert('Delegating to agent...');
-    // Would trigger agent delegation
+    setShowDelegateModal(true);
   };
 
   const handleAddPrep = () => {
-    alert('Adding prep materials...');
-    // Would add prep materials
+    setShowPrepMaterialsModal(true);
+  };
+
+  const handleShare = () => {
+    setShowShareModal(true);
+  };
+
+  const handleRescheduleClick = () => {
+    if (onReschedule) {
+      onReschedule(event);
+    }
   };
 
   return (
@@ -133,6 +152,44 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate }) => {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Description</h3>
               <p className="text-gray-700 text-sm leading-relaxed">{event.description}</p>
+            </div>
+          )}
+
+          {/* Prep Materials */}
+          {event.prepMaterials && event.prepMaterials.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-purple-600" />
+                Prep Materials ({event.prepMaterials.length})
+              </h3>
+              <div className="space-y-2">
+                {event.prepMaterials.map((material, index) => {
+                  const Icon = material.type === 'link' ? LinkIcon : 
+                               material.type === 'file' ? Upload : FileText;
+                  return (
+                    <div key={index} className="flex items-start space-x-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                      <Icon className="w-4 h-4 text-purple-600 mt-1 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        {material.type === 'link' ? (
+                          <a 
+                            href={material.content} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm font-medium text-purple-700 hover:text-purple-900 hover:underline truncate block"
+                          >
+                            {material.content}
+                          </a>
+                        ) : (
+                          <p className="text-sm font-medium text-gray-900 truncate">{material.content}</p>
+                        )}
+                        {material.description && (
+                          <p className="text-xs text-gray-600 mt-1">{material.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -234,12 +291,18 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate }) => {
                 <span>Add Prep Materials</span>
               </button>
               
-              <button className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium">
+              <button 
+                onClick={handleShare}
+                className="flex items-center justify-center space-x-2 px-4 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium"
+              >
                 <Share2 className="w-4 h-4" />
                 <span>Share Event</span>
               </button>
               
-              <button className="flex items-center justify-center space-x-2 px-4 py-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors font-medium">
+              <button 
+                onClick={handleRescheduleClick}
+                className="flex items-center justify-center space-x-2 px-4 py-3 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors font-medium"
+              >
                 <Calendar className="w-4 h-4" />
                 <span>Reschedule</span>
               </button>
@@ -274,6 +337,45 @@ const SmartEventModal = ({ isOpen, onClose, event, onUpdate }) => {
           </div>
         </div>
       </motion.div>
+
+      {/* Sub-Modals */}
+      <AnimatePresence>
+        {showDelegateModal && (
+          <DelegateEventModal
+            isOpen={showDelegateModal}
+            onClose={() => setShowDelegateModal(false)}
+            event={event}
+            onDelegate={(data) => {
+              if (onDelegate) onDelegate(data);
+              setShowDelegateModal(false);
+            }}
+          />
+        )}
+
+        {showPrepMaterialsModal && (
+          <AddPrepMaterialsModal
+            isOpen={showPrepMaterialsModal}
+            onClose={() => setShowPrepMaterialsModal(false)}
+            event={event}
+            onAddMaterials={(data) => {
+              if (onAddMaterials) onAddMaterials(data);
+              setShowPrepMaterialsModal(false);
+            }}
+          />
+        )}
+
+        {showShareModal && (
+          <ShareEventModal
+            isOpen={showShareModal}
+            onClose={() => setShowShareModal(false)}
+            event={event}
+            onShare={(data) => {
+              if (onShare) onShare(data);
+              setShowShareModal(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
