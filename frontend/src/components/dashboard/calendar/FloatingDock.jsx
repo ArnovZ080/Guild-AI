@@ -12,8 +12,11 @@ import {
   Maximize2
 } from 'lucide-react';
 
-const FloatingDock = ({ messages, setMessages, onSchedule, events }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIsOpen }) => {
+  // Use prop-controlled state if provided, otherwise use local state
+  const [localIsOpen, setLocalIsOpen] = useState(false);
+  const actualIsOpen = isOpen !== undefined ? isOpen : localIsOpen;
+  const actualSetIsOpen = setIsOpen !== undefined ? setIsOpen : setLocalIsOpen;
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -200,7 +203,7 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events }) => {
     <>
       {/* Floating Button */}
       <AnimatePresence>
-        {!isOpen && (
+        {!actualIsOpen && (
           <motion.button
             className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl transition-all z-50"
             initial={{ scale: 0 }}
@@ -208,7 +211,7 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events }) => {
             exit={{ scale: 0 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsOpen(true)}
+            onClick={() => actualSetIsOpen(true)}
           >
             <Bot className="w-6 h-6" />
             <span className="absolute top-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
@@ -218,7 +221,7 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events }) => {
 
       {/* Chat Window */}
       <AnimatePresence>
-        {isOpen && (
+        {actualIsOpen && (
           <motion.div
             className={`fixed ${isMinimized ? 'bottom-6 right-6' : 'bottom-6 right-6'} bg-white rounded-2xl shadow-2xl z-50 ${
               isMinimized ? 'w-80' : 'w-96'
@@ -248,7 +251,7 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events }) => {
                   {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
                 </button>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => actualSetIsOpen(false)}
                   className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
                 >
                   <X className="w-4 h-4" />

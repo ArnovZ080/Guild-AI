@@ -15,14 +15,14 @@ const CalendarRightPanel = ({
   agentCoordination,
   currentDate
 }) => {
-  // Collapsible card states
+  // Collapsible card states - All collapsed by default
   const [expandedCards, setExpandedCards] = useState({
-    upcoming: true,
-    timeUse: true,
-    aiInsights: true,
-    wellbeing: true,
-    agents: true,
-    predictive: true
+    upcoming: false,
+    timeUse: false,
+    aiInsights: false,
+    wellbeing: false,
+    agents: false,
+    predictive: false
   });
 
   const toggleCard = (cardName) => {

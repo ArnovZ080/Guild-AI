@@ -8,7 +8,8 @@ const MonthView = ({
   selectedDate,
   setSelectedDate,
   events,
-  onEventClick
+  onEventClick,
+  onDayClick
 }) => {
   // Navigation
   const navigateMonth = (direction) => {
@@ -126,7 +127,12 @@ const MonthView = ({
               } ${isToday ? 'bg-blue-50 hover:bg-blue-100' : ''} ${
                 isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''
               }`}
-              onClick={() => setSelectedDate(day)}
+              onClick={() => {
+                setSelectedDate(day);
+                if (onDayClick) {
+                  onDayClick(day);
+                }
+              }}
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             >

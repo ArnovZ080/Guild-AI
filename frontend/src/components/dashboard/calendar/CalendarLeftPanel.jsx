@@ -11,10 +11,14 @@ const CalendarLeftPanel = ({
   selectedDate,
   setSelectedDate,
   viewMode,
+  setViewMode,
   events,
   onEventClick,
   onAddEvent,
-  aiInsights
+  aiInsights,
+  onOptimizeDay,
+  onPrepareReports,
+  onReschedule
 }) => {
   return (
     <div className="space-y-6">
@@ -23,6 +27,9 @@ const CalendarLeftPanel = ({
         date={selectedDate}
         events={events}
         insights={aiInsights}
+        onOptimizeDay={onOptimizeDay}
+        onPrepareReports={onPrepareReports}
+        onReschedule={onReschedule}
       />
 
       {/* Calendar View based on mode */}
@@ -40,6 +47,10 @@ const CalendarLeftPanel = ({
             setSelectedDate={setSelectedDate}
             events={events}
             onEventClick={onEventClick}
+            onDayClick={(day) => {
+              setSelectedDate(day);
+              setViewMode('day');
+            }}
           />
         )}
         

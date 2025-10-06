@@ -172,6 +172,19 @@ const FocusModeOverlay = ({ onEnd }) => {
         </div>
       </div>
 
+      {/* What is Focus Mode */}
+      <div className="px-6 pb-4">
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4">
+          <h4 className="font-bold text-orange-900 mb-2 text-sm">🎯 What is Focus Mode?</h4>
+          <p className="text-xs text-gray-700 leading-relaxed mb-2">
+            Focus Mode uses the <strong>Pomodoro Technique</strong> - work in 25-minute focused sprints followed by 5-minute breaks. After 4 cycles, take a longer 15-minute break.
+          </p>
+          <p className="text-xs text-gray-600 italic">
+            This proven method boosts productivity and prevents burnout by balancing intense focus with regular rest.
+          </p>
+        </div>
+      </div>
+
       {/* Tips */}
       <div className="px-6 pb-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">

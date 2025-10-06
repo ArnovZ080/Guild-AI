@@ -9,7 +9,8 @@ import {
   Target,
   Bell,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  MessageSquare
 } from 'lucide-react';
 
 const TopNav = ({
@@ -22,27 +23,31 @@ const TopNav = ({
   focusMode,
   onToggleFocusMode,
   onOptimizeWeek,
-  onAddEvent
+  onAddEvent,
+  onOpenPAChat
 }) => {
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
       <div className="max-w-[1920px] mx-auto px-4 py-4">
         {/* Top Row */}
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Calendar className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Personal Operating System</h1>
-            </div>
-            <span className="px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full">
-              PA Agent Active
-            </span>
+          <div className="flex items-center space-x-2">
+            <Calendar className="w-8 h-8 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Personal Operating System</h1>
           </div>
 
           <div className="flex items-center space-x-3">
             <button 
-              onClick={onOptimizeWeek}
+              onClick={onOpenPAChat}
               className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="font-medium">Chat with PA Agent</span>
+            </button>
+
+            <button 
+              onClick={onOptimizeWeek}
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
             >
               <Brain className="w-4 h-4" />
               <span className="font-medium">Optimize My Week</span>

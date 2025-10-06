@@ -11,7 +11,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-const AIBriefingCard = ({ date, events, insights }) => {
+const AIBriefingCard = ({ date, events, insights, onOptimizeDay, onPrepareReports, onReschedule }) => {
   const todayEvents = events.filter(event => 
     new Date(event.date).toDateString() === date.toDateString()
   );
@@ -110,13 +110,22 @@ const AIBriefingCard = ({ date, events, insights }) => {
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-3">
-        <button className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium transition-all">
+        <button 
+          onClick={onOptimizeDay}
+          className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium transition-all"
+        >
           ✅ Optimize Day
         </button>
-        <button className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium transition-all">
+        <button 
+          onClick={onPrepareReports}
+          className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium transition-all"
+        >
           📊 Prepare Reports
         </button>
-        <button className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium transition-all">
+        <button 
+          onClick={onReschedule}
+          className="flex-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-lg px-4 py-2 text-sm font-medium transition-all"
+        >
           🔄 Reschedule
         </button>
       </div>

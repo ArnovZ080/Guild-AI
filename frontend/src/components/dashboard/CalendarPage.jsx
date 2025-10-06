@@ -64,6 +64,7 @@ const CalendarPage = () => {
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showOptimization, setShowOptimization] = useState(false);
+  const [showPAChat, setShowPAChat] = useState(false);
   
   // PA and agent states
   const [paMessages, setPaMessages] = useState([]);
@@ -253,6 +254,33 @@ const CalendarPage = () => {
     }
   };
 
+  const handleOptimizeDay = () => {
+    // Trigger day optimization (similar to optimize week but for single day)
+    setShowOptimization(true);
+    triggerCelebration(CelebrationType.MILESTONE, {
+      message: "Optimizing your day... 🎯",
+      intensity: 'normal'
+    });
+  };
+
+  const handlePrepareReports = () => {
+    // Trigger agents to prepare reports for today's meetings
+    alert('📊 Preparing reports from all agents for today\'s events...\n\nThe following agents are compiling data:\n• Business Intelligence Agent\n• Financial Intelligence Agent\n• Customer Intelligence Agent\n• Content Intelligence Agent');
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "Reports being prepared! 📊",
+      intensity: 'normal'
+    });
+  };
+
+  const handleReschedule = () => {
+    // Open smart rescheduling interface
+    alert('🔄 Smart Rescheduling\n\nI\'ll analyze your calendar and suggest optimal times to reschedule low-priority events.');
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "Analyzing schedule... 🔄",
+      intensity: 'normal'
+    });
+  };
+
   // Filter events
   const filteredEvents = events.filter(event => {
     const matchesType = filterType === 'all' || event.type === filterType;
@@ -275,6 +303,7 @@ const CalendarPage = () => {
         onToggleFocusMode={handleToggleFocusMode}
         onOptimizeWeek={handleOptimizeWeek}
         onAddEvent={() => setShowAddEvent(true)}
+        onOpenPAChat={() => setShowPAChat(true)}
       />
 
       {/* Main Grid */}
@@ -288,10 +317,14 @@ const CalendarPage = () => {
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
               viewMode={viewMode}
+              setViewMode={setViewMode}
               events={filteredEvents}
               onEventClick={handleEventClick}
               onAddEvent={() => setShowAddEvent(true)}
               aiInsights={aiInsights}
+              onOptimizeDay={handleOptimizeDay}
+              onPrepareReports={handlePrepareReports}
+              onReschedule={handleReschedule}
             />
           </div>
 
@@ -315,6 +348,8 @@ const CalendarPage = () => {
         setMessages={setPaMessages}
         onSchedule={handleAddEvent}
         events={events}
+        isOpen={showPAChat}
+        setIsOpen={setShowPAChat}
       />
 
       {/* Modals */}
