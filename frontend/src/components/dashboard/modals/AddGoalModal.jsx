@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AddGoalModal = ({ isOpen, onClose, onCreated, prefill }) => {
-  const initial = useMemo(() => prefill || {}, [prefill]);
-  const [title, setTitle] = useState(initial.title || '');
-  const [objective, setObjective] = useState(initial.description || initial.objective || '');
-  const [description, setDescription] = useState(initial.description || '');
-  const [type, setType] = useState(initial.type || 'financial');
-  const [priority, setPriority] = useState(initial.priority || 'medium');
-  const [timeframe, setTimeframe] = useState(initial.timeframe || 'medium-term');
-  const [targetDate, setTargetDate] = useState(initial.target_date ? initial.target_date.substring(0,10) : '');
-  const [metrics, setMetrics] = useState(initial.metrics || {});
+  const [title, setTitle] = useState('');
+  const [objective, setObjective] = useState('');
+  const [description, setDescription] = useState('');
+  const [type, setType] = useState('financial');
+  const [priority, setPriority] = useState('medium');
+  const [timeframe, setTimeframe] = useState('medium-term');
+  const [targetDate, setTargetDate] = useState('');
+  const [metrics, setMetrics] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
@@ -18,7 +17,8 @@ const AddGoalModal = ({ isOpen, onClose, onCreated, prefill }) => {
   const [goalId, setGoalId] = useState(null);
 
   useEffect(() => {
-    if (isOpen && prefill) {
+    if (!isOpen) return;
+    if (prefill) {
       setTitle(prefill.title || '');
       setObjective(prefill.description || prefill.objective || '');
       setDescription(prefill.description || '');
@@ -27,6 +27,15 @@ const AddGoalModal = ({ isOpen, onClose, onCreated, prefill }) => {
       setTimeframe(prefill.timeframe || 'medium-term');
       setTargetDate(prefill.target_date ? prefill.target_date.substring(0,10) : '');
       setMetrics(prefill.metrics || {});
+    } else {
+      setTitle('');
+      setObjective('');
+      setDescription('');
+      setType('financial');
+      setPriority('medium');
+      setTimeframe('medium-term');
+      setTargetDate('');
+      setMetrics({});
     }
   }, [isOpen, prefill]);
 
