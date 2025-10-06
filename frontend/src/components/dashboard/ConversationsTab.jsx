@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Star, Archive, Bot, Search, Filter, RefreshCw, Download } from 'lucide-react';
-import ConversationDetailModal from './modals/ConversationDetailModal.jsx';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import { getMessagesForCustomer } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
