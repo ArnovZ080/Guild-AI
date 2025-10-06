@@ -369,7 +369,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
               {/* Key Metrics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">${customer.lifetime_value.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-green-600">${(customer.lifetime_value || 0).toLocaleString()}</div>
                   <div className="text-green-600 font-medium">Lifetime Value</div>
                 </div>
                 <div className="text-center p-4 bg-blue-50 rounded-lg">
@@ -471,11 +471,11 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                   <div className="space-y-3">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Lifetime Value:</span>
-                      <span className="font-medium text-green-600">${customer.lifetime_value.toLocaleString()}</span>
+                      <span className="font-medium text-green-600">${(customer.lifetime_value || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Total Spent:</span>
-                      <span className="font-medium text-green-600">${customer.total_spent.toLocaleString()}</span>
+                      <span className="font-medium text-green-600">${(customer.total_spent || 0).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Average Order Value:</span>
@@ -528,7 +528,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                         <div>
                           <div className="text-sm text-gray-900 font-medium capitalize">{m.channel} • {m.direction === 'in' ? 'Received' : 'Sent'}</div>
                           <div className="text-sm text-gray-700">{m.subject}</div>
-                          <div className="text-xs text-gray-500">{new Date(m.timestamp).toLocaleString()}</div>
+                          <div className="text-xs text-gray-500">{new Date(typeof m.timestamp === 'function' ? m.timestamp() : m.timestamp).toLocaleString()}</div>
                           <div className="text-sm text-gray-600 mt-1 line-clamp-2">{m.preview}</div>
                         </div>
                       </div>
@@ -603,7 +603,7 @@ const CustomerProfileModal = ({ customer, isOpen, onClose, onSave, onAction }) =
                 <p className="text-blue-800 mb-2">{aiInsights.nextBestAction.action}</p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-blue-600">Confidence: {aiInsights.nextBestAction.confidence}%</span>
-                  <span className="text-sm text-green-600">Expected Value: ${aiInsights.nextBestAction.expectedValue.toLocaleString()}</span>
+                  <span className="text-sm text-green-600">Expected Value: ${(aiInsights.nextBestAction.expectedValue || 0).toLocaleString()}</span>
                 </div>
                 <p className="text-sm text-blue-700 mt-2">{aiInsights.nextBestAction.reasoning}</p>
               </div>

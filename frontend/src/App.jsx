@@ -14,7 +14,7 @@ import ChatInterface from './components/chat/ChatInterface.jsx';
 import CalendarView from './views/CalendarView.jsx';
 import CustomersView from './views/CustomersView.jsx';
 import GoalsView from './views/GoalsView.jsx';
-import ConversationsView from './views/ConversationsView.jsx';
+import ConversationsTab from './components/dashboard/ConversationsTab.jsx';
 import DocumentsView from './views/DocumentsView.jsx';
 import VoiceView from './views/VoiceView.jsx';
 import OnboardingView from './views/OnboardingView.jsx';
@@ -100,7 +100,7 @@ function App() {
               } />
               <Route path="/conversations" element={
                 <DashboardLayout>
-                  <ConversationsView />
+                  <ConversationsTab />
                 </DashboardLayout>
               } />
               <Route path="/documents" element={
