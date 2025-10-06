@@ -133,14 +133,7 @@ const ConversationDetailModal = ({
                 <TypeIcon className="w-6 h-6" />
               </div>
               <div>
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-2xl font-bold text-gray-900">{activeConversation.subject}</h2>
-                  {isStarred && (
-                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                      <Star className="w-3 h-3 mr-1 fill-current" /> Starred
-                    </span>
-                  )}
-                </div>
+                <h2 className="text-2xl font-bold text-gray-900">{activeConversation.subject}</h2>
                 <div className="flex items-center space-x-4 mt-1">
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(activeConversation.status)}`}>
                     {activeConversation.status}
@@ -414,10 +407,12 @@ const ConversationDetailModal = ({
                 </button>
                 <button 
                   onClick={() => onStar && onStar(activeConversation)}
-                  className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    isStarred ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600'
+                  } text-white`}
                 >
-                  <Star className="w-4 h-4" />
-                  <span>Star</span>
+                  <Star className={`w-4 h-4 ${isStarred ? 'fill-current' : ''}`} />
+                  <span>{isStarred ? 'Unstar Customer' : 'Star'}</span>
                 </button>
                 <button 
                   onClick={() => onArchive && onArchive(activeConversation)}

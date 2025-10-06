@@ -718,7 +718,11 @@ const ConversationsTab = () => {
             setConversationMessages([]);
           }}
           onReply={handleReply}
-          onStar={handleStarConversation}
+          onStar={(conv) => {
+            handleStarConversation(conv);
+            // Re-render modal with updated starred state
+            setTimeout(() => setShowConversationDetail(true), 0);
+          }}
           onArchive={handleArchiveConversation}
           onInitiateAction={handleInitiateAction}
           onPlayRecording={() => {}}
