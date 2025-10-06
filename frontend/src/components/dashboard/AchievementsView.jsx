@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import achievementsDataService from '../../services/achievementsDataService';
 import { useAchievementListener } from '../celebrations/CelebrationProvider';
-import CelebrationDemo from '../celebrations/CelebrationDemo';
 
 // Mock achievements data
 const mockAchievements = [
@@ -634,19 +633,25 @@ const AchievementsView = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Metric:</span>
-                    <span className="ml-2 font-medium">{selectedAchievement.metric || 'N/A'}</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.metric || selectedAchievement.category || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Value:</span>
-                    <span className="ml-2 font-medium">{selectedAchievement.value || 'N/A'}</span>
+                    <span className="text-gray-600">Value Achieved:</span>
+                    <span className="ml-2 font-medium">{selectedAchievement.thresholdValue?.toLocaleString() || selectedAchievement.value?.toLocaleString() || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Timeframe:</span>
-                    <span className="ml-2 font-medium">{selectedAchievement.timeframe || 'N/A'}</span>
+                    <span className="text-gray-600">Category:</span>
+                    <span className="ml-2 font-medium capitalize">{selectedAchievement.category || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-gray-600">Date Achieved:</span>
-                    <span className="ml-2 font-medium">{selectedAchievement.dateAchieved.toLocaleDateString()}</span>
+                    <span className="ml-2 font-medium">
+                      {selectedAchievement.achievedAt 
+                        ? new Date(selectedAchievement.achievedAt).toLocaleDateString()
+                        : selectedAchievement.date
+                        ? new Date(selectedAchievement.date).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -761,9 +766,6 @@ const AchievementsView = () => {
           </div>
         </div>
       )}
-
-      {/* Celebration Demo (remove in production) */}
-      <CelebrationDemo />
     </div>
   );
 };
