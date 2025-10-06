@@ -4,6 +4,7 @@ import AIBriefingCard from './AIBriefingCard';
 import MonthView from './MonthView';
 import WeekView from './WeekView';
 import DayView from './DayView';
+import DayViewWithDragDrop from './DayViewWithDragDrop';
 
 const CalendarLeftPanel = ({
   currentDate,
