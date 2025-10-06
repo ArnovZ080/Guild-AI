@@ -23,9 +23,9 @@ import {
   Search,
   X
 } from 'lucide-react';
-import achievementsDataService from '../services/achievementsDataService';
-import { useAchievementListener } from '../components/celebrations/CelebrationProvider';
-import CelebrationDemo from '../components/celebrations/CelebrationDemo';
+import achievementsDataService from '../../services/achievementsDataService';
+import { useAchievementListener } from '../celebrations/CelebrationProvider';
+import CelebrationDemo from '../celebrations/CelebrationDemo';
 
 // Mock achievements data
 const mockAchievements = [

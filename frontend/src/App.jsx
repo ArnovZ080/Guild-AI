@@ -20,7 +20,7 @@ import VoiceView from './views/VoiceView.jsx';
 import OnboardingView from './views/OnboardingView.jsx';
 import ConnectorsView from './views/ConnectorsView.jsx';
 import GrowthDashboard from './components/dashboard/GrowthDashboard.jsx';
-import AchievementsView from './views/AchievementsView.jsx';
+import AchievementsView from './components/dashboard/AchievementsView.jsx';
 import ContentDashboard from './components/dashboard/ContentDashboard.jsx';
 import './App.css';
 import './index.css';
