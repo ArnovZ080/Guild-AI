@@ -13,7 +13,13 @@ const CalendarRightPanel = ({
   wellbeingData,
   timeUseData,
   agentCoordination,
-  currentDate
+  currentDate,
+  onShowTimeUseReport,
+  onShowOptimizationRecommendations,
+  onScheduleBreak,
+  onToggleFocusMode,
+  onSelectAgent,
+  onAutoOptimize
 }) => {
   // Collapsible card states - All collapsed by default
   const [expandedCards, setExpandedCards] = useState({
@@ -46,6 +52,7 @@ const CalendarRightPanel = ({
         data={timeUseData}
         isExpanded={expandedCards.timeUse}
         onToggle={() => toggleCard('timeUse')}
+        onShowFullReport={onShowTimeUseReport}
       />
 
       {/* AI Insights */}
@@ -53,6 +60,7 @@ const CalendarRightPanel = ({
         insights={aiInsights}
         isExpanded={expandedCards.aiInsights}
         onToggle={() => toggleCard('aiInsights')}
+        onShowOptimizations={onShowOptimizationRecommendations}
       />
 
       {/* Well-being Pulse */}
@@ -60,6 +68,8 @@ const CalendarRightPanel = ({
         data={wellbeingData}
         isExpanded={expandedCards.wellbeing}
         onToggle={() => toggleCard('wellbeing')}
+        onScheduleBreak={onScheduleBreak}
+        onToggleFocusMode={onToggleFocusMode}
       />
 
       {/* Agent Coordination */}
@@ -67,6 +77,7 @@ const CalendarRightPanel = ({
         agents={agentCoordination}
         isExpanded={expandedCards.agents}
         onToggle={() => toggleCard('agents')}
+        onSelectAgent={onSelectAgent}
       />
 
       {/* Predictive Planner */}
@@ -75,6 +86,7 @@ const CalendarRightPanel = ({
         currentDate={currentDate}
         isExpanded={expandedCards.predictive}
         onToggle={() => toggleCard('predictive')}
+        onAutoOptimize={onAutoOptimize}
       />
     </div>
   );

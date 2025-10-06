@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, ChevronDown, ChevronUp, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 
-const AgentCoordinationCard = ({ agents, isExpanded, onToggle }) => {
+const AgentCoordinationCard = ({ agents, isExpanded, onToggle, onSelectAgent }) => {
   const defaultAgents = [
     { 
       name: 'Financial Agent', 
@@ -96,13 +96,17 @@ const AgentCoordinationCard = ({ agents, isExpanded, onToggle }) => {
                   const StatusIcon = statusInfo.Icon;
                   
                   return (
-                    <motion.div
-                      key={index}
-                      className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-md transition-all"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
+                  <motion.div
+                    key={index}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onSelectAgent) onSelectAgent(agent);
+                    }}
+                  >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-2 flex-1">
                           <span className="text-2xl">{getAgentEmoji(agent.name)}</span>

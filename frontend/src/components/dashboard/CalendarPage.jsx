@@ -7,6 +7,12 @@ import FloatingDock from './calendar/FloatingDock';
 import AddEventModal from './modals/AddEventModal';
 import SmartEventModal from './modals/SmartEventModal';
 import OptimizationModal from './modals/OptimizationModal';
+import PrepareReportsModal from './modals/PrepareReportsModal';
+import SmartRescheduleModal from './modals/SmartRescheduleModal';
+import TimeUseReportModal from './modals/TimeUseReportModal';
+import ScheduleOptimizationRecommendationsModal from './modals/ScheduleOptimizationRecommendationsModal';
+import ScheduleBreakModal from './modals/ScheduleBreakModal';
+import AgentDetailModal from './modals/AgentDetailModal';
 import MeetingCompanionOverlay from './calendar/MeetingCompanionOverlay';
 import FocusModeOverlay from './calendar/FocusModeOverlay';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
@@ -65,6 +71,12 @@ const CalendarPage = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showOptimization, setShowOptimization] = useState(false);
   const [showPAChat, setShowPAChat] = useState(false);
+  const [showPrepareReports, setShowPrepareReports] = useState(false);
+  const [showSmartReschedule, setShowSmartReschedule] = useState(false);
+  const [showTimeUseReport, setShowTimeUseReport] = useState(false);
+  const [showOptimizationRecommendations, setShowOptimizationRecommendations] = useState(false);
+  const [showScheduleBreak, setShowScheduleBreak] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
   
   // PA and agent states
   const [paMessages, setPaMessages] = useState([]);
@@ -255,7 +267,6 @@ const CalendarPage = () => {
   };
 
   const handleOptimizeDay = () => {
-    // Trigger day optimization (similar to optimize week but for single day)
     setShowOptimization(true);
     triggerCelebration(CelebrationType.MILESTONE, {
       message: "Optimizing your day... 🎯",
@@ -264,19 +275,73 @@ const CalendarPage = () => {
   };
 
   const handlePrepareReports = () => {
-    // Trigger agents to prepare reports for today's meetings
-    alert('📊 Preparing reports from all agents for today\'s events...\n\nThe following agents are compiling data:\n• Business Intelligence Agent\n• Financial Intelligence Agent\n• Customer Intelligence Agent\n• Content Intelligence Agent');
+    setShowPrepareReports(true);
+  };
+
+  const handleReschedule = () => {
+    setShowSmartReschedule(true);
+  };
+
+  const handleGenerateReports = (reportTypes) => {
+    console.log('Generating reports:', reportTypes);
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: "Reports being prepared! 📊",
+      message: `Generating ${reportTypes.length} report(s)! 📊`,
       intensity: 'normal'
     });
   };
 
-  const handleReschedule = () => {
-    // Open smart rescheduling interface
-    alert('🔄 Smart Rescheduling\n\nI\'ll analyze your calendar and suggest optimal times to reschedule low-priority events.');
+  const handleScheduleRecurringReports = (scheduleData) => {
+    console.log('Scheduling recurring reports:', scheduleData);
+    // Add to calendar
+    const reportEvent = {
+      id: Date.now().toString(),
+      title: `📊 ${scheduleData.reportNames.join(', ')}`,
+      type: 'goal',
+      date: new Date(), // Would calculate based on schedule
+      time: scheduleData.time,
+      duration: 30,
+      description: `Recurring ${scheduleData.frequency} report`,
+      priority: 'medium',
+      agentCreated: true,
+      isRecurring: true,
+      recurringSchedule: scheduleData
+    };
+    setEvents(prev => [...prev, reportEvent]);
+    triggerCelebration(CelebrationType.MILESTONE, {
+      message: "Recurring reports scheduled! 🎯",
+      intensity: 'high'
+    });
+  };
+
+  const handleRescheduleEvents = (eventsToReschedule) => {
+    console.log('Rescheduling events:', eventsToReschedule);
+    // Update events with new dates
+    const updatedEvents = events.map(event => {
+      const reschedule = eventsToReschedule.find(r => r.id === event.id);
+      if (reschedule) {
+        return { ...event, date: reschedule.newDate, time: reschedule.newTime };
+      }
+      return event;
+    });
+    setEvents(updatedEvents);
     triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: "Analyzing schedule... 🔄",
+      message: `${eventsToReschedule.length} event(s) rescheduled! 🔄`,
+      intensity: 'normal'
+    });
+  };
+
+  const handleImplementOptimizations = (optimizations, remember) => {
+    console.log('Implementing optimizations:', optimizations, 'Remember:', remember);
+    triggerCelebration(CelebrationType.MILESTONE, {
+      message: "Schedule optimized! 🎯",
+      intensity: 'high'
+    });
+  };
+
+  const handleScheduleBreak = (breakEvent) => {
+    setEvents(prev => [...prev, { ...breakEvent, id: Date.now().toString(), agentCreated: true }]);
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "Break scheduled! ☕",
       intensity: 'normal'
     });
   };
@@ -337,6 +402,12 @@ const CalendarPage = () => {
               timeUseData={timeUseData}
               agentCoordination={agentCoordination}
               currentDate={currentDate}
+              onShowTimeUseReport={() => setShowTimeUseReport(true)}
+              onShowOptimizationRecommendations={() => setShowOptimizationRecommendations(true)}
+              onScheduleBreak={() => setShowScheduleBreak(true)}
+              onToggleFocusMode={handleToggleFocusMode}
+              onSelectAgent={setSelectedAgent}
+              onAutoOptimize={() => setShowOptimization(true)}
             />
           </div>
         </div>
@@ -388,6 +459,58 @@ const CalendarPage = () => {
                 intensity: 'high'
               });
             }}
+          />
+        )}
+
+        {showPrepareReports && (
+          <PrepareReportsModal
+            isOpen={showPrepareReports}
+            onClose={() => setShowPrepareReports(false)}
+            onGenerateReports={handleGenerateReports}
+            onScheduleRecurring={handleScheduleRecurringReports}
+          />
+        )}
+
+        {showSmartReschedule && (
+          <SmartRescheduleModal
+            isOpen={showSmartReschedule}
+            onClose={() => setShowSmartReschedule(false)}
+            events={filteredEvents}
+            onReschedule={handleRescheduleEvents}
+          />
+        )}
+
+        {showTimeUseReport && (
+          <TimeUseReportModal
+            isOpen={showTimeUseReport}
+            onClose={() => setShowTimeUseReport(false)}
+            timeUseData={timeUseData}
+          />
+        )}
+
+        {showOptimizationRecommendations && (
+          <ScheduleOptimizationRecommendationsModal
+            isOpen={showOptimizationRecommendations}
+            onClose={() => setShowOptimizationRecommendations(false)}
+            currentSchedule={events}
+            onImplement={handleImplementOptimizations}
+          />
+        )}
+
+        {showScheduleBreak && (
+          <ScheduleBreakModal
+            isOpen={showScheduleBreak}
+            onClose={() => setShowScheduleBreak(false)}
+            onScheduleBreak={handleScheduleBreak}
+            selectedDate={selectedDate}
+          />
+        )}
+
+        {selectedAgent && (
+          <AgentDetailModal
+            isOpen={!!selectedAgent}
+            onClose={() => setSelectedAgent(null)}
+            agent={selectedAgent}
           />
         )}
       </AnimatePresence>

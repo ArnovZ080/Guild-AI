@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ChevronDown, ChevronUp, Activity, Coffee, Moon, Smile } from 'lucide-react';
 
-const WellbeingPulseCard = ({ data, isExpanded, onToggle }) => {
+const WellbeingPulseCard = ({ data, isExpanded, onToggle, onScheduleBreak, onToggleFocusMode }) => {
   const defaultData = {
     moodScore: 7.5,
     workloadBalance: 'good',
@@ -153,10 +153,22 @@ const WellbeingPulseCard = ({ data, isExpanded, onToggle }) => {
               {/* Quick Actions */}
               <div className="pt-3 border-t border-gray-200">
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onScheduleBreak) onScheduleBreak();
+                    }}
+                    className="px-3 py-2 bg-pink-100 text-pink-700 rounded-lg text-sm font-medium hover:bg-pink-200 transition-colors"
+                  >
                     🧘 Schedule Break
                   </button>
-                  <button className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onToggleFocusMode) onToggleFocusMode();
+                    }}
+                    className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                  >
                     😌 Focus Mode
                   </button>
                 </div>

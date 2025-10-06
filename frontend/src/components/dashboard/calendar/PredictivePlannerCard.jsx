@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, ChevronDown, ChevronUp, AlertTriangle, Clock, Target, Zap } from 'lucide-react';
 
-const PredictivePlannerCard = ({ events, currentDate, isExpanded, onToggle }) => {
+const PredictivePlannerCard = ({ events, currentDate, isExpanded, onToggle, onAutoOptimize }) => {
   // Analyze upcoming week for predictions
   const analyzeWeek = () => {
     const now = new Date();
@@ -237,7 +237,13 @@ const PredictivePlannerCard = ({ events, currentDate, isExpanded, onToggle }) =>
 
               {/* Actions */}
               <div className="pt-3 border-t border-gray-200">
-                <button className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-700 transition-all">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onAutoOptimize) onAutoOptimize();
+                  }}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg font-medium hover:from-orange-600 hover:to-red-700 transition-all"
+                >
                   🎯 Auto-Optimize Schedule
                 </button>
               </div>

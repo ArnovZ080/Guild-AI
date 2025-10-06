@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, ChevronDown, ChevronUp, TrendingUp, AlertTriangle, CheckCircle, Zap } from 'lucide-react';
 
-const AIInsightsCard = ({ insights, isExpanded, onToggle }) => {
+const AIInsightsCard = ({ insights, isExpanded, onToggle, onShowOptimizations }) => {
   const defaultInsights = {
     weekLoad: 72,
     productivityTrend: 'up',
@@ -116,10 +116,22 @@ const AIInsightsCard = ({ insights, isExpanded, onToggle }) => {
               {/* Quick Actions */}
               <div className="pt-3 border-t border-gray-200">
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Full Report functionality will be added here
+                    }}
+                    className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors"
+                  >
                     📊 Full Report
                   </button>
-                  <button className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onShowOptimizations) onShowOptimizations();
+                    }}
+                    className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors"
+                  >
                     🎯 Optimize
                   </button>
                 </div>
