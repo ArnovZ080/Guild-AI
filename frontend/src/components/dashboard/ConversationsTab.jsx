@@ -8,6 +8,7 @@ import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
 import MessageComposeModal from './modals/MessageComposeModal.jsx';
 import CustomerProfileModal from './modals/CustomerProfileModal.jsx';
+import ConversationDetailModal from './modals/ConversationDetailModal.jsx';
 
 const ConversationsTab = () => {
   const [conversations, setConversations] = useState([]);
@@ -20,6 +21,8 @@ const ConversationsTab = () => {
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [showCustomerProfile, setShowCustomerProfile] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [showConversationDetail, setShowConversationDetail] = useState(false);
+  const [conversationMessages, setConversationMessages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -203,6 +206,21 @@ const ConversationsTab = () => {
       setShowEmailModal(true);
     } else {
       setShowMessageModal(true);
+    }
+  };
+
+  const openConversationDetail = async (customer) => {
+    try {
+      // pick the latest conversation for this customer
+      const conv = (customer.conversations || [])[0];
+      if (!conv) return;
+      setSelectedConversation(conv);
+      // build message-like entries for the detail modal using the same API used for profile messages
+      const msgs = await getMessagesForCustomer({ email: customer.email, name: customer.name });
+      setConversationMessages(msgs);
+      setShowConversationDetail(true);
+    } catch (e) {
+      console.error('Failed to open conversation detail', e);
     }
   };
 
@@ -434,7 +452,7 @@ const ConversationsTab = () => {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="space-y-4">
             {getFilteredCustomers().map(customer => (
-              <div key={customer.id} className="bg-gray-50 rounded-lg p-4 cursor-pointer hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg" onClick={() => handleCustomerClick(customer)}>
+              <div key={customer.id} className="bg-gray-50 rounded-lg p-4 transition-colors shadow-md hover:shadow-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-semibold">
                     {customer.name[0]}
@@ -472,6 +490,20 @@ const ConversationsTab = () => {
                 {/* Inline preview of latest message */}
                 <div className="mt-2 text-xs text-gray-500">
                   Latest: {customer.conversations && customer.conversations[0]?.lastMessage ? customer.conversations[0].lastMessage : '—'}
+                </div>
+                <div className="mt-3 flex items-center justify-end gap-2">
+                  <button
+                    className="px-3 py-1 text-xs bg-white border border-gray-200 rounded hover:bg-gray-50"
+                    onClick={() => handleCustomerClick(customer)}
+                  >
+                    View Customer
+                  </button>
+                  <button
+                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                    onClick={() => openConversationDetail(customer)}
+                  >
+                    View Conversation
+                  </button>
                 </div>
               </div>
             ))}
@@ -557,6 +589,24 @@ const ConversationsTab = () => {
           onAction={(action, data) => {
             console.log('Customer action:', action, data);
           }}
+        />
+      )}
+
+      {/* Conversation Detail Modal */}
+      {showConversationDetail && selectedConversation && (
+        <ConversationDetailModal
+          conversation={selectedConversation}
+          messages={conversationMessages}
+          onClose={() => {
+            setShowConversationDetail(false);
+            setSelectedConversation(null);
+            setConversationMessages([]);
+          }}
+          onReply={handleReply}
+          onStar={() => {}}
+          onArchive={() => {}}
+          onPlayRecording={() => {}}
+          onDownloadRecording={() => {}}
         />
       )}
     </div>

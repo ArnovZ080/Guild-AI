@@ -32,7 +32,8 @@ const ConversationDetailModal = ({
   onStar, 
   onArchive,
   onPlayRecording,
-  onDownloadRecording 
+  onDownloadRecording,
+  messages
 }) => {
   const [expandedSections, setExpandedSections] = useState({
     messages: true,
@@ -198,49 +199,35 @@ const ConversationDetailModal = ({
                 </div>
                 {expandedSections.messages && (
                   <div className="space-y-4">
-                    {/* Mock messages - in real implementation, these would come from the conversation data */}
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
-                        {conversation.participants.find(p => p.role === 'customer')?.name[0]}
-                      </div>
-                      <div className="flex-1">
-                        <div className="bg-gray-100 rounded-lg p-3">
-                          <p className="text-gray-900">Hello, I'm interested in learning more about your product.</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(typeof conversation.createdAt === 'function' ? conversation.createdAt() : conversation.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3 justify-end">
-                      <div className="flex-1 text-right">
-                        <div className="bg-blue-500 text-white rounded-lg p-3 inline-block">
-                          <p>Thank you for your interest! I'd be happy to help you learn more about our product.</p>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(typeof conversation.lastActivity === 'function' ? conversation.lastActivity() : conversation.lastActivity).toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">
-                        <Bot className="w-4 h-4" />
-                      </div>
-                    </div>
-
-                    {conversation.lastMessage && (
-                      <div className="flex items-start space-x-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
-                          {conversation.participants.find(p => p.role === 'customer')?.name[0]}
-                        </div>
-                        <div className="flex-1">
-                          <div className="bg-gray-100 rounded-lg p-3">
-                            <p className="text-gray-900">{conversation.lastMessage}</p>
+                    {Array.isArray(messages) && messages.length > 0 ? (
+                      messages.map((m) => {
+                        const isOut = m.direction === 'out';
+                        const ts = new Date(typeof m.timestamp === 'function' ? m.timestamp() : m.timestamp).toLocaleString();
+                        const ChannelIcon = m.channel === 'email' ? Mail : (m.channel === 'phone' ? Phone : MessageSquare);
+                        return (
+                          <div key={m.id} className={`flex items-start space-x-3 ${isOut ? 'justify-end' : ''}`}>
+                            {!isOut && (
+                              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
+                                <ChannelIcon className="w-4 h-4" />
+                              </div>
+                            )}
+                            <div className={isOut ? 'flex-1 text-right' : 'flex-1'}>
+                              <div className={`${isOut ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-900'} rounded-lg p-3 inline-block max-w-[85%] text-left`}>
+                                <div className="text-xs opacity-75 mb-1 capitalize">{m.channel} • {isOut ? 'Sent' : 'Received'}</div>
+                                <p className={`${isOut ? 'text-white' : 'text-gray-900'}`}>{m.preview || m.subject || ''}</p>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-1">{ts}</p>
+                            </div>
+                            {isOut && (
+                              <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white text-sm">
+                                <Bot className="w-4 h-4" />
+                              </div>
+                            )}
                           </div>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(typeof conversation.lastActivity === 'function' ? conversation.lastActivity() : conversation.lastActivity).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-sm text-gray-500">No messages available for this conversation.</div>
                     )}
                   </div>
                 )}
