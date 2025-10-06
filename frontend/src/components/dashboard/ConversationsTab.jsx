@@ -4,7 +4,7 @@ import { fetchConversations as fetchConversationsApi } from '../../services/conv
 import { getMessagesForCustomer } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
-import AgentActionsConfirmModal from './modals/AgentActionsConfirmModal.jsx';
+import EnhancedApprovalModal from './modals/EnhancedApprovalModal.jsx';
 import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
 import MessageComposeModal from './modals/MessageComposeModal.jsx';
 import CustomerProfileModal from './modals/CustomerProfileModal.jsx';
@@ -18,6 +18,7 @@ const ConversationsTab = () => {
   const [showModal, setShowModal] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
   const [confirmActionOpen, setConfirmActionOpen] = useState(false);
+  const [approvalData, setApprovalData] = useState(null);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
   const [showCustomerProfile, setShowCustomerProfile] = useState(false);
@@ -216,6 +217,7 @@ const ConversationsTab = () => {
       const conv = (customer.conversations || [])[0];
       if (!conv) return;
       setSelectedConversation(conv);
+      setSelectedCustomer(customer);
       // build message-like entries for the detail modal using the same API used for profile messages
       const msgs = await getMessagesForCustomer({ email: customer.email, name: customer.name });
       setConversationMessages(msgs);
@@ -233,7 +235,24 @@ const ConversationsTab = () => {
   };
 
   const handleInitiateAction = async (conversation) => {
-    // Open confirm modal; orchestration will be triggered upon confirm
+    // Open EnhancedApprovalModal configured with conversation context
+    setApprovalData({
+      action_type: 'Initiate Recommended Action',
+      action_title: conversation.subject || 'Initiate Action',
+      action_description: conversation.nextAction || 'Proceed with recommended next step.',
+      initiating_agent: conversation.agentType || 'orchestrator_agent',
+      estimated_duration: 300,
+      requested_at: new Date().toISOString(),
+      risk_level: 'low',
+      involved_agents: [
+        { type: 'orchestrator_agent', name: 'Orchestrator', role: 'Coordinator', status: 'ready', estimated_duration: 60, actions: [{ name: 'Delegate to agents', description: 'Assign tasks to appropriate agents', estimated_duration: 60 }] },
+      ],
+      workflow_steps: [
+        { name: 'Prepare task context', agent: 'Orchestrator', estimated_duration: 60, approval_required: false },
+        { name: 'Delegate to channel agent', agent: conversation.agentType || 'Agent', estimated_duration: 120, approval_required: false },
+      ],
+      decision_rationale: {},
+    });
     setConfirmActionOpen(true);
   };
 
@@ -569,23 +588,28 @@ const ConversationsTab = () => {
       )}
 
       {confirmActionOpen && selectedConversation && (
-        <AgentActionsConfirmModal
-          open={confirmActionOpen}
+        <EnhancedApprovalModal
+          isOpen={confirmActionOpen}
           onClose={() => setConfirmActionOpen(false)}
-          actionSummary={{
-            title: 'Initiate Recommended Action',
-            description: selectedConversation.nextAction || 'Proceed with the recommended next step for this conversation.',
-            impact: 'Agents will coordinate to execute the action and log all steps under this conversation.'
-          }}
-          onConfirm={async () => {
+          approvalData={approvalData}
+          onApprove={async () => {
             setConfirmActionOpen(false);
             try {
-              // Placeholder: call orchestrator; log success
-              console.log('Confirmed: delegating to Orchestrator for conversation', selectedConversation.id);
+              await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/orchestrator/delegate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  conversation_id: selectedConversation.id,
+                  action: selectedConversation.nextAction || 'proceed',
+                  customer: selectedCustomer?.email || null,
+                }),
+              });
             } catch (e) {
               console.error('Orchestrator delegation failed', e);
             }
           }}
+          onReject={() => setConfirmActionOpen(false)}
+          onRequestMoreInfo={() => {}}
         />
       )}
 
