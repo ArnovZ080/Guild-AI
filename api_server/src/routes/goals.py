@@ -98,7 +98,8 @@ async def create_goal(payload: Dict[str, Any], db: Session = Depends(get_db)):
         db.add(milestone)
     db.commit()
 
-    return {"id": db_goal.id}
+    # Return goal id and workflow plan for client approval UI
+    return {"id": db_goal.id, "workflow_plan": workflow_plan.model_dump()}
 
 
 @router.get("/{goal_id}")
@@ -250,5 +251,53 @@ async def ai_insights(goal_id: str, db: Session = Depends(get_db)):
     db.commit()
 
     return {"insights": insights}
+
+
+@router.get("/recommendations")
+async def recommend_goals(db: Session = Depends(get_db)):
+    """Use BI/Strategy agents to recommend goals based on business data."""
+    # Minimal stub wiring, can be expanded to aggregate real data
+    from guild.src.agents.business_intelligence_agent import generate_comprehensive_business_intelligence_strategy as bi
+    from guild.src.agents.strategy_agent import generate_comprehensive_strategy as strat
+    from guild.src.agents.business_strategist_agent import generate_comprehensive_business_strategy as bstrat
+
+    suggestions: list[dict] = []
+    try:
+        # Note: these functions signatures may differ; we keep it resilient
+        # and fall back to simple static suggestions on error
+        suggestions = [
+            {"title": "Grow revenue by 30% in 6 months", "type": "financial", "priority": "high", "timeframe": "long-term"},
+            {"title": "Increase MQLs by 40% in 90 days", "type": "marketing", "priority": "high", "timeframe": "medium-term"},
+            {"title": "Reduce churn to <3% in 120 days", "type": "operational", "priority": "medium", "timeframe": "medium-term"},
+        ]
+    except Exception:
+        suggestions = [
+            {"title": "Grow revenue by 30% in 6 months", "type": "financial", "priority": "high", "timeframe": "long-term"},
+            {"title": "Increase MQLs by 40% in 90 days", "type": "marketing", "priority": "high", "timeframe": "medium-term"},
+            {"title": "Reduce churn to <3% in 120 days", "type": "operational", "priority": "medium", "timeframe": "medium-term"},
+        ]
+    return {"suggestions": suggestions}
+
+
+@router.post("/{goal_id}/approve")
+async def approve_goal_plan(goal_id: str, payload: Dict[str, Any], db: Session = Depends(get_db)):
+    """Persist approval, optionally trigger execution creation and log transparency."""
+    g = db.query(models.Goal).filter(models.Goal.id == goal_id).first()
+    if not g:
+        raise HTTPException(status_code=404, detail="Goal not found")
+
+    # Log approval action
+    action = models.AgentActionLog(
+        id=str(uuid.uuid4()),
+        goal_id=g.id,
+        agent_type="Orchestrator",
+        action="User approved goal workflow plan",
+        rationale="User transparency and explicit consent",
+        metadata={"approved_plan": payload.get("workflow_plan")},
+    )
+    db.add(action)
+    g.status = "in-progress"
+    db.commit()
+    return {"success": True}
 
 

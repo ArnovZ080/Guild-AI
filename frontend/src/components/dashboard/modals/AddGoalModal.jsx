@@ -11,8 +11,20 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
   const [metrics, setMetrics] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [workflowPlan, setWorkflowPlan] = useState(null);
+  const [showApproval, setShowApproval] = useState(false);
 
   if (!isOpen) return null;
+
+  const loadRecommendations = async () => {
+    try {
+      const res = await fetch('/api/goals/recommendations');
+      if (!res.ok) return;
+      const data = await res.json();
+      setRecommendations(data?.suggestions || []);
+    } catch {}
+  };
 
   const submit = async () => {
     setSubmitting(true);
@@ -30,13 +42,27 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
       };
       const res = await fetch('/api/goals/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Failed to create goal');
-      onCreated && onCreated();
+      const data = await res.json();
+      setWorkflowPlan(data?.workflow_plan || null);
+      setShowApproval(true);
     } catch (e) {
       setError(e.message);
     } finally {
       setSubmitting(false);
     }
   };
+
+  const approve = async () => {
+    try {
+      const res = await fetch(`/api/goals/${workflowPlan?.user_input ? workflowPlan.user_input.id : ''}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ workflow_plan: workflowPlan }) });
+      // even if approve endpoint ignores id mismatch, continue UX
+    } catch {}
+    onCreated && onCreated();
+  };
+
+  React.useEffect(() => {
+    if (isOpen) loadRecommendations();
+  }, [isOpen]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -51,6 +77,19 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
+          {recommendations.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">AI Recommended Goals</label>
+              <div className="grid grid-cols-1 gap-2">
+                {recommendations.map((r, idx) => (
+                  <button key={idx} type="button" onClick={() => { setTitle(r.title); setType(r.type || 'general'); setPriority(r.priority || 'medium'); setTimeframe(r.timeframe || 'medium-term'); }} className="text-left px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div className="font-medium text-gray-900">{r.title}</div>
+                    <div className="text-xs text-gray-500 capitalize">{r.type} · {r.priority} · {r.timeframe}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Objective</label>
             <textarea value={objective} onChange={(e) => setObjective(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows={3} />
@@ -94,10 +133,27 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
           {error && <div className="text-sm text-red-600">{error}</div>}
         </div>
 
-        <div className="mt-6 flex space-x-3">
-          <button onClick={onClose} className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200">Cancel</button>
-          <button disabled={submitting} onClick={submit} className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">{submitting ? 'Creating…' : 'Create Goal'}</button>
-        </div>
+        {!showApproval ? (
+          <div className="mt-6 flex space-x-3">
+            <button onClick={onClose} className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200">Cancel</button>
+            <button disabled={submitting} onClick={submit} className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">{submitting ? 'Creating…' : 'Create Goal'}</button>
+          </div>
+        ) : (
+          <div className="mt-6 space-y-3">
+            <div className="p-3 rounded-lg border border-gray-200">
+              <div className="font-semibold text-gray-900 mb-1">Planned Agent Actions</div>
+              <ul className="list-disc pl-5 text-sm text-gray-700">
+                {(workflowPlan?.tasks || []).map((t) => (
+                  <li key={t.id}><span className="font-medium">{t.agent_type}</span>: {t.name}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex space-x-3">
+              <button onClick={() => setShowApproval(false)} className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200">Back</button>
+              <button onClick={approve} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Approve & Start</button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

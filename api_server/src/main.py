@@ -7,10 +7,10 @@ import os
 from .security.security_middleware import SecurityMiddleware, SecurityHeadersMiddleware
 from .security.env_validator import EnvironmentValidator
 
-# Skip database initialization for demo
-# from .database import engine, Base
-# from . import models
-# Base.metadata.create_all(bind=engine)
+# Initialize database tables
+from .database import engine, Base
+from . import models  # noqa: F401
+Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI(
