@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Star, Archive, Bot, Search, Filter } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageSquare, Star, Archive, Bot, Search, Filter, RefreshCw, Download } from 'lucide-react';
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import { getMessagesForCustomer } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
@@ -31,10 +31,29 @@ const ConversationsTab = () => {
     fetchConversations();
   }, []);
 
+  // optional auto-refresh every 30s for near real-time updates
+  const refreshTimer = useRef(null);
+  useEffect(() => {
+    // clear any previous
+    if (refreshTimer.current) clearInterval(refreshTimer.current);
+    refreshTimer.current = setInterval(() => {
+      fetchConversations();
+    }, 30000);
+    return () => {
+      if (refreshTimer.current) clearInterval(refreshTimer.current);
+    };
+  }, []);
+
   const fetchConversations = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchConversationsApi({});
+      const data = await fetchConversationsApi({
+        type: filterType,
+        status: filterStatus,
+        agent: filterAgent,
+        priority: filterPriority,
+        search: searchTerm
+      });
       setConversations(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching conversations:', error);
@@ -220,13 +239,56 @@ const ConversationsTab = () => {
             <h3 className="text-xl font-semibold text-gray-900">Conversations Dashboard</h3>
             <p className="text-sm text-gray-600">Unified inbox for all customer communications</p>
           </div>
-          <button
-            onClick={() => setShowAgentInsights(true)}
-            className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
-          >
-            <Bot className="w-4 h-4 mr-2" />
-            Agent Insights
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fetchConversations()}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center"
+              title="Refresh"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </button>
+            <button
+              onClick={() => setShowAgentInsights(true)}
+              className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+            >
+              <Bot className="w-4 h-4 mr-2" />
+              Agent Insights
+            </button>
+            <button
+              onClick={() => {
+                try {
+                  const rows = getCustomerData().map(c => ({
+                    name: c.name,
+                    email: c.email,
+                    conversationCount: c.conversationCount,
+                    channels: (c.channels || []).join('|'),
+                    agents: (c.agents || []).join('|'),
+                    status: c.status,
+                    priority: c.priority,
+                    sentiment: c.sentiment,
+                    totalValue: c.totalValue
+                  }));
+                  const header = Object.keys(rows[0] || { name: '', email: '' });
+                  const csv = [header.join(','), ...rows.map(r => header.map(h => `${String(r[h] ?? '').replace(/"/g,'""')}`).join(','))].join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'conversations_export.csv';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch (e) {
+                  console.error('Export failed', e);
+                }
+              }}
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </button>
+          </div>
         </div>
 
         {/* Search and Filters */}
@@ -361,6 +423,10 @@ const ConversationsTab = () => {
                       </span>
                     )}
                   </div>
+                </div>
+                {/* Inline preview of latest message */}
+                <div className="mt-2 text-xs text-gray-500">
+                  Latest: {customer.conversations && customer.conversations[0]?.lastMessage ? customer.conversations[0].lastMessage : '—'}
                 </div>
               </div>
             ))}
