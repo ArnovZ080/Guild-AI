@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
-const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
-  const [title, setTitle] = useState('');
-  const [objective, setObjective] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState('financial');
-  const [priority, setPriority] = useState('medium');
-  const [timeframe, setTimeframe] = useState('medium-term');
-  const [targetDate, setTargetDate] = useState('');
-  const [metrics, setMetrics] = useState({});
+const AddGoalModal = ({ isOpen, onClose, onCreated, prefill }) => {
+  const initial = useMemo(() => prefill || {}, [prefill]);
+  const [title, setTitle] = useState(initial.title || '');
+  const [objective, setObjective] = useState(initial.description || initial.objective || '');
+  const [description, setDescription] = useState(initial.description || '');
+  const [type, setType] = useState(initial.type || 'financial');
+  const [priority, setPriority] = useState(initial.priority || 'medium');
+  const [timeframe, setTimeframe] = useState(initial.timeframe || 'medium-term');
+  const [targetDate, setTargetDate] = useState(initial.target_date ? initial.target_date.substring(0,10) : '');
+  const [metrics, setMetrics] = useState(initial.metrics || {});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
@@ -16,25 +17,18 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
   const [showApproval, setShowApproval] = useState(false);
   const [goalId, setGoalId] = useState(null);
 
-  React.useEffect(() => {
-    if (isOpen) {
-      try {
-        const prefill = localStorage.getItem('guild_goal_edit_prefill');
-        if (prefill) {
-          const g = JSON.parse(prefill);
-          setTitle(g.title || '');
-          setObjective(g.description || g.objective || '');
-          setDescription(g.description || '');
-          setType(g.type || 'general');
-          setPriority(g.priority || 'medium');
-          setTimeframe(g.timeframe || 'medium-term');
-          setTargetDate(g.target_date ? g.target_date.substring(0,10) : '');
-          setMetrics(g.metrics || {});
-          localStorage.removeItem('guild_goal_edit_prefill');
-        }
-      } catch {}
+  useEffect(() => {
+    if (isOpen && prefill) {
+      setTitle(prefill.title || '');
+      setObjective(prefill.description || prefill.objective || '');
+      setDescription(prefill.description || '');
+      setType(prefill.type || 'financial');
+      setPriority(prefill.priority || 'medium');
+      setTimeframe(prefill.timeframe || 'medium-term');
+      setTargetDate(prefill.target_date ? prefill.target_date.substring(0,10) : '');
+      setMetrics(prefill.metrics || {});
     }
-  }, [isOpen]);
+  }, [isOpen, prefill]);
 
   if (!isOpen) return null;
 

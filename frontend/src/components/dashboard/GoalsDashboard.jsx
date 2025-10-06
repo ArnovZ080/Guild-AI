@@ -157,14 +157,11 @@ const GoalsDashboard = () => {
     fetchGoals();
   };
 
+  const [editPrefill, setEditPrefill] = useState(null);
   const handleEditGoal = async (goal) => {
-    // Open AddGoalModal prefilled
     setShowGoalDetailModal(false);
-    // Use URL state via local storage for simplicity
-    localStorage.setItem('guild_goal_edit_prefill', JSON.stringify(goal));
+    setEditPrefill(goal || null);
     setShowAddGoal(true);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'Goal updated ✏️', intensity: 'normal' });
-    // actual save will occur via AddGoalModal submit/approve flow
   };
 
   const handleUpdateProgress = async () => {
@@ -181,12 +178,16 @@ const GoalsDashboard = () => {
 
   const handleAIInsights = async () => {
     if (!selectedGoal) return;
-    const res = await fetch(`/api/goals/${selectedGoal.id}/insights`, { method: 'POST' });
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/goals/${selectedGoal.id}/insights`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to fetch insights');
       const data = await res.json();
-      setInsights(data?.insights || null);
+      setInsights(data?.insights || {});
       setShowInsightsModal(true);
       triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'AI insights generated 🤖', intensity: 'high' });
+    } catch (e) {
+      setInsights({ error: e.message });
+      setShowInsightsModal(true);
     }
   };
 
@@ -204,6 +205,7 @@ const GoalsDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Goals & Objectives</h1>
           <button
             onClick={() => {
+              setEditPrefill(null);
               setShowAddGoal(true);
               triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'Setting new goal! 🎯', intensity: 'normal' });
             }}
@@ -259,7 +261,7 @@ const GoalsDashboard = () => {
         </AnimatePresence>
       </div>
 
-      <AddGoalModal isOpen={showAddGoal} onClose={() => setShowAddGoal(false)} onCreated={handleGoalCreated} />
+      <AddGoalModal isOpen={showAddGoal} onClose={() => { setShowAddGoal(false); setEditPrefill(null); }} onCreated={handleGoalCreated} prefill={editPrefill} />
       <GoalDetailModal
         goal={selectedGoal}
         isOpen={showGoalDetailModal}
