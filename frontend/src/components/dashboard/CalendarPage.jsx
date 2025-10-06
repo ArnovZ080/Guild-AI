@@ -13,6 +13,9 @@ import TimeUseReportModal from './modals/TimeUseReportModal';
 import ScheduleOptimizationRecommendationsModal from './modals/ScheduleOptimizationRecommendationsModal';
 import ScheduleBreakModal from './modals/ScheduleBreakModal';
 import AgentDetailModal from './modals/AgentDetailModal';
+import VoiceCommandModal from './modals/VoiceCommandModal';
+import DailyWrapUpModal from './modals/DailyWrapUpModal';
+import WeeklyReviewModal from './modals/WeeklyReviewModal';
 import MeetingCompanionOverlay from './calendar/MeetingCompanionOverlay';
 import FocusModeOverlay from './calendar/FocusModeOverlay';
 import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
@@ -77,6 +80,9 @@ const CalendarPage = () => {
   const [showOptimizationRecommendations, setShowOptimizationRecommendations] = useState(false);
   const [showScheduleBreak, setShowScheduleBreak] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [showVoiceCommands, setShowVoiceCommands] = useState(false);
+  const [showDailyWrapUp, setShowDailyWrapUp] = useState(false);
+  const [showWeeklyReview, setShowWeeklyReview] = useState(false);
   
   // PA and agent states
   const [paMessages, setPaMessages] = useState([]);
@@ -346,6 +352,41 @@ const CalendarPage = () => {
     });
   };
 
+  const handleVoiceCommand = (transcript) => {
+    console.log('Voice command:', transcript);
+    // Process voice command (can integrate with calendarDataService)
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: "Command received! 🎤",
+      intensity: 'normal'
+    });
+  };
+
+  // Auto-trigger daily wrap-up at 6pm
+  useEffect(() => {
+    const checkDailyWrapUp = () => {
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      
+      // Trigger at 6:00 PM
+      if (hour === 18 && minute === 0) {
+        const lastShown = localStorage.getItem('last_daily_wrapup');
+        const today = new Date().toDateString();
+        
+        if (lastShown !== today) {
+          setShowDailyWrapUp(true);
+          localStorage.setItem('last_daily_wrapup', today);
+        }
+      }
+    };
+
+    // Check every minute
+    const interval = setInterval(checkDailyWrapUp, 60000);
+    checkDailyWrapUp(); // Check immediately
+
+    return () => clearInterval(interval);
+  }, []);
+
   // Filter events
   const filteredEvents = events.filter(event => {
     const matchesType = filterType === 'all' || event.type === filterType;
@@ -369,6 +410,7 @@ const CalendarPage = () => {
         onOptimizeWeek={handleOptimizeWeek}
         onAddEvent={() => setShowAddEvent(true)}
         onOpenPAChat={() => setShowPAChat(true)}
+        onOpenVoiceCommands={() => setShowVoiceCommands(true)}
       />
 
       {/* Main Grid */}
@@ -511,6 +553,53 @@ const CalendarPage = () => {
             isOpen={!!selectedAgent}
             onClose={() => setSelectedAgent(null)}
             agent={selectedAgent}
+          />
+        )}
+
+        {showVoiceCommands && (
+          <VoiceCommandModal
+            isOpen={showVoiceCommands}
+            onClose={() => setShowVoiceCommands(false)}
+            onCommand={handleVoiceCommand}
+          />
+        )}
+
+        {showDailyWrapUp && (
+          <DailyWrapUpModal
+            isOpen={showDailyWrapUp}
+            onClose={() => setShowDailyWrapUp(false)}
+            dailyData={{
+              date: new Date().toLocaleDateString(),
+              completedEvents: events.filter(e => e.date <= new Date()).length,
+              totalEvents: events.length,
+              focusTime: '3h 45m',
+              topWins: ['Finished Q4 presentation', 'Client call went great', 'Cleared inbox'],
+              tomorrow: events.filter(e => {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return e.date.toDateString() === tomorrow.toDateString();
+              }).map(e => `${e.title} at ${e.time}`)
+            }}
+            onSaveReflection={(data) => {
+              console.log('Daily reflection saved:', data);
+            }}
+          />
+        )}
+
+        {showWeeklyReview && (
+          <WeeklyReviewModal
+            isOpen={showWeeklyReview}
+            onClose={() => setShowWeeklyReview(false)}
+            weekData={{
+              totalEvents: events.length,
+              totalHours: 35,
+              focusHours: 12,
+              meetingHours: 18,
+              personalHours: 5,
+              efficiencyScore: 0.82,
+              topAchievements: ['Completed Q4 financial review', 'Launched new marketing campaign'],
+              improvements: ['Reduce back-to-back meetings', 'Schedule more deep work time']
+            }}
           />
         )}
       </AnimatePresence>

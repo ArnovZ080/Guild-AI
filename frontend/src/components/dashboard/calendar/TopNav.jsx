@@ -10,7 +10,8 @@ import {
   Bell,
   RefreshCw,
   ExternalLink,
-  MessageSquare
+  MessageSquare,
+  Mic
 } from 'lucide-react';
 
 const TopNav = ({
@@ -24,7 +25,8 @@ const TopNav = ({
   onToggleFocusMode,
   onOptimizeWeek,
   onAddEvent,
-  onOpenPAChat
+  onOpenPAChat,
+  onOpenVoiceCommands
 }) => {
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-30">
@@ -37,12 +39,24 @@ const TopNav = ({
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Voice Commands Button */}
+            {onOpenVoiceCommands && (
+              <button 
+                onClick={onOpenVoiceCommands}
+                className="flex items-center space-x-2 bg-gradient-to-r from-pink-500 to-rose-600 text-white px-4 py-2 rounded-lg hover:from-pink-600 hover:to-rose-700 transition-all shadow-md hover:shadow-lg"
+                title="Voice Commands"
+              >
+                <Mic className="w-4 h-4" />
+                <span className="font-medium hidden sm:inline">Voice</span>
+              </button>
+            )}
+
             <button 
               onClick={onOpenPAChat}
               className="flex items-center space-x-2 bg-gradient-to-r from-purple-500 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="font-medium">Chat with PA Agent</span>
+              <span className="font-medium hidden sm:inline">PA Agent</span>
             </button>
 
             <button 
@@ -50,17 +64,17 @@ const TopNav = ({
               className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white px-4 py-2 rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all shadow-md hover:shadow-lg"
             >
               <Brain className="w-4 h-4" />
-              <span className="font-medium">Optimize My Week</span>
+              <span className="font-medium hidden sm:inline">Optimize</span>
             </button>
 
             <button className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors">
               <RefreshCw className="w-4 h-4" />
-              <span>Sync</span>
+              <span className="hidden sm:inline">Sync</span>
             </button>
 
             <button className="flex items-center space-x-2 text-green-600 hover:text-green-700 px-3 py-2 rounded-lg hover:bg-green-50 transition-colors">
               <ExternalLink className="w-4 h-4" />
-              <span>Google Calendar</span>
+              <span className="hidden sm:inline">Google Calendar</span>
             </button>
           </div>
         </div>
