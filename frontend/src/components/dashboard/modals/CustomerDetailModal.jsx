@@ -37,6 +37,7 @@ import {
 
 const CustomerDetailModal = ({ 
   customer, 
+  isStarred = false,
   onClose, 
   onReply, 
   onStar, 
@@ -552,10 +553,14 @@ const CustomerDetailModal = ({
               <div className="space-y-3">
                 <button 
                   onClick={() => onStar && onStar(customer)}
-                  className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors"
+                  className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    isStarred 
+                      ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
+                      : 'bg-green-500 text-white hover:bg-green-600'
+                  }`}
                 >
-                  <Star className="w-4 h-4" />
-                  <span>Star Customer</span>
+                  <Star className={`w-4 h-4 ${isStarred ? 'fill-current' : ''}`} />
+                  <span>{isStarred ? 'Unstar Customer' : 'Star Customer'}</span>
                 </button>
                 <button 
                   onClick={() => onViewProfile && onViewProfile(customer)}

@@ -11,6 +11,7 @@ const ConversationsTab = () => {
   const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [starredCustomers, setStarredCustomers] = useState(new Set());
   const [showModal, setShowModal] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -23,6 +24,7 @@ const ConversationsTab = () => {
   const [filterAgent, setFilterAgent] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterValueRange, setFilterValueRange] = useState('all');
+  const [filterStarred, setFilterStarred] = useState('all');
 
   useEffect(() => {
     fetchConversations();
@@ -112,9 +114,18 @@ const ConversationsTab = () => {
   };
 
   const handleStarCustomer = (customer) => {
-    console.log('Starring customer:', customer.name);
-    // In real implementation, this would call API to star customer
-    alert(`${customer.name} has been starred! In production, this would call the API to star the customer and add them to customer segments.`);
+    const customerId = customer.email || customer.id;
+    setStarredCustomers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerId)) {
+        newSet.delete(customerId);
+        console.log('Unstarred customer:', customer.name);
+      } else {
+        newSet.add(customerId);
+        console.log('Starred customer:', customer.name);
+      }
+      return newSet;
+    });
   };
 
   const handleArchiveCustomer = (customer) => {
@@ -169,6 +180,12 @@ const ConversationsTab = () => {
       // Priority filter
       const matchesPriority = filterPriority === 'all' || customer.priority === filterPriority;
       
+      // Starred filter
+      const customerId = customer.email || customer.id;
+      const matchesStarred = filterStarred === 'all' || 
+                           (filterStarred === 'starred' && starredCustomers.has(customerId)) ||
+                           (filterStarred === 'unstarred' && !starredCustomers.has(customerId));
+      
       // Value range filter
       const matchesValue = (() => {
         if (filterValueRange === 'all') return true;
@@ -182,7 +199,7 @@ const ConversationsTab = () => {
         }
       })();
       
-      return matchesSearch && matchesType && matchesStatus && matchesAgent && matchesPriority && matchesValue;
+      return matchesSearch && matchesType && matchesStatus && matchesAgent && matchesPriority && matchesStarred && matchesValue;
     });
   };
 
@@ -279,6 +296,16 @@ const ConversationsTab = () => {
               <option value="low">Low Value ($1K-$10K)</option>
               <option value="none">No Value</option>
             </select>
+
+            <select
+              value={filterStarred}
+              onChange={(e) => setFilterStarred(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="all">All Customers</option>
+              <option value="starred">Starred Only</option>
+              <option value="unstarred">Unstarred Only</option>
+            </select>
           </div>
         </div>
       </div>
@@ -301,6 +328,9 @@ const ConversationsTab = () => {
                   <p className="text-sm text-gray-500">Channels: {customer.channels.join(', ')} • Agents: {customer.agents.join(', ')}</p>
                 </div>
                 <div className="flex items-center space-x-2">
+                  {starredCustomers.has(customer.email || customer.id) && (
+                    <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                  )}
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
                     {customer.status}
                   </span>
@@ -320,6 +350,7 @@ const ConversationsTab = () => {
       {showModal && selectedCustomer && (
         <CustomerDetailModal
           customer={selectedCustomer}
+          isStarred={starredCustomers.has(selectedCustomer.email || selectedCustomer.id)}
           onClose={() => {
             setShowModal(false);
             setSelectedCustomer(null);
@@ -380,13 +411,18 @@ const ConversationsTab = () => {
       {/* Customer Profile Modal */}
       {showCustomerProfile && selectedCustomer && (
         <CustomerProfileModal
+          isOpen={showCustomerProfile}
           customer={selectedCustomer}
           onClose={() => {
             setShowCustomerProfile(false);
             setSelectedCustomer(null);
           }}
-          onUpdate={(updatedCustomer) => {
+          onSave={(updatedCustomer) => {
             console.log('Customer updated:', updatedCustomer);
+            setSelectedCustomer(updatedCustomer);
+          }}
+          onAction={(action, data) => {
+            console.log('Customer action:', action, data);
           }}
         />
       )}
