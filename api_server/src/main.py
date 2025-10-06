@@ -53,6 +53,7 @@ from .routes import execution_layer, connectors, onboarding, workspace
 from .routes import agents_available
 from .routes import content_ws
 from .routes import profile, content
+from .routes import conversations
 from .routes import campaign_agents, asset_agents
 
 # Include routers
@@ -76,6 +77,8 @@ app.include_router(content.router)
 app.include_router(campaign_agents.router)
 # Asset generation agents (image, video, editing)
 app.include_router(asset_agents.router)
+# Conversations aggregation endpoints
+app.include_router(conversations.router)
 # app.include_router(business_metrics.router)  # Module doesn't exist
 
 # Comment out other routes that depend on database
