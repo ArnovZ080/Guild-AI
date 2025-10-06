@@ -15,6 +15,26 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
   const [workflowPlan, setWorkflowPlan] = useState(null);
   const [showApproval, setShowApproval] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      try {
+        const prefill = localStorage.getItem('guild_goal_edit_prefill');
+        if (prefill) {
+          const g = JSON.parse(prefill);
+          setTitle(g.title || '');
+          setObjective(g.description || g.objective || '');
+          setDescription(g.description || '');
+          setType(g.type || 'general');
+          setPriority(g.priority || 'medium');
+          setTimeframe(g.timeframe || 'medium-term');
+          setTargetDate(g.target_date ? g.target_date.substring(0,10) : '');
+          setMetrics(g.metrics || {});
+          localStorage.removeItem('guild_goal_edit_prefill');
+        }
+      } catch {}
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const loadRecommendations = async () => {

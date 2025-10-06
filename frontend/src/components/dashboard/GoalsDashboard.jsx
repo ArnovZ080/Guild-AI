@@ -5,6 +5,57 @@ import { useCelebrations, CelebrationType } from '../../components/psychological
 import AddGoalModal from './modals/AddGoalModal.jsx';
 import GoalDetailModal from './modals/GoalDetailModal.jsx';
 
+const ProgressModal = ({ goal, isOpen, onClose, onSave }) => {
+  const [selectedMilestone, setSelectedMilestone] = React.useState('');
+  const [progress, setProgress] = React.useState(goal?.progress || 0);
+  if (!isOpen || !goal) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-md w-full p-6">
+        <div className="text-lg font-semibold mb-3">Update Progress</div>
+        <div className="space-y-3">
+          {Array.isArray(goal.milestones) && goal.milestones.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mark milestone complete</label>
+              <select value={selectedMilestone} onChange={(e) => setSelectedMilestone(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <option value="">None</option>
+                {goal.milestones.filter((m) => !m.completed).map((m) => (
+                  <option key={m.id} value={m.id}>{m.title}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Progress (%)</label>
+            <input type="number" min={0} max={100} value={progress} onChange={(e) => setProgress(parseInt(e.target.value || '0', 10))} className="w-full px-3 py-2 border border-gray-300 rounded-lg" />
+          </div>
+        </div>
+        <div className="mt-4 flex space-x-3">
+          <button onClick={onClose} className="flex-1 bg-gray-100 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-200">Cancel</button>
+          <button onClick={() => onSave({ progress, milestone_id: selectedMilestone || undefined })} className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Save</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const InsightsModal = ({ goal, insights, isOpen, onClose }) => {
+  if (!isOpen || !goal) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-lg font-semibold">AI Insights</div>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div className="prose max-w-none">
+          <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(insights, null, 2)}</pre>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const GoalCard = ({ goal, onClick }) => {
   const daysRemaining = goal.target_date ? Math.ceil((new Date(goal.target_date) - new Date()) / (1000 * 60 * 60 * 24)) : '-';
   return (
@@ -53,6 +104,9 @@ const GoalsDashboard = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showProgressModal, setShowProgressModal] = useState(false);
+  const [showInsightsModal, setShowInsightsModal] = useState(false);
+  const [insights, setInsights] = useState(null);
 
   const { triggerCelebration } = useCelebrations();
 
@@ -103,16 +157,24 @@ const GoalsDashboard = () => {
     fetchGoals();
   };
 
-  const handleEditGoal = async (goalUpdates) => {
-    if (!selectedGoal) return;
-    await fetch(`/api/goals/${selectedGoal.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(goalUpdates) });
+  const handleEditGoal = async (goal) => {
+    // Open AddGoalModal prefilled
+    setShowGoalDetailModal(false);
+    // Use URL state via local storage for simplicity
+    localStorage.setItem('guild_goal_edit_prefill', JSON.stringify(goal));
+    setShowAddGoal(true);
     triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'Goal updated ✏️', intensity: 'normal' });
-    fetchGoals();
+    // actual save will occur via AddGoalModal submit/approve flow
   };
 
-  const handleUpdateProgress = async ({ progress, milestone_id }) => {
+  const handleUpdateProgress = async () => {
+    setShowProgressModal(true);
+  };
+
+  const saveProgress = async ({ progress, milestone_id }) => {
     if (!selectedGoal) return;
     await fetch(`/api/goals/${selectedGoal.id}/progress`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ progress, milestone_id }) });
+    setShowProgressModal(false);
     triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'Progress updated 📊', intensity: 'normal' });
     fetchGoals();
   };
@@ -121,6 +183,9 @@ const GoalsDashboard = () => {
     if (!selectedGoal) return;
     const res = await fetch(`/api/goals/${selectedGoal.id}/insights`, { method: 'POST' });
     if (res.ok) {
+      const data = await res.json();
+      setInsights(data?.insights || null);
+      setShowInsightsModal(true);
       triggerCelebration(CelebrationType.TASK_COMPLETE, { message: 'AI insights generated 🤖', intensity: 'high' });
     }
   };
@@ -149,7 +214,7 @@ const GoalsDashboard = () => {
           </button>
         </div>
         <p className="text-gray-600">Set and track your business objectives. Your AI agents will work towards achieving these goals automatically.</p>
-        {error && <div className="mt-3 text-sm text-red-600">{error}</div>}
+        {/* Hide raw fetch error banner from UI to avoid HTML/JSON noise; keep console logs for dev */}
       </div>
 
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -203,6 +268,8 @@ const GoalsDashboard = () => {
         onUpdateProgress={handleUpdateProgress}
         onAIInsights={handleAIInsights}
       />
+      <ProgressModal goal={selectedGoal} isOpen={showProgressModal} onClose={() => setShowProgressModal(false)} onSave={saveProgress} />
+      <InsightsModal goal={selectedGoal} insights={insights} isOpen={showInsightsModal} onClose={() => setShowInsightsModal(false)} />
     </div>
   );
 };

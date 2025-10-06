@@ -70,15 +70,15 @@ const GoalDetailModal = ({ goal, isOpen, onClose, onEdit, onUpdateProgress, onAI
           </div>
 
           <div className="mt-8 flex space-x-3">
-            <button onClick={() => onEdit({})} className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+            <button onClick={() => onEdit(goal)} className="flex-1 flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
               <Edit className="w-4 h-4" />
               <span>Edit Goal</span>
             </button>
-            <button onClick={() => onUpdateProgress({ progress: Math.min(100, (goal.progress || 0) + 5) })} className="flex-1 flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+            <button onClick={() => onUpdateProgress()} className="flex-1 flex items-center justify-center space-x-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
               <TrendingUp className="w-4 h-4" />
               <span>Update Progress</span>
             </button>
-            <button onClick={onAIInsights} className="flex-1 flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
+            <button onClick={() => onAIInsights()} className="flex-1 flex items-center justify-center space-x-2 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors">
               <Brain className="w-4 h-4" />
               <span>AI Insights</span>
             </button>
