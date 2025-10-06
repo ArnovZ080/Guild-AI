@@ -2,17 +2,17 @@ import React, { useMemo } from 'react';
 import { Edit, TrendingUp, Brain, X, CheckCircle, Clock } from 'lucide-react';
 
 const GoalDetailModal = ({ goal, isOpen, onClose, onEdit, onUpdateProgress, onAIInsights }) => {
-  if (!isOpen || !goal) return null;
-
   const daysRemaining = useMemo(() => {
     try {
-      return goal.target_date ? Math.ceil((new Date(goal.target_date) - new Date()) / (1000 * 60 * 60 * 24)) : '-';
+      return goal && goal.target_date ? Math.ceil((new Date(goal.target_date) - new Date()) / (1000 * 60 * 60 * 24)) : '-';
     } catch {
       return '-';
     }
   }, [goal]);
 
   const metrics = (goal && goal.metrics) ? goal.metrics : {};
+
+  if (!isOpen || !goal) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
