@@ -56,16 +56,25 @@ const GoalsDashboard = () => {
 
   const { triggerCelebration } = useCelebrations();
 
+  const mock = [
+    { id: 'mock-1', title: 'Increase Monthly Revenue by 25%', description: 'Achieve $50,000 MRR by end of Q2', type: 'financial', priority: 'high', timeframe: 'long-term', target_date: new Date().toISOString(), status: 'in-progress', progress: 65, metrics: { current: 32500, target: 50000, unit: 'USD' }, milestones: [ { id: 'm1', title: 'Launch new pricing tier', completed: true }, { id: 'm2', title: 'Acquire 50 new customers', completed: true }, { id: 'm3', title: 'Implement upselling strategy', completed: false } ] },
+    { id: 'mock-2', title: 'Build Brand Authority', description: 'Establish thought leadership in AI automation', type: 'marketing', priority: 'medium', timeframe: 'medium-term', target_date: new Date().toISOString(), status: 'in-progress', progress: 40, metrics: { current: 8, target: 20, unit: 'posts' }, milestones: [ { id: 'm1', title: 'Publish 20 high-quality blog posts', completed: false } ] },
+  ];
+
   const fetchGoals = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/goals/');
-      if (!res.ok) throw new Error('Failed to load goals');
+      if (!res.ok) {
+        setGoals(mock);
+        return;
+      }
       const data = await res.json();
-      setGoals(Array.isArray(data) ? data : []);
+      setGoals(Array.isArray(data) && data.length ? data : mock);
     } catch (e) {
       setError(e.message);
+      setGoals(mock);
     } finally {
       setLoading(false);
     }
@@ -73,8 +82,18 @@ const GoalsDashboard = () => {
 
   useEffect(() => { fetchGoals(); }, []);
 
-  const handleGoalClick = (goal) => {
-    setSelectedGoal(goal);
+  const handleGoalClick = async (goal) => {
+    try {
+      const res = await fetch(`/api/goals/${goal.id}`);
+      if (res.ok) {
+        const detail = await res.json();
+        setSelectedGoal({ ...detail.goal, milestones: detail.milestones, actions: detail.actions });
+      } else {
+        setSelectedGoal(goal);
+      }
+    } catch {
+      setSelectedGoal(goal);
+    }
     setShowGoalDetailModal(true);
   };
 

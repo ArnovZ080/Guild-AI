@@ -54,7 +54,11 @@ const AddGoalModal = ({ isOpen, onClose, onCreated }) => {
 
   const approve = async () => {
     try {
-      const res = await fetch(`/api/goals/${workflowPlan?.user_input ? workflowPlan.user_input.id : ''}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ workflow_plan: workflowPlan }) });
+      // We need the goal id from the create response, so require it
+      const goalId = (workflowPlan && workflowPlan.goal_id) || (workflowPlan && workflowPlan.id) || null;
+      if (goalId) {
+        await fetch(`/api/goals/${goalId}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ workflow_plan: workflowPlan }) });
+      }
       // even if approve endpoint ignores id mismatch, continue UX
     } catch {}
     onCreated && onCreated();

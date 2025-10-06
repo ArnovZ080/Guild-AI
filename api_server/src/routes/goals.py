@@ -11,7 +11,7 @@ from guild.src.models.user_input import UserInput
 from guild.src.core.orchestrator import Orchestrator
 
 router = APIRouter(
-    prefix="/goals",
+    prefix="/api/goals",
     tags=["Goals"],
 )
 
