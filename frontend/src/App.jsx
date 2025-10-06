@@ -19,7 +19,7 @@ import DocumentsView from './views/DocumentsView.jsx';
 import VoiceView from './views/VoiceView.jsx';
 import OnboardingView from './views/OnboardingView.jsx';
 import ConnectorsView from './views/ConnectorsView.jsx';
-import GrowthView from './views/GrowthView.jsx';
+import GrowthDashboard from './components/dashboard/GrowthDashboard.jsx';
 import AchievementsView from './views/AchievementsView.jsx';
 import ContentDashboard from './components/dashboard/ContentDashboard.jsx';
 import './App.css';
@@ -125,7 +125,7 @@ function App() {
               } />
               <Route path="/growth" element={
                 <DashboardLayout>
-                  <GrowthView />
+                  <GrowthDashboard />
                 </DashboardLayout>
               } />
               <Route path="/content-dashboard" element={

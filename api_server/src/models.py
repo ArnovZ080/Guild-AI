@@ -76,6 +76,49 @@ class AgentActionLog(Base):
     goal = relationship('Goal', back_populates='actions')
 
 
+class GrowthOpportunity(Base):
+    """Model for storing autonomous growth opportunities identified by the Growth Opportunity Agent"""
+    __tablename__ = 'growth_opportunities'
+
+    id = Column(String(50), primary_key=True, index=True)
+    title = Column(String(300), nullable=False)
+    description = Column(Text, nullable=False)
+    category = Column(String(50), nullable=False, index=True)  # marketing, sales, product, operations, financial
+    priority = Column(String(20), nullable=False, index=True)  # high, medium, low
+    impact = Column(String(20), nullable=False)  # high, medium, low
+    effort = Column(String(20), nullable=False)  # high, medium, low
+    timeframe = Column(String(100), nullable=False)
+    expected_roi = Column(String(200), nullable=False)
+    expected_revenue = Column(String(200), nullable=False)
+    confidence_score = Column(Float, nullable=False)
+    
+    # JSON fields for structured data
+    data_sources = Column(JSON, default=lambda: [])
+    supporting_data = Column(JSON, default=lambda: [])
+    requirements = Column(JSON, default=lambda: [])
+    risks = Column(JSON, default=lambda: [])
+    recommended_agents = Column(JSON, default=lambda: [])
+    workflow_steps = Column(JSON, default=lambda: [])
+    
+    # Transparent reasoning
+    reasoning = Column(Text, nullable=True)
+    
+    # Status tracking
+    status = Column(String(20), default='pending', index=True)  # pending, accepted, rejected, in_progress, completed
+    workflow_id = Column(String(50), nullable=True)  # Link to created workflow
+    rejection_reason = Column(Text, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    accepted_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
+    
+    # Performance tracking for accepted opportunities
+    actual_roi = Column(String(200), nullable=True)
+    actual_revenue = Column(String(200), nullable=True)
+    performance_metrics = Column(JSON, default=lambda: {})
+
+
 class Workflow(Base):
     __tablename__ = 'workflows'
 
