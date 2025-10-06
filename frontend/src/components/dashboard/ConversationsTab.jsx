@@ -3,9 +3,9 @@ import { MessageSquare, Star, Archive, Bot, Search, Filter } from 'lucide-react'
 import { fetchConversations as fetchConversationsApi } from '../../services/conversationsApi.js';
 import CustomerDetailModal from './modals/CustomerDetailModal.jsx';
 import AgentInsightsModal from './modals/AgentInsightsModal.jsx';
-import ActionConfirmationModal from './modals/ActionConfirmationModal.jsx';
-import StarCustomerModal from './modals/StarCustomerModal.jsx';
-import ReplyModal from './modals/ReplyModal.jsx';
+import ComposeEmailModal from './modals/ComposeEmailModal.jsx';
+import MessageComposeModal from './modals/MessageComposeModal.jsx';
+import CustomerProfileModal from './modals/CustomerProfileModal.jsx';
 
 const ConversationsTab = () => {
   const [conversations, setConversations] = useState([]);
@@ -13,10 +13,9 @@ const ConversationsTab = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showAgentInsights, setShowAgentInsights] = useState(false);
-  const [showActionConfirmation, setShowActionConfirmation] = useState(false);
-  const [showStarModal, setShowStarModal] = useState(false);
-  const [showReplyModal, setShowReplyModal] = useState(false);
-  const [selectedInsight, setSelectedInsight] = useState(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showCustomerProfile, setShowCustomerProfile] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
@@ -113,8 +112,8 @@ const ConversationsTab = () => {
   };
 
   const handleStarCustomer = (customer) => {
-    setSelectedCustomer(customer);
-    setShowStarModal(true);
+    console.log('Starring customer:', customer.name);
+    // In real implementation, this would call API to star customer
   };
 
   const handleArchiveCustomer = (customer) => {
@@ -126,39 +125,23 @@ const ConversationsTab = () => {
     setShowModal(false);
   };
 
+  const handleViewProfile = (customer) => {
+    setSelectedCustomer(customer);
+    setShowCustomerProfile(true);
+  };
+
   const handleReply = (conversation) => {
     setSelectedConversation(conversation);
-    setShowReplyModal(true);
+    if (conversation.type === 'email') {
+      setShowEmailModal(true);
+    } else {
+      setShowMessageModal(true);
+    }
   };
 
   const handleOrchestrateAction = (actionData) => {
-    setSelectedInsight(actionData);
-    setShowActionConfirmation(true);
-  };
-
-  const handleAcceptAction = (actionData) => {
-    console.log('Accepting AI action:', actionData);
-    // In real implementation, this would call orchestrator_agent.py
-    setShowActionConfirmation(false);
-    setShowAgentInsights(false);
-  };
-
-  const handleRejectAction = () => {
-    console.log('Rejecting AI action');
-    setShowActionConfirmation(false);
-  };
-
-  const handleConfirmStar = (starData) => {
-    console.log('Starring customer:', starData);
-    // In real implementation, this would call API to star customer and add tags
-    setShowStarModal(false);
-    setShowModal(false);
-  };
-
-  const handleSendReply = (replyData) => {
-    console.log('Sending reply:', replyData);
-    // In real implementation, this would send the reply through appropriate channel
-    setShowReplyModal(false);
+    console.log('AI insight action:', actionData);
+    // No apply button needed - just insights
   };
 
   // Filter customers based on search and filters
@@ -341,6 +324,7 @@ const ConversationsTab = () => {
           onReply={handleReply}
           onStar={handleStarCustomer}
           onArchive={handleArchiveCustomer}
+          onViewProfile={handleViewProfile}
           onPlayRecording={() => console.log('Play recording')}
           onDownloadRecording={() => console.log('Download recording')}
           onInitiateAction={() => console.log('Initiate action')}
@@ -357,44 +341,50 @@ const ConversationsTab = () => {
         />
       )}
 
-      {/* Action Confirmation Modal */}
-      {showActionConfirmation && selectedInsight && (
-        <ActionConfirmationModal
-          insight={selectedInsight.insight}
+      {/* Compose Email Modal */}
+      {showEmailModal && selectedConversation && (
+        <ComposeEmailModal
+          open={showEmailModal}
           onClose={() => {
-            setShowActionConfirmation(false);
-            setSelectedInsight(null);
-          }}
-          onAccept={handleAcceptAction}
-          onReject={handleRejectAction}
-          onEdit={(editedData) => {
-            console.log('Edited actions:', editedData);
-            setSelectedInsight({ ...selectedInsight, actions: editedData.actions });
-          }}
-        />
-      )}
-
-      {/* Star Customer Modal */}
-      {showStarModal && selectedCustomer && (
-        <StarCustomerModal
-          customer={selectedCustomer}
-          onClose={() => {
-            setShowStarModal(false);
-            setSelectedCustomer(null);
-          }}
-          onConfirm={handleConfirmStar}
-        />
-      )}
-
-      {/* Reply Modal */}
-      {showReplyModal && selectedConversation && (
-        <ReplyModal
-          conversation={selectedConversation}
-          onClose={() => {
-            setShowReplyModal(false);
+            setShowEmailModal(false);
             setSelectedConversation(null);
           }}
-          onSend={handleSendReply}
+          defaultTo={selectedConversation.participants?.find(p => p.role === 'customer')?.email}
+          onSent={() => {
+            setShowEmailModal(false);
+            setSelectedConversation(null);
+          }}
+        />
+      )}
+
+      {/* Message Compose Modal */}
+      {showMessageModal && selectedConversation && (
+        <MessageComposeModal
+          open={showMessageModal}
+          onClose={() => {
+            setShowMessageModal(false);
+            setSelectedConversation(null);
+          }}
+          customer={selectedConversation.participants?.find(p => p.role === 'customer')}
+          replyTo={{
+            channel: selectedConversation.type,
+            platform: selectedConversation.type === 'social' ? 'linkedin' : undefined,
+            customer: selectedConversation.participants?.find(p => p.role === 'customer')
+          }}
+        />
+      )}
+
+      {/* Customer Profile Modal */}
+      {showCustomerProfile && selectedCustomer && (
+        <CustomerProfileModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setShowCustomerProfile(false);
+            setSelectedCustomer(null);
+          }}
+          onUpdate={(updatedCustomer) => {
+            console.log('Customer updated:', updatedCustomer);
+          }}
         />
       )}
     </div>

@@ -41,6 +41,7 @@ const CustomerDetailModal = ({
   onReply, 
   onStar, 
   onArchive,
+  onViewProfile,
   onPlayRecording,
   onDownloadRecording,
   onInitiateAction,
@@ -185,13 +186,12 @@ const CustomerDetailModal = ({
       return acc;
     }, {});
 
-    const timeSpans = customer.conversations.map(conv => {
-      const start = new Date(conv.createdAt);
-      const end = new Date(conv.lastActivity);
-      return Math.floor((end - start) / (1000 * 60)); // minutes
-    });
-
-    const avgConversationDuration = timeSpans.reduce((sum, time) => sum + time, 0) / timeSpans.length;
+    // Calculate actual conversation duration (not time span between first and last message)
+    const avgConversationDuration = customer.conversations.reduce((sum, conv) => {
+      // Use the duration field if available, otherwise estimate based on message count
+      const duration = conv.duration || Math.min(conv.messageCount * 2, 30); // 2 minutes per message, max 30 minutes
+      return sum + duration;
+    }, 0) / customer.conversations.length;
 
     return {
       totalConversations,
@@ -566,6 +566,13 @@ const CustomerDetailModal = ({
                 >
                   <Star className="w-4 h-4" />
                   <span>Star Customer</span>
+                </button>
+                <button 
+                  onClick={() => onViewProfile && onViewProfile(customer)}
+                  className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  <User className="w-4 h-4" />
+                  <span>View Full Profile</span>
                 </button>
                 <button 
                   onClick={() => onArchive && onArchive(customer)}

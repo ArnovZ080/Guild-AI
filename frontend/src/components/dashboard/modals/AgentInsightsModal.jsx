@@ -135,16 +135,6 @@ const AgentInsightsModal = ({
     }, 2000);
   };
 
-  const handleApplyAction = (insight) => {
-    if (onOrchestrateAction) {
-      onOrchestrateAction({
-        type: 'insight_action',
-        insight: insight,
-        action: insight.action,
-        affectedAgents: insight.affectedAgents
-      });
-    }
-  };
 
   const getPriorityColor = (priority) => {
     const colors = {
@@ -293,13 +283,6 @@ const AgentInsightsModal = ({
                             ))}
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleApplyAction(insight)}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
-                        >
-                          <Zap className="w-4 h-4" />
-                          <span>Apply Action</span>
-                        </button>
                       </div>
                     </div>
                   );
