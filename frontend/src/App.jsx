@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
-// Celebrations disabled to avoid runtime issues
+import CelebrationProvider from './components/celebrations/CelebrationProvider.jsx';
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
 import DashboardView from './views/DashboardView.jsx';
 import AgentsView from './views/AgentsView.jsx';
@@ -48,8 +48,9 @@ function App() {
   }
 
   return (
-    <PsychologicalOptimizationProvider>
-      <AdaptiveModeProvider>
+    <CelebrationProvider celebrationMode="full">
+      <PsychologicalOptimizationProvider>
+        <AdaptiveModeProvider>
           <Router>
             <Routes>
               <Route path="/" element={
@@ -147,6 +148,7 @@ function App() {
           </Router>
       </AdaptiveModeProvider>
     </PsychologicalOptimizationProvider>
+    </CelebrationProvider>
   );
 }
 
