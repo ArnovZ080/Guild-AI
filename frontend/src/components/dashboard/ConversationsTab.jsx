@@ -223,6 +223,28 @@ const ConversationsTab = () => {
     }
   };
 
+  const handleInitiateAction = async (conversation) => {
+    try {
+      // Placeholder: delegate to orchestrator via API when backend endpoint is available
+      console.log('Delegating next action to Orchestrator for conversation:', conversation.id);
+      // await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/workflows/approve`, { method: 'POST', ... })
+    } catch (e) {
+      console.error('Failed to initiate action', e);
+    }
+  };
+
+  const handleStarConversation = (conversation) => {
+    const customer = selectedCustomer || { email: conversation?.participants?.find(p => p.role === 'customer')?.email };
+    if (!customer?.email) return;
+    handleStarCustomer({ email: customer.email, id: customer.email, name: customer.name || customer.email });
+  };
+
+  const handleArchiveConversation = (conversation) => {
+    if (!conversation) return;
+    setConversations(prev => prev.filter(c => c.id !== conversation.id));
+    setShowConversationDetail(false);
+  };
+
   const handleOrchestrateAction = (actionData) => {
     console.log('AI insight action:', actionData);
     // No apply button needed - just insights
@@ -602,8 +624,9 @@ const ConversationsTab = () => {
             setConversationMessages([]);
           }}
           onReply={handleReply}
-          onStar={() => {}}
-          onArchive={() => {}}
+          onStar={handleStarConversation}
+          onArchive={handleArchiveConversation}
+          onInitiateAction={handleInitiateAction}
           onPlayRecording={() => {}}
           onDownloadRecording={() => {}}
         />

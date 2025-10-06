@@ -339,7 +339,8 @@ const ConversationDetailModal = ({
                   </p>
                   <button
                     onClick={() => {
-                      console.log('Initiating action for conversation:', conversation.id);
+                      // emit to parent to delegate to orchestrator
+                      if (typeof onInitiateAction === 'function') onInitiateAction(conversation);
                     }}
                     className="w-full bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center space-x-2"
                   >

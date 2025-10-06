@@ -274,6 +274,7 @@ export async function getMessagesForCustomer(customer) {
       const base = [
         {
           id: `m_${conv.id}_in`,
+          conversationId: conv.id,
           channel: conv.type === 'voice' ? 'phone' : (conv.type || 'chat'),
           direction: 'in',
           subject,
@@ -285,6 +286,7 @@ export async function getMessagesForCustomer(customer) {
         },
         {
           id: `m_${conv.id}_out`,
+          conversationId: conv.id,
           channel: conv.type === 'voice' ? 'phone' : (conv.type || 'chat'),
           direction: 'out',
           subject,
