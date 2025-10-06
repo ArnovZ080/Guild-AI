@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Trophy, 
@@ -23,6 +23,9 @@ import {
   Search,
   X
 } from 'lucide-react';
+import achievementsDataService from '../services/achievementsDataService';
+import { useAchievementListener } from '../components/celebrations/CelebrationProvider';
+import CelebrationDemo from '../components/celebrations/CelebrationDemo';
 
 // Mock achievements data
 const mockAchievements = [
@@ -207,6 +210,7 @@ const AchievementsView = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAchievement, setSelectedAchievement] = useState(null);
   const [showRepeatStrategyModal, setShowRepeatStrategyModal] = useState(false);
+  const [achievements, setAchievements] = useState(mockAchievements);
   const [repeatStrategyData, setRepeatStrategyData] = useState({
     targetMetric: '',
     targetValue: '',
@@ -215,29 +219,68 @@ const AchievementsView = () => {
     customInstructions: ''
   });
 
+  // Load achievements from service on mount
+  useEffect(() => {
+    const loadAchievements = async () => {
+      const data = await achievementsDataService.fetchAchievementsFromBackend();
+      if (data && data.length > 0) {
+        setAchievements(data);
+      } else {
+        // Use mock data if no real achievements yet
+        setAchievements(mockAchievements);
+      }
+    };
+    loadAchievements();
+  }, []);
+
+  // Listen for new achievements
+  useAchievementListener((newAchievement) => {
+    setAchievements(prev => [newAchievement, ...prev]);
+  });
+
   // Handler functions
   const handleRepeatStrategy = (achievement) => {
     setSelectedAchievement(achievement);
     setRepeatStrategyData({
       targetMetric: achievement.metric || '',
-      targetValue: achievement.value || '',
-      timeframe: achievement.timeframe || '',
+      targetValue: achievement.thresholdValue ? achievement.thresholdValue * 2 : '',
+      timeframe: '3 months',
       priority: 'medium',
       customInstructions: ''
     });
     setShowRepeatStrategyModal(true);
   };
 
-  const handleSaveRepeatStrategy = () => {
-    console.log('Repeating strategy for:', selectedAchievement.title, 'with data:', repeatStrategyData);
-    // In real implementation, this would trigger agents to implement the strategy with new metrics
-    alert(`Strategy "${selectedAchievement.title}" is being re-initialized with new metrics! 🚀`);
-    setShowRepeatStrategyModal(false);
-    setSelectedAchievement(null);
+  const handleSaveRepeatStrategy = async () => {
+    try {
+      const goal = await achievementsDataService.replayStrategy(
+        selectedAchievement.id,
+        {
+          title: `Reach ${repeatStrategyData.targetValue} ${selectedAchievement.metric?.replace(/_/g, ' ')}`,
+          targetValue: parseFloat(repeatStrategyData.targetValue),
+          timeframe: repeatStrategyData.timeframe,
+          priority: repeatStrategyData.priority,
+          metadata: {
+            customInstructions: repeatStrategyData.customInstructions
+          }
+        }
+      );
+
+      console.log('Goal created from achievement:', goal);
+      
+      // Show success message
+      alert(`🎯 Strategy deployed! New goal created: "${goal.title}"\n\nTarget: ${goal.metrics.target.toLocaleString()}\nDeadline: ${new Date(goal.target_date).toLocaleDateString()}\n\nThis goal is now active in your Goals dashboard.`);
+      
+      setShowRepeatStrategyModal(false);
+      setSelectedAchievement(null);
+    } catch (error) {
+      console.error('Failed to replay strategy:', error);
+      alert('Failed to create goal. Please try again.');
+    }
   };
 
   // Filter achievements
-  const filteredAchievements = mockAchievements.filter(achievement => {
+  const filteredAchievements = achievements.filter(achievement => {
     const matchesCategory = selectedCategory === 'all' || achievement.category === selectedCategory;
     const matchesType = selectedType === 'all' || achievement.type === selectedType;
     const matchesSearch = achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -293,7 +336,7 @@ const AchievementsView = () => {
           </div>
           <div className="flex items-center space-x-2">
             <Trophy className="w-8 h-8 text-yellow-500" />
-            <span className="text-2xl font-bold text-gray-900">{mockAchievements.length}</span>
+            <span className="text-2xl font-bold text-gray-900">{achievements.length}</span>
             <span className="text-gray-600">Achievements</span>
           </div>
         </div>
@@ -718,6 +761,9 @@ const AchievementsView = () => {
           </div>
         </div>
       )}
+
+      {/* Celebration Demo (remove in production) */}
+      <CelebrationDemo />
     </div>
   );
 };
