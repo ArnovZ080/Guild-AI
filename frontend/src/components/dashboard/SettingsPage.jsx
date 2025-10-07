@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const Section = ({ title, children }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   return (
     <div className="bg-white rounded-lg shadow mb-6">
-      <div className="flex items-center justify-between px-6 py-4 border-b">
+      <div className="flex items-center justify-between px-6 py-4">
         <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
         <button
           onClick={() => setOpen(!open)}
@@ -534,8 +534,11 @@ const SettingsPage = () => {
               <div className="text-sm text-gray-500">Loading plans...</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {plans.map((p) => (
-                  <div key={p.id} className={`border rounded-lg p-4 ${p.popular ? 'border-blue-400' : 'border-gray-200'}`}>
+                {(plans.length ? plans : [
+                  { id: 'free', name: 'Always Free', usd_display: 'Free', zar_display: 'Free', features: ['basic_chat','limited_workflows'], included_agents_limit: 0, extra_agent_daily_usd: 2, extra_agent_monthly_usd: 15, trial_days: 0 },
+                  { id: 'starter', name: 'Starter', usd_display: '$49', zar_display: 'R910', features: ['base_agents','basic_templates','marketplace_use'], included_agents_limit: 5, extra_agent_daily_usd: 1.5, extra_agent_monthly_usd: 12, trial_days: 21 },
+                ]).map((p) => (
+                  <div key={p.id} className={`border rounded-lg p-4 ${p.popular ? 'border-blue-400' : 'border-gray-200'} bg-white`}> 
                     <div className="flex items-center justify-between">
                       <div className="text-lg font-semibold">{p.name}</div>
                       {p.popular && <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">Popular</span>}
@@ -630,8 +633,35 @@ const SettingsPage = () => {
         </div>
       </Section>
 
-      {/* 4. Advanced Settings (Collapsible) */}
-      <Collapsible title="Advanced Settings">
+      {/* 6. Notifications & Alerts */}
+      <Section title="Notifications & Alerts">
+        <Row label="Opportunity Alerts">
+          <Toggle
+            checked={settings.notifications.opportunityAlerts}
+            onChange={(v) => updateSettings({ notifications: { ...settings.notifications, opportunityAlerts: v } })}
+          />
+        </Row>
+        <Row label="Performance Drop Alerts">
+          <Toggle
+            checked={settings.notifications.performanceDropAlerts}
+            onChange={(v) => updateSettings({ notifications: { ...settings.notifications, performanceDropAlerts: v } })}
+          />
+        </Row>
+        <Row label="Agent Activity Digests">
+          <Select
+            value={settings.notifications.agentDigests}
+            onChange={(v) => updateSettings({ notifications: { ...settings.notifications, agentDigests: v } })}
+            options={[
+              { value: 'daily', label: 'Daily' },
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'monthly', label: 'Monthly' },
+            ]}
+          />
+        </Row>
+      </Section>
+
+      {/* Advanced Settings moved to bottom */}
+      <Section title="Advanced Settings">
         <Section title="Agent Settings">
           <Row label="Enable/Disable Agents (IDs, comma-separated)">
             <Input
@@ -791,41 +821,6 @@ const SettingsPage = () => {
             </button>
           </div>
         </Section>
-      </Collapsible>
-
-      {/* 5. Integrations */}
-      <Section title="Integrations">
-        <div className="text-sm text-gray-600">Manage connectors in the Connectors page.</div>
-        <div className="mt-3">
-          <a href="/connectors" className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">Open Connectors</a>
-        </div>
-      </Section>
-
-      {/* 6. Notifications & Alerts */}
-      <Section title="Notifications & Alerts">
-        <Row label="Opportunity Alerts">
-          <Toggle
-            checked={settings.notifications.opportunityAlerts}
-            onChange={(v) => updateSettings({ notifications: { ...settings.notifications, opportunityAlerts: v } })}
-          />
-        </Row>
-        <Row label="Performance Drop Alerts">
-          <Toggle
-            checked={settings.notifications.performanceDropAlerts}
-            onChange={(v) => updateSettings({ notifications: { ...settings.notifications, performanceDropAlerts: v } })}
-          />
-        </Row>
-        <Row label="Agent Activity Digests">
-          <Select
-            value={settings.notifications.agentDigests}
-            onChange={(v) => updateSettings({ notifications: { ...settings.notifications, agentDigests: v } })}
-            options={[
-              { value: 'daily', label: 'Daily' },
-              { value: 'weekly', label: 'Weekly' },
-              { value: 'monthly', label: 'Monthly' },
-            ]}
-          />
-        </Row>
       </Section>
     </div>
   );
