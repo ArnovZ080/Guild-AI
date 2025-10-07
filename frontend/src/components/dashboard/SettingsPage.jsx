@@ -54,6 +54,7 @@ const SettingsPage = () => {
   const [subLoading, setSubLoading] = useState(false);
   const [initLoadingPlan, setInitLoadingPlan] = useState('');
   const [statusMsg, setStatusMsg] = useState('');
+  const [agentsAvailable, setAgentsAvailable] = useState([]);
 
   const userEmail = useMemo(() => settings?.profile?.email || '', [settings?.profile?.email]);
 
@@ -84,8 +85,21 @@ const SettingsPage = () => {
         setSubLoading(false);
       }
     };
+    const fetchAgents = async () => {
+      try {
+        const res = await fetch('/agents/available');
+        if (res.ok) {
+          const data = await res.json();
+          setAgentsAvailable(Array.isArray(data) ? data : (Array.isArray(data?.agents) ? data.agents : []));
+        }
+      } catch {
+        // graceful fallback
+        setAgentsAvailable([]);
+      }
+    };
     fetchPlans();
     fetchInfo();
+    fetchAgents();
     // Handle Paystack return (reference in URL)
     const params = new URLSearchParams(window.location.search);
     const reference = params.get('reference');
@@ -151,6 +165,45 @@ const SettingsPage = () => {
     } finally {
       setInitLoadingPlan('');
     }
+  };
+
+  // Smart address helpers (lightweight mock)
+  const autoFillCountryState = (city, currentCountry, currentState) => {
+    const db = {
+      'cape town': { countryOrRegion: 'South Africa', stateProvince: 'Western Cape' },
+      'johannesburg': { countryOrRegion: 'South Africa', stateProvince: 'Gauteng' },
+      'pretoria': { countryOrRegion: 'South Africa', stateProvince: 'Gauteng' },
+      'durban': { countryOrRegion: 'South Africa', stateProvince: 'KwaZulu-Natal' },
+      'london': { countryOrRegion: 'United Kingdom', stateProvince: 'England' },
+      'new york': { countryOrRegion: 'United States', stateProvince: 'New York' },
+      'san francisco': { countryOrRegion: 'United States', stateProvince: 'California' }
+    };
+    const rec = db[(city || '').toLowerCase()];
+    return rec ? rec : { countryOrRegion: currentCountry, stateProvince: currentState };
+  };
+
+  const getAddressSuggestions = (city) => {
+    const c = (city || '').toLowerCase();
+    const samples = {
+      'cape town': [
+        '1 Adderley St, Cape Town City Centre, Cape Town, 8000',
+        '12 Kloof St, Gardens, Cape Town, 8001',
+        '101 Main Rd, Sea Point, Cape Town, 8005'
+      ],
+      'johannesburg': [
+        '24 Maude St, Sandton, Johannesburg, 2196',
+        '155 West St, Sandown, Johannesburg, 2031'
+      ],
+      'london': [
+        '10 Downing St, Westminster, London SW1A 2AA',
+        '221B Baker St, London NW1 6XE'
+      ],
+      'new york': [
+        '350 5th Ave, New York, NY 10118',
+        '405 Lexington Ave, New York, NY 10174'
+      ]
+    };
+    return samples[c] || [];
   };
 
   return (
@@ -271,11 +324,18 @@ const SettingsPage = () => {
           />
         </Row>
         <Row label="City">
-          <Input
-            value={settings.profile.city}
-            onChange={(e) => updateSettings({ profile: { ...settings.profile, city: e.target.value } })}
-            placeholder="City"
-          />
+          <div>
+            <Input
+              value={settings.profile.city}
+              onChange={(e) => {
+                const city = e.target.value;
+                const auto = autoFillCountryState(city, settings.profile.countryOrRegion, settings.profile.stateProvince);
+                updateSettings({ profile: { ...settings.profile, city, ...auto } });
+              }}
+              placeholder="City"
+            />
+            <div className="text-xs text-gray-500 mt-1">Typing a known city will auto-fill country and state/province.</div>
+          </div>
         </Row>
         <Row label="Office Address">
           <Input
@@ -285,11 +345,20 @@ const SettingsPage = () => {
           />
         </Row>
         <Row label="Address Line 1">
-          <Input
-            value={settings.profile.addressLine1}
-            onChange={(e) => updateSettings({ profile: { ...settings.profile, addressLine1: e.target.value } })}
-            placeholder="Address line 1"
-          />
+          <div>
+            <Input
+              value={settings.profile.addressLine1}
+              onChange={(e) => updateSettings({ profile: { ...settings.profile, addressLine1: e.target.value } })}
+              placeholder="Start typing your address..."
+              list="address-suggestions"
+            />
+            <datalist id="address-suggestions">
+              {getAddressSuggestions(settings.profile.city).map((s, idx) => (
+                <option key={idx} value={s} />
+              ))}
+            </datalist>
+            <div className="text-xs text-gray-500 mt-1">Autocomplete suggestions appear as you type.</div>
+          </div>
         </Row>
         <Row label="Address Line 2">
           <Input
@@ -328,15 +397,112 @@ const SettingsPage = () => {
               Enjoy a {plans.find(p => p.trial_days > 0)?.trial_days}-day free trial on paid plans.
             </div>
           )}
-          <div className="text-sm text-gray-600">
-            {subLoading ? 'Loading subscription...' : subscriptionInfo ? (
-              <>
-                <div>Tier: <span className="font-medium capitalize">{subscriptionInfo.tier || subscriptionInfo.plan_details?.name || 'free'}</span></div>
-                {subscriptionInfo.credits && (
-                  <div>Credits: {subscriptionInfo.credits.remaining} remaining of {subscriptionInfo.credits.limit}</div>
-                )}
-              </>
-            ) : 'Not subscribed'}
+          {/* Subscription Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-500">Current Plan</div>
+              <div className="text-2xl font-bold text-gray-900 mt-1 capitalize">
+                {subLoading ? '—' : (subscriptionInfo?.tier || subscriptionInfo?.plan_details?.name || 'free')}
+              </div>
+              {subscriptionInfo?.current_period_end && (
+                <div className="text-xs text-gray-500 mt-1">Renews {new Date(subscriptionInfo.current_period_end).toLocaleDateString()}</div>
+              )}
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-500">Credits</div>
+              <div className="mt-1">
+                <div className="flex items-end justify-between">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {subscriptionInfo?.credits?.remaining ?? '—'}
+                  </div>
+                  <div className="text-sm text-gray-500">of {subscriptionInfo?.credits?.limit ?? '—'}</div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                  <div className="bg-purple-600 h-2 rounded-full" style={{ width: (() => {
+                    const used = subscriptionInfo?.credits?.used ?? 0; const limit = subscriptionInfo?.credits?.limit ?? 0; return limit > 0 ? `${Math.min(100, Math.round(100 * used / limit))}%` : '0%';
+                  })() }} />
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-500">Included Agents</div>
+              <div className="mt-1">
+                <div className="text-2xl font-bold text-blue-600">
+                  {(() => {
+                    const included = agentsAvailable.filter(a => a.included_in_subscription).length;
+                    return included;
+                  })()}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Limit: {plans.find(p => (p.id === (subscriptionInfo?.tier || 'free')))?.included_agents_limit ?? '—'}
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="text-sm text-gray-500">Hired Agents</div>
+              <div className="mt-1">
+                <div className="text-2xl font-bold text-emerald-600">
+                  {agentsAvailable.filter(a => a.hired_until).length}
+                </div>
+                <div className="text-xs text-gray-500">Daily/Monthly rentals active</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Agent Entitlements Summary */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Agent Entitlements</h3>
+              <span className="text-xs text-gray-500">Live availability</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <div className="font-medium text-gray-800 mb-1">Included</div>
+                <ul className="space-y-1">
+                  {agentsAvailable.filter(a => a.included_in_subscription).slice(0,6).map(a => (
+                    <li key={a.id || a.agent_id} className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                      <span className="text-gray-700">{a.name || a.agent_id}</span>
+                    </li>
+                  ))}
+                  {agentsAvailable.filter(a => a.included_in_subscription).length === 0 && (
+                    <li className="text-gray-500">None</li>
+                  )}
+                </ul>
+              </div>
+              <div>
+                <div className="font-medium text-gray-800 mb-1">Hired</div>
+                <ul className="space-y-1">
+                  {agentsAvailable.filter(a => a.hired_until).slice(0,6).map(a => (
+                    <li key={a.id || a.agent_id} className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                      <span className="text-gray-700">{a.name || a.agent_id}</span>
+                      <span className="text-xs text-gray-500">until {new Date(a.hired_until).toLocaleDateString()}</span>
+                    </li>
+                  ))}
+                  {agentsAvailable.filter(a => a.hired_until).length === 0 && (
+                    <li className="text-gray-500">None</li>
+                  )}
+                </ul>
+              </div>
+              <div>
+                <div className="font-medium text-gray-800 mb-1">Hireable</div>
+                <ul className="space-y-1">
+                  {agentsAvailable.filter(a => a.can_hire_daily || a.can_hire_monthly).slice(0,6).map(a => (
+                    <li key={a.id || a.agent_id} className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                      <span className="text-gray-700">{a.name || a.agent_id}</span>
+                      {(a.daily_rate_usd || a.monthly_rate_usd) && (
+                        <span className="text-xs text-gray-500">${a.daily_rate_usd || '-'} /day · ${a.monthly_rate_usd || '-'} /mo</span>
+                      )}
+                    </li>
+                  ))}
+                  {agentsAvailable.filter(a => a.can_hire_daily || a.can_hire_monthly).length === 0 && (
+                    <li className="text-gray-500">None</li>
+                  )}
+                </ul>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -585,9 +751,9 @@ const SettingsPage = () => {
 
       {/* 5. Integrations */}
       <Section title="Integrations">
-        <div className="text-sm text-gray-600">Manage connectors in the Connectors page. Quick link below.</div>
+        <div className="text-sm text-gray-600">Manage connectors in the Connectors page.</div>
         <div className="mt-3">
-          <a href="/connectors" className="text-blue-600 hover:underline">Open Connectors</a>
+          <a href="/connectors" className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">Open Connectors</a>
         </div>
       </Section>
 
