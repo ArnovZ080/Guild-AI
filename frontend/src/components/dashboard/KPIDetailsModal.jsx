@@ -1,6 +1,6 @@
 import React from 'react';
 
-const KPIDetailsModal = ({ open, onClose, title, details }) => {
+const KPIDetailsModal = ({ open, onClose, title, details, children }) => {
   if (!open) return null;
   const d = details?.data || {};
   const metrics = d.detailed_metrics || {};
@@ -12,6 +12,7 @@ const KPIDetailsModal = ({ open, onClose, title, details }) => {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-gray-900">{title || 'KPI Details'}</h3>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-900">✕</button>
+          {children}
         </div>
         <div className="space-y-4">
           <div>

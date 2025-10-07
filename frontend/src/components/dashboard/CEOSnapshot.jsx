@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchCeoSnapshot, fetchKpiDetails } from '../../services/biaApi.js';
+import { fetchCeoSnapshot, fetchKpiDetails, fetchKpiHistory, executeImmediateAction } from '../../services/biaApi.js';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import KPIDetailsModal from './KPIDetailsModal.jsx';
 import { AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 
@@ -21,6 +22,8 @@ const CEOSnapshot = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalDetails, setModalDetails] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('financial');
+  const [historySeries, setHistorySeries] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -55,6 +58,8 @@ const CEOSnapshot = () => {
     setModalOpen(true);
     const details = await fetchKpiDetails(kpiId);
     setModalDetails(details);
+    const hist = await fetchKpiHistory(kpiId, '90d');
+    setHistorySeries(hist?.data || []);
   };
 
   return (
@@ -113,9 +118,18 @@ const CEOSnapshot = () => {
         </div>
       </div>
 
+      {/* Category filter */}
+      <div className="mt-6">
+        <div className="inline-flex rounded-lg bg-gray-100 p-1">
+          {['financial','customer','operational'].map(cat => (
+            <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1 text-sm rounded-md ${activeCategory===cat ? 'bg-white shadow' : ''}`}>{cat.charAt(0).toUpperCase()+cat.slice(1)}</button>
+          ))}
+        </div>
+      </div>
+
       {/* KPI blocks (clickable for details) */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(kpis.financial || []).map((k) => (
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {((kpis[activeCategory]) || []).map((k) => (
           <button key={k.key} onClick={() => openDetails(k.key, k.label)} className="text-left border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
             <div className="flex items-center justify-between">
               <div className="font-medium text-gray-800">{k.label}</div>
@@ -127,7 +141,34 @@ const CEOSnapshot = () => {
         ))}
       </div>
 
-      <KPIDetailsModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle} details={modalDetails} />
+      {/* Trend chart in modal context */}
+      <KPIDetailsModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle} details={modalDetails}>
+        {historySeries?.length > 0 && (
+          <div className="mt-4 h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={historySeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="name" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="#3B82F6" dot={false} name="Value" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </KPIDetailsModal>
+
+      {/* Execute immediate actions */}
+      <div className="mt-6">
+        {(data?.immediate_actions || []).length > 0 && (
+          <button
+            onClick={async () => { await executeImmediateAction({ action: data.immediate_actions[0] }); }}
+            className="px-3 py-2 rounded bg-emerald-600 text-white text-sm"
+          >
+            Execute Top Immediate Action
+          </button>
+        )}
+      </div>
     </div>
   );
 };

@@ -6,6 +6,7 @@ import DashboardView from './DashboardView.jsx';
 import ContentDashboard from '@/components/dashboard/ContentDashboard.jsx';
 import CustomersView from './CustomersView.jsx';
 import ConversationsTab from '@/components/dashboard/ConversationsTab.jsx';
+import CEOSnapshot from '@/components/dashboard/CEOSnapshot.jsx';
 
 const TAB_CONFIG = [
   { id: 'overview', label: 'Overview', component: DashboardView },
@@ -54,6 +55,11 @@ const BusinessDashboardView = () => {
         </div>
 
         <div>
+          {activeTab === 'overview' && (
+            <div className="space-y-4">
+              <CEOSnapshot />
+            </div>
+          )}
           <ActiveComponent />
         </div>
       </div>
