@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskDocumentsModal from './modals/TaskDocumentsModal.jsx';
 import DocumentPreviewModal from './modals/DocumentPreviewModal.jsx';
+import EnhancedApprovalModal from './modals/EnhancedApprovalModal.jsx';
 import { 
   FileText, 
   Upload, 
@@ -241,6 +242,10 @@ const DocumentsView = () => {
   const [taskDocs, setTaskDocs] = useState([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [showReModal, setShowReModal] = useState(false);
+  const [reModalDone, setReModalDone] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [proposedActions, setProposedActions] = useState([]);
 
   // Handler functions
   const handleViewDocument = async (document) => {
@@ -284,6 +289,8 @@ const DocumentsView = () => {
 
   const handleReanalyzeDocument = async (document) => {
     try {
+      setShowReModal(true);
+      setReModalDone(false);
       const payload = {
         campaign: {
           document_id: document.id,
@@ -294,26 +301,43 @@ const DocumentsView = () => {
         }
       };
       const res = await fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (res.ok) setAnalysis(await res.json());
+      if (res.ok) {
+        setAnalysis(await res.json());
+        setReModalDone(true);
+        setTimeout(() => setShowReModal(false), 900);
+      } else {
+        setShowReModal(false);
+      }
     } catch {}
   };
 
   const handleAcceptRecommendations = async (document) => {
+    // Prepare actions and open approval modal
+    const recs = (analysis?.feedback || document.aiInsights?.recommendations || []).map(t => ({ action: 'apply_feedback', text: t }));
+    setProposedActions(recs);
+    setShowApprovalModal(true);
+  };
+
+  const confirmInitiate = async () => {
     try {
-      const recs = (analysis?.feedback || document.aiInsights?.recommendations || []).map(t => ({ action: 'apply_feedback', text: t }));
+      const doc = selectedDocument;
+      if (!doc) return;
       const payload = {
-        document_id: document.id,
-        workflow_id: document.workflowId,
-        recommendations: recs,
+        document_id: doc.id,
+        workflow_id: doc.workflowId,
+        recommendations: proposedActions,
         metadata: {
-          name: document.name,
-          mime: document.type,
-          data_room: document.dataRoom,
-          category: document.category,
+          name: doc.name,
+          mime: doc.type,
+          data_room: doc.dataRoom,
+          category: doc.category,
         }
       };
       await fetch('/api/agents/orchestrate/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    } catch {}
+      setShowApprovalModal(false);
+    } catch {
+      setShowApprovalModal(false);
+    }
   };
 
   // Live execution updates (polling) while modal is open and workflowId is known
@@ -932,6 +956,35 @@ const DocumentsView = () => {
         onClose={() => setIsPreviewOpen(false)}
         document={previewDoc}
       />
+
+      {/* Re-analyze progress modal */}
+      {showReModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm text-center">
+            {!reModalDone ? (
+              <>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <div className="text-gray-800 font-medium">Re-analyzing documents...</div>
+              </>
+            ) : (
+              <div className="text-green-600 font-medium">Analysis complete</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Approval modal for initiating recommendations */}
+      {showApprovalModal && (
+        <EnhancedApprovalModal
+          isOpen={showApprovalModal}
+          onClose={() => setShowApprovalModal(false)}
+          actions={proposedActions}
+          onApprove={confirmInitiate}
+          onDecline={() => setShowApprovalModal(false)}
+          title="Review and Approve Agent Actions"
+          description="Please review the recommended actions before initiating."
+        />
+      )}
 
       {/* Share Modal */}
       {showShareModal && selectedDocument && (
