@@ -5,7 +5,6 @@ const SETTINGS_STORAGE_KEY = 'guild_settings_v1';
 const defaultSettings = {
   profile: {
     name: '',
-<<<<<<< HEAD
     firstName: '',
     lastName: '',
     countryOrRegion: '',
@@ -16,8 +15,6 @@ const defaultSettings = {
     stateProvince: '',
     postalCode: '',
     phoneNumber: '',
-=======
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
     email: '',
     profilePictureUrl: '',
     brand: {
