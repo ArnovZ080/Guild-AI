@@ -438,7 +438,7 @@ export default function DocumentsView() {
   );
 }
 
-function DocumentCard({ doc, onOpenTask, onPreview, onDownload, onShare, onReanalyze, onAccept, showDownloadMenu, setShowDownloadMenu }) {
+function DocumentCard({ doc, onOpenTask }) {
   const Icon = getIconForType(doc.type);
   return (
     <motion.div
@@ -446,6 +446,8 @@ function DocumentCard({ doc, onOpenTask, onPreview, onDownload, onShare, onReana
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
+      whileHover={{ scale: 1.02 }}
+      onClick={onOpenTask}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3 min-w-0">
@@ -454,7 +456,7 @@ function DocumentCard({ doc, onOpenTask, onPreview, onDownload, onShare, onReana
           </div>
           <div className="min-w-0">
             <h3 className="font-semibold text-gray-900 truncate" title={doc.name}>{doc.name}</h3>
-            <p className="text-sm text-gray-500 capitalize">{doc.type || 'file'}</p>
+            <p className="text-sm text-gray-500 capitalize">{doc.type || 'file'} • {doc.size || ''}</p>
           </div>
         </div>
         <div className="flex flex-col space-y-1 items-end">
@@ -463,20 +465,32 @@ function DocumentCard({ doc, onOpenTask, onPreview, onDownload, onShare, onReana
         </div>
       </div>
 
+      <div className="space-y-2 mb-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">Data Room:</span>
+          <span className="font-medium text-gray-900 truncate" title={doc.dataRoomName}>{doc.dataRoomName}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">Version:</span>
+          <span className="font-medium text-gray-900">{doc.version || '1.0'}</span>
+        </div>
+      </div>
+
       <div className="bg-gray-50 rounded-lg p-3 mb-4">
         <div className="flex items-center space-x-2 mb-2">
           <Brain className="w-4 h-4 text-blue-500" />
           <span className="text-sm font-medium text-gray-700">AI Insights</span>
-          <span className="text-xs text-gray-500">(auto-generated upon analysis)</span>
         </div>
-        <p className="text-sm text-gray-600 line-clamp-2">Open to view analysis summary and recommendations.</p>
+        <p className="text-sm text-gray-600 line-clamp-2">Click to view analysis summary and recommendations.</p>
       </div>
 
-      <div className="mt-3">
-        <button onClick={onOpenTask} className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600">
-          <Eye className="w-4 h-4" />
-          <span>Open</span>
-        </button>
+      <div className="flex flex-wrap gap-1 mt-2">
+        {(doc.tags || []).slice(0, 3).map((tag) => (
+          <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">{tag}</span>
+        ))}
+        {(doc.tags || []).length > 3 && (
+          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">+{(doc.tags || []).length - 3}</span>
+        )}
       </div>
     </motion.div>
   );
