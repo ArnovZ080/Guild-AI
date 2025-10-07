@@ -2,13 +2,13 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/layouts/DashboardLayout.jsx';
 import FinancialDashboardView from './FinancialDashboardView.jsx';
-import { MainDashboard as LegacyMainDashboard } from '@/components/dashboard/MainDashboard.tsx';
+import DashboardView from './DashboardView.jsx';
 import ContentDashboard from '@/components/dashboard/ContentDashboard.jsx';
 import CustomersView from './CustomersView.jsx';
 import ConversationsTab from '@/components/dashboard/ConversationsTab.jsx';
 
 const TAB_CONFIG = [
-  { id: 'overview', label: 'Overview', component: LegacyMainDashboard },
+  { id: 'overview', label: 'Overview', component: DashboardView },
   { id: 'finances', label: 'Finances', component: FinancialDashboardView },
   { id: 'content', label: 'Content', component: ContentDashboard },
   { id: 'customers', label: 'Customers', component: CustomersView },

@@ -74,6 +74,13 @@ const navigationItems = [
   },
   // Connectors will be accessible within Settings
   {
+    id: 'connectors',
+    label: 'Connectors',
+    icon: Zap,
+    category: 'utility',
+    description: 'External integrations'
+  },
+  {
     id: 'settings',
     label: 'Settings',
     icon: Settings,
