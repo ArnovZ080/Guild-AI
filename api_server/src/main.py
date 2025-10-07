@@ -54,6 +54,7 @@ from .routes import execution_layer, connectors, onboarding, workspace
 from .routes import agents_available
 from .routes import settings as settings_routes
 from .routes import notifications as notifications_routes
+from .routes import geocode as geocode_routes
 from .routes import content_ws
 from .routes import profile, content
 from .routes import conversations
@@ -76,6 +77,7 @@ app.include_router(workspace.router)
 app.include_router(agents_available.router)
 app.include_router(settings_routes.router)
 app.include_router(notifications_routes.router)
+app.include_router(geocode_routes.router)
 # WS router
 app.include_router(content_ws.router)
 # Business profile and content intelligence routes

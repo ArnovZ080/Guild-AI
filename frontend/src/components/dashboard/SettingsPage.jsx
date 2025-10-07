@@ -70,6 +70,9 @@ const SettingsPage = () => {
   const [initLoadingPlan, setInitLoadingPlan] = useState('');
   const [statusMsg, setStatusMsg] = useState('');
   const [agentsAvailable, setAgentsAvailable] = useState([]);
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [addrQuery, setAddrQuery] = useState('');
+  const [addrLoading, setAddrLoading] = useState(false);
 
   const userEmail = useMemo(() => settings?.profile?.email || '', [settings?.profile?.email]);
 
@@ -198,28 +201,26 @@ const SettingsPage = () => {
   };
 
   const getAddressSuggestions = (city) => {
-    const c = (city || '').toLowerCase();
-    const samples = {
-      'cape town': [
-        '1 Adderley St, Cape Town City Centre, Cape Town, 8000',
-        '12 Kloof St, Gardens, Cape Town, 8001',
-        '101 Main Rd, Sea Point, Cape Town, 8005'
-      ],
-      'johannesburg': [
-        '24 Maude St, Sandton, Johannesburg, 2196',
-        '155 West St, Sandown, Johannesburg, 2031'
-      ],
-      'london': [
-        '10 Downing St, Westminster, London SW1A 2AA',
-        '221B Baker St, London NW1 6XE'
-      ],
-      'new york': [
-        '350 5th Ave, New York, NY 10118',
-        '405 Lexington Ave, New York, NY 10174'
-      ]
-    };
-    return samples[c] || [];
+    // Use backend geocode if available
+    return addressSuggestions.length ? addressSuggestions.map(s => s.formatted_address || s.description) : [];
   };
+
+  // debounce address query
+  useEffect(() => {
+    if (!addrQuery || addrQuery.length < 3) { setAddressSuggestions([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        setAddrLoading(true);
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(addrQuery)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAddressSuggestions(Array.isArray(data?.suggestions) ? data.suggestions : []);
+        }
+      } catch {}
+      finally { setAddrLoading(false); }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [addrQuery]);
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -371,7 +372,7 @@ const SettingsPage = () => {
           <div>
             <Input
               value={settings.profile.addressLine1}
-              onChange={(e) => updateSettings({ profile: { ...settings.profile, addressLine1: e.target.value } })}
+              onChange={(e) => { setAddrQuery(e.target.value); updateSettings({ profile: { ...settings.profile, addressLine1: e.target.value } }); }}
               placeholder="Start typing your address..."
               list="address-suggestions"
             />
@@ -380,7 +381,7 @@ const SettingsPage = () => {
                 <option key={idx} value={s} />
               ))}
             </datalist>
-            <div className="text-xs text-gray-500 mt-1">Autocomplete suggestions appear as you type.</div>
+            <div className="text-xs text-gray-500 mt-1">{addrLoading ? 'Searching...' : 'Autocomplete suggestions appear as you type.'}</div>
           </div>
         </Row>
         <Row label="Address Line 2">

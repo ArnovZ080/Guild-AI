@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 import httpx
 import hmac
@@ -34,6 +34,14 @@ class CancelSubscriptionRequest(BaseModel):
 class UpdateSubscriptionRequest(BaseModel):
     subscription_id: str
     new_plan_id: str
+
+class Invoice(BaseModel):
+    id: str
+    date: str
+    amount: float
+    currency: str
+    status: str
+    plan: str
 
 # Subscription plans configuration with USD display pricing
 SUBSCRIPTION_PLANS = {
@@ -448,6 +456,19 @@ async def get_subscription_info(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get subscription info: {str(e)}")
+
+@router.get("/invoices")
+async def get_invoices(current_user: models.User = Depends(get_current_user)):
+    """Return recent invoices (mock if none)."""
+    try:
+        # TODO: replace with DB records once implemented
+        mock: List[Invoice] = [
+            Invoice(id="inv_20250901", date="2025-09-01", amount=49.0, currency="ZAR", status="paid", plan="Starter"),
+            Invoice(id="inv_20250801", date="2025-08-01", amount=49.0, currency="ZAR", status="paid", plan="Starter"),
+        ]
+        return {"invoices": [i.dict() for i in mock]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get invoices: {str(e)}")
 
 @router.post("/cancel")
 async def cancel_subscription(
