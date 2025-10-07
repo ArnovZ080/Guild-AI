@@ -19,3 +19,8 @@ async def get_prefs(current_user: models.User = Depends(get_current_user)):
 async def put_prefs(payload: NotificationPrefs, current_user: models.User = Depends(get_current_user)):
     _STORE[current_user.id] = payload.data or {}
     return {"success": True}
+
+@router.post("/notifications/test")
+async def send_test(current_user: models.User = Depends(get_current_user)):
+    # Stub: In production, enqueue an email/in-app test notification
+    return {"success": True, "message": f"Test notification queued for user {current_user.id}"}

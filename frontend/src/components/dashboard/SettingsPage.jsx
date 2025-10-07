@@ -417,8 +417,21 @@ const SettingsPage = () => {
       <Section title="Subscription & Billing">
         <div className="space-y-4">
           {Array.isArray(plans) && plans.find(p => p.trial_days > 0) && (
-            <div className="p-3 rounded bg-green-50 text-green-700 text-sm">
-              Enjoy a {plans.find(p => p.trial_days > 0)?.trial_days}-day free trial on paid plans.
+            <div className="p-3 rounded bg-green-50 text-green-700 text-sm flex items-center justify-between">
+              <div>
+                Enjoy a {plans.find(p => p.trial_days > 0)?.trial_days}-day free trial on paid plans.
+              </div>
+              {subscriptionInfo?.current_period_start && subscriptionInfo?.plan_details?.trial_days > 0 && (
+                <div className="text-green-800 text-xs">
+                  {(() => {
+                    const start = new Date(subscriptionInfo.current_period_start);
+                    const days = subscriptionInfo.plan_details.trial_days || 0;
+                    const end = new Date(start.getTime() + days * 24*60*60*1000);
+                    const remaining = Math.max(0, Math.ceil((end.getTime() - Date.now())/(24*60*60*1000)));
+                    return `${remaining} day${remaining === 1 ? '' : 's'} left`;
+                  })()}
+                </div>
+              )}
             </div>
           )}
           {/* Subscription Overview Cards */}
@@ -487,6 +500,7 @@ const SettingsPage = () => {
                     <li key={a.id || a.agent_id} className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-green-500 rounded-full"></span>
                       <span className="text-gray-700">{a.name || a.agent_id}</span>
+                      <span className="text-[10px] text-gray-500 bg-green-50 px-2 py-0.5 rounded-full">Included</span>
                     </li>
                   ))}
                   {agentsAvailable.filter(a => a.included_in_subscription).length === 0 && (
@@ -502,6 +516,7 @@ const SettingsPage = () => {
                       <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
                       <span className="text-gray-700">{a.name || a.agent_id}</span>
                       <span className="text-xs text-gray-500">until {new Date(a.hired_until).toLocaleDateString()}</span>
+                      <span className="text-[10px] text-gray-500 bg-emerald-50 px-2 py-0.5 rounded-full">Hired</span>
                     </li>
                   ))}
                   {agentsAvailable.filter(a => a.hired_until).length === 0 && (
@@ -519,6 +534,7 @@ const SettingsPage = () => {
                       {(a.daily_rate_usd || a.monthly_rate_usd) && (
                         <span className="text-xs text-gray-500">${a.daily_rate_usd || '-'} /day · ${a.monthly_rate_usd || '-'} /mo</span>
                       )}
+                      <span className="text-[10px] text-gray-500 bg-blue-50 px-2 py-0.5 rounded-full">Hireable</span>
                     </li>
                   ))}
                   {agentsAvailable.filter(a => a.can_hire_daily || a.can_hire_monthly).length === 0 && (
