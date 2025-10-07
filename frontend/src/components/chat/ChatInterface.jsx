@@ -5,9 +5,10 @@ import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRigh
 import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
 import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
+import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
-  
+  const { settings } = useSettings();
   // Check if user has completed onboarding
   const onboardingData = localStorage.getItem('guild_onboarding_data');
   const hasCompletedOnboarding = localStorage.getItem('guild_onboarding_completed') === 'true';
@@ -58,7 +59,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         {
           id: '1',
           type: 'assistant',
-          content: `👋 Welcome back! I see you've completed your onboarding. Based on your business profile, I'm ready to help you with ${data.firstTask || 'your business goals'}. What would you like to work on today?`,
+          content: `👋 Welcome back${settings?.profile?.firstName ? `, ${settings.profile.firstName}` : ''}! I see you've completed your onboarding. Based on your business profile, I'm ready to help you with ${data.firstTask || 'your business goals'}. What would you like to work on today?`,
           timestamp: new Date(),
           suggestions: buildSuggestions()
         }
@@ -68,7 +69,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         {
           id: '1',
           type: 'assistant',
-          content: "👋 Hello! I'm your AI business assistant. I'm here to help you grow your business without the technical complexity. What would you like to work on today?",
+          content: `👋 Hello${settings?.profile?.firstName ? `, ${settings.profile.firstName}` : ''}! I'm your AI business assistant. I'm here to help you grow your business without the technical complexity. What would you like to work on today?`,
           timestamp: new Date(),
           suggestions: [
             "Create content for my social media",

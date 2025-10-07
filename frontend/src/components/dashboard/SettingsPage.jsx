@@ -62,6 +62,20 @@ const SettingsPage = () => {
             placeholder="Your name"
           />
         </Row>
+        <Row label="First Name">
+          <Input
+            value={settings.profile.firstName}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, firstName: e.target.value } })}
+            placeholder="First name"
+          />
+        </Row>
+        <Row label="Last Name">
+          <Input
+            value={settings.profile.lastName}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, lastName: e.target.value } })}
+            placeholder="Last name"
+          />
+        </Row>
         <Row label="Email">
           <Input
             type="email"
@@ -107,6 +121,62 @@ const SettingsPage = () => {
           <Toggle
             checked={settings.notifications.integrations}
             onChange={(v) => updateSettings({ notifications: { ...settings.notifications, integrations: v } })}
+          />
+        </Row>
+        <Row label="Country/Region">
+          <Input
+            value={settings.profile.countryOrRegion}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, countryOrRegion: e.target.value } })}
+            placeholder="Country or region"
+          />
+        </Row>
+        <Row label="City">
+          <Input
+            value={settings.profile.city}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, city: e.target.value } })}
+            placeholder="City"
+          />
+        </Row>
+        <Row label="Office Address">
+          <Input
+            value={settings.profile.officeAddress}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, officeAddress: e.target.value } })}
+            placeholder="Office address"
+          />
+        </Row>
+        <Row label="Address Line 1">
+          <Input
+            value={settings.profile.addressLine1}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, addressLine1: e.target.value } })}
+            placeholder="Address line 1"
+          />
+        </Row>
+        <Row label="Address Line 2">
+          <Input
+            value={settings.profile.addressLine2}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, addressLine2: e.target.value } })}
+            placeholder="Address line 2 (optional)"
+          />
+        </Row>
+        <Row label="State/Province">
+          <Input
+            value={settings.profile.stateProvince}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, stateProvince: e.target.value } })}
+            placeholder="State/Province"
+          />
+        </Row>
+        <Row label="Postal Code">
+          <Input
+            value={settings.profile.postalCode}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, postalCode: e.target.value } })}
+            placeholder="Postal/ZIP code"
+          />
+        </Row>
+        <Row label="Phone Number">
+          <Input
+            value={settings.profile.phoneNumber}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, phoneNumber: e.target.value } })}
+            placeholder="+1 555 123 4567"
           />
         </Row>
       </Section>

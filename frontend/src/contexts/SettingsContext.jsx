@@ -5,6 +5,16 @@ const SETTINGS_STORAGE_KEY = 'guild_settings_v1';
 const defaultSettings = {
   profile: {
     name: '',
+    firstName: '',
+    lastName: '',
+    countryOrRegion: '',
+    city: '',
+    officeAddress: '',
+    addressLine1: '',
+    addressLine2: '',
+    stateProvince: '',
+    postalCode: '',
+    phoneNumber: '',
     email: '',
     profilePictureUrl: '',
     brand: {
