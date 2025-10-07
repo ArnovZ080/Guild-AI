@@ -43,6 +43,13 @@ class Invoice(BaseModel):
     status: str
     plan: str
 
+class PaymentMethod(BaseModel):
+    id: str
+    brand: str
+    last4: str
+    exp_month: int
+    exp_year: int
+
 # Subscription plans configuration with USD display pricing
 SUBSCRIPTION_PLANS = {
     "free": {
@@ -469,6 +476,30 @@ async def get_invoices(current_user: models.User = Depends(get_current_user)):
         return {"invoices": [i.dict() for i in mock]}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get invoices: {str(e)}")
+
+@router.get("/payment-methods")
+async def get_payment_methods(current_user: models.User = Depends(get_current_user)):
+    """Return payment methods (mock)."""
+    try:
+        methods: List[PaymentMethod] = [
+            PaymentMethod(id="pm_visa_4242", brand="visa", last4="4242", exp_month=12, exp_year=2027)
+        ]
+        return {"methods": [m.dict() for m in methods]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get payment methods: {str(e)}")
+
+@router.get("/invoices/{invoice_id}/download")
+async def download_invoice(invoice_id: str, current_user: models.User = Depends(get_current_user)):
+    """Return a downloadable payload (mock). Replace with real file serving."""
+    try:
+        content = f"Invoice {invoice_id}\nUser: {current_user.id}\nAmount: mock\nStatus: paid\n"
+        return {
+            "filename": f"{invoice_id}.txt",
+            "content_type": "text/plain",
+            "content": content
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download invoice: {str(e)}")
 
 @router.post("/cancel")
 async def cancel_subscription(

@@ -592,20 +592,7 @@ const SettingsPage = () => {
 
       {/* 3. Onboarding & Business Source of Truth */}
       <Section title="Onboarding & Business Source of Truth">
-        <div className="flex items-center justify-between mb-3">
-          <div className="text-sm text-gray-500">Edit your business source of truth. You can sync from onboarding.</div>
-          <button
-            onClick={() => {
-              try {
-                const data = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
-                updateSettings({ onboarding: { ...settings.onboarding, ...data } });
-              } catch {}
-            }}
-            className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
-          >
-            Sync from Onboarding
-          </button>
-        </div>
+        <div className="text-sm text-gray-500 mb-3">This section reflects your onboarding answers and remains editable.</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Business Overview</h4>
@@ -629,6 +616,36 @@ const SettingsPage = () => {
             </Row>
             <Row label="Main Problem">
               <Input value={settings.onboarding.audience_problem || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, audience_problem: e.target.value } })} />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Brand</h4>
+            <Row label="Brand Voice">
+              <Input value={settings.onboarding.brand_voice || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, brand_voice: e.target.value } })} />
+            </Row>
+            <Row label="Brand Colours">
+              <Input value={Array.isArray(settings.onboarding.brand_colors) ? settings.onboarding.brand_colors.join(', ') : (settings.onboarding.brand_colors || '')} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, brand_colors: e.target.value } })} />
+            </Row>
+            <Row label="Brand Fonts">
+              <Input value={Array.isArray(settings.onboarding.brand_fonts) ? settings.onboarding.brand_fonts.join(', ') : (settings.onboarding.brand_fonts || '')} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, brand_fonts: e.target.value } })} />
+            </Row>
+            <Row label="Guidelines">
+              <textarea value={typeof settings.onboarding.guidelines === 'string' ? settings.onboarding.guidelines : ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, guidelines: e.target.value } })} className="w-full min-h-[80px] px-3 py-2 border rounded-lg" />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Financials</h4>
+            <Row label="Current Turnover">
+              <Input value={settings.onboarding.turnover_current || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, turnover_current: e.target.value } })} />
+            </Row>
+            <Row label="6-Month Goal">
+              <Input value={settings.onboarding.turnover_goals_6m || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, turnover_goals_6m: e.target.value } })} />
+            </Row>
+            <Row label="12-Month Goal">
+              <Input value={settings.onboarding.turnover_goals_12m || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, turnover_goals_12m: e.target.value } })} />
+            </Row>
+            <Row label="Pricing Strategy">
+              <Input value={settings.onboarding.pricing_strategy || settings.onboarding.pricing || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, pricing_strategy: e.target.value, pricing: e.target.value } })} />
             </Row>
           </div>
           <div className="bg-white border rounded-lg p-4">

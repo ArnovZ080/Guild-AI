@@ -105,7 +105,13 @@ export const SettingsProvider = ({ children }) => {
         if (res.ok) {
           const data = await res.json();
           const fromServer = data?.data || {};
-          setSettings({ ...defaultSettings, ...fromServer });
+          // Merge onboarding summary if present locally (first-run hydration)
+          let merged = { ...defaultSettings, ...fromServer };
+          try {
+            const ob = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+            merged = { ...merged, onboarding: { ...merged.onboarding, ...ob } };
+          } catch {}
+          setSettings(merged);
           return;
         }
       } catch {}
