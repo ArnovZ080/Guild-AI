@@ -5,8 +5,19 @@ This document describes the current subscription + per‑agent hiring implementa
 ## Plans and Entitlements
 
 - Tiers: Free, Starter, Growth, Professional, Enterprise
-- Each tier defines an included agent pack and an activation limit (e.g., Professional: 25 active agents).
+- Each tier defines an included agent pack and an activation limit (Starter 5, Growth 10, Professional 25, Enterprise all agents).
 - Additional agents can be hired per‑agent on a daily or monthly basis.
+
+### Pricing, Credits, Limits, and Hire Rates
+
+| Tier | Price (USD/mo) | Included Agents Limit | Credits/month | Extra Agent (USD/mo) | Daily Rental (USD/day) |
+|---|---:|---:|---:|---:|---:|
+| Starter | $49 | 5 | 500 | $12 | $1.50 |
+| Growth | $99 | 10 | 1,000 | $11 | $1.25 |
+| Professional | $199 | 25 | 2,500 | $10 | $1.00 |
+| Enterprise | $499 | All 100+ | 10,000 | $8 | $0.50 |
+
+Base Agents included across paid tiers: Orchestrator, Judge, Fact Checker, Brand Checker (plus core orchestration/BI/execution ops surfaced in UI as Base Pack).
 
 ## Backend
 
@@ -47,6 +58,9 @@ Base URL: `VITE_API_BASE_URL` (fallback to window origin).
   - Included/Hired (entitled): Start/Pause, Details, Assign Task, Chat
   - Unhired: Details, Hire me (rates shown on cards and during hire)
 - Sorting: Included section first (Base Pack prioritized), then Hireable.
+- Plan limits and per‑agent rates implemented in UI:
+  - Limits: Starter 5, Growth 10, Professional 25, Enterprise unlimited
+  - Rates: Starter $12/mo $1.50/day; Growth $11/$1.25; Professional $10/$1.00; Enterprise $8/$0.50
 
 ### Workflow Builder (`src/components/workflow/EnhancedWorkflowBuilder.tsx`)
 - Agent dropdown shows entitlement and rates: Included, Hired, or `$X/day · $Y/mo`.
