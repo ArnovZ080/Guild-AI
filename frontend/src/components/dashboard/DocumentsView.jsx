@@ -1006,11 +1006,25 @@ const DocumentsView = () => {
         <EnhancedApprovalModal
           isOpen={showApprovalModal}
           onClose={() => setShowApprovalModal(false)}
-          actions={proposedActions}
+          approvalData={{
+            action_type: 'Recommendations Execution',
+            action_title: 'Execute Recommended Actions',
+            action_description: 'These actions will be carried out by the orchestrator and automation agents.',
+            initiating_agent: 'Orchestrator',
+            requested_at: new Date().toISOString(),
+            risk_level: 'medium',
+            involved_agents: [],
+            workflow_id: selectedDocument?.workflowId || 'N/A',
+            decision_rationale: {},
+            positive_impacts: [],
+            success_metrics: [],
+            audit_trail: [],
+            // Attach the actions list under a neutral key used by the modal tabs
+            agents: [],
+            actions: proposedActions,
+          }}
           onApprove={confirmInitiate}
-          onDecline={() => setShowApprovalModal(false)}
-          title="Review and Approve Agent Actions"
-          description="Please review the recommended actions before initiating."
+          onReject={() => setShowApprovalModal(false)}
         />
       )}
 
