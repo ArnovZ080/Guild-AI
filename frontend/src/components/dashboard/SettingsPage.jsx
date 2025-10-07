@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const Section = ({ title, children }) => (
@@ -48,6 +48,51 @@ const Collapsible = ({ title, children }) => {
 
 const SettingsPage = () => {
   const { settings, updateSettings, appendAuditLog } = useSettings();
+  const [plans, setPlans] = useState([]);
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [subLoading, setSubLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      setPlansLoading(true);
+      try {
+        const res = await fetch('/subscription/plans');
+        const data = await res.json();
+        setPlans(Array.isArray(data?.plans) ? data.plans : []);
+      } catch {
+        setPlans([]);
+      } finally {
+        setPlansLoading(false);
+      }
+    };
+    const fetchInfo = async () => {
+      setSubLoading(true);
+      try {
+        const res = await fetch('/subscription/info');
+        if (res.ok) {
+          const data = await res.json();
+          setSubscriptionInfo(data);
+        }
+      } catch {
+        setSubscriptionInfo(null);
+      } finally {
+        setSubLoading(false);
+      }
+    };
+    fetchPlans();
+    fetchInfo();
+  }, []);
+
+  const uploadToEndpoint = async (endpoint, file, onUrl) => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(endpoint, { method: 'POST', body: form });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    const url = data?.url;
+    if (url) onUrl(url);
+  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -91,6 +136,24 @@ const SettingsPage = () => {
             placeholder="https://..."
           />
         </Row>
+        <Row label="Upload Profile Picture">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={async (e) => {
+              const file = e.target.files && e.target.files[0];
+              if (!file) return;
+              try {
+                await uploadToEndpoint('/api/profile/avatar', file, (url) => {
+                  updateSettings({ profile: { ...settings.profile, profilePictureUrl: url } });
+                });
+              } catch {}
+            }}
+          />
+          {settings.profile.profilePictureUrl && (
+            <img src={settings.profile.profilePictureUrl} alt="Profile" className="mt-2 h-16 w-16 rounded-full object-cover border" />
+          )}
+        </Row>
         <Row label="Brand: Business Name">
           <Input
             value={settings.profile.brand.businessName}
@@ -104,6 +167,24 @@ const SettingsPage = () => {
             onChange={(e) => updateSettings({ profile: { ...settings.profile, brand: { ...settings.profile.brand, logoUrl: e.target.value } } })}
             placeholder="https://..."
           />
+        </Row>
+        <Row label="Upload Brand Logo">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={async (e) => {
+              const file = e.target.files && e.target.files[0];
+              if (!file) return;
+              try {
+                await uploadToEndpoint('/api/profile/logo', file, (url) => {
+                  updateSettings({ profile: { ...settings.profile, brand: { ...settings.profile.brand, logoUrl: url } } });
+                });
+              } catch {}
+            }}
+          />
+          {settings.profile.brand.logoUrl && (
+            <img src={settings.profile.brand.logoUrl} alt="Logo" className="mt-2 h-12 w-12 rounded object-contain border bg-white" />
+          )}
         </Row>
         <Row label="Notifications: Email">
           <Toggle
@@ -183,31 +264,42 @@ const SettingsPage = () => {
 
       {/* 2. Subscription & Billing (basic scaffold) */}
       <Section title="Subscription & Billing">
-        <Row label="Current Plan">
-          <Select
-            value={settings.subscription.plan}
-            onChange={(v) => updateSettings({ subscription: { ...settings.subscription, plan: v } })}
-            options={[
-              { value: 'Free', label: 'Free' },
-              { value: 'Pro', label: 'Pro' },
-              { value: 'Business', label: 'Business' },
-            ]}
-          />
-        </Row>
-        <Row label="Credits Used">
-          <Input
-            type="number"
-            value={settings.subscription.usage.creditsUsed}
-            onChange={(e) => updateSettings({ subscription: { ...settings.subscription, usage: { ...settings.subscription.usage, creditsUsed: Number(e.target.value) } } })}
-          />
-        </Row>
-        <Row label="Agent Hours">
-          <Input
-            type="number"
-            value={settings.subscription.usage.agentHours}
-            onChange={(e) => updateSettings({ subscription: { ...settings.subscription, usage: { ...settings.subscription.usage, agentHours: Number(e.target.value) } } })}
-          />
-        </Row>
+        <div className="space-y-4">
+          <div className="text-sm text-gray-600">
+            {subLoading ? 'Loading subscription...' : subscriptionInfo ? (
+              <>
+                <div>Tier: <span className="font-medium capitalize">{subscriptionInfo.tier || subscriptionInfo.plan_details?.name || 'free'}</span></div>
+                {subscriptionInfo.credits && (
+                  <div>Credits: {subscriptionInfo.credits.remaining} remaining of {subscriptionInfo.credits.limit}</div>
+                )}
+              </>
+            ) : 'Not subscribed'}
+          </div>
+
+          <div>
+            <div className="font-semibold mb-2">Plans</div>
+            {plansLoading ? (
+              <div className="text-sm text-gray-500">Loading plans...</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {plans.map((p) => (
+                  <div key={p.id} className={`border rounded-lg p-4 ${p.popular ? 'border-blue-400' : 'border-gray-200'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="text-lg font-semibold">{p.name}</div>
+                      {p.popular && <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">Popular</span>}
+                    </div>
+                    <div className="text-2xl mt-1">{p.usd_display}</div>
+                    {p.zar_display && <div className="text-xs text-gray-500">Billed about {p.zar_display} ZAR</div>}
+                    <ul className="mt-3 text-sm text-gray-600 list-disc ml-5 space-y-1">
+                      {(p.features || []).map((f) => <li key={f}>{f.replaceAll('_', ' ')}</li>)}
+                    </ul>
+                    <button className="mt-4 w-full px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">Select</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </Section>
 
       {/* 3. Onboarding & Business Source of Truth */}
