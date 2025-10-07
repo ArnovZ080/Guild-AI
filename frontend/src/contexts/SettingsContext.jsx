@@ -5,6 +5,7 @@ const SETTINGS_STORAGE_KEY = 'guild_settings_v1';
 const defaultSettings = {
   profile: {
     name: '',
+<<<<<<< HEAD
     firstName: '',
     lastName: '',
     countryOrRegion: '',
@@ -15,6 +16,8 @@ const defaultSettings = {
     stateProvince: '',
     postalCode: '',
     phoneNumber: '',
+=======
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
     email: '',
     profilePictureUrl: '',
     brand: {
@@ -98,19 +101,39 @@ export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState(defaultSettings);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setSettings({ ...defaultSettings, ...parsed });
-      }
-    } catch {}
+    (async () => {
+      try {
+        // Try backend first
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          const fromServer = data?.data || {};
+          setSettings({ ...defaultSettings, ...fromServer });
+          return;
+        }
+      } catch {}
+      // Fallback to local storage
+      try {
+        const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setSettings({ ...defaultSettings, ...parsed });
+        }
+      } catch {}
+    })();
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    } catch {}
+    (async () => {
+      try {
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: settings }),
+        });
+      } catch {}
+      try { localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)); } catch {}
+    })();
   }, [settings]);
 
   const updateSettings = (partial) => {

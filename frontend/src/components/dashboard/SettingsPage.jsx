@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useEffect, useMemo, useState } from 'react';
+=======
+import React, { useState } from 'react';
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const Section = ({ title, children }) => (
@@ -48,6 +52,7 @@ const Collapsible = ({ title, children }) => {
 
 const SettingsPage = () => {
   const { settings, updateSettings, appendAuditLog } = useSettings();
+<<<<<<< HEAD
   const [plans, setPlans] = useState([]);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -152,6 +157,8 @@ const SettingsPage = () => {
     const url = data?.url;
     if (url) onUrl(url);
   };
+=======
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -166,6 +173,7 @@ const SettingsPage = () => {
             placeholder="Your name"
           />
         </Row>
+<<<<<<< HEAD
         <Row label="First Name">
           <Input
             value={settings.profile.firstName}
@@ -180,6 +188,8 @@ const SettingsPage = () => {
             placeholder="Last name"
           />
         </Row>
+=======
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
         <Row label="Email">
           <Input
             type="email"
@@ -195,6 +205,7 @@ const SettingsPage = () => {
             placeholder="https://..."
           />
         </Row>
+<<<<<<< HEAD
         <Row label="Upload Profile Picture">
           <input
             type="file"
@@ -213,6 +224,8 @@ const SettingsPage = () => {
             <img src={settings.profile.profilePictureUrl} alt="Profile" className="mt-2 h-16 w-16 rounded-full object-cover border" />
           )}
         </Row>
+=======
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
         <Row label="Brand: Business Name">
           <Input
             value={settings.profile.brand.businessName}
@@ -227,6 +240,7 @@ const SettingsPage = () => {
             placeholder="https://..."
           />
         </Row>
+<<<<<<< HEAD
         <Row label="Upload Brand Logo">
           <input
             type="file"
@@ -245,6 +259,8 @@ const SettingsPage = () => {
             <img src={settings.profile.brand.logoUrl} alt="Logo" className="mt-2 h-12 w-12 rounded object-contain border bg-white" />
           )}
         </Row>
+=======
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
         <Row label="Notifications: Email">
           <Toggle
             checked={settings.notifications.email}
@@ -263,6 +279,7 @@ const SettingsPage = () => {
             onChange={(v) => updateSettings({ notifications: { ...settings.notifications, integrations: v } })}
           />
         </Row>
+<<<<<<< HEAD
         <Row label="Country/Region">
           <Input
             value={settings.profile.countryOrRegion}
@@ -319,11 +336,18 @@ const SettingsPage = () => {
             placeholder="+1 555 123 4567"
           />
         </Row>
+=======
+>>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
       </Section>
 
       {/* 2. Subscription & Billing (basic scaffold) */}
       <Section title="Subscription & Billing">
         <div className="space-y-4">
+          {Array.isArray(plans) && plans.find(p => p.trial_days > 0) && (
+            <div className="p-3 rounded bg-green-50 text-green-700 text-sm">
+              Enjoy a {plans.find(p => p.trial_days > 0)?.trial_days}-day free trial on paid plans.
+            </div>
+          )}
           <div className="text-sm text-gray-600">
             {subLoading ? 'Loading subscription...' : subscriptionInfo ? (
               <>
