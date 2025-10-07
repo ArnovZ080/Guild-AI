@@ -55,11 +55,6 @@ const BusinessDashboardView = () => {
         </div>
 
         <div>
-          {activeTab === 'overview' && (
-            <div className="space-y-4">
-              <CEOSnapshot />
-            </div>
-          )}
           <ActiveComponent />
         </div>
       </div>

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { fetchCeoSnapshot, fetchKpiDetails, fetchKpiHistory, executeImmediateAction } from '../../services/biaApi.js';
+import { fetchCeoSnapshot, fetchKpiDetails, fetchKpiHistory } from '../../services/biaApi.js';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import KPIDetailsModal from './KPIDetailsModal.jsx';
 import { AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import EnhancedApprovalModal from './modals/EnhancedApprovalModal.jsx';
 
 const StatusPill = ({ status, children }) => {
   const normalized = (status || '').toLowerCase();
@@ -24,6 +25,8 @@ const CEOSnapshot = () => {
   const [modalDetails, setModalDetails] = useState(null);
   const [activeCategory, setActiveCategory] = useState('financial');
   const [historySeries, setHistorySeries] = useState([]);
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const [approvalData, setApprovalData] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -120,10 +123,20 @@ const CEOSnapshot = () => {
 
       {/* Category filter */}
       <div className="mt-6">
-        <div className="inline-flex rounded-lg bg-gray-100 p-1">
-          {['financial','customer','operational'].map(cat => (
-            <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1 text-sm rounded-md ${activeCategory===cat ? 'bg-white shadow' : ''}`}>{cat.charAt(0).toUpperCase()+cat.slice(1)}</button>
-          ))}
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-xl bg-gray-100 p-1 shadow-inner">
+            {['financial','customer','operational'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  activeCategory===cat ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {cat.charAt(0).toUpperCase()+cat.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -158,12 +171,21 @@ const CEOSnapshot = () => {
         )}
       </KPIDetailsModal>
 
+      <EnhancedApprovalModal
+        isOpen={approvalOpen}
+        onClose={() => setApprovalOpen(false)}
+        approvalData={approvalData}
+        onApprove={() => setApprovalOpen(false)}
+        onReject={() => setApprovalOpen(false)}
+        onRequestMoreInfo={() => {}}
+      />
+
       {/* Execute immediate actions */}
-      <div className="mt-6">
+      <div className="mt-6 flex justify-end">
         {(data?.immediate_actions || []).length > 0 && (
           <button
-            onClick={async () => { await executeImmediateAction({ action: data.immediate_actions[0] }); }}
-            className="px-3 py-2 rounded bg-emerald-600 text-white text-sm"
+            onClick={() => { setApprovalData({ action_title: 'Execute Immediate Action', action_description: data.immediate_actions[0], risk_level: 'Medium', requested_at: Date.now() }); setApprovalOpen(true); }}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
           >
             Execute Top Immediate Action
           </button>
