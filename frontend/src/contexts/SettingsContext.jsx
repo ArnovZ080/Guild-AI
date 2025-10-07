@@ -5,6 +5,16 @@ const SETTINGS_STORAGE_KEY = 'guild_settings_v1';
 const defaultSettings = {
   profile: {
     name: '',
+    firstName: '',
+    lastName: '',
+    countryOrRegion: '',
+    city: '',
+    officeAddress: '',
+    addressLine1: '',
+    addressLine2: '',
+    stateProvince: '',
+    postalCode: '',
+    phoneNumber: '',
     email: '',
     profilePictureUrl: '',
     brand: {
@@ -88,19 +98,45 @@ export const SettingsProvider = ({ children }) => {
   const [settings, setSettings] = useState(defaultSettings);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        setSettings({ ...defaultSettings, ...parsed });
-      }
-    } catch {}
+    (async () => {
+      try {
+        // Try backend first
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          const fromServer = data?.data || {};
+          // Merge onboarding summary if present locally (first-run hydration)
+          let merged = { ...defaultSettings, ...fromServer };
+          try {
+            const ob = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+            merged = { ...merged, onboarding: { ...merged.onboarding, ...ob } };
+          } catch {}
+          setSettings(merged);
+          return;
+        }
+      } catch {}
+      // Fallback to local storage
+      try {
+        const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setSettings({ ...defaultSettings, ...parsed });
+        }
+      } catch {}
+    })();
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
-    } catch {}
+    (async () => {
+      try {
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: settings }),
+        });
+      } catch {}
+      try { localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings)); } catch {}
+    })();
   }, [settings]);
 
   const updateSettings = (partial) => {

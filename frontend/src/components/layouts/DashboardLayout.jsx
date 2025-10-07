@@ -4,10 +4,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { SidebarNav } from '../navigation/SidebarNav.jsx';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext.jsx';
 import { cn } from '../../lib/utils';
+import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { Menu } from 'lucide-react';
 
 const DashboardLayout = ({ children }) => {
   const { currentMode, getTimeBasedGreeting } = useAdaptiveMode();
+  const { settings } = useSettings();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ const DashboardLayout = ({ children }) => {
                   {currentMode === 'evening' && "Evening Reflection - Today's Achievements"}
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                  {getTimeBasedGreeting()} • {new Date().toLocaleDateString('en-US', { 
+                  {getTimeBasedGreeting()} {settings?.profile?.firstName ? `, ${settings.profile.firstName}` : ''} • {new Date().toLocaleDateString('en-US', { 
                     weekday: 'long', 
                     year: 'numeric', 
                     month: 'long', 
@@ -89,14 +91,19 @@ const DashboardLayout = ({ children }) => {
                 </p>
               </div>
               
-              {/* Sidebar Toggle Button */}
-              <button
-                onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                className="p-2 rounded-lg bg-white/80 hover:bg-white transition-colors shadow-sm"
-                title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                <Menu className="w-5 h-5 text-gray-600" />
-              </button>
+              {/* Right header area: avatar + sidebar toggle */}
+              <div className="flex items-center gap-3">
+                {settings?.profile?.profilePictureUrl && (
+                  <img src={settings.profile.profilePictureUrl} alt="Me" className="w-8 h-8 rounded-full object-cover border" />
+                )}
+                <button
+                  onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                  className="p-2 rounded-lg bg-white/80 hover:bg-white transition-colors shadow-sm"
+                  title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                >
+                  <Menu className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
             </motion.div>
           </div>
         </motion.section>

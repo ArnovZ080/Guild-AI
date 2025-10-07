@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, TrendingUp, Brain, X, CheckCircle, Clock } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../../components/psychological/MicroCelebrations.jsx';
@@ -81,6 +82,7 @@ const GoalCard = ({ goal, onClick }) => {
 };
 
 const GoalsDashboard = () => {
+  const { settings } = useSettings();
   const [goals, setGoals] = useState([]);
   const [showAddGoal, setShowAddGoal] = useState(false);
   const [showGoalDetailModal, setShowGoalDetailModal] = useState(false);
@@ -198,7 +200,12 @@ const GoalsDashboard = () => {
 
   const filteredGoals = goals.filter((goal) => {
     const matchesType = filterType === 'all' || goal.type === filterType;
-    const matchesTimeframe = filterTimeframe === 'all' || goal.timeframe === filterTimeframe;
+    // If user prefers short vs long term, bias the timeframe filter default behavior
+    const preferred = settings?.customization?.growthHorizon === 'short_term' ? 'short-term'
+                   : settings?.customization?.growthHorizon === 'long_term' ? 'long-term'
+                   : 'all';
+    const effectiveTimeframe = filterTimeframe === 'all' && preferred !== 'all' ? preferred : filterTimeframe;
+    const matchesTimeframe = effectiveTimeframe === 'all' || goal.timeframe === effectiveTimeframe;
     const matchesStatus = filterStatus === 'all' || goal.status === filterStatus;
     return matchesType && matchesTimeframe && matchesStatus;
   });

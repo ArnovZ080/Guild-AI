@@ -2,6 +2,7 @@
 // Autonomous growth opportunity identification and implementation tracking
 
 import React, { useState, useEffect } from 'react';
+import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   TrendingUp, TrendingDown, Target, DollarSign, Users, Calendar, 
@@ -443,6 +444,7 @@ const GrowthDashboard = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   
   const { triggerCelebration } = useCelebrations();
+  const { settings } = useSettings();
 
   // Fetch opportunities on mount
   useEffect(() => {
@@ -681,6 +683,22 @@ const GrowthDashboard = () => {
     }
   };
 
+  const parseWeeks = (timeframe) => {
+    if (!timeframe || typeof timeframe !== 'string') return null;
+    const match = timeframe.match(/(\d+)(?:\s*-\s*(\d+))?\s*weeks?/i);
+    if (!match) return null;
+    const minW = parseInt(match[1], 10);
+    const maxW = match[2] ? parseInt(match[2], 10) : minW;
+    return { min: minW, max: maxW };
+  };
+
+  const parseCurrencyNumber = (text) => {
+    if (!text || typeof text !== 'string') return null;
+    const digits = text.replace(/[^0-9.]/g, '');
+    const num = parseFloat(digits || '');
+    return Number.isFinite(num) ? num : null;
+  };
+
   // Filter opportunities
   const filteredOpportunities = opportunities.filter(opp => {
     const matchesStatus = filterStatus === 'all' || opp.status === filterStatus;
@@ -689,8 +707,29 @@ const GrowthDashboard = () => {
     const matchesSearch = searchTerm === '' || 
       opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       opp.description.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    return matchesStatus && matchesCategory && matchesPriority && matchesSearch;
+
+    // Respect Settings: confidence tolerance
+    const tolerance = settings?.agents?.confidenceTolerance ?? 0.0;
+    const meetsConfidence = typeof opp.confidence_score === 'number' ? (opp.confidence_score >= tolerance) : true;
+
+    // Respect Settings: growth horizon preference via timeframe
+    const horizon = settings?.customization?.growthHorizon || 'short_term';
+    const weeks = parseWeeks(opp.timeframe);
+    let meetsHorizon = true;
+    if (weeks) {
+      if (horizon === 'short_term') {
+        meetsHorizon = weeks.min <= 4; // 4 weeks or less
+      } else if (horizon === 'long_term') {
+        meetsHorizon = weeks.max > 4; // more than 4 weeks
+      }
+    }
+
+    // Respect Settings: minimum expected revenue threshold if parsable
+    const threshold = settings?.agents?.revenueThresholdMin ?? 0;
+    const expectedRevenueNum = parseCurrencyNumber(opp.expected_revenue);
+    const meetsRevenue = expectedRevenueNum != null ? (expectedRevenueNum >= threshold) : true;
+
+    return matchesStatus && matchesCategory && matchesPriority && matchesSearch && meetsConfidence && meetsHorizon && meetsRevenue;
   });
 
   // Helper functions

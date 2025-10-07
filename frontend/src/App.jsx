@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptimizationContext.jsx';
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
 import CelebrationProvider from './components/celebrations/CelebrationProvider.jsx';
+import { SettingsProvider } from './contexts/SettingsContext.jsx';
+import SettingsPage from './components/dashboard/SettingsPage.jsx';
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
 import DashboardView from './views/DashboardView.jsx';
 import AgentsView from './views/AgentsView.jsx';
@@ -51,6 +53,7 @@ function App() {
     <CelebrationProvider celebrationMode="full">
       <PsychologicalOptimizationProvider>
         <AdaptiveModeProvider>
+          <SettingsProvider>
           <Router>
             <Routes>
               <Route path="/" element={
@@ -136,7 +139,7 @@ function App() {
               } />
               <Route path="/settings" element={
                 <DashboardLayout>
-                  <ComingSoonView title="Settings" description="Application settings and preferences coming soon" />
+                  <SettingsPage />
                 </DashboardLayout>
               } />
               <Route path="/financial" element={
@@ -146,6 +149,7 @@ function App() {
               } />
             </Routes>
           </Router>
+          </SettingsProvider>
       </AdaptiveModeProvider>
     </PsychologicalOptimizationProvider>
     </CelebrationProvider>

@@ -1,4 +1,5 @@
 from fastapi import FastAPI  # type: ignore[reportMissingImports]
+from fastapi.staticfiles import StaticFiles  # type: ignore[reportMissingImports]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[reportMissingImports]
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import os
@@ -51,6 +52,9 @@ async def startup_event():
 from .routes import agents, oauth, document_processing, auth, subscription, credits
 from .routes import execution_layer, connectors, onboarding, workspace
 from .routes import agents_available
+from .routes import settings as settings_routes
+from .routes import notifications as notifications_routes
+from .routes import geocode as geocode_routes
 from .routes import content_ws
 from .routes import profile, content
 from .routes import conversations
@@ -71,6 +75,9 @@ app.include_router(connectors.router)
 app.include_router(onboarding.router)
 app.include_router(workspace.router)
 app.include_router(agents_available.router)
+app.include_router(settings_routes.router)
+app.include_router(notifications_routes.router)
+app.include_router(geocode_routes.router)
 # WS router
 app.include_router(content_ws.router)
 # Business profile and content intelligence routes
@@ -93,6 +100,11 @@ app.include_router(growth_opportunities.router)
 # Calendar router
 app.include_router(calendar.router)
 app.include_router(calendar_oauth.router)
+# Serve uploads directory for profile assets
+import os
+uploads_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "uploads"))
+os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 # app.include_router(business_metrics.router)  # Module doesn't exist
 
 # Comment out other routes that depend on database

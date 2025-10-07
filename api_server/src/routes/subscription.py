@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from datetime import datetime, timedelta
 import httpx
 import hmac
@@ -35,43 +35,87 @@ class UpdateSubscriptionRequest(BaseModel):
     subscription_id: str
     new_plan_id: str
 
+class Invoice(BaseModel):
+    id: str
+    date: str
+    amount: float
+    currency: str
+    status: str
+    plan: str
+
+class PaymentMethod(BaseModel):
+    id: str
+    brand: str
+    last4: str
+    exp_month: int
+    exp_year: int
+
 # Subscription plans configuration with USD display pricing
 SUBSCRIPTION_PLANS = {
     "free": {
         "name": "Free",
         "credits": 100,
         "api_calls": 500,
-        "usd_price": 0,  # USD display price
-        "zar_price": 0,  # ZAR billing price (will be calculated dynamically)
+        "usd_price": 0,
+        "zar_price": 0,
         "features": ["basic_chat", "limited_workflows"],
-        "paystack_plan_code": None
+        "paystack_plan_code": None,
+        "included_agents_limit": 0,
+        "extra_agent_monthly_usd": 15,
+        "extra_agent_daily_usd": 2,
+        "trial_days": 0
     },
     "starter": {
-        "name": "Starter", 
-        "credits": 1000,
+        "name": "Starter",
+        "credits": 500,  # per new pricing
         "api_calls": 5000,
-        "usd_price": 39,   # USD display price
-        "zar_price": 720,  # Fallback ZAR price (39 * 18.5 rounded)
-        "features": ["unlimited_chat", "basic_workflows", "content_creation"],
-        "paystack_plan_code": "PLN_starter"
+        "usd_price": 49,
+        "zar_price": 910,
+        "features": ["base_agents", "basic_templates", "marketplace_use"],
+        "paystack_plan_code": "PLN_starter",
+        "included_agents_limit": 5,
+        "extra_agent_monthly_usd": 12,
+        "extra_agent_daily_usd": 1.50,
+        "trial_days": 21
+    },
+    "growth": {
+        "name": "Growth",
+        "credits": 1000,
+        "api_calls": 10000,
+        "usd_price": 99,
+        "zar_price": 1830,
+        "features": ["base_agents", "workflow_builder_full", "marketplace_use"],
+        "paystack_plan_code": "PLN_growth",
+        "included_agents_limit": 10,
+        "extra_agent_monthly_usd": 11,
+        "extra_agent_daily_usd": 1.25,
+        "trial_days": 21
     },
     "professional": {
         "name": "Professional",
-        "credits": 5000, 
+        "credits": 2500,
         "api_calls": 25000,
-        "usd_price": 99,    # USD display price  
-        "zar_price": 1830,  # Fallback ZAR price (99 * 18.5 rounded)
-        "features": ["everything_in_starter", "advanced_workflows", "priority_support", "analytics"],
-        "paystack_plan_code": "PLN_professional"
+        "usd_price": 199,
+        "zar_price": 3680,
+        "features": ["base_agents", "workflow_builder_advanced", "marketplace_sell", "priority_support"],
+        "paystack_plan_code": "PLN_professional",
+        "included_agents_limit": 25,
+        "extra_agent_monthly_usd": 10,
+        "extra_agent_daily_usd": 1.00,
+        "trial_days": 21
     },
     "enterprise": {
         "name": "Enterprise",
-        "credits": 25000,
-        "api_calls": 100000, 
-        "usd_price": 199,   # USD display price
-        "zar_price": 3680,  # Fallback ZAR price (199 * 18.5 rounded)
-        "features": ["everything_in_professional", "custom_agents", "dedicated_support", "white_label"],
-        "paystack_plan_code": "PLN_enterprise"
+        "credits": 10000,
+        "api_calls": 100000,
+        "usd_price": 499,
+        "zar_price": 9230,
+        "features": ["all_agents", "workflow_builder_advanced", "marketplace_sell_earn", "custom_agents", "white_label", "dedicated_support"],
+        "paystack_plan_code": "PLN_enterprise",
+        "included_agents_limit": 100,
+        "extra_agent_monthly_usd": 8,
+        "extra_agent_daily_usd": 0.50,
+        "trial_days": 21
     }
 }
 
@@ -177,7 +221,11 @@ async def get_available_plans():
                 "popular": plan_id == "professional",
                 "exchange_rate": current_rate,
                 "billing_currency": "ZAR",
-                "display_currency": "USD"
+                "display_currency": "USD",
+                "included_agents_limit": plan_data.get("included_agents_limit"),
+                "extra_agent_monthly_usd": plan_data.get("extra_agent_monthly_usd"),
+                "extra_agent_daily_usd": plan_data.get("extra_agent_daily_usd"),
+                "trial_days": plan_data.get("trial_days", 0)
             }
             plans_list.append(plan_info)
         
@@ -415,6 +463,43 @@ async def get_subscription_info(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get subscription info: {str(e)}")
+
+@router.get("/invoices")
+async def get_invoices(current_user: models.User = Depends(get_current_user)):
+    """Return recent invoices (mock if none)."""
+    try:
+        # TODO: replace with DB records once implemented
+        mock: List[Invoice] = [
+            Invoice(id="inv_20250901", date="2025-09-01", amount=49.0, currency="ZAR", status="paid", plan="Starter"),
+            Invoice(id="inv_20250801", date="2025-08-01", amount=49.0, currency="ZAR", status="paid", plan="Starter"),
+        ]
+        return {"invoices": [i.dict() for i in mock]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get invoices: {str(e)}")
+
+@router.get("/payment-methods")
+async def get_payment_methods(current_user: models.User = Depends(get_current_user)):
+    """Return payment methods (mock)."""
+    try:
+        methods: List[PaymentMethod] = [
+            PaymentMethod(id="pm_visa_4242", brand="visa", last4="4242", exp_month=12, exp_year=2027)
+        ]
+        return {"methods": [m.dict() for m in methods]}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get payment methods: {str(e)}")
+
+@router.get("/invoices/{invoice_id}/download")
+async def download_invoice(invoice_id: str, current_user: models.User = Depends(get_current_user)):
+    """Return a downloadable payload (mock). Replace with real file serving."""
+    try:
+        content = f"Invoice {invoice_id}\nUser: {current_user.id}\nAmount: mock\nStatus: paid\n"
+        return {
+            "filename": f"{invoice_id}.txt",
+            "content_type": "text/plain",
+            "content": content
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download invoice: {str(e)}")
 
 @router.post("/cancel")
 async def cancel_subscription(

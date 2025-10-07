@@ -1279,8 +1279,6 @@ const AgentsView = () => {
     'Content Intelligence Agent', 'Automation Bridge Agent',
     // Operations Layer
     'Onboarding Agent', 'Calendar Harmony Agent',
-    // Optional but strong (not auto-included unless present in plan_details)
-    // 'Security Agent', 'Wellbeing Agent'
   ];
 
   const tier = subscriptionInfo?.tier || null;
@@ -1292,22 +1290,18 @@ const AgentsView = () => {
     if (key === 'starter') return { monthly: 12, daily: 1.5 };
     if (key === 'growth') return { monthly: 11, daily: 1.25 };
     if (key === 'professional') return { monthly: 10, daily: 1.0 };
-    // Enterprise: generally all agents included; fallback to professional rates if hire needed
-    if (key === 'enterprise') return { monthly: 0, daily: 0 };
-    // Default fallback
+    if (key === 'enterprise') return { monthly: 8, daily: 0.5 };
     return { monthly: 12, daily: 1.5 };
   };
 
-  // Helper: entitlement check for an API agent
   const isApiAgentEntitled = (a) => {
     const hired = Boolean(a?.hired_until && new Date(a.hired_until) > new Date());
     return Boolean(a?.included_in_subscription) || hired;
   };
 
-  // Merge API agents with Base Pack inclusion for non-Enterprise
+  // Merge API agents with Base Pack inclusion
   const mergedApiAgents = Array.isArray(apiAgents) ? (() => {
     const byName = new Map(apiAgents.map(a => [a.name, a]));
-    // Always ensure Base Pack is present and marked included, regardless of tier
     basePackAgentNames.forEach(name => {
       if (!byName.has(name)) {
         byName.set(name, {
@@ -1330,7 +1324,6 @@ const AgentsView = () => {
     });
     return Array.from(byName.values());
   })() : (() => {
-    // API unavailable: show Base Pack as included and all other local agents as hireable
     const rates = getTierRates(tier);
     const baseIncluded = basePackAgentNames.map(name => ({
       id: `base-${name}`,
@@ -1367,18 +1360,6 @@ const AgentsView = () => {
     return [...baseIncluded, ...otherLocal];
   })();
 
-  // Filter agents based on search and filters
-  const filteredAgents = allAgents.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.capabilities.some(cap => cap.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = filterCategory === 'all' || agent.category === filterCategory;
-    const matchesType = filterType === 'all' || agent.type === filterType;
-    const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
-    
-    return matchesSearch && matchesCategory && matchesType && matchesStatus;
-  });
-  const workforceList = (filteredAgents.length ? filteredAgents : allAgents);
   const includedAgents = Array.isArray(mergedApiAgents)
     ? mergedApiAgents.filter(a => isApiAgentEntitled(a))
     : [];
@@ -1386,7 +1367,7 @@ const AgentsView = () => {
     ? mergedApiAgents.filter(a => !isApiAgentEntitled(a))
     : [];
 
-  // Sort: Base Pack first within included section, then others by name
+  // Sort included: Base Pack first, then by name; hireable by name
   const basePackOrder = new Map(basePackAgentNames.map((n, i) => [n, i]));
   const includedAgentsSorted = includedAgents.slice().sort((a, b) => {
     const ai = basePackOrder.has(a.name) ? basePackOrder.get(a.name) : Number.MAX_SAFE_INTEGER;
@@ -1394,6 +1375,7 @@ const AgentsView = () => {
     if (ai !== bi) return ai - bi;
     return (a.name || '').localeCompare(b.name || '');
   });
+  const hireableAgentsSorted = hireableAgents.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   // Get category styling
   const getCategoryStyle = (category) => {
@@ -1546,7 +1528,7 @@ const AgentsView = () => {
 
         <div className="grid grid-cols-2 gap-2 mt-4 mt-auto">
           {canStartPause && (
-            <button 
+          <button 
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
               onClick={handleToggle}
             >
@@ -1557,37 +1539,37 @@ const AgentsView = () => {
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 inline mr-1" />
-                  Start
+            <Play className="w-4 h-4 inline mr-1" />
+            Start
                 </>
               )}
-            </button>
+          </button>
           )}
           {showFullActions && (
             <>
-              <button 
-                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+            <button 
+              className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
                 onClick={(e) => { e.stopPropagation(); setSelectedAgent({ ...agent, _entitled: true, _hasHistory: true, _raw: rawAgent }); }}
-                title="Details"
-              >
-                Details
-              </button>
+              title="Details"
+            >
+              Details
+            </button>
               <div className="grid grid-cols-2 gap-2 col-span-2">
-                <button 
-                  className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
-                  onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
-                  title="Assign Task"
-                >
+            <button 
+              className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
+              title="Assign Task"
+            >
                 Assign Task
-                </button>
-                <button 
-                  className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+            </button>
+            <button 
+              className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
                   onClick={(e) => { e.stopPropagation(); setChatAgent(agent); setShowChatModal(true); }}
-                  title="Chat"
-                >
-                  Chat
-                </button>
-              </div>
+              title="Chat"
+            >
+              Chat
+            </button>
+          </div>
             </>
           )}
           {showHireOnly && (
@@ -2129,7 +2111,7 @@ const AgentsView = () => {
                   </div>
                 </div>
 
-              <div className="space-y-3">
+                <div className="space-y-3">
                   {/* Start/Pause intentionally omitted in modal */}
                   <button 
                     onClick={() => handleConfigureAgent(selectedAgent)}
@@ -2152,6 +2134,51 @@ const AgentsView = () => {
         </div>
       </div>
     );
+  };
+
+  // First-run multi-select for included agents
+  const getTierLimit = (t) => {
+    const key = (t || '').toLowerCase();
+    if (key === 'starter') return 5;
+    if (key === 'growth') return 10;
+    if (key === 'professional') return 25;
+    if (key === 'enterprise') return 999;
+    return 3;
+  };
+  const planLimit = getTierLimit(subscriptionInfo?.tier || 'free');
+  const [showFirstRunPicker, setShowFirstRunPicker] = useState(false);
+  const [pickedIds, setPickedIds] = useState(new Set());
+
+  useEffect(() => {
+    try {
+      const key = `guild.workforce.initialized.${(subscriptionInfo?.tier || 'free').toLowerCase()}`;
+      const already = localStorage.getItem(key) === '1';
+      if (!already && includedAgentsSorted.length > 0 && planLimit >= 15) {
+        // preselect up to limit
+        const pre = new Set();
+        includedAgentsSorted.slice(0, Math.min(planLimit, includedAgentsSorted.length)).forEach(a => pre.add(a.agent_id || a.id));
+        setPickedIds(pre);
+        setShowFirstRunPicker(true);
+      }
+    } catch {}
+  }, [subscriptionInfo?.tier, includedAgentsSorted.length, planLimit]);
+
+  const togglePick = (id) => {
+    setPickedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); return next; }
+      if (next.size >= planLimit) return next; // enforce cap
+      next.add(id);
+      return next;
+    });
+  };
+
+  const confirmFirstRunPicks = () => {
+    try {
+      const key = `guild.workforce.initialized.${(subscriptionInfo?.tier || 'free').toLowerCase()}`;
+      localStorage.setItem(key, '1');
+    } catch {}
+    setShowFirstRunPicker(false);
   };
 
   return (
@@ -2246,8 +2273,8 @@ const AgentsView = () => {
           <div className="space-y-8">
             {/* Included section */}
             <div>
-               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className="text-sm font-semibold text-black">({includedAgents.length})</span></h3>
-              {includedAgents.length === 0 ? (
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className="text-sm font-semibold text-black">({includedAgentsSorted.length})</span></h3>
+              {includedAgentsSorted.length === 0 ? (
                 <div className="text-sm text-gray-500">No included agents yet.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -2259,7 +2286,7 @@ const AgentsView = () => {
                         name: a.name,
                         category: a.category || 'automation',
                         type: a.type || 'management',
-                        status: 'active',
+                        status: (showFirstRunPicker ? (pickedIds.has(a.agent_id || a.id) ? 'active' : 'inactive') : 'active'),
                         capabilities: a.capabilities || ['Core capability'],
                         description: a.description || a.name
                       }}
@@ -2276,12 +2303,12 @@ const AgentsView = () => {
 
             {/* Hireable section */}
             <div>
-               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className="text-sm font-semibold text-black">({hireableAgents.length})</span></h3>
-              {hireableAgents.length === 0 ? (
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className="text-sm font-semibold text-black">({hireableAgentsSorted.length})</span></h3>
+              {hireableAgentsSorted.length === 0 ? (
                 <div className="text-sm text-gray-500">All agents are included or hired.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {hireableAgents.map(a => (
+                  {hireableAgentsSorted.map(a => (
                     <AgentCard
                       key={a.agent_id || a.id}
                       agent={{
@@ -2303,24 +2330,65 @@ const AgentsView = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-8">
-            {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
-              <div key={category}>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
+        <div className="space-y-8">
+          {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
+            <div key={category}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
                 <span className="text-sm font-semibold text-black">{workforceList.filter(a => a.category === category).length} agents</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  <AnimatePresence>
-                    {workforceList.filter(a => a.category === category).map(agent => (
-                      <AgentCard key={agent.id} agent={agent} />
-                    ))}
-                  </AnimatePresence>
-                </div>
               </div>
-            ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {workforceList.filter(a => a.category === category).map(agent => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          ))}
           </div>
         )
+      )}
+
+      {/* First-run picker modal */}
+      {activeTab === 'workforce' && showFirstRunPicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => setShowFirstRunPicker(false)}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Choose your initial active agents</h3>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowFirstRunPicker(false)}>×</button>
+            </div>
+            <div className="px-4 py-3 text-sm text-gray-600">
+              Select up to <span className="font-semibold">{planLimit}</span> included agents to activate now.
+            </div>
+            <div className="p-4 overflow-auto" style={{ maxHeight: '60vh' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {includedAgentsSorted.map(a => {
+                  const id = a.agent_id || a.id;
+                  const checked = pickedIds.has(id);
+                  const disabled = !checked && pickedIds.size >= planLimit;
+                  return (
+                    <label key={id} className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${checked ? 'bg-emerald-50 border-emerald-300' : 'bg-white hover:bg-gray-50'}`}>
+                      <input type="checkbox" className="mt-1" checked={checked} disabled={disabled} onChange={() => togglePick(id)} />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">{a.name}</div>
+                        <div className="text-xs text-gray-500 capitalize">{a.category || 'automation'} • {a.type || 'management'}</div>
+                      </div>
+                      <div className="text-[10px] text-gray-500">Included</div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t">
+              <div className="text-sm text-gray-700">Selected: <span className="font-semibold">{pickedIds.size}</span> / {planLimit}</div>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-2 border rounded text-sm" onClick={() => setShowFirstRunPicker(false)}>Cancel</button>
+                <button className="px-4 py-2 bg-emerald-600 text-white rounded text-sm disabled:opacity-60" disabled={pickedIds.size === 0} onClick={confirmFirstRunPicks}>Activate selected</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Workflow Builder Tab */}
@@ -2336,8 +2404,8 @@ const AgentsView = () => {
       {/* Agent Theater Tab (distinct visual) */}
       {activeTab === 'theater' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
             <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} selectedWorkflow={selectedWorkflow || null} />
           </div>
 
@@ -2371,7 +2439,7 @@ const AgentsView = () => {
 
       {/* Agent Detail Modal (Workforce tab only) */}
       {activeTab === 'workforce' && !showWorkflowDetails && (
-        <AgentDetailModal />
+      <AgentDetailModal />
       )}
       {/* Chat Modal */}
       {activeTab === 'workforce' && showChatModal && chatAgent && (

@@ -15,6 +15,7 @@ import {
   FileText,
   Sparkles
 } from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { cn } from '../../lib/utils';
 import { loadConversations } from '../../services/conversationsStore.js';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
@@ -128,6 +129,7 @@ const navigationItems = [
 ];
 
 export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelect }) => {
+  const { settings } = useSettings();
   const location = useLocation();
   const navigate = useNavigate();
   const { currentMode } = useAdaptiveMode();
@@ -220,9 +222,13 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
             className="flex items-center gap-3"
             layout
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
+            {settings?.profile?.brand?.logoUrl ? (
+              <img src={settings.profile.brand.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-cover border" />
+            ) : (
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <Brain className="w-5 h-5 text-white" />
+              </div>
+            )}
             <AnimatePresence>
               {expanded && (
                 <motion.div
@@ -232,10 +238,10 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                   transition={{ duration: 0.2 }}
                 >
                   <h2 className="font-bold text-lg text-slate-800 dark:text-slate-200">
-                    Guild AI
+                    {settings?.profile?.brand?.businessName || 'Guild AI'}
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Your AI Workforce
+                    {settings?.profile?.firstName ? `${settings.profile.firstName}'s workspace` : 'Your AI Workforce'}
                   </p>
                 </motion.div>
               )}
