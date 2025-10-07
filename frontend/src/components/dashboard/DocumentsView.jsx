@@ -187,6 +187,7 @@ const DocumentsView = () => {
   const [shareMessage, setShareMessage] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [analysis, setAnalysis] = useState(null);
+  const [actions, setActions] = useState([]);
   // Try to load real data; gracefully fall back to mockDocuments if empty or failing
   useEffect(() => {
     let cancelled = false;
