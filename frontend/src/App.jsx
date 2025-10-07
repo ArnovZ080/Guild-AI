@@ -67,7 +67,7 @@ function App() {
                   <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
                 </DashboardLayout>
               } />
-              <Route path="/dashboard" element={<Navigate to="/dashboard/finances" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/dashboard/overview" replace />} />
               <Route path="/dashboard/:tab" element={<BusinessDashboardView />} />
               <Route path="/agents" element={
                 <DashboardLayout>

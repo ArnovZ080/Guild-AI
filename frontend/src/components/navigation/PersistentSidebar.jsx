@@ -24,16 +24,17 @@ export const PersistentSidebar = ({
 }) => {
   const dashboards = [
     { id: 'chat', label: 'AI Assistant', icon: MessageSquare, path: '/chat' },
-    { id: 'agents', label: 'Agent Dashboard', icon: Zap, path: '/agents' },
     { id: 'business', label: 'Business Dashboard', icon: Home, path: '/dashboard' },
+    { id: 'agents', label: 'Agent Dashboard', icon: Zap, path: '/agents' },
   ];
 
   const utilities = [
     { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
     { id: 'growth', label: 'Growth', icon: TrendingUp, path: '/growth' },
-    { id: 'goals', label: 'Goals', icon: Target, path: '/goals' },
     { id: 'achievements', label: 'Achievements', icon: Trophy, path: '/achievements' },
-    { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
+    { id: 'goals', label: 'Goals', icon: Target, path: '/goals' },
+    { id: 'documents', label: 'Documents', icon: MessageSquare, path: '/documents' },
+    { id: 'connectors', label: 'Connectors', icon: Settings, path: '/connectors' },
   ];
 
   const isActive = (path) => (currentPath || '').startsWith(path);
@@ -157,7 +158,7 @@ export const PersistentSidebar = ({
           })}
         </div>
 
-        <div className="px-3 mt-4 mb-2 text-[11px] uppercase tracking-wide text-gray-400">One-Page Utilities</div>
+        <div className="px-3 mt-4 mb-2 text-[11px] uppercase tracking-wide text-gray-400">Workspace</div>
         <div className="space-y-1 px-2">
           {utilities.map(item => {
             const Icon = item.icon;
@@ -191,6 +192,44 @@ export const PersistentSidebar = ({
               </motion.button>
             );
           })}
+        </div>
+
+        {/* Divider and Settings */}
+        <div className="px-2">
+          <div className="h-px bg-gray-200 dark:bg-gray-700 my-3" />
+          {(() => {
+            const item = { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' };
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <motion.button
+                key={item.id}
+                onClick={() => navigate(item.path)}
+                className={`w-full flex items-center px-3 py-2 rounded-lg transition-all duration-200 ${
+                  active 
+                    ? 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100' 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Icon className="w-5 h-5" />
+                <AnimatePresence>
+                  {expanded && (
+                    <motion.span 
+                      className="ml-3 text-sm font-medium"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+            );
+          })()}
         </div>
       </div>
 

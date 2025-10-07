@@ -304,8 +304,8 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                 ))}
             </div>
 
-            {/* Secondary Navigation */}
-            <div className="mb-6">
+            {/* Workspace Navigation (replaces Tools, includes previous secondary + desired utility items) */}
+            <div className="mb-2">
               {expanded && (
                 <motion.p 
                   className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2"
@@ -316,8 +316,16 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                   Workspace
                 </motion.p>
               )}
-              {navigationItems
-                .filter(item => item.category === 'secondary')
+              {[
+                'calendar',
+                'growth',
+                'achievements',
+                'goals',
+                'documents',
+                'connectors',
+              ]
+                .map((id) => navigationItems.find(n => n.id === id))
+                .filter(Boolean)
                 .map((item, index) => (
                   <motion.div
                     key={item.id}
@@ -353,21 +361,13 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                 ))}
             </div>
 
-            {/* Utility Navigation */}
-            <div>
-              {expanded && (
-                <motion.p 
-                  className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Tools
-                </motion.p>
-              )}
-              {navigationItems
-                .filter(item => item.category === 'utility')
-                .map((item, index) => (
+            {/* Divider and Settings */}
+            <div className="px-2">
+              <div className="h-px bg-gray-200 dark:bg-gray-700 my-3" />
+              {(() => {
+                const item = navigationItems.find(n => n.id === 'settings');
+                if (!item) return null;
+                return (
                   <motion.div
                     key={item.id}
                     className={getItemClasses(item)}
@@ -387,7 +387,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -10 }}
-                          transition={{ duration: 0.2, delay: index * 0.02 }}
+                          transition={{ duration: 0.2 }}
                         >
                           <div className="font-medium text-slate-700 dark:text-slate-200">
                             {item.label}
@@ -399,7 +399,8 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                       )}
                     </AnimatePresence>
                   </motion.div>
-                ))}
+                );
+              })()}
             </div>
           </div>
         </div>
