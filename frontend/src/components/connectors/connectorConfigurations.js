@@ -3836,6 +3836,327 @@ export const connectorConfigurations = {
       ]
     },
     required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // REMAINING REQUESTED CONNECTORS
+  // ======================
+  snapchat_ads: {
+    id: 'snapchat_ads',
+    name: 'Snapchat Ads Manager',
+    category: 'advertising',
+    status: 'active',
+    icon: Target,
+    color: 'bg-yellow-500',
+    description: 'Advertise to younger demographics with Snap Ads, Story Ads, and AR Lenses.',
+    capabilities: ['campaigns', 'ad_squads', 'ads', 'creatives', 'reports'],
+    use_cases: [
+      'Launch Snap Ads for product brands',
+      'Analyze AR Lens performance',
+      'Optimize campaigns for engagement'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://marketingapi.snapchat.com/',
+    api_key_instructions: {
+      title: 'How to Use Snapchat Marketing API',
+      steps: [
+        { step: 1, action: 'Create Snap Developer app', details: 'Register app and request Marketing API access' },
+        { step: 2, action: 'Obtain OAuth credentials', details: 'Copy client ID/secret and set redirect URI' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  buffer: {
+    id: 'buffer',
+    name: 'Buffer',
+    category: 'social_media',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-teal-600',
+    description: 'Plan and schedule posts to multiple social platforms.',
+    capabilities: ['profiles', 'queue', 'posts', 'analytics'],
+    use_cases: [
+      'Centralize multi-platform scheduling',
+      'Analyze post performance'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://docs.buffer.com/developer',
+    api_key_instructions: {
+      title: 'How to Use Buffer API',
+      steps: [
+        { step: 1, action: 'Create app', details: 'In Buffer developer portal create app and get OAuth credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  hootsuite: {
+    id: 'hootsuite',
+    name: 'Hootsuite',
+    category: 'social_media',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-gray-700',
+    description: 'Enterprise social media scheduling and analytics.',
+    capabilities: ['profiles', 'scheduler', 'analytics'],
+    use_cases: [
+      'Manage enterprise social posting',
+      'Collaborate on content calendars'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.hootsuite.com/',
+    api_key_instructions: {
+      title: 'How to Use Hootsuite API',
+      steps: [
+        { step: 1, action: 'Request app access', details: 'Apply for API access and obtain OAuth credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  later: {
+    id: 'later',
+    name: 'Later',
+    category: 'social_media',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-purple-500',
+    description: 'Visual social media planner for Instagram, TikTok, and more.',
+    capabilities: ['posts', 'media', 'scheduler'],
+    use_cases: [
+      'Plan Instagram grid visually',
+      'Schedule TikTok videos'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.later.com/',
+    api_key_instructions: {
+      title: 'How to Integrate Later',
+      steps: [
+        { step: 1, action: 'Create developer account', details: 'Request API access and create OAuth app' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  google_analytics: {
+    id: 'google_analytics',
+    name: 'Google Analytics 4',
+    category: 'analytics',
+    status: 'active',
+    icon: BarChart,
+    color: 'bg-orange-600',
+    description: 'Measure campaign ROI, traffic sources, and conversions for data-driven decisions.',
+    capabilities: ['reports', 'events', 'audiences'],
+    use_cases: [
+      'Attribute ad spend to conversions',
+      'Analyze channel performance'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '7-10 minutes',
+    documentation_url: 'https://developers.google.com/analytics',
+    api_key_instructions: {
+      title: 'How to Use GA4 Reporting API',
+      steps: [
+        { step: 1, action: 'Enable Analytics Data API', details: 'Create service account and grant GA4 property access' }
+      ]
+    },
+    required_permissions: ['read']
+  },
+
+  keap: {
+    id: 'keap',
+    name: 'Keap (Infusionsoft)',
+    category: 'crm',
+    status: 'active',
+    icon: Database,
+    color: 'bg-green-700',
+    description: 'CRM plus powerful email automation for solopreneurs and SMBs.',
+    capabilities: ['contacts', 'tags', 'campaigns', 'orders'],
+    use_cases: [
+      'Trigger complex email sequences',
+      'Tag-based segmentation'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.keap.com/',
+    api_key_instructions: {
+      title: 'How to Create Keap App',
+      steps: [
+        { step: 1, action: 'Create OAuth app', details: 'In Keap developer portal, create app and get client credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  close: {
+    id: 'close',
+    name: 'Close CRM',
+    category: 'crm',
+    status: 'active',
+    icon: Database,
+    color: 'bg-gray-700',
+    description: 'High-performance sales CRM with calling and SMS built-in.',
+    capabilities: ['leads', 'opportunities', 'activities', 'calls', 'sms'],
+    use_cases: [
+      'Power outbound sales',
+      'Log activities automatically'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://developer.close.com/',
+    api_key_instructions: {
+      title: 'How to Get Close API Key',
+      steps: [
+        { step: 1, action: 'Generate API key', details: 'In Close settings > API keys' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  freshsales: {
+    id: 'freshsales',
+    name: 'Freshsales',
+    category: 'crm',
+    status: 'active',
+    icon: Database,
+    color: 'bg-indigo-600',
+    description: 'CRM for SMBs with AI lead scoring and pipelines.',
+    capabilities: ['leads', 'contacts', 'deals', 'tasks'],
+    use_cases: [
+      'Score and route leads',
+      'Automate sales stages'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://developers.freshworks.com/crm/',
+    api_key_instructions: {
+      title: 'How to Get Freshsales API Key',
+      steps: [
+        { step: 1, action: 'User settings', details: 'Copy API key from Freshsales profile' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  evernote: {
+    id: 'evernote',
+    name: 'Evernote',
+    category: 'productivity',
+    status: 'active',
+    icon: FileText,
+    color: 'bg-green-600',
+    description: 'Note-taking for individuals and teams, still widely used.',
+    capabilities: ['notes', 'notebooks', 'search'],
+    use_cases: [
+      'Sync research notes',
+      'Index knowledge for agents'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://dev.evernote.com/',
+    api_key_instructions: {
+      title: 'How to Use Evernote API',
+      steps: [
+        { step: 1, action: 'Create developer app', details: 'Apply for API access and obtain keys' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  alexa: {
+    id: 'alexa',
+    name: 'Amazon Alexa Skills',
+    category: 'human_os',
+    status: 'active',
+    icon: Voice,
+    color: 'bg-blue-600',
+    description: 'Voice assistant integration for voice-triggered workflows.',
+    capabilities: ['skills', 'events'],
+    use_cases: [
+      'Trigger workflows by voice',
+      'Provide spoken status updates'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.amazon.com/en-US/alexa',
+    api_key_instructions: {
+      title: 'How to Build an Alexa Skill',
+      steps: [
+        { step: 1, action: 'Create skill', details: 'Use Alexa Developer Console and link account for OAuth' }
+      ]
+    },
+    required_permissions: ['read']
+  },
+  siri_shortcuts: {
+    id: 'siri_shortcuts',
+    name: 'Apple Siri Shortcuts',
+    category: 'human_os',
+    status: 'active',
+    icon: Voice,
+    color: 'bg-gray-700',
+    description: 'Trigger Guild automations from Siri Shortcuts on iOS/macOS.',
+    capabilities: ['shortcuts'],
+    use_cases: [
+      'Start workflows hands-free'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.apple.com/sirikit/',
+    api_key_instructions: {
+      title: 'How to Integrate Shortcuts',
+      steps: [
+        { step: 1, action: 'Create App Intents', details: 'Implement App Intents/Shortcuts in a companion app' }
+      ]
+    },
+    required_permissions: ['read']
+  },
+
+  taxjar: {
+    id: 'taxjar',
+    name: 'TaxJar',
+    category: 'accounting',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-purple-700',
+    description: 'Automated sales tax calculations and filings.',
+    capabilities: ['rates', 'transactions', 'returns'],
+    use_cases: [
+      'Calculate sales tax',
+      'Prepare returns'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.taxjar.com/',
+    api_key_instructions: {
+      title: 'How to Use TaxJar API',
+      steps: [
+        { step: 1, action: 'Create API token', details: 'From TaxJar account settings' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  quickfile: {
+    id: 'quickfile',
+    name: 'QuickFile',
+    category: 'accounting',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-blue-700',
+    description: 'UK-focused online accounting with API access.',
+    capabilities: ['invoices', 'clients', 'bank', 'reports'],
+    use_cases: [
+      'Sync invoices and clients',
+      'Reconcile bank feeds'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://api.quickfile.co.uk/',
+    api_key_instructions: {
+      title: 'How to Use QuickFile API',
+      steps: [
+        { step: 1, action: 'Generate API key', details: 'Enable API and create key from account settings' }
+      ]
+    },
+    required_permissions: ['read', 'write']
   }
 };
 
