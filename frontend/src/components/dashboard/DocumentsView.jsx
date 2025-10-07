@@ -326,10 +326,16 @@ const DocumentsView = () => {
   };
 
   const handleAcceptRecommendations = async (document) => {
-    // Prepare actions and open approval modal
-    const recs = (analysis?.feedback || document.aiInsights?.recommendations || []).map(t => ({ action: 'apply_feedback', text: t }));
-    setProposedActions(recs);
-    setShowApprovalModal(true);
+    try {
+      const recs = (analysis?.feedback || document.aiInsights?.recommendations || []).map(t => ({ action: 'apply_feedback', text: t }));
+      setProposedActions(recs);
+      setShowApprovalModal(true);
+      console.log('Opening approval modal with actions:', recs);
+    } catch (e) {
+      console.error('Failed to open approval modal', e);
+      setApiError('Failed to open approval');
+      setTimeout(()=> setApiError(''), 2500);
+    }
   };
 
   const confirmInitiate = async () => {
@@ -834,19 +840,21 @@ const DocumentsView = () => {
             <h1 className="text-3xl font-bold text-gray-900">Document Management</h1>
             <p className="text-gray-600 mt-2">Autonomous document processing and AI-powered insights</p>
           </div>
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <Upload className="w-4 h-4" />
-            <span>Upload Document</span>
-          </button>
-          <button
-            onClick={() => setShowCreateRoom(true)}
-            className="ml-2 flex items-center space-x-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
-          >
-            <span>Create Data Room</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowUploadModal(true)}
+              className="flex items-center space-x-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload Document</span>
+            </button>
+            <button
+              onClick={() => setShowCreateRoom(true)}
+              className="flex items-center space-x-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <span>Create Data Room</span>
+            </button>
+          </div>
         </div>
 
         {/* Controls */}
@@ -1115,7 +1123,8 @@ const DocumentsView = () => {
       {/* Create Data Room Modal */}
       {showCreateRoom && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
             <h2 className="text-2xl font-bold mb-4">Create Data Room</h2>
             <div className="space-y-4">
               <div>
@@ -1133,10 +1142,11 @@ const DocumentsView = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
                 <select value={newRoomProvider} onChange={(e)=>setNewRoomProvider(e.target.value)} className="w-full px-3 py-2 border rounded">
-                  <option value="workspace">Workspace</option>
+                  <option value="workspace">Workspace (default)</option>
                   <option value="gdrive">Google Drive</option>
                   <option value="notion">Notion</option>
                 </select>
+                <p className="text-xs text-gray-500 mt-1">Provider indicates where files are stored/synced. Workspace keeps files in-app.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Add Documents (optional)</label>
@@ -1171,6 +1181,7 @@ const DocumentsView = () => {
                   setTimeout(()=> setApiError(''), 2500);
                 } finally { setIsCreatingRoom(false); }
               }} className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-300">{isCreatingRoom ? 'Creating...' : 'Create'}</button>
+            </div>
             </div>
           </div>
         </div>
