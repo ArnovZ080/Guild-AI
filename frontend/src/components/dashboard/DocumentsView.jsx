@@ -22,7 +22,6 @@ import {
   SortAsc,
   SortDesc
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../../components/psychological/MicroCelebrations.jsx';
 
 const typeToIcon = {
   pdf: FileText,
@@ -83,7 +82,6 @@ export default function DocumentsView() {
   const [shareEmail, setShareEmail] = useState('');
   const [shareMessage, setShareMessage] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
-  const { triggerCelebration } = useCelebrations();
 
   // Original view uses mockDocuments; wiring to real endpoints will remain, but UI stays identical
 
@@ -109,12 +107,10 @@ export default function DocumentsView() {
     });
 
   const handleViewDocument = (document) => {
-    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Opening ${document.name}...`, intensity: 'normal' });
     alert(`Document Viewer: Opening "${document.name}"`);
   };
 
   const handleDownloadDocument = (document, format = 'original') => {
-    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Downloading ${document.name}...`, intensity: 'normal' });
     setShowDownloadOptions(false);
   };
 
@@ -124,12 +120,10 @@ export default function DocumentsView() {
   };
 
   const handleReanalyzeDocument = (document) => {
-    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Re-analyzing ${document.name}...`, intensity: 'normal' });
     alert('AI re-analysis started');
   };
 
   const handleAcceptRecommendations = (document) => {
-    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Initiating recommendations for ${document.name}...`, intensity: 'high' });
     alert('Recommendations initiated');
   };
 
