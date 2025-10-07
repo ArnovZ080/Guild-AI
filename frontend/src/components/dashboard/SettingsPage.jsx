@@ -293,6 +293,12 @@ const SettingsPage = () => {
                     <ul className="mt-3 text-sm text-gray-600 list-disc ml-5 space-y-1">
                       {(p.features || []).map((f) => <li key={f}>{f.replaceAll('_', ' ')}</li>)}
                     </ul>
+                    <div className="mt-3 text-xs text-gray-600 space-y-1">
+                      {Number.isFinite(p.included_agents_limit) && <div>Included agents: {p.included_agents_limit}</div>}
+                      {p.extra_agent_monthly_usd != null && <div>Extra agent: ${p.extra_agent_monthly_usd}/mo</div>}
+                      {p.extra_agent_daily_usd != null && <div>Daily rental: ${p.extra_agent_daily_usd}/day</div>}
+                      {p.trial_days > 0 && <div className="text-green-700">Free trial: {p.trial_days} days</div>}
+                    </div>
                     <button className="mt-4 w-full px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">Select</button>
                   </div>
                 ))}

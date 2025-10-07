@@ -44,7 +44,11 @@ SUBSCRIPTION_PLANS = {
         "usd_price": 0,
         "zar_price": 0,
         "features": ["basic_chat", "limited_workflows"],
-        "paystack_plan_code": None
+        "paystack_plan_code": None,
+        "included_agents_limit": 0,
+        "extra_agent_monthly_usd": 15,
+        "extra_agent_daily_usd": 2,
+        "trial_days": 0
     },
     "starter": {
         "name": "Starter",
@@ -53,7 +57,11 @@ SUBSCRIPTION_PLANS = {
         "usd_price": 49,
         "zar_price": 910,
         "features": ["base_agents", "basic_templates", "marketplace_use"],
-        "paystack_plan_code": "PLN_starter"
+        "paystack_plan_code": "PLN_starter",
+        "included_agents_limit": 5,
+        "extra_agent_monthly_usd": 12,
+        "extra_agent_daily_usd": 1.50,
+        "trial_days": 21
     },
     "growth": {
         "name": "Growth",
@@ -62,7 +70,11 @@ SUBSCRIPTION_PLANS = {
         "usd_price": 99,
         "zar_price": 1830,
         "features": ["base_agents", "workflow_builder_full", "marketplace_use"],
-        "paystack_plan_code": "PLN_growth"
+        "paystack_plan_code": "PLN_growth",
+        "included_agents_limit": 10,
+        "extra_agent_monthly_usd": 11,
+        "extra_agent_daily_usd": 1.25,
+        "trial_days": 21
     },
     "professional": {
         "name": "Professional",
@@ -71,7 +83,11 @@ SUBSCRIPTION_PLANS = {
         "usd_price": 199,
         "zar_price": 3680,
         "features": ["base_agents", "workflow_builder_advanced", "marketplace_sell", "priority_support"],
-        "paystack_plan_code": "PLN_professional"
+        "paystack_plan_code": "PLN_professional",
+        "included_agents_limit": 25,
+        "extra_agent_monthly_usd": 10,
+        "extra_agent_daily_usd": 1.00,
+        "trial_days": 21
     },
     "enterprise": {
         "name": "Enterprise",
@@ -80,7 +96,11 @@ SUBSCRIPTION_PLANS = {
         "usd_price": 499,
         "zar_price": 9230,
         "features": ["all_agents", "workflow_builder_advanced", "marketplace_sell_earn", "custom_agents", "white_label", "dedicated_support"],
-        "paystack_plan_code": "PLN_enterprise"
+        "paystack_plan_code": "PLN_enterprise",
+        "included_agents_limit": 100,
+        "extra_agent_monthly_usd": 8,
+        "extra_agent_daily_usd": 0.50,
+        "trial_days": 21
     }
 }
 
@@ -186,7 +206,11 @@ async def get_available_plans():
                 "popular": plan_id == "professional",
                 "exchange_rate": current_rate,
                 "billing_currency": "ZAR",
-                "display_currency": "USD"
+                "display_currency": "USD",
+                "included_agents_limit": plan_data.get("included_agents_limit"),
+                "extra_agent_monthly_usd": plan_data.get("extra_agent_monthly_usd"),
+                "extra_agent_daily_usd": plan_data.get("extra_agent_daily_usd"),
+                "trial_days": plan_data.get("trial_days", 0)
             }
             plans_list.append(plan_info)
         
