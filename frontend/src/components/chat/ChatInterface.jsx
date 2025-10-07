@@ -391,9 +391,13 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
                   {/* Avatar */}
                   <div className="flex-shrink-0">
                     {message.type === 'user' ? (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
-                        <User className="w-4 h-4 text-white" />
-                      </div>
+                      settings?.profile?.profilePictureUrl ? (
+                        <img src={settings.profile.profilePictureUrl} alt="Me" className="w-8 h-8 rounded-full object-cover border" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 flex items-center justify-center">
+                          <User className="w-4 h-4 text-white" />
+                        </div>
+                      )
                     ) : (
                       <AgentAvatar 
                         agentId={message.agentId || 'strategy'} 

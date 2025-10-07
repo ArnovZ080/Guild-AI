@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import React, { useEffect, useMemo, useState } from 'react';
-=======
-import React, { useState } from 'react';
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const Section = ({ title, children }) => (
@@ -52,7 +48,6 @@ const Collapsible = ({ title, children }) => {
 
 const SettingsPage = () => {
   const { settings, updateSettings, appendAuditLog } = useSettings();
-<<<<<<< HEAD
   const [plans, setPlans] = useState([]);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -121,6 +116,16 @@ const SettingsPage = () => {
     }
   }, []);
 
+  const uploadToEndpoint = async (endpoint, file, onUrl) => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(endpoint, { method: 'POST', body: form });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    const url = data?.url;
+    if (url) onUrl(url);
+  };
+
   const initializePlan = async (planId, email) => {
     if (!email) {
       setStatusMsg('Please set your email in Profile first.');
@@ -148,18 +153,6 @@ const SettingsPage = () => {
     }
   };
 
-  const uploadToEndpoint = async (endpoint, file, onUrl) => {
-    const form = new FormData();
-    form.append('file', file);
-    const res = await fetch(endpoint, { method: 'POST', body: form });
-    if (!res.ok) throw new Error('Upload failed');
-    const data = await res.json();
-    const url = data?.url;
-    if (url) onUrl(url);
-  };
-=======
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
-
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Settings</h1>
@@ -173,7 +166,6 @@ const SettingsPage = () => {
             placeholder="Your name"
           />
         </Row>
-<<<<<<< HEAD
         <Row label="First Name">
           <Input
             value={settings.profile.firstName}
@@ -188,8 +180,6 @@ const SettingsPage = () => {
             placeholder="Last name"
           />
         </Row>
-=======
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
         <Row label="Email">
           <Input
             type="email"
@@ -205,7 +195,6 @@ const SettingsPage = () => {
             placeholder="https://..."
           />
         </Row>
-<<<<<<< HEAD
         <Row label="Upload Profile Picture">
           <input
             type="file"
@@ -224,8 +213,6 @@ const SettingsPage = () => {
             <img src={settings.profile.profilePictureUrl} alt="Profile" className="mt-2 h-16 w-16 rounded-full object-cover border" />
           )}
         </Row>
-=======
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
         <Row label="Brand: Business Name">
           <Input
             value={settings.profile.brand.businessName}
@@ -240,7 +227,6 @@ const SettingsPage = () => {
             placeholder="https://..."
           />
         </Row>
-<<<<<<< HEAD
         <Row label="Upload Brand Logo">
           <input
             type="file"
@@ -259,8 +245,6 @@ const SettingsPage = () => {
             <img src={settings.profile.brand.logoUrl} alt="Logo" className="mt-2 h-12 w-12 rounded object-contain border bg-white" />
           )}
         </Row>
-=======
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
         <Row label="Notifications: Email">
           <Toggle
             checked={settings.notifications.email}
@@ -279,7 +263,6 @@ const SettingsPage = () => {
             onChange={(v) => updateSettings({ notifications: { ...settings.notifications, integrations: v } })}
           />
         </Row>
-<<<<<<< HEAD
         <Row label="Country/Region">
           <Input
             value={settings.profile.countryOrRegion}
@@ -336,11 +319,8 @@ const SettingsPage = () => {
             placeholder="+1 555 123 4567"
           />
         </Row>
-=======
->>>>>>> 04479e0 (fix(documents): pass approvalData to EnhancedApprovalModal; wire onReject; ensure modal opens and approves to orchestrate)
       </Section>
 
-      {/* 2. Subscription & Billing (basic scaffold) */}
       <Section title="Subscription & Billing">
         <div className="space-y-4">
           {Array.isArray(plans) && plans.find(p => p.trial_days > 0) && (
@@ -494,6 +474,113 @@ const SettingsPage = () => {
             />
           </Row>
         </Section>
+
+        {/* 8. Customization (moved under Advanced) */}
+        <Section title="Customization">
+          <Row label="Growth Horizon">
+            <Select
+              value={settings.customization.growthHorizon}
+              onChange={(v) => updateSettings({ customization: { ...settings.customization, growthHorizon: v } })}
+              options={[
+                { value: 'short_term', label: 'Short-term' },
+                { value: 'long_term', label: 'Long-term' },
+              ]}
+            />
+          </Row>
+          <Row label="Goal Alignment">
+            <Select
+              value={settings.customization.goalAlignment}
+              onChange={(v) => updateSettings({ customization: { ...settings.customization, goalAlignment: v } })}
+              options={[
+                { value: 'profit', label: 'Profit' },
+                { value: 'market_share', label: 'Market Share' },
+                { value: 'customer_growth', label: 'Customer Growth' },
+              ]}
+            />
+          </Row>
+          <Row label="Automation Rule: Auto-accept Quick Wins">
+            <Toggle
+              checked={settings.customization.automationRules.find(r => r.id === 'auto_accept_quick_win')?.enabled || false}
+              onChange={(v) => {
+                const rules = settings.customization.automationRules.map(r => r.id === 'auto_accept_quick_win' ? { ...r, enabled: v } : r);
+                updateSettings({ customization: { ...settings.customization, automationRules: rules } });
+              }}
+            />
+          </Row>
+        </Section>
+
+        {/* 7. Data & Privacy Controls (moved under Advanced) */}
+        <Section title="Data & Privacy Controls">
+          <Row label="Data Retention (days)">
+            <Input
+              type="number"
+              value={settings.dataPrivacy.dataRetentionDays}
+              onChange={(e) => updateSettings({ dataPrivacy: { ...settings.dataPrivacy, dataRetentionDays: Number(e.target.value) } })}
+            />
+          </Row>
+          <Row label="Export Format">
+            <Select
+              value={settings.dataPrivacy.exportFormat}
+              onChange={(v) => updateSettings({ dataPrivacy: { ...settings.dataPrivacy, exportFormat: v } })}
+              options={[
+                { value: 'json', label: 'JSON' },
+                { value: 'csv', label: 'CSV' },
+                { value: 'pdf', label: 'PDF' },
+              ]}
+            />
+          </Row>
+          <div className="text-sm text-gray-600 mt-2">
+            Manage connected data sources in Connectors. You can revoke there.
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  const res = await fetch(`/api/settings/export?format=${settings.dataPrivacy.exportFormat || 'json'}`);
+                  const data = await res.json();
+                  if (data?.content) {
+                    const blob = new Blob([
+                      data.format === 'json' ? JSON.stringify(data.content, null, 2) : data.content
+                    ], { type: data.format === 'json' ? 'application/json' : 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `guild-settings.${data.format === 'json' ? 'json' : 'csv'}`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }
+                } catch {}
+              }}
+              className="px-3 py-2 rounded bg-gray-800 text-white text-sm hover:bg-gray-900"
+            >
+              Export
+            </button>
+          </div>
+        </Section>
+
+        {/* 9. Audit & History (moved under Advanced) */}
+        <Section title="Audit & History">
+          <div className="space-y-2">
+            {settings.audit.decisions.slice(0, 10).map(d => (
+              <div key={d.id} className="text-sm text-gray-700 border rounded px-3 py-2">
+                <div className="font-medium">{d.type}</div>
+                <div className="text-gray-600">{d.summary}</div>
+                <div className="text-xs text-gray-500">{new Date(d.createdAt).toLocaleString()}</div>
+              </div>
+            ))}
+            {settings.audit.decisions.length === 0 && (
+              <div className="text-sm text-gray-500">No audit entries yet.</div>
+            )}
+          </div>
+          <div className="mt-4">
+            <button
+              onClick={() => appendAuditLog({ type: 'manual_entry', summary: 'Test audit entry' })}
+              className="px-4 py-2 bg-gray-800 text-white rounded"
+            >
+              Add Test Audit Entry
+            </button>
+          </div>
+        </Section>
       </Collapsible>
 
       {/* 5. Integrations */}
@@ -529,89 +616,6 @@ const SettingsPage = () => {
             ]}
           />
         </Row>
-      </Section>
-
-      {/* 7. Data & Privacy Controls */}
-      <Section title="Data & Privacy Controls">
-        <Row label="Data Retention (days)">
-          <Input
-            type="number"
-            value={settings.dataPrivacy.dataRetentionDays}
-            onChange={(e) => updateSettings({ dataPrivacy: { ...settings.dataPrivacy, dataRetentionDays: Number(e.target.value) } })}
-          />
-        </Row>
-        <Row label="Export Format">
-          <Select
-            value={settings.dataPrivacy.exportFormat}
-            onChange={(v) => updateSettings({ dataPrivacy: { ...settings.dataPrivacy, exportFormat: v } })}
-            options={[
-              { value: 'json', label: 'JSON' },
-              { value: 'csv', label: 'CSV' },
-              { value: 'pdf', label: 'PDF' },
-            ]}
-          />
-        </Row>
-        <div className="text-sm text-gray-600 mt-2">
-          Manage connected data sources in Connectors. You can revoke there.
-        </div>
-      </Section>
-
-      {/* 8. Customization */}
-      <Section title="Customization">
-        <Row label="Growth Horizon">
-          <Select
-            value={settings.customization.growthHorizon}
-            onChange={(v) => updateSettings({ customization: { ...settings.customization, growthHorizon: v } })}
-            options={[
-              { value: 'short_term', label: 'Short-term' },
-              { value: 'long_term', label: 'Long-term' },
-            ]}
-          />
-        </Row>
-        <Row label="Goal Alignment">
-          <Select
-            value={settings.customization.goalAlignment}
-            onChange={(v) => updateSettings({ customization: { ...settings.customization, goalAlignment: v } })}
-            options={[
-              { value: 'profit', label: 'Profit' },
-              { value: 'market_share', label: 'Market Share' },
-              { value: 'customer_growth', label: 'Customer Growth' },
-            ]}
-          />
-        </Row>
-        <Row label="Automation Rule: Auto-accept Quick Wins">
-          <Toggle
-            checked={settings.customization.automationRules.find(r => r.id === 'auto_accept_quick_win')?.enabled || false}
-            onChange={(v) => {
-              const rules = settings.customization.automationRules.map(r => r.id === 'auto_accept_quick_win' ? { ...r, enabled: v } : r);
-              updateSettings({ customization: { ...settings.customization, automationRules: rules } });
-            }}
-          />
-        </Row>
-      </Section>
-
-      {/* 9. Audit & History */}
-      <Section title="Audit & History">
-        <div className="space-y-2">
-          {settings.audit.decisions.slice(0, 10).map(d => (
-            <div key={d.id} className="text-sm text-gray-700 border rounded px-3 py-2">
-              <div className="font-medium">{d.type}</div>
-              <div className="text-gray-600">{d.summary}</div>
-              <div className="text-xs text-gray-500">{new Date(d.createdAt).toLocaleString()}</div>
-            </div>
-          ))}
-          {settings.audit.decisions.length === 0 && (
-            <div className="text-sm text-gray-500">No audit entries yet.</div>
-          )}
-        </div>
-        <div className="mt-4">
-          <button
-            onClick={() => appendAuditLog({ type: 'manual_entry', summary: 'Test audit entry' })}
-            className="px-4 py-2 bg-gray-800 text-white rounded"
-          >
-            Add Test Audit Entry
-          </button>
-        </div>
       </Section>
     </div>
   );
