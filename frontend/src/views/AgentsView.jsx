@@ -1279,8 +1279,6 @@ const AgentsView = () => {
     'Content Intelligence Agent', 'Automation Bridge Agent',
     // Operations Layer
     'Onboarding Agent', 'Calendar Harmony Agent',
-    // Optional but strong (not auto-included unless present in plan_details)
-    // 'Security Agent', 'Wellbeing Agent'
   ];
 
   const tier = subscriptionInfo?.tier || null;
@@ -1292,22 +1290,18 @@ const AgentsView = () => {
     if (key === 'starter') return { monthly: 12, daily: 1.5 };
     if (key === 'growth') return { monthly: 11, daily: 1.25 };
     if (key === 'professional') return { monthly: 10, daily: 1.0 };
-    // Enterprise: generally all agents included; fallback to professional rates if hire needed
     if (key === 'enterprise') return { monthly: 0, daily: 0 };
-    // Default fallback
     return { monthly: 12, daily: 1.5 };
   };
 
-  // Helper: entitlement check for an API agent
   const isApiAgentEntitled = (a) => {
     const hired = Boolean(a?.hired_until && new Date(a.hired_until) > new Date());
     return Boolean(a?.included_in_subscription) || hired;
   };
 
-  // Merge API agents with Base Pack inclusion for non-Enterprise
+  // Merge API agents with Base Pack inclusion
   const mergedApiAgents = Array.isArray(apiAgents) ? (() => {
     const byName = new Map(apiAgents.map(a => [a.name, a]));
-    // Always ensure Base Pack is present and marked included, regardless of tier
     basePackAgentNames.forEach(name => {
       if (!byName.has(name)) {
         byName.set(name, {
@@ -1330,7 +1324,6 @@ const AgentsView = () => {
     });
     return Array.from(byName.values());
   })() : (() => {
-    // API unavailable: show Base Pack as included and all other local agents as hireable
     const rates = getTierRates(tier);
     const baseIncluded = basePackAgentNames.map(name => ({
       id: `base-${name}`,
@@ -1367,18 +1360,6 @@ const AgentsView = () => {
     return [...baseIncluded, ...otherLocal];
   })();
 
-  // Filter agents based on search and filters
-  const filteredAgents = allAgents.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         agent.capabilities.some(cap => cap.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesCategory = filterCategory === 'all' || agent.category === filterCategory;
-    const matchesType = filterType === 'all' || agent.type === filterType;
-    const matchesStatus = filterStatus === 'all' || agent.status === filterStatus;
-    
-    return matchesSearch && matchesCategory && matchesType && matchesStatus;
-  });
-  const workforceList = (filteredAgents.length ? filteredAgents : allAgents);
   const includedAgents = Array.isArray(mergedApiAgents)
     ? mergedApiAgents.filter(a => isApiAgentEntitled(a))
     : [];
@@ -1386,7 +1367,7 @@ const AgentsView = () => {
     ? mergedApiAgents.filter(a => !isApiAgentEntitled(a))
     : [];
 
-  // Sort: Base Pack first within included section, then others by name
+  // Sort included: Base Pack first, then by name; hireable by name
   const basePackOrder = new Map(basePackAgentNames.map((n, i) => [n, i]));
   const includedAgentsSorted = includedAgents.slice().sort((a, b) => {
     const ai = basePackOrder.has(a.name) ? basePackOrder.get(a.name) : Number.MAX_SAFE_INTEGER;
@@ -1394,6 +1375,7 @@ const AgentsView = () => {
     if (ai !== bi) return ai - bi;
     return (a.name || '').localeCompare(b.name || '');
   });
+  const hireableAgentsSorted = hireableAgents.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
   // Get category styling
   const getCategoryStyle = (category) => {
@@ -2246,8 +2228,8 @@ const AgentsView = () => {
           <div className="space-y-8">
             {/* Included section */}
             <div>
-               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className="text-sm font-semibold text-black">({includedAgents.length})</span></h3>
-              {includedAgents.length === 0 ? (
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Included in your subscription <span className="text-sm font-semibold text-black">({includedAgentsSorted.length})</span></h3>
+              {includedAgentsSorted.length === 0 ? (
                 <div className="text-sm text-gray-500">No included agents yet.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -2276,12 +2258,12 @@ const AgentsView = () => {
 
             {/* Hireable section */}
             <div>
-               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className="text-sm font-semibold text-black">({hireableAgents.length})</span></h3>
-              {hireableAgents.length === 0 ? (
+               <h3 className="text-lg font-semibold text-gray-900 mb-3">Available to hire <span className="text-sm font-semibold text-black">({hireableAgentsSorted.length})</span></h3>
+              {hireableAgentsSorted.length === 0 ? (
                 <div className="text-sm text-gray-500">All agents are included or hired.</div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {hireableAgents.map(a => (
+                  {hireableAgentsSorted.map(a => (
                     <AgentCard
                       key={a.agent_id || a.id}
                       agent={{
