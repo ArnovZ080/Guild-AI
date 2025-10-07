@@ -3,7 +3,7 @@ import {
   BarChart, MessageSquare, Zap, Database, Wrench, Shield,
   Package, TrendingUp, Mail, Video, Phone, ShoppingCart,
   Cloud, Palette, Smartphone, Headphones, Layout, Monitor,
-  Layers, CheckSquare, Target, Brain, Heart, FileCode
+  Layers, CheckSquare, Target, Brain, Heart, FileCode, Mic
 } from 'lucide-react';
 
 /**
@@ -4067,7 +4067,7 @@ export const connectorConfigurations = {
     name: 'Amazon Alexa Skills',
     category: 'human_os',
     status: 'active',
-    icon: Voice,
+    icon: Mic,
     color: 'bg-blue-600',
     description: 'Voice assistant integration for voice-triggered workflows.',
     capabilities: ['skills', 'events'],
@@ -4091,7 +4091,7 @@ export const connectorConfigurations = {
     name: 'Apple Siri Shortcuts',
     category: 'human_os',
     status: 'active',
-    icon: Voice,
+    icon: Mic,
     color: 'bg-gray-700',
     description: 'Trigger Guild automations from Siri Shortcuts on iOS/macOS.',
     capabilities: ['shortcuts'],
