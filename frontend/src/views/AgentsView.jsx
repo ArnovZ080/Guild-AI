@@ -1290,7 +1290,7 @@ const AgentsView = () => {
     if (key === 'starter') return { monthly: 12, daily: 1.5 };
     if (key === 'growth') return { monthly: 11, daily: 1.25 };
     if (key === 'professional') return { monthly: 10, daily: 1.0 };
-    if (key === 'enterprise') return { monthly: 0, daily: 0 };
+    if (key === 'enterprise') return { monthly: 8, daily: 0.5 };
     return { monthly: 12, daily: 1.5 };
   };
 
@@ -1528,7 +1528,7 @@ const AgentsView = () => {
 
         <div className="grid grid-cols-2 gap-2 mt-4 mt-auto">
           {canStartPause && (
-            <button 
+          <button 
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
               onClick={handleToggle}
             >
@@ -1539,37 +1539,37 @@ const AgentsView = () => {
                 </>
               ) : (
                 <>
-                  <Play className="w-4 h-4 inline mr-1" />
-                  Start
+            <Play className="w-4 h-4 inline mr-1" />
+            Start
                 </>
               )}
-            </button>
+          </button>
           )}
           {showFullActions && (
             <>
-              <button 
-                className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+            <button 
+              className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
                 onClick={(e) => { e.stopPropagation(); setSelectedAgent({ ...agent, _entitled: true, _hasHistory: true, _raw: rawAgent }); }}
-                title="Details"
-              >
-                Details
-              </button>
+              title="Details"
+            >
+              Details
+            </button>
               <div className="grid grid-cols-2 gap-2 col-span-2">
-                <button 
-                  className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
-                  onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
-                  title="Assign Task"
-                >
+            <button 
+              className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+              onClick={(e) => { e.stopPropagation(); setShowAssignModal(agent); }}
+              title="Assign Task"
+            >
                 Assign Task
-                </button>
-                <button 
-                  className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+            </button>
+            <button 
+              className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
                   onClick={(e) => { e.stopPropagation(); setChatAgent(agent); setShowChatModal(true); }}
-                  title="Chat"
-                >
-                  Chat
-                </button>
-              </div>
+              title="Chat"
+            >
+              Chat
+            </button>
+          </div>
             </>
           )}
           {showHireOnly && (
@@ -2111,7 +2111,7 @@ const AgentsView = () => {
                   </div>
                 </div>
 
-              <div className="space-y-3">
+                <div className="space-y-3">
                   {/* Start/Pause intentionally omitted in modal */}
                   <button 
                     onClick={() => handleConfigureAgent(selectedAgent)}
@@ -2140,7 +2140,7 @@ const AgentsView = () => {
   const getTierLimit = (t) => {
     const key = (t || '').toLowerCase();
     if (key === 'starter') return 5;
-    if (key === 'growth') return 15;
+    if (key === 'growth') return 10;
     if (key === 'professional') return 25;
     if (key === 'enterprise') return 999;
     return 3;
@@ -2330,22 +2330,22 @@ const AgentsView = () => {
             </div>
           </div>
         ) : (
-          <div className="space-y-8">
-            {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
-              <div key={category}>
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
+        <div className="space-y-8">
+          {Array.from(new Set(workforceList.map(a => a.category))).map(category => (
+            <div key={category}>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xl font-semibold capitalize text-gray-900">{category.replace('-', ' ')}</h2>
                 <span className="text-sm font-semibold text-black">{workforceList.filter(a => a.category === category).length} agents</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  <AnimatePresence>
-                    {workforceList.filter(a => a.category === category).map(agent => (
-                      <AgentCard key={agent.id} agent={agent} />
-                    ))}
-                  </AnimatePresence>
-                </div>
               </div>
-            ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <AnimatePresence>
+                  {workforceList.filter(a => a.category === category).map(agent => (
+                    <AgentCard key={agent.id} agent={agent} />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          ))}
           </div>
         )
       )}
@@ -2404,8 +2404,8 @@ const AgentsView = () => {
       {/* Agent Theater Tab (distinct visual) */}
       {activeTab === 'theater' && (
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="text-sm text-gray-600 mb-4">Live visualization of agents collaborating across stage zones.</div>
             <AgentActivityTheater selectedWorkflowName={selectedWorkflow?.name} selectedWorkflow={selectedWorkflow || null} />
           </div>
 
@@ -2439,7 +2439,7 @@ const AgentsView = () => {
 
       {/* Agent Detail Modal (Workforce tab only) */}
       {activeTab === 'workforce' && !showWorkflowDetails && (
-        <AgentDetailModal />
+      <AgentDetailModal />
       )}
       {/* Chat Modal */}
       {activeTab === 'workforce' && showChatModal && chatAgent && (

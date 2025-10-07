@@ -41,36 +41,45 @@ SUBSCRIPTION_PLANS = {
         "name": "Free",
         "credits": 100,
         "api_calls": 500,
-        "usd_price": 0,  # USD display price
-        "zar_price": 0,  # ZAR billing price (will be calculated dynamically)
+        "usd_price": 0,
+        "zar_price": 0,
         "features": ["basic_chat", "limited_workflows"],
         "paystack_plan_code": None
     },
     "starter": {
-        "name": "Starter", 
-        "credits": 1000,
+        "name": "Starter",
+        "credits": 500,  # per new pricing
         "api_calls": 5000,
-        "usd_price": 39,   # USD display price
-        "zar_price": 720,  # Fallback ZAR price (39 * 18.5 rounded)
-        "features": ["unlimited_chat", "basic_workflows", "content_creation"],
+        "usd_price": 49,
+        "zar_price": 910,
+        "features": ["base_agents", "basic_templates", "marketplace_use"],
         "paystack_plan_code": "PLN_starter"
+    },
+    "growth": {
+        "name": "Growth",
+        "credits": 1000,
+        "api_calls": 10000,
+        "usd_price": 99,
+        "zar_price": 1830,
+        "features": ["base_agents", "workflow_builder_full", "marketplace_use"],
+        "paystack_plan_code": "PLN_growth"
     },
     "professional": {
         "name": "Professional",
-        "credits": 5000, 
+        "credits": 2500,
         "api_calls": 25000,
-        "usd_price": 99,    # USD display price  
-        "zar_price": 1830,  # Fallback ZAR price (99 * 18.5 rounded)
-        "features": ["everything_in_starter", "advanced_workflows", "priority_support", "analytics"],
+        "usd_price": 199,
+        "zar_price": 3680,
+        "features": ["base_agents", "workflow_builder_advanced", "marketplace_sell", "priority_support"],
         "paystack_plan_code": "PLN_professional"
     },
     "enterprise": {
         "name": "Enterprise",
-        "credits": 25000,
-        "api_calls": 100000, 
-        "usd_price": 199,   # USD display price
-        "zar_price": 3680,  # Fallback ZAR price (199 * 18.5 rounded)
-        "features": ["everything_in_professional", "custom_agents", "dedicated_support", "white_label"],
+        "credits": 10000,
+        "api_calls": 100000,
+        "usd_price": 499,
+        "zar_price": 9230,
+        "features": ["all_agents", "workflow_builder_advanced", "marketplace_sell_earn", "custom_agents", "white_label", "dedicated_support"],
         "paystack_plan_code": "PLN_enterprise"
     }
 }
