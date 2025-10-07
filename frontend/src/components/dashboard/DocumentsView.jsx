@@ -188,6 +188,11 @@ const DocumentsView = () => {
   const [shareMessage, setShareMessage] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [analysis, setAnalysis] = useState(null);
+  const [dataRooms, setDataRooms] = useState([]);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadRoom, setUploadRoom] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
   const [actions, setActions] = useState([]);
   // Try to load real data; gracefully fall back to mockDocuments if empty or failing
   useEffect(() => {
@@ -202,6 +207,7 @@ const DocumentsView = () => {
         const drj = await dr.json();
         const rooms = drj?.data || drj || [];
         if (!Array.isArray(rooms) || rooms.length === 0) return; // keep mock
+        setDataRooms(rooms);
         const docs = await Promise.all(rooms.map(async (r) => {
           try {
             const dd = await fetch(`/api/data-rooms/${encodeURIComponent(r.id)}/documents`);
@@ -1049,6 +1055,44 @@ const DocumentsView = () => {
               >
                 Send Share
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Upload Document</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">File</label>
+                <input type="file" onChange={(e)=>setUploadFile(e.target.files?.[0]||null)} className="block w-full text-sm" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Data Room</label>
+                <select value={uploadRoom} onChange={(e)=>setUploadRoom(e.target.value)} className="w-full px-3 py-2 border rounded">
+                  <option value="">Select a data room</option>
+                  {dataRooms.map(r => (<option key={r.id} value={r.id}>{r.name}</option>))}
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={()=>setShowUploadModal(false)} className="px-4 py-2 border rounded">Cancel</button>
+              <button disabled={!uploadFile || !uploadRoom || isUploading} onClick={async ()=>{
+                try {
+                  setIsUploading(true);
+                  const fd = new FormData();
+                  fd.append('file', uploadFile);
+                  fd.append('data_room_id', uploadRoom);
+                  const res = await fetch('/api/workspace/assets', { method: 'POST', body: fd });
+                  if (!res.ok) throw new Error('upload failed');
+                  setShowUploadModal(false);
+                  // Simple refresh to fetch new documents
+                  window.location.reload();
+                } catch (e) { alert('Upload failed'); } finally { setIsUploading(false); }
+              }} className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-300">{isUploading ? 'Uploading...' : 'Upload'}</button>
             </div>
           </div>
         </div>
