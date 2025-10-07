@@ -2109,8 +2109,1734 @@ export const connectorConfigurations = {
     required_permissions: ['transfers', 'balances']
   },
 
-  // Continue adding the massive list of remaining connectors...
-  // This response is getting long, so I'll create the complete file in the next response
+  // ======================
+  // PAYMENTS (GLOBAL & SA CONT.)
+  // ======================
+  payoneer: {
+    id: 'payoneer',
+    name: 'Payoneer',
+    category: 'payments',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-orange-600',
+    description: 'Global payouts for freelancers and SMBs. Receive and send money internationally with low friction.',
+    capabilities: ['payouts', 'receiving_accounts', 'balances', 'transactions'],
+    use_cases: [
+      'Pay international contractors at scale',
+      'Create local receiving accounts',
+      'Reconcile payout transactions',
+      'Automate vendor payments'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.payoneer.com/',
+    api_key_instructions: {
+      title: 'How to Get Payoneer API Access',
+      steps: [
+        { step: 1, action: 'Apply for API access', details: 'Contact Payoneer support to enable API for your business account' },
+        { step: 2, action: 'Receive credentials', details: 'Get your API username and password / keys' },
+        { step: 3, action: 'Whitelist IPs', details: 'Provide IPs for API access if requested' }
+      ],
+      notes: [
+        'Business account required',
+        'Partner approval may be required'
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  braintree: {
+    id: 'braintree',
+    name: 'Braintree',
+    category: 'payments',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-gray-800',
+    description: 'Payments by PayPal. Flexible gateway with PayPal and cards support.',
+    capabilities: ['payments', 'vault', 'subscriptions', 'webhooks'],
+    use_cases: [
+      'Accept PayPal and card payments',
+      'Store customer payment methods',
+      'Manage recurring billing',
+      'Handle disputes and refunds'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.paypal.com/braintree/docs',
+    api_key_instructions: {
+      title: 'How to Get Braintree API Keys',
+      steps: [
+        { step: 1, action: 'Create Braintree account', details: 'Sign up and complete verification' },
+        { step: 2, action: 'Get API keys', details: 'In Settings > API, generate Public/Private keys and Merchant ID' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  snapscan: {
+    id: 'snapscan',
+    name: 'SnapScan',
+    category: 'payments',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-blue-700',
+    description: 'South African mobile QR payments for in-person and online checkout.',
+    capabilities: ['qr_payments', 'transactions', 'refunds'],
+    use_cases: [
+      'Accept QR payments at checkout',
+      'Reconcile transactions',
+      'Issue refunds programmatically'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://merchantportal.snapscan.io/',
+    api_key_instructions: {
+      title: 'How to Get SnapScan API Key',
+      steps: [
+        { step: 1, action: 'Create merchant account', details: 'Register your business with SnapScan' },
+        { step: 2, action: 'Request API access', details: 'Enable API in merchant portal and generate keys' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  zapper: {
+    id: 'zapper',
+    name: 'Zapper',
+    category: 'payments',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-indigo-600',
+    description: 'South African QR payments and loyalty. Great for SMEs and hospitality.',
+    capabilities: ['qr_payments', 'transactions', 'reconciliation'],
+    use_cases: [
+      'Accept QR payments',
+      'Track daily settlements',
+      'Reconcile orders to payments'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://zapper.com/',
+    api_key_instructions: {
+      title: 'How to Integrate Zapper',
+      steps: [
+        { step: 1, action: 'Merchant signup', details: 'Create merchant account and request integration docs' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  peach_payments: {
+    id: 'peach_payments',
+    name: 'Peach Payments',
+    category: 'payments',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-teal-600',
+    description: 'South African and African online payments platform for cards and APMs.',
+    capabilities: ['payments', 'subscriptions', 'refunds', 'webhooks'],
+    use_cases: [
+      'Accept card and alternative payments',
+      'Manage refunds and settlements',
+      'Process recurring billing'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://peachpayments.docs.apiary.io/',
+    api_key_instructions: {
+      title: 'How to Get Peach Payments Credentials',
+      steps: [
+        { step: 1, action: 'Contact sales/support', details: 'Request test and live credentials' },
+        { step: 2, action: 'Configure webhooks', details: 'Set notification URLs for payment events' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // ACCOUNTING
+  // ======================
+  sage: {
+    id: 'sage',
+    name: 'Sage Business Cloud Accounting',
+    category: 'accounting',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-green-700',
+    description: 'Popular accounting for SMEs in SA/EU. Invoices, bank feeds, VAT, and reporting.',
+    capabilities: ['invoices', 'contacts', 'bank', 'tax', 'reports'],
+    use_cases: [
+      'Sync invoices and contacts',
+      'Reconcile bank transactions',
+      'Generate VAT reports'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.sage.com/',
+    api_key_instructions: {
+      title: 'How to Set Up Sage API',
+      steps: [
+        { step: 1, action: 'Create developer app', details: 'Register an app in Sage Developer portal' },
+        { step: 2, action: 'Use OAuth 2.0', details: 'Obtain client credentials and perform OAuth flow' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  freshbooks: {
+    id: 'freshbooks',
+    name: 'FreshBooks',
+    category: 'accounting',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-blue-600',
+    description: 'Simple accounting and invoicing for freelancers and small teams.',
+    capabilities: ['invoices', 'expenses', 'clients', 'time_tracking'],
+    use_cases: [
+      'Generate invoices automatically',
+      'Sync expenses by category',
+      'Track time for billing'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://www.freshbooks.com/api',
+    api_key_instructions: {
+      title: 'How to Get FreshBooks OAuth Credentials',
+      steps: [
+        { step: 1, action: 'Create Developer App', details: 'Register app and obtain client ID/secret' },
+        { step: 2, action: 'Authorize', details: 'Use OAuth to authorize account access' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  wave: {
+    id: 'wave',
+    name: 'Wave Accounting',
+    category: 'accounting',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-indigo-700',
+    description: 'Free accounting for micro-businesses. Invoicing, receipts, and reporting.',
+    capabilities: ['invoices', 'customers', 'payments', 'reports'],
+    use_cases: [
+      'Generate and send invoices',
+      'Track invoice payments',
+      'Produce financial summaries'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.waveapps.com/',
+    api_key_instructions: {
+      title: 'How to Use Wave GraphQL API',
+      steps: [
+        { step: 1, action: 'Create developer app', details: 'Register and obtain client credentials' },
+        { step: 2, action: 'Use OAuth', details: 'Perform OAuth flow and call GraphQL endpoint' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  zoho_books: {
+    id: 'zoho_books',
+    name: 'Zoho Books',
+    category: 'accounting',
+    status: 'active',
+    icon: DollarSign,
+    color: 'bg-red-600',
+    description: 'Zoho suite accounting with invoices, expenses, and GST/VAT support.',
+    capabilities: ['invoices', 'contacts', 'items', 'expenses', 'reports'],
+    use_cases: [
+      'Sync customer invoices',
+      'Manage product/service items',
+      'Track expenses'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '7-10 minutes',
+    documentation_url: 'https://www.zoho.com/books/api/',
+    api_key_instructions: {
+      title: 'How to Set Up Zoho Books API',
+      steps: [
+        { step: 1, action: 'Create OAuth client', details: 'Use Zoho API Console to create client' },
+        { step: 2, action: 'Authorize', details: 'Perform OAuth to obtain access/refresh tokens' }
+      ]
+    },
+    required_permissions: ['ZohoBooks.fullaccess']
+  },
+
+  // ======================
+  // COMMUNICATION & MEETINGS
+  // ======================
+  outlook: {
+    id: 'outlook',
+    name: 'Outlook / Office 365 Mail',
+    category: 'communication',
+    status: 'active',
+    icon: Mail,
+    color: 'bg-blue-700',
+    description: 'Microsoft 365 mail integration for sending, receiving, and organizing email.',
+    capabilities: ['send_mail', 'read_mail', 'folders', 'labels'],
+    use_cases: [
+      'Send automated emails',
+      'Organize inbox with rules',
+      'Search threads and attachments'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '7-10 minutes',
+    documentation_url: 'https://learn.microsoft.com/en-us/graph/api/overview',
+    api_key_instructions: {
+      title: 'How to Use Microsoft Graph API',
+      steps: [
+        { step: 1, action: 'Register Azure AD app', details: 'Create app in Azure portal and configure permissions' },
+        { step: 2, action: 'Use OAuth 2.0', details: 'Obtain tokens via OAuth and call Graph endpoints' }
+      ]
+    },
+    required_permissions: ['Mail.Read', 'Mail.Send']
+  },
+  telegram: {
+    id: 'telegram',
+    name: 'Telegram',
+    category: 'communication',
+    status: 'active',
+    icon: MessageSquare,
+    color: 'bg-blue-500',
+    description: 'Messaging platform popular with creators and global markets. Bots and channels supported.',
+    capabilities: ['bots', 'channels', 'messages', 'webhooks'],
+    use_cases: [
+      'Send broadcast messages',
+      'Automate bot responses',
+      'Manage community channels'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://core.telegram.org/bots/api',
+    api_key_instructions: {
+      title: 'How to Create Telegram Bot',
+      steps: [
+        { step: 1, action: 'Talk to @BotFather', details: 'Create a bot and receive token' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  discord: {
+    id: 'discord',
+    name: 'Discord',
+    category: 'communication',
+    status: 'active',
+    icon: MessageSquare,
+    color: 'bg-indigo-700',
+    description: 'Community and creator platform with servers, channels, and bots.',
+    capabilities: ['bots', 'channels', 'webhooks', 'messages', 'voice'],
+    use_cases: [
+      'Automate announcements',
+      'Manage community channels',
+      'Log agent actions to a channel'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://discord.com/developers/docs/intro',
+    api_key_instructions: {
+      title: 'How to Create Discord Bot',
+      steps: [
+        { step: 1, action: 'Create application', details: 'In Discord Developer Portal create an application and bot' },
+        { step: 2, action: 'Invite bot', details: 'Invite bot to your server with required scopes' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  zoom: {
+    id: 'zoom',
+    name: 'Zoom',
+    category: 'communication',
+    status: 'active',
+    icon: Video,
+    color: 'bg-blue-600',
+    description: 'Video conferencing and webinars. Meetings, recordings, and transcripts.',
+    capabilities: ['meetings', 'recordings', 'transcripts', 'users'],
+    use_cases: [
+      'Schedule meetings for agents',
+      'Fetch recordings for summaries',
+      'Analyze call transcripts'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '7-10 minutes',
+    documentation_url: 'https://developers.zoom.us/docs/api/',
+    api_key_instructions: {
+      title: 'How to Create Zoom App',
+      steps: [
+        { step: 1, action: 'Create Server-to-Server OAuth app', details: 'In Zoom Marketplace create app and get credentials' }
+      ]
+    },
+    required_permissions: ['meeting:read', 'recording:read']
+  },
+  google_meet: {
+    id: 'google_meet',
+    name: 'Google Meet',
+    category: 'communication',
+    status: 'active',
+    icon: Video,
+    color: 'bg-green-600',
+    description: 'Google Meet integration for scheduling and meeting insights.',
+    capabilities: ['meetings', 'calendar_hooks'],
+    use_cases: [
+      'Schedule meetings via Calendar',
+      'Route recordings to Content Intelligence Agent'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '7-10 minutes',
+    documentation_url: 'https://developers.google.com/calendar',
+    api_key_instructions: {
+      title: 'How to Enable Google APIs',
+      steps: [
+        { step: 1, action: 'Enable Calendar API', details: 'Use Google Cloud Console to enable and create OAuth credentials' }
+      ]
+    },
+    required_permissions: ['calendar']
+  },
+  microsoft_teams: {
+    id: 'microsoft_teams',
+    name: 'Microsoft Teams',
+    category: 'communication',
+    status: 'active',
+    icon: MessageSquare,
+    color: 'bg-purple-700',
+    description: 'Corporate communication with channels, chat, and meetings.',
+    capabilities: ['chat', 'channels', 'meetings', 'webhooks'],
+    use_cases: [
+      'Post agent updates to channels',
+      'Schedule meetings',
+      'Notify stakeholders of actions'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://learn.microsoft.com/en-us/microsoftteams/platform/',
+    api_key_instructions: {
+      title: 'How to Register Azure AD App for Teams',
+      steps: [
+        { step: 1, action: 'Register app', details: 'Use Azure AD App Registrations and configure Graph permissions' }
+      ]
+    },
+    required_permissions: ['ChannelMessage.Send', 'Chat.ReadWrite']
+  },
+  twilio: {
+    id: 'twilio',
+    name: 'Twilio',
+    category: 'communication',
+    status: 'active',
+    icon: Phone,
+    color: 'bg-red-600',
+    description: 'Programmable SMS, voice, and WhatsApp messaging.',
+    capabilities: ['sms', 'voice', 'whatsapp', 'webhooks'],
+    use_cases: [
+      'Send OTP and notifications',
+      'Automate outbound SMS',
+      'Handle voice calls with IVR'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://www.twilio.com/docs',
+    api_key_instructions: {
+      title: 'How to Get Twilio Credentials',
+      steps: [
+        { step: 1, action: 'Create account', details: 'Get Account SID and Auth Token from Console' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // PRODUCTIVITY & STORAGE
+  // ======================
+  airtable: {
+    id: 'airtable',
+    name: 'Airtable',
+    category: 'productivity',
+    status: 'active',
+    icon: Database,
+    color: 'bg-cyan-600',
+    description: 'Relational spreadsheets for content ops, campaign planning, and data workflows.',
+    capabilities: ['bases', 'tables', 'records', 'views'],
+    use_cases: [
+      'Manage content calendars',
+      'Sync leads and deals',
+      'Build lightweight CRMs'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://airtable.com/developers',
+    api_key_instructions: {
+      title: 'How to Get Airtable Token',
+      steps: [
+        { step: 1, action: 'Create personal token', details: 'In Airtable account, create a personal access token with scopes' }
+      ]
+    },
+    required_permissions: ['data.records:read', 'data.records:write']
+  },
+  confluence: {
+    id: 'confluence',
+    name: 'Confluence',
+    category: 'productivity',
+    status: 'active',
+    icon: FileText,
+    color: 'bg-blue-700',
+    description: 'Knowledge base and documentation for teams.',
+    capabilities: ['pages', 'spaces', 'search'],
+    use_cases: [
+      'Publish SOPs and docs',
+      'Index knowledge for agents',
+      'Link to Jira issues'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.atlassian.com/cloud/confluence/rest/',
+    api_key_instructions: {
+      title: 'How to Use Confluence Cloud API',
+      steps: [
+        { step: 1, action: 'Create API token', details: 'Use Atlassian account to create token; use with email' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  box: {
+    id: 'box',
+    name: 'Box',
+    category: 'productivity',
+    status: 'active',
+    icon: Package,
+    color: 'bg-blue-500',
+    description: 'Enterprise content management and file storage.',
+    capabilities: ['files', 'folders', 'collaboration'],
+    use_cases: [
+      'Store large media assets',
+      'Share files securely',
+      'Sync client deliverables'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.box.com/',
+    api_key_instructions: {
+      title: 'How to Create Box App',
+      steps: [
+        { step: 1, action: 'Create Custom App', details: 'In Box Developer Console, create app and get JWT/OAuth credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  icloud_drive: {
+    id: 'icloud_drive',
+    name: 'iCloud Drive',
+    category: 'productivity',
+    status: 'active',
+    icon: Cloud,
+    color: 'bg-gray-600',
+    description: 'Apple file storage for Apple-heavy users.',
+    capabilities: ['files', 'folders'],
+    use_cases: [
+      'Sync Apple ecosystem files',
+      'Access shared folders'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.apple.com/icloud/',
+    api_key_instructions: {
+      title: 'How to Integrate iCloud Drive',
+      steps: [
+        { step: 1, action: 'Enable iCloud APIs', details: 'Use Apple Developer Program and configure entitlements' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // AUTOMATION PLATFORMS
+  // ======================
+  make: {
+    id: 'make',
+    name: 'Make (Integromat)',
+    category: 'automation',
+    status: 'active',
+    icon: Zap,
+    color: 'bg-purple-700',
+    description: 'No-code automation for connecting apps and building workflows.',
+    capabilities: ['scenarios', 'webhooks', 'modules', 'scheduling'],
+    use_cases: [
+      'Automate data syncing',
+      'Trigger workflows via webhooks',
+      'Orchestrate multi-step processes'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://www.make.com/en/help',
+    api_key_instructions: {
+      title: 'How to Get Make API Key',
+      steps: [
+        { step: 1, action: 'Generate token', details: 'In profile > API keys, generate and copy key' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  pabbly: {
+    id: 'pabbly',
+    name: 'Pabbly Connect',
+    category: 'automation',
+    status: 'active',
+    icon: Zap,
+    color: 'bg-pink-600',
+    description: 'Affordable Zapier alternative for connecting apps and automating workflows.',
+    capabilities: ['workflows', 'webhooks', 'scheduling'],
+    use_cases: [
+      'Automate lead capture',
+      'Sync CRM to email marketing',
+      'Post-process form submissions'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://www.pabbly.com/connect/integrations/',
+    api_key_instructions: {
+      title: 'How to Use Pabbly Webhooks',
+      steps: [
+        { step: 1, action: 'Create workflow', details: 'Add webhook trigger and copy URL for Guild-AI to call' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  tray: {
+    id: 'tray',
+    name: 'Tray.io',
+    category: 'automation',
+    status: 'active',
+    icon: Zap,
+    color: 'bg-gray-700',
+    description: 'Enterprise-grade workflow automation with APIs and connectors.',
+    capabilities: ['workflows', 'connectors', 'api_calls'],
+    use_cases: [
+      'Build enterprise integrations',
+      'Create back-office automations'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://tray.io/documentation',
+    api_key_instructions: {
+      title: 'How to Use Tray Tokens',
+      steps: [
+        { step: 1, action: 'Create token', details: 'Generate personal or org token in Tray console' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  google_apps_script: {
+    id: 'google_apps_script',
+    name: 'Google Apps Script',
+    category: 'automation',
+    status: 'active',
+    icon: FileCode,
+    color: 'bg-yellow-500',
+    description: 'Automate Google Workspace (Sheets, Docs, Gmail) with Apps Script.',
+    capabilities: ['scripts', 'triggers', 'web_apps'],
+    use_cases: [
+      'Build Sheets workflows',
+      'Automate Gmail drafting',
+      'Publish webhooks'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.google.com/apps-script',
+    api_key_instructions: {
+      title: 'How to Deploy Apps Script',
+      steps: [
+        { step: 1, action: 'Create project and deploy', details: 'Use Apps Script editor, deploy web app, copy URL/token' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // E-COMMERCE & COURSES
+  // ======================
+  woocommerce: {
+    id: 'woocommerce',
+    name: 'WooCommerce',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-purple-700',
+    description: 'WordPress e-commerce plugin for online stores of all sizes.',
+    capabilities: ['products', 'orders', 'customers', 'coupons'],
+    use_cases: [
+      'Sync products and inventory',
+      'Automate order processing',
+      'Send customer notifications'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://woocommerce.github.io/woocommerce-rest-api-docs/',
+    api_key_instructions: {
+      title: 'How to Create WooCommerce REST Keys',
+      steps: [
+        { step: 1, action: 'In WP Admin', details: 'WooCommerce > Settings > Advanced > REST API: add key' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  bigcommerce: {
+    id: 'bigcommerce',
+    name: 'BigCommerce',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-blue-700',
+    description: 'SaaS commerce platform for growing brands.',
+    capabilities: ['catalog', 'orders', 'customers'],
+    use_cases: [
+      'Sync catalog and pricing',
+      'Automate order flows'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.bigcommerce.com/api-docs',
+    api_key_instructions: {
+      title: 'How to Create API Account',
+      steps: [
+        { step: 1, action: 'Store settings', details: 'Advanced Settings > API Accounts: create and copy credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  etsy: {
+    id: 'etsy',
+    name: 'Etsy',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-orange-500',
+    description: 'Marketplace for handmade, vintage, and custom goods.',
+    capabilities: ['listings', 'orders', 'shops'],
+    use_cases: [
+      'Sync product listings',
+      'Track orders and messages'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developers.etsy.com/documentation',
+    api_key_instructions: {
+      title: 'How to Create Etsy App',
+      steps: [
+        { step: 1, action: 'Create app', details: 'From Etsy Developer portal, create app and get keystring' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  magento: {
+    id: 'magento',
+    name: 'Magento / Adobe Commerce',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-gray-800',
+    description: 'Enterprise-grade e-commerce platform with powerful APIs.',
+    capabilities: ['catalog', 'orders', 'customers'],
+    use_cases: [
+      'Sync catalog and inventory',
+      'Manage orders and shipments'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.adobe.com/commerce/',
+    api_key_instructions: {
+      title: 'How to Use Magento Tokens',
+      steps: [
+        { step: 1, action: 'Create integration', details: 'System > Extensions > Integrations: create integration for tokens' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  gumroad: {
+    id: 'gumroad',
+    name: 'Gumroad',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-pink-600',
+    description: 'Sell digital goods, memberships, and courses.',
+    capabilities: ['products', 'sales', 'customers'],
+    use_cases: [
+      'Sync digital product sales',
+      'Automate delivery emails'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://gumroad.com/api',
+    api_key_instructions: {
+      title: 'How to Get Gumroad Token',
+      steps: [
+        { step: 1, action: 'Create application', details: 'Register app and obtain OAuth token' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  kajabi: {
+    id: 'kajabi',
+    name: 'Kajabi',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-blue-600',
+    description: 'All-in-one courses, communities, and digital products platform.',
+    capabilities: ['offers', 'products', 'contacts', 'orders'],
+    use_cases: [
+      'Sync students and purchases',
+      'Automate onboarding sequences'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.kajabi.com/',
+    api_key_instructions: {
+      title: 'How to Create Kajabi API Key',
+      steps: [
+        { step: 1, action: 'Admin settings', details: 'In Kajabi admin, generate API key/secret' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  teachable: {
+    id: 'teachable',
+    name: 'Teachable',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-orange-600',
+    description: 'Create and sell online courses with student management.',
+    capabilities: ['courses', 'students', 'orders'],
+    use_cases: [
+      'Sync students to CRM',
+      'Track course purchases'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.teachable.com/',
+    api_key_instructions: {
+      title: 'How to Get Teachable Key',
+      steps: [
+        { step: 1, action: 'Developer settings', details: 'Enable API and copy key/secret' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  podia: {
+    id: 'podia',
+    name: 'Podia',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-purple-600',
+    description: 'Sell courses, downloads, and memberships.',
+    capabilities: ['products', 'customers', 'orders'],
+    use_cases: [
+      'Sync buyers and orders',
+      'Automate onboarding'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.podia.com/',
+    api_key_instructions: {
+      title: 'How to Get Podia API Key',
+      steps: [
+        { step: 1, action: 'Create developer token', details: 'Generate token from Podia settings' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  thinkific: {
+    id: 'thinkific',
+    name: 'Thinkific',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-teal-600',
+    description: 'Online course platform with robust APIs.',
+    capabilities: ['courses', 'enrollments', 'orders', 'users'],
+    use_cases: [
+      'Sync enrollments to CRM',
+      'Track student progress'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.thinkific.com/api/',
+    api_key_instructions: {
+      title: 'How to Get Thinkific API Key',
+      steps: [
+        { step: 1, action: 'Create API key', details: 'In Thinkific Admin > Settings > Code & analytics' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  payhip: {
+    id: 'payhip',
+    name: 'Payhip',
+    category: 'ecommerce',
+    status: 'active',
+    icon: ShoppingCart,
+    color: 'bg-gray-700',
+    description: 'Sell digital downloads and memberships.',
+    capabilities: ['products', 'orders', 'customers'],
+    use_cases: [
+      'Sync product sales',
+      'Send post-purchase sequences'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.payhip.com/',
+    api_key_instructions: {
+      title: 'How to Get Payhip API Key',
+      steps: [
+        { step: 1, action: 'Generate API key', details: 'From Payhip account settings' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // DEVELOPMENT & CLOUD
+  // ======================
+  gitlab: {
+    id: 'gitlab',
+    name: 'GitLab',
+    category: 'development',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-orange-600',
+    description: 'Source code hosting, CI/CD, and DevOps platform.',
+    capabilities: ['repos', 'issues', 'merge_requests', 'pipelines'],
+    use_cases: [
+      'Track issues and MRs',
+      'Monitor pipelines',
+      'Automate releases'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.gitlab.com/ee/api/',
+    api_key_instructions: {
+      title: 'How to Create GitLab Token',
+      steps: [
+        { step: 1, action: 'Create personal access token', details: 'In GitLab profile > Access Tokens' }
+      ]
+    },
+    required_permissions: ['api']
+  },
+  bitbucket: {
+    id: 'bitbucket',
+    name: 'Bitbucket',
+    category: 'development',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-blue-600',
+    description: 'Git hosting by Atlassian, integrated with Jira.',
+    capabilities: ['repos', 'pull_requests', 'pipelines'],
+    use_cases: [
+      'Sync issues with Jira',
+      'Automate pipeline notifications'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://developer.atlassian.com/bitbucket/api/2/reference/',
+    api_key_instructions: {
+      title: 'How to Use App Passwords',
+      steps: [
+        { step: 1, action: 'Create app password', details: 'From Bitbucket account > App passwords' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  aws_cloudwatch: {
+    id: 'aws_cloudwatch',
+    name: 'AWS CloudWatch',
+    category: 'development',
+    status: 'active',
+    icon: Monitor,
+    color: 'bg-orange-500',
+    description: 'AWS monitoring and observability for logs, metrics, and alarms.',
+    capabilities: ['metrics', 'logs', 'alarms'],
+    use_cases: [
+      'Alert on error spikes',
+      'Visualize performance metrics'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://docs.aws.amazon.com/cloudwatch/',
+    api_key_instructions: {
+      title: 'How to Configure AWS Access',
+      steps: [
+        { step: 1, action: 'Create IAM user', details: 'Grant CloudWatch read permissions and create access keys' }
+      ]
+    },
+    required_permissions: ['cloudwatch:Read']
+  },
+  cloudflare: {
+    id: 'cloudflare',
+    name: 'Cloudflare',
+    category: 'development',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-yellow-600',
+    description: 'CDN, security, and performance with analytics and DNS APIs.',
+    capabilities: ['dns', 'analytics', 'security', 'workers'],
+    use_cases: [
+      'Purge cache on deploy',
+      'Manage DNS automatically'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://api.cloudflare.com/',
+    api_key_instructions: {
+      title: 'How to Create API Token',
+      steps: [
+        { step: 1, action: 'Create API token', details: 'Use template for DNS/Zone read-write as needed' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  digitalocean: {
+    id: 'digitalocean',
+    name: 'DigitalOcean',
+    category: 'development',
+    status: 'active',
+    icon: Globe,
+    color: 'bg-blue-500',
+    description: 'Simple cloud infrastructure: Droplets, Kubernetes, Spaces.',
+    capabilities: ['droplets', 'kubernetes', 'spaces'],
+    use_cases: [
+      'Scale workloads',
+      'Manage deployments'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.digitalocean.com/reference/api/',
+    api_key_instructions: {
+      title: 'How to Create DO Token',
+      steps: [
+        { step: 1, action: 'Generate PAT', details: 'Personal access token in DO Control Panel' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  google_cloud_vertex_ai: {
+    id: 'google_cloud_vertex_ai',
+    name: 'Google Cloud Vertex AI',
+    category: 'development',
+    status: 'active',
+    icon: Brain,
+    color: 'bg-purple-700',
+    description: 'Managed ML platform: models, endpoints, vector search, and pipelines.',
+    capabilities: ['models', 'endpoints', 'embeddings', 'pipelines'],
+    use_cases: [
+      'Host custom LLMs',
+      'Embed and search documents'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://cloud.google.com/vertex-ai/docs',
+    api_key_instructions: {
+      title: 'How to Enable Vertex AI',
+      steps: [
+        { step: 1, action: 'Enable APIs and service account', details: 'Create service account JSON and set roles' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // DESIGN & CREATIVE
+  // ======================
+  figma: {
+    id: 'figma',
+    name: 'Figma',
+    category: 'design',
+    status: 'active',
+    icon: Palette,
+    color: 'bg-pink-500',
+    description: 'Collaborative design platform for UI/UX with component APIs.',
+    capabilities: ['files', 'comments', 'components'],
+    use_cases: [
+      'Export assets for campaigns',
+      'Sync design comments to tasks'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://www.figma.com/developers/api',
+    api_key_instructions: {
+      title: 'How to Create Figma Token',
+      steps: [
+        { step: 1, action: 'Generate personal access token', details: 'In Figma account settings' }
+      ]
+    },
+    required_permissions: ['read']
+  },
+  adobe_cc: {
+    id: 'adobe_cc',
+    name: 'Adobe Creative Cloud',
+    category: 'design',
+    status: 'active',
+    icon: Camera,
+    color: 'bg-red-600',
+    description: 'Industry-standard apps (Photoshop, Premiere, Illustrator) with cloud APIs.',
+    capabilities: ['assets', 'libraries', 'storage'],
+    use_cases: [
+      'Manage brand assets',
+      'Automate render workflows'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.adobe.com/',
+    api_key_instructions: {
+      title: 'How to Register Adobe App',
+      steps: [
+        { step: 1, action: 'Create project', details: 'In Adobe Developer Console, create project and add APIs' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  midjourney: {
+    id: 'midjourney',
+    name: 'Midjourney',
+    category: 'design',
+    status: 'active',
+    icon: Brain,
+    color: 'bg-gray-900',
+    description: 'AI image generation via Discord bot workflows.',
+    capabilities: ['image_generation'],
+    use_cases: [
+      'Generate hero images',
+      'Create concepts for campaigns'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://docs.midjourney.com/',
+    api_key_instructions: {
+      title: 'How to Automate Midjourney',
+      steps: [
+        { step: 1, action: 'Use Discord bot', details: 'Automate prompts via Discord bot and webhooks' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  stable_diffusion: {
+    id: 'stable_diffusion',
+    name: 'Stable Diffusion',
+    category: 'design',
+    status: 'active',
+    icon: Brain,
+    color: 'bg-green-700',
+    description: 'Local or hosted image generation via Diffusers/SDXL.',
+    capabilities: ['image_generation'],
+    use_cases: [
+      'Generate branded assets',
+      'Batch render variations'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://huggingface.co/docs/diffusers/index',
+    api_key_instructions: {
+      title: 'How to Run SD',
+      steps: [
+        { step: 1, action: 'Setup env', details: 'Use GPU runtime or local install and provide endpoint URL' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  runwayml: {
+    id: 'runwayml',
+    name: 'RunwayML',
+    category: 'design',
+    status: 'active',
+    icon: Video,
+    color: 'bg-teal-700',
+    description: 'AI video generation and editing platform.',
+    capabilities: ['video_generation', 'assets'],
+    use_cases: [
+      'Create short-form videos',
+      'Generate b-roll and edits'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://runwayml.com/docs',
+    api_key_instructions: {
+      title: 'How to Use Runway API',
+      steps: [
+        { step: 1, action: 'Generate API key', details: 'From account settings' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  descript: {
+    id: 'descript',
+    name: 'Descript',
+    category: 'design',
+    status: 'active',
+    icon: Video,
+    color: 'bg-indigo-600',
+    description: 'Video and audio editing with transcripts and AI tools.',
+    capabilities: ['projects', 'media', 'transcripts'],
+    use_cases: [
+      'Edit podcasts automatically',
+      'Generate social clips'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://www.descript.com/api',
+    api_key_instructions: {
+      title: 'How to Use Descript API',
+      steps: [
+        { step: 1, action: 'Create API token', details: 'From Descript account settings' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  opusclip: {
+    id: 'opusclip',
+    name: 'OpusClip',
+    category: 'design',
+    status: 'active',
+    icon: Video,
+    color: 'bg-purple-600',
+    description: 'Auto video clipping for short-form social content.',
+    capabilities: ['clips', 'exports'],
+    use_cases: [
+      'Auto-generate shorts from long videos'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://www.opus.pro/',
+    api_key_instructions: {
+      title: 'How to Use OpusClip API',
+      steps: [
+        { step: 1, action: 'Request API access', details: 'Obtain key from support/portal' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  did: {
+    id: 'did',
+    name: 'D-ID',
+    category: 'design',
+    status: 'active',
+    icon: Video,
+    color: 'bg-gray-700',
+    description: 'Talking head video generator from still images and audio.',
+    capabilities: ['talking_head'],
+    use_cases: [
+      'Generate presenter videos'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.d-id.com/docs',
+    api_key_instructions: {
+      title: 'How to Use D-ID API',
+      steps: [
+        { step: 1, action: 'Create API key', details: 'From D-ID console' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  leonardo: {
+    id: 'leonardo',
+    name: 'Leonardo AI',
+    category: 'design',
+    status: 'active',
+    icon: Camera,
+    color: 'bg-yellow-600',
+    description: 'AI image generation tuned for design workflows.',
+    capabilities: ['image_generation'],
+    use_cases: [
+      'Create ad variations',
+      'Generate illustrations'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.leonardo.ai/',
+    api_key_instructions: {
+      title: 'How to Get Leonardo API Key',
+      steps: [
+        { step: 1, action: 'Create API key', details: 'From Leonardo account portal' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  lumen5: {
+    id: 'lumen5',
+    name: 'Lumen5',
+    category: 'design',
+    status: 'active',
+    icon: Video,
+    color: 'bg-blue-500',
+    description: 'Turn articles into videos with AI templates.',
+    capabilities: ['video_generation'],
+    use_cases: [
+      'Convert blogs to social videos'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://lumen5.com/',
+    api_key_instructions: {
+      title: 'How to Access Lumen5 API',
+      steps: [
+        { step: 1, action: 'Request API access', details: 'Contact sales for API availability' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  synthesia: {
+    id: 'synthesia',
+    name: 'Synthesia',
+    category: 'design',
+    status: 'active',
+    icon: Video,
+    color: 'bg-green-600',
+    description: 'AI avatar video generation platform.',
+    capabilities: ['avatar_video'],
+    use_cases: [
+      'Generate training and marketing videos'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://docs.synthesia.io/',
+    api_key_instructions: {
+      title: 'How to Use Synthesia API',
+      steps: [
+        { step: 1, action: 'Create API key', details: 'From Synthesia dashboard' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // CUSTOMER SUPPORT
+  // ======================
+  zendesk: {
+    id: 'zendesk',
+    name: 'Zendesk',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-green-600',
+    description: 'Industry-leading ticketing and customer service platform.',
+    capabilities: ['tickets', 'users', 'organizations', 'macros'],
+    use_cases: [
+      'Create and triage tickets',
+      'Auto-assign based on intent'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.zendesk.com/api-reference/',
+    api_key_instructions: {
+      title: 'How to Use Zendesk API',
+      steps: [
+        { step: 1, action: 'Create API token', details: 'Admin Center > Apps and integrations > APIs' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  freshdesk: {
+    id: 'freshdesk',
+    name: 'Freshdesk',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-blue-600',
+    description: 'SMB-friendly helpdesk with email and chat support.',
+    capabilities: ['tickets', 'contacts', 'conversations'],
+    use_cases: [
+      'Auto-reply with knowledge base',
+      'Escalate based on SLAs'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://developers.freshdesk.com/api/',
+    api_key_instructions: {
+      title: 'How to Get Freshdesk API Key',
+      steps: [
+        { step: 1, action: 'Profile settings', details: 'Copy API key from Freshdesk profile' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  crisp: {
+    id: 'crisp',
+    name: 'Crisp Chat',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-cyan-700',
+    description: 'Affordable multichannel live chat and chatbot platform.',
+    capabilities: ['conversations', 'contacts', 'events'],
+    use_cases: [
+      'Route chats to agents',
+      'Send proactive messages'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.crisp.chat/',
+    api_key_instructions: {
+      title: 'How to Create Crisp Tokens',
+      steps: [
+        { step: 1, action: 'Create website token', details: 'In Crisp dashboard, generate REST token' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  drift: {
+    id: 'drift',
+    name: 'Drift',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-gray-700',
+    description: 'Conversational marketing and sales chat platform.',
+    capabilities: ['conversations', 'playbooks', 'contacts'],
+    use_cases: [
+      'Qualify leads via chatbots',
+      'Hand off to sales automatically'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://devdocs.drift.com/',
+    api_key_instructions: {
+      title: 'How to Use Drift API',
+      steps: [
+        { step: 1, action: 'Create OAuth app', details: 'In Drift admin, create app and copy client credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  tidio: {
+    id: 'tidio',
+    name: 'Tidio',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-indigo-600',
+    description: 'Live chat and chatbot automation for SMB websites.',
+    capabilities: ['conversations', 'contacts'],
+    use_cases: [
+      'Capture leads via chat',
+      'Automate FAQs'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://apidocs.tidio.com/',
+    api_key_instructions: {
+      title: 'How to Get Tidio API Key',
+      steps: [
+        { step: 1, action: 'Enable API', details: 'In Tidio settings, enable and copy API key' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  livechat: {
+    id: 'livechat',
+    name: 'LiveChat',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-yellow-600',
+    description: 'Live chat platform with rich integrations and reporting.',
+    capabilities: ['conversations', 'agents', 'reports'],
+    use_cases: [
+      'Handoff to human agents',
+      'Report on chat performance'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developers.livechat.com/',
+    api_key_instructions: {
+      title: 'How to Use LiveChat API',
+      steps: [
+        { step: 1, action: 'Create app', details: 'In Developer Console, create app and obtain tokens' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  helpscout: {
+    id: 'helpscout',
+    name: 'HelpScout',
+    category: 'support',
+    status: 'active',
+    icon: Users,
+    color: 'bg-blue-600',
+    description: 'Email-style customer service tool for small teams.',
+    capabilities: ['conversations', 'mailboxes', 'customers'],
+    use_cases: [
+      'Manage support email at scale',
+      'Auto-label and route conversations'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://developer.helpscout.com/',
+    api_key_instructions: {
+      title: 'How to Create HelpScout App',
+      steps: [
+        { step: 1, action: 'OAuth app', details: 'Create OAuth app and copy client credentials' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  aircall: {
+    id: 'aircall',
+    name: 'Aircall',
+    category: 'support',
+    status: 'active',
+    icon: Phone,
+    color: 'bg-green-600',
+    description: 'Cloud phone system with call routing and analytics.',
+    capabilities: ['calls', 'contacts', 'webhooks'],
+    use_cases: [
+      'Log calls to CRM',
+      'Trigger workflows on missed calls'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '5-10 minutes',
+    documentation_url: 'https://developer.aircall.io/',
+    api_key_instructions: {
+      title: 'How to Use Aircall API',
+      steps: [
+        { step: 1, action: 'Create API key', details: 'From Aircall admin > API keys' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  justcall: {
+    id: 'justcall',
+    name: 'JustCall',
+    category: 'support',
+    status: 'active',
+    icon: Phone,
+    color: 'bg-purple-600',
+    description: 'Cloud telephony platform for sales and support teams.',
+    capabilities: ['calls', 'sms', 'webhooks'],
+    use_cases: [
+      'Send SMS follow-ups',
+      'Log calls to CRM'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://justcall.io/developer-docs',
+    api_key_instructions: {
+      title: 'How to Get JustCall API Key',
+      steps: [
+        { step: 1, action: 'Generate API key', details: 'From JustCall admin' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  twilio_flex: {
+    id: 'twilio_flex',
+    name: 'Twilio Flex',
+    category: 'support',
+    status: 'active',
+    icon: Phone,
+    color: 'bg-red-700',
+    description: 'Programmable contact center built on Twilio.',
+    capabilities: ['contacts', 'tasks', 'voice', 'chat'],
+    use_cases: [
+      'Route conversations intelligently',
+      'Automate agent assist'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://www.twilio.com/docs/flex',
+    api_key_instructions: {
+      title: 'How to Configure Flex',
+      steps: [
+        { step: 1, action: 'Provision Flex project', details: 'Enable Flex and obtain credentials from Console' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+
+  // ======================
+  // HUMAN OS (NEXT-GEN)
+  // ======================
+  google_calendar: {
+    id: 'google_calendar',
+    name: 'Google Calendar',
+    category: 'human_os',
+    status: 'active',
+    icon: Calendar,
+    color: 'bg-blue-600',
+    description: 'Bi-directional calendar sync for tasks, meetings, and agent scheduling.',
+    capabilities: ['events', 'webhooks', 'availability'],
+    use_cases: [
+      'Book meetings for agents',
+      'Block time for focus work'
+    ],
+    setup_complexity: 'medium',
+    estimated_setup_time: '7-10 minutes',
+    documentation_url: 'https://developers.google.com/calendar',
+    api_key_instructions: {
+      title: 'How to Enable Calendar API',
+      steps: [
+        { step: 1, action: 'Create OAuth app', details: 'Enable API and create OAuth credentials' }
+      ]
+    },
+    required_permissions: ['calendar']
+  },
+  outlook_calendar: {
+    id: 'outlook_calendar',
+    name: 'Outlook Calendar',
+    category: 'human_os',
+    status: 'active',
+    icon: Calendar,
+    color: 'bg-blue-800',
+    description: 'Microsoft 365 calendar integration for corporate environments.',
+    capabilities: ['events', 'rooms', 'availability'],
+    use_cases: [
+      'Reserve rooms and book meetings'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://learn.microsoft.com/en-us/graph/api/resources/event',
+    api_key_instructions: {
+      title: 'How to Use Microsoft Graph Calendar',
+      steps: [
+        { step: 1, action: 'Register app in Azure', details: 'Grant Calendars.ReadWrite and perform OAuth' }
+      ]
+    },
+    required_permissions: ['Calendars.ReadWrite']
+  },
+  apple_calendar: {
+    id: 'apple_calendar',
+    name: 'Apple Calendar',
+    category: 'human_os',
+    status: 'active',
+    icon: Calendar,
+    color: 'bg-gray-700',
+    description: 'Apple ecosystem calendar integration.',
+    capabilities: ['events'],
+    use_cases: [
+      'Sync Apple calendar events'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.apple.com/',
+    api_key_instructions: {
+      title: 'How to Integrate Apple Calendar',
+      steps: [
+        { step: 1, action: 'Use CalDAV or Apple APIs', details: 'Configure tokens/entitlements as required' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  google_fit: {
+    id: 'google_fit',
+    name: 'Google Fit',
+    category: 'human_os',
+    status: 'active',
+    icon: Heart,
+    color: 'bg-red-600',
+    description: 'Wellness signals for burnout prevention and productivity insights.',
+    capabilities: ['activity', 'sleep', 'heart_rate'],
+    use_cases: [
+      'Detect burnout risk',
+      'Recommend breaks'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developers.google.com/fit',
+    api_key_instructions: {
+      title: 'How to Enable Google Fit',
+      steps: [
+        { step: 1, action: 'Enable Fitness API', details: 'Create OAuth credentials and request sensitive scopes' }
+      ]
+    },
+    required_permissions: ['read']
+  },
+  apple_health: {
+    id: 'apple_health',
+    name: 'Apple Health',
+    category: 'human_os',
+    status: 'active',
+    icon: Heart,
+    color: 'bg-red-700',
+    description: 'HealthKit integration for wellness monitoring (with consent).',
+    capabilities: ['activity', 'sleep', 'heart_rate'],
+    use_cases: [
+      'Track recovery and workload'
+    ],
+    setup_complexity: 'high',
+    estimated_setup_time: '10-15 minutes',
+    documentation_url: 'https://developer.apple.com/healthkit/',
+    api_key_instructions: {
+      title: 'How to Integrate HealthKit',
+      steps: [
+        { step: 1, action: 'Configure entitlements', details: 'Build native app connector to request permissions' }
+      ]
+    },
+    required_permissions: ['read']
+  },
+  openai: {
+    id: 'openai',
+    name: 'OpenAI API',
+    category: 'human_os',
+    status: 'active',
+    icon: Brain,
+    color: 'bg-gray-800',
+    description: 'LLM capabilities for reasoning, generation, and tool use.',
+    capabilities: ['chat', 'embeddings', 'image', 'audio'],
+    use_cases: [
+      'Agent reasoning and planning',
+      'Summarization and generation'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://platform.openai.com/docs',
+    api_key_instructions: {
+      title: 'How to Get OpenAI API Key',
+      steps: [
+        { step: 1, action: 'Create API key', details: 'From OpenAI dashboard' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  anthropic: {
+    id: 'anthropic',
+    name: 'Anthropic (Claude)',
+    category: 'human_os',
+    status: 'active',
+    icon: Brain,
+    color: 'bg-blue-900',
+    description: 'Claude API for safe, helpful conversational AI.',
+    capabilities: ['chat', 'tool_use'],
+    use_cases: [
+      'Long-context reasoning',
+      'Evaluation and planning'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://docs.anthropic.com/claude/docs',
+    api_key_instructions: {
+      title: 'How to Get Anthropic API Key',
+      steps: [
+        { step: 1, action: 'Create key', details: 'From Anthropic console' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  },
+  google_gemini: {
+    id: 'google_gemini',
+    name: 'Google Gemini',
+    category: 'human_os',
+    status: 'active',
+    icon: Brain,
+    color: 'bg-blue-700',
+    description: 'Google Generative AI for multimodal understanding and generation.',
+    capabilities: ['chat', 'vision', 'embeddings'],
+    use_cases: [
+      'Multimodal content analysis',
+      'Structured output generation'
+    ],
+    setup_complexity: 'easy',
+    estimated_setup_time: '3-5 minutes',
+    documentation_url: 'https://ai.google.dev/',
+    api_key_instructions: {
+      title: 'How to Get Gemini API Key',
+      steps: [
+        { step: 1, action: 'Create key', details: 'From Google AI Studio' }
+      ]
+    },
+    required_permissions: ['read', 'write']
+  }
 };
 
 /**
@@ -2122,6 +3848,12 @@ export const connectorCategories = [
     name: 'All Connectors',
     icon: Database,
     description: 'View all available integrations'
+  },
+  {
+    id: 'advertising',
+    name: 'Advertising',
+    icon: Target,
+    description: 'Ad platforms and campaign management'
   },
   {
     id: 'project_management',
@@ -2206,6 +3938,12 @@ export const connectorCategories = [
     icon: Users,
     description: 'Customer support and engagement',
     connectors: ['intercom', 'zendesk']
+  },
+  {
+    id: 'human_os',
+    name: 'Human OS',
+    icon: Heart,
+    description: 'Calendars, wellness, assistants and agent collaboration'
   }
 ];
 
