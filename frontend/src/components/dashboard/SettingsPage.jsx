@@ -73,6 +73,8 @@ const SettingsPage = () => {
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [addrQuery, setAddrQuery] = useState('');
   const [addrLoading, setAddrLoading] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [paymentMethods, setPaymentMethods] = useState([]);
 
   const userEmail = useMemo(() => settings?.profile?.email || '', [settings?.profile?.email]);
 
@@ -115,9 +117,29 @@ const SettingsPage = () => {
         setAgentsAvailable([]);
       }
     };
+    const fetchInvoices = async () => {
+      try {
+        const res = await fetch('/subscription/invoices');
+        if (res.ok) {
+          const data = await res.json();
+          setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
+        }
+      } catch { setInvoices([]); }
+    };
+    const fetchPaymentMethods = async () => {
+      try {
+        const res = await fetch('/subscription/payment-methods');
+        if (res.ok) {
+          const data = await res.json();
+          setPaymentMethods(Array.isArray(data?.methods) ? data.methods : []);
+        }
+      } catch { setPaymentMethods([]); }
+    };
     fetchPlans();
     fetchInfo();
     fetchAgents();
+    fetchInvoices();
+    fetchPaymentMethods();
     // Handle Paystack return (reference in URL)
     const params = new URLSearchParams(window.location.search);
     const reference = params.get('reference');
