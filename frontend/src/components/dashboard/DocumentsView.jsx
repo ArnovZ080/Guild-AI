@@ -189,11 +189,16 @@ const DocumentsView = () => {
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [analysis, setAnalysis] = useState(null);
   const [dataRooms, setDataRooms] = useState([]);
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadRoom, setUploadRoom] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [actions, setActions] = useState([]);
+  const [apiError, setApiError] = useState('');
+  const [apiSuccess, setApiSuccess] = useState('');
+  const [showCreateRoom, setShowCreateRoom] = useState(false);
+  const [newRoomName, setNewRoomName] = useState('');
+  const [newRoomProvider, setNewRoomProvider] = useState('workspace');
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   // Try to load real data; gracefully fall back to mockDocuments if empty or failing
   useEffect(() => {
     let cancelled = false;
@@ -833,6 +838,12 @@ const DocumentsView = () => {
             <Upload className="w-4 h-4" />
             <span>Upload Document</span>
           </button>
+          <button
+            onClick={() => setShowCreateRoom(true)}
+            className="ml-2 flex items-center space-x-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors"
+          >
+            <span>Create Data Room</span>
+          </button>
         </div>
 
         {/* Controls */}
@@ -1096,6 +1107,56 @@ const DocumentsView = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Create Data Room Modal */}
+      {showCreateRoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Create Data Room</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input value={newRoomName} onChange={(e)=>setNewRoomName(e.target.value)} className="w-full px-3 py-2 border rounded" placeholder="e.g., Marketing Assets" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
+                <select value={newRoomProvider} onChange={(e)=>setNewRoomProvider(e.target.value)} className="w-full px-3 py-2 border rounded">
+                  <option value="workspace">Workspace</option>
+                  <option value="gdrive">Google Drive</option>
+                  <option value="notion">Notion</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={()=>setShowCreateRoom(false)} className="px-4 py-2 border rounded">Cancel</button>
+              <button disabled={!newRoomName || isCreatingRoom} onClick={async ()=>{
+                try {
+                  setIsCreatingRoom(true);
+                  const payload = { name: newRoomName, provider: newRoomProvider, config: {} };
+                  const res = await fetch('/api/data-rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                  if (!res.ok) throw new Error('create failed');
+                  setApiSuccess('Data room created');
+                  setTimeout(()=> setApiSuccess(''), 2500);
+                  setShowCreateRoom(false);
+                  // refresh list
+                  window.location.reload();
+                } catch (e) {
+                  setApiError('Failed to create data room');
+                  setTimeout(()=> setApiError(''), 2500);
+                } finally { setIsCreatingRoom(false); }
+              }} className="px-4 py-2 bg-blue-600 text-white rounded disabled:bg-gray-300">{isCreatingRoom ? 'Creating...' : 'Create'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toasts */}
+      {!!apiError && (
+        <div className="fixed bottom-4 right-4 bg-red-600 text-white px-4 py-2 rounded shadow">{apiError}</div>
+      )}
+      {!!apiSuccess && (
+        <div className="fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded shadow">{apiSuccess}</div>
       )}
     </div>
   );
