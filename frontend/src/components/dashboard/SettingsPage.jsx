@@ -1,12 +1,27 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
-const Section = ({ title, children }) => (
-  <div className="bg-white rounded-lg shadow p-6 mb-6">
-    <h2 className="text-xl font-semibold mb-4">{title}</h2>
-    {children}
-  </div>
-);
+const Section = ({ title, children }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-white rounded-lg shadow mb-6">
+      <div className="flex items-center justify-between px-6 py-4 border-b">
+        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        <button
+          onClick={() => setOpen(!open)}
+          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+        >
+          {open ? 'Hide' : 'View'}
+        </button>
+      </div>
+      {open && (
+        <div className="p-6">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Row = ({ label, children }) => (
   <div className="flex flex-col sm:flex-row sm:items-center gap-3 py-2">
@@ -249,10 +264,11 @@ const SettingsPage = () => {
           />
         </Row>
         <Row label="Upload Profile Picture">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={async (e) => {
+          <label className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
               const file = e.target.files && e.target.files[0];
               if (!file) return;
               try {
@@ -260,8 +276,11 @@ const SettingsPage = () => {
                   updateSettings({ profile: { ...settings.profile, profilePictureUrl: url } });
                 });
               } catch {}
-            }}
-          />
+              }}
+              className="hidden"
+            />
+            Choose file
+          </label>
           {settings.profile.profilePictureUrl && (
             <img src={settings.profile.profilePictureUrl} alt="Profile" className="mt-2 h-16 w-16 rounded-full object-cover border" />
           )}
@@ -281,10 +300,11 @@ const SettingsPage = () => {
           />
         </Row>
         <Row label="Upload Brand Logo">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={async (e) => {
+          <label className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
               const file = e.target.files && e.target.files[0];
               if (!file) return;
               try {
@@ -292,8 +312,11 @@ const SettingsPage = () => {
                   updateSettings({ profile: { ...settings.profile, brand: { ...settings.profile.brand, logoUrl: url } } });
                 });
               } catch {}
-            }}
-          />
+              }}
+              className="hidden"
+            />
+            Choose file
+          </label>
           {settings.profile.brand.logoUrl && (
             <img src={settings.profile.brand.logoUrl} alt="Logo" className="mt-2 h-12 w-12 rounded object-contain border bg-white" />
           )}
@@ -316,13 +339,6 @@ const SettingsPage = () => {
             onChange={(v) => updateSettings({ notifications: { ...settings.notifications, integrations: v } })}
           />
         </Row>
-        <Row label="Country/Region">
-          <Input
-            value={settings.profile.countryOrRegion}
-            onChange={(e) => updateSettings({ profile: { ...settings.profile, countryOrRegion: e.target.value } })}
-            placeholder="Country or region"
-          />
-        </Row>
         <Row label="City">
           <div>
             <Input
@@ -336,6 +352,13 @@ const SettingsPage = () => {
             />
             <div className="text-xs text-gray-500 mt-1">Typing a known city will auto-fill country and state/province.</div>
           </div>
+        </Row>
+        <Row label="Country/Region">
+          <Input
+            value={settings.profile.countryOrRegion}
+            onChange={(e) => updateSettings({ profile: { ...settings.profile, countryOrRegion: e.target.value } })}
+            placeholder="Country or region"
+          />
         </Row>
         <Row label="Office Address">
           <Input
@@ -546,44 +569,65 @@ const SettingsPage = () => {
 
       {/* 3. Onboarding & Business Source of Truth */}
       <Section title="Onboarding & Business Source of Truth">
-        <Row label="Niche">
-          <Input
-            value={settings.onboarding.niche}
-            onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, niche: e.target.value } })}
-          />
-        </Row>
-        <Row label="Target Audience">
-          <Input
-            value={settings.onboarding.targetAudience}
-            onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, targetAudience: e.target.value } })}
-          />
-        </Row>
-        <Row label="Products/Services">
-          <Input
-            value={settings.onboarding.productsServices}
-            onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, productsServices: e.target.value } })}
-          />
-        </Row>
-        <Row label="Pricing">
-          <Input
-            value={settings.onboarding.pricing}
-            onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, pricing: e.target.value } })}
-          />
-        </Row>
-        <Row label="Goals">
-          <Input
-            value={settings.onboarding.goals}
-            onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, goals: e.target.value } })}
-          />
-        </Row>
-        <Row label="Business Blueprint (Markdown)">
-          <textarea
-            value={settings.onboarding.businessBlueprint}
-            onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, businessBlueprint: e.target.value } })}
-            className="w-full min-h-[120px] px-3 py-2 border rounded-lg"
-            placeholder="Editable blueprint for agents to reference"
-          />
-        </Row>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Business Overview</h4>
+            <Row label="Business Type">
+              <Input value={settings.onboarding.business_type || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, business_type: e.target.value } })} />
+            </Row>
+            <Row label="Business Stage">
+              <Input value={settings.onboarding.business_stage || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, business_stage: e.target.value } })} />
+            </Row>
+            <Row label="Description">
+              <textarea value={settings.onboarding.business_description || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, business_description: e.target.value } })} className="w-full min-h-[80px] px-3 py-2 border rounded-lg" />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Audience & Clients</h4>
+            <Row label="Target Audience">
+              <Input value={settings.onboarding.audience_type || settings.onboarding.targetAudience || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, audience_type: e.target.value, targetAudience: e.target.value } })} />
+            </Row>
+            <Row label="Customer Avatar">
+              <Input value={settings.onboarding.customer_avatar || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, customer_avatar: e.target.value } })} />
+            </Row>
+            <Row label="Main Problem">
+              <Input value={settings.onboarding.audience_problem || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, audience_problem: e.target.value } })} />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Goals & Priorities</h4>
+            <Row label="3-Month Priority">
+              <Input value={settings.onboarding.priority_3months || settings.onboarding.goals || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, priority_3months: e.target.value, goals: e.target.value } })} />
+            </Row>
+            <Row label="Guild Focus">
+              <Input value={settings.onboarding.guild_support_focus || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, guild_support_focus: e.target.value } })} />
+            </Row>
+            <Row label="12-Month Vision">
+              <Input value={settings.onboarding.vision_12months || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, vision_12months: e.target.value } })} />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Preferences</h4>
+            <Row label="Data Storage">
+              <Input value={settings.onboarding.data_storage || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, data_storage: e.target.value } })} />
+            </Row>
+            <Row label="Automation Level">
+              <Input value={settings.onboarding.automation_level || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, automation_level: e.target.value } })} />
+            </Row>
+            <Row label="Connected Tools">
+              <Input value={Array.isArray(settings.onboarding.selectedSoftware) ? settings.onboarding.selectedSoftware.join(', ') : (settings.onboarding.selectedSoftware || '')} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, selectedSoftware: e.target.value } })} />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4 md:col-span-2">
+            <h4 className="font-semibold text-gray-900 mb-2">Business Blueprint (Markdown)</h4>
+            <textarea
+              value={settings.onboarding.businessBlueprint}
+              onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, businessBlueprint: e.target.value } })}
+              className="w-full min-h-[160px] px-3 py-2 border rounded-lg"
+              placeholder="Editable blueprint for agents to reference"
+            />
+          </div>
+        </div>
       </Section>
 
       {/* 4. Advanced Settings (Collapsible) */}
