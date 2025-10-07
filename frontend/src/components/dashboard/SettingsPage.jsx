@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const Section = ({ title, children }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return (
     <div className="bg-white rounded-lg shadow mb-6">
       <div className="flex items-center justify-between px-6 py-4">
