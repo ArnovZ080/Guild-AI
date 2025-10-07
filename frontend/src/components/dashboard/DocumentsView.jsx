@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TaskDocumentsModal from './modals/TaskDocumentsModal.jsx';
+import DocumentPreviewModal from './modals/DocumentPreviewModal.jsx';
 import { 
   FileText, 
   Upload, 
@@ -185,11 +187,30 @@ const DocumentsView = () => {
   const [shareMessage, setShareMessage] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [analysis, setAnalysis] = useState(null);
+  const [showDocsModal, setShowDocsModal] = useState(false);
+  const [taskDocs, setTaskDocs] = useState([]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   // Handler functions
-  const handleViewDocument = (document) => {
-    // Original behavior placeholder
-    alert(`Document Viewer: Opening "${document.name}"\n\nType: ${document.type.toUpperCase()}\nSize: ${document.size}\nVersion: ${document.version}`);
+  const handleViewDocument = async (document) => {
+    // Open a modal listing all documents for this task/workflow
+    setShowDocsModal(true);
+    setTaskDocs([]);
+    try {
+      if (document.workflowId) {
+        const r = await fetch(`/api/workflows/${encodeURIComponent(document.workflowId)}/deliverables`);
+        if (r.ok) {
+          const data = await r.json();
+          setTaskDocs(Array.isArray(data?.data) ? data.data : (data || []));
+          return;
+        }
+      }
+      // Fallback
+      setTaskDocs([{ id: document.id, title: document.name, mime: document.type, url: document.url, file_path: document.url }]);
+    } catch {
+      setTaskDocs([{ id: document.id, title: document.name, mime: document.type, url: document.url, file_path: document.url }]);
+    }
   };
 
   const handleDownloadDocument = async (document, format = 'original') => {
@@ -213,7 +234,16 @@ const DocumentsView = () => {
 
   const handleReanalyzeDocument = async (document) => {
     try {
-      const res = await fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ campaign: { document_id: document.id, path: document.name } }) });
+      const payload = {
+        campaign: {
+          document_id: document.id,
+          path: document.name,
+          mime: document.type,
+          data_room: document.dataRoom,
+          category: document.category,
+        }
+      };
+      const res = await fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (res.ok) setAnalysis(await res.json());
     } catch {}
   };
@@ -221,9 +251,42 @@ const DocumentsView = () => {
   const handleAcceptRecommendations = async (document) => {
     try {
       const recs = (analysis?.feedback || document.aiInsights?.recommendations || []).map(t => ({ action: 'apply_feedback', text: t }));
-      await fetch('/api/agents/orchestrate/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ document_id: document.id, workflow_id: document.workflowId, recommendations: recs }) });
+      const payload = {
+        document_id: document.id,
+        workflow_id: document.workflowId,
+        recommendations: recs,
+        metadata: {
+          name: document.name,
+          mime: document.type,
+          data_room: document.dataRoom,
+          category: document.category,
+        }
+      };
+      await fetch('/api/agents/orchestrate/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     } catch {}
   };
+
+  // Live execution updates (polling) while modal is open and workflowId is known
+  useEffect(() => {
+    let timerId;
+    async function poll() {
+      try {
+        const wf = selectedDocument?.workflowId;
+        if (!wf) return;
+        const r = await fetch(`/api/agents/orchestrate/executions/${encodeURIComponent(wf)}`);
+        if (r.ok) {
+          const logs = await r.json();
+          const mapped = (logs || []).map(e => ({ action: e.result?.action?.text || e.result?.message || 'Action', status: e.status || 'queued', agent: e.agent_name || 'Agent' }));
+          setActions(mapped);
+        }
+      } catch {}
+    }
+    if (selectedDocument) {
+      poll();
+      timerId = setInterval(poll, 3000);
+    }
+    return () => { if (timerId) clearInterval(timerId); };
+  }, [selectedDocument]);
 
   // Filter and sort documents
   const filteredDocuments = documents
@@ -428,6 +491,10 @@ const DocumentsView = () => {
     if (!selectedDocument) return null;
 
     const FileIcon = getFileTypeIcon(selectedDocument.type);
+    const collaboratorsComputed = Array.from(new Set([
+      ...(Array.isArray(selectedDocument.collaborators) ? selectedDocument.collaborators : []),
+      ...((actions || []).map(a => a.agent).filter(Boolean))
+    ]));
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -576,7 +643,7 @@ const DocumentsView = () => {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-4">Collaborators</h3>
                   <div className="space-y-2">
-                    {selectedDocument.collaborators.map((collaborator, index) => (
+                    {collaboratorsComputed.map((collaborator, index) => (
                       <div key={index} className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
                           {collaborator[0]}
@@ -797,6 +864,24 @@ const DocumentsView = () => {
 
       {/* Document Detail Modal */}
       <DocumentDetailModal />
+
+      {/* Task Documents Modal */}
+      {showDocsModal && (
+        <TaskDocumentsModal
+          isOpen={showDocsModal}
+          onClose={() => setShowDocsModal(false)}
+          seedDoc={selectedDocument}
+          onPreview={(doc) => { setPreviewDoc(doc); setIsPreviewOpen(true); }}
+          onDownload={(doc, fmt) => handleDownloadDocument(doc || selectedDocument, fmt)}
+        />
+      )}
+
+      {/* Inline Preview */}
+      <DocumentPreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        document={previewDoc}
+      />
 
       {/* Share Modal */}
       {showShareModal && selectedDocument && (
