@@ -76,6 +76,17 @@ const SettingsPage = () => {
   const [invoices, setInvoices] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
 
+  const setDefaultPaymentMethod = (id) => {
+    setPaymentMethods((prev) => prev.map(pm => ({ ...pm, default: pm.id === id })));
+  };
+  const removePaymentMethod = (id) => {
+    setPaymentMethods((prev) => prev.filter(pm => pm.id !== id));
+  };
+  const addPaymentMethod = () => {
+    const now = Date.now();
+    setPaymentMethods((prev) => ([...prev, { id: `pm_mock_${now}`, brand: 'visa', last4: String(1000 + (now % 9000)).slice(-4), exp_month: 12, exp_year: 2028, default: prev.length === 0 }]));
+  };
+
   const userEmail = useMemo(() => settings?.profile?.email || '', [settings?.profile?.email]);
 
   useEffect(() => {
@@ -131,7 +142,9 @@ const SettingsPage = () => {
         const res = await fetch('/subscription/payment-methods');
         if (res.ok) {
           const data = await res.json();
-          setPaymentMethods(Array.isArray(data?.methods) ? data.methods : []);
+          const methods = Array.isArray(data?.methods) ? data.methods : [];
+          if (methods.length && !methods.some(m => m.default)) methods[0].default = true;
+          setPaymentMethods(methods);
         }
       } catch { setPaymentMethods([]); }
     };
@@ -567,6 +580,90 @@ const SettingsPage = () => {
             </div>
           </div>
 
+          {/* Invoices */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Invoices</h3>
+              <span className="text-xs text-gray-500">Recent</span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="text-left text-gray-500">
+                    <th className="py-2 pr-4">Date</th>
+                    <th className="py-2 pr-4">Invoice</th>
+                    <th className="py-2 pr-4">Plan</th>
+                    <th className="py-2 pr-4">Amount</th>
+                    <th className="py-2 pr-4">Status</th>
+                    <th className="py-2 pr-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(invoices.length ? invoices : [
+                    { id: 'inv_mock_001', date: '2025-09-01', amount: 49, currency: 'USD', status: 'paid', plan: 'Starter' }
+                  ]).map((inv) => (
+                    <tr key={inv.id} className="border-t">
+                      <td className="py-2 pr-4 text-gray-700">{inv.date}</td>
+                      <td className="py-2 pr-4 text-blue-600">{inv.id}</td>
+                      <td className="py-2 pr-4 text-gray-700">{inv.plan}</td>
+                      <td className="py-2 pr-4 text-gray-700">{inv.currency} {inv.amount}</td>
+                      <td className="py-2 pr-4">
+                        <span className={`px-2 py-1 rounded-full text-xs ${inv.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{inv.status}</span>
+                      </td>
+                      <td className="py-2 pr-4">
+                        <button
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/subscription/invoices/${inv.id}/download`);
+                              if (res.ok) {
+                                const data = await res.json();
+                                const blob = new Blob([data.content], { type: data.content_type });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = data.filename || `${inv.id}.txt`;
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              }
+                            } catch {}
+                          }}
+                          className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded"
+                        >
+                          Download
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-gray-900">Payment Methods</h3>
+              <span className="text-xs text-gray-500">Manage</span>
+            </div>
+            <div className="space-y-2">
+              {(paymentMethods.length ? paymentMethods : [
+                { id: 'pm_visa_4242', brand: 'visa', last4: '4242', exp_month: 12, exp_year: 2027, default: true }
+              ]).map(pm => (
+                <div key={pm.id} className="flex items-center justify-between border rounded p-3">
+                  <div className="text-sm text-gray-700">
+                    {pm.brand?.toUpperCase()} •••• {pm.last4} — exp {pm.exp_month}/{pm.exp_year} {pm.default ? <span className="ml-2 px-2 py-0.5 text-[10px] bg-blue-50 text-blue-700 rounded-full">Default</span> : null}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setDefaultPaymentMethod(pm.id)} className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">Set Default</button>
+                    <button onClick={() => removePaymentMethod(pm.id)} className="text-xs px-2 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded">Remove</button>
+                  </div>
+                </div>
+              ))}
+              <div className="pt-2">
+                <button onClick={addPaymentMethod} className="text-sm px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add Payment Method</button>
+              </div>
+            </div>
+          </div>
           <div>
             <div className="font-semibold mb-2">Plans</div>
             {plansLoading ? (
@@ -683,9 +780,29 @@ const SettingsPage = () => {
             </Row>
           </div>
           <div className="bg-white border rounded-lg p-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Goals & Dreams</h4>
+            <Row label="Big Dream (2-3 years)">
+              <Input value={settings.onboarding.big_dream || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, big_dream: e.target.value } })} />
+            </Row>
+            <Row label="Why Now?">
+              <Input value={settings.onboarding.why_now || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, why_now: e.target.value } })} />
+            </Row>
+            <Row label="Top Constraints">
+              <Input value={settings.onboarding.constraints || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, constraints: e.target.value } })} />
+            </Row>
+          </div>
+          <div className="bg-white border rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Preferences</h4>
             <Row label="Data Storage">
-              <Input value={settings.onboarding.data_storage || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, data_storage: e.target.value } })} />
+              <Select
+                value={settings.onboarding.data_storage || ''}
+                onChange={(v) => updateSettings({ onboarding: { ...settings.onboarding, data_storage: v } })}
+                options={[
+                  { value: 'local', label: 'Local (Browser/Device)' },
+                  { value: 'cloud', label: 'Cloud (Recommended)' },
+                  { value: 'hybrid', label: 'Hybrid' },
+                ]}
+              />
             </Row>
             <Row label="Automation Level">
               <Input value={settings.onboarding.automation_level || ''} onChange={(e) => updateSettings({ onboarding: { ...settings.onboarding, automation_level: e.target.value } })} />
