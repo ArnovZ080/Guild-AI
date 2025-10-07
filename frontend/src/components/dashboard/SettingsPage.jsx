@@ -554,8 +554,11 @@ const SettingsPage = () => {
                 {(plans.length ? plans : [
                   { id: 'free', name: 'Always Free', usd_display: 'Free', zar_display: 'Free', features: ['basic_chat','limited_workflows'], included_agents_limit: 0, extra_agent_daily_usd: 2, extra_agent_monthly_usd: 15, trial_days: 0 },
                   { id: 'starter', name: 'Starter', usd_display: '$49', zar_display: 'R910', features: ['base_agents','basic_templates','marketplace_use'], included_agents_limit: 5, extra_agent_daily_usd: 1.5, extra_agent_monthly_usd: 12, trial_days: 21 },
+                  { id: 'growth', name: 'Growth', usd_display: '$99', zar_display: 'R1830', features: ['base_agents','workflow_builder_full','marketplace_use'], included_agents_limit: 10, extra_agent_daily_usd: 1.25, extra_agent_monthly_usd: 11, trial_days: 21 },
+                  { id: 'professional', name: 'Professional', usd_display: '$199', zar_display: 'R3680', features: ['base_agents','workflow_builder_advanced','marketplace_sell','priority_support'], included_agents_limit: 25, extra_agent_daily_usd: 1.0, extra_agent_monthly_usd: 10, trial_days: 21 },
+                  { id: 'enterprise', name: 'Enterprise', usd_display: '$499', zar_display: 'R9230', features: ['all_agents','workflow_builder_advanced','marketplace_sell_earn','custom_agents','white_label','dedicated_support'], included_agents_limit: 100, extra_agent_daily_usd: 0.5, extra_agent_monthly_usd: 8, trial_days: 21 },
                 ]).map((p) => (
-                  <div key={p.id} className={`border rounded-lg p-4 ${p.popular ? 'border-blue-400' : 'border-gray-200'} bg-white`}> 
+                  <div key={p.id} className={`border rounded-lg p-4 ${p.popular ? 'border-blue-400' : 'border-gray-200'} bg-white flex flex-col justify-between h-full`}> 
                     <div className="flex items-center justify-between">
                       <div className="text-lg font-semibold">{p.name}</div>
                       {p.popular && <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">Popular</span>}
@@ -574,7 +577,7 @@ const SettingsPage = () => {
                     <button
                       onClick={() => initializePlan(p.id, userEmail)}
                       disabled={!!initLoadingPlan}
-                      className="mt-4 w-full px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
+                      className="mt-auto w-full px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
                     >
                       {initLoadingPlan === p.id ? 'Redirecting...' : 'Select / Upgrade'}
                     </button>
@@ -589,6 +592,20 @@ const SettingsPage = () => {
 
       {/* 3. Onboarding & Business Source of Truth */}
       <Section title="Onboarding & Business Source of Truth">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-sm text-gray-500">Edit your business source of truth. You can sync from onboarding.</div>
+          <button
+            onClick={() => {
+              try {
+                const data = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+                updateSettings({ onboarding: { ...settings.onboarding, ...data } });
+              } catch {}
+            }}
+            className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+          >
+            Sync from Onboarding
+          </button>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Business Overview</h4>
