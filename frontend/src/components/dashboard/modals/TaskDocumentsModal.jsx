@@ -102,7 +102,25 @@ export default function TaskDocumentsModal({ isOpen, onClose, seedDoc, onPreview
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Documents for Task</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600" aria-label="Close">✕</button>
+            <div className="flex gap-2">
+              <button onClick={() => seedDoc && onPreview(seedDoc)} className="px-3 py-2 rounded bg-blue-500 text-white text-sm">View</button>
+              <div className="relative">
+                <details className="group inline-block">
+                  <summary className="list-none px-3 py-2 rounded bg-green-500 text-white text-sm cursor-pointer select-none">Download</summary>
+                  <div className="absolute right-0 mt-1 bg-white border rounded shadow text-sm z-10">
+                    <button onClick={() => onDownload(seedDoc, 'original')} className="block w-full text-left px-4 py-2 hover:bg-gray-50">Original</button>
+                    <button onClick={() => onDownload(seedDoc, 'pdf')} className="block w-full text-left px-4 py-2 hover:bg-gray-50">PDF</button>
+                    <button onClick={() => onDownload(seedDoc, 'google')} className="block w-full text-left px-4 py-2 hover:bg-gray-50">Google Suite</button>
+                    <button onClick={() => onDownload(seedDoc, 'office')} className="block w-full text-left px-4 py-2 hover:bg-gray-50">MS Office</button>
+                    <button onClick={() => onDownload(seedDoc, 'image')} className="block w-full text-left px-4 py-2 hover:bg-gray-50">Image</button>
+                  </div>
+                </details>
+              </div>
+              <button onClick={() => seedDoc && window.fetch && fetch(`/api/documents/${encodeURIComponent(seedDoc.id)}/share`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: 'review@example.com', view_only: true }) }).catch(() => {})} className="px-3 py-2 rounded bg-purple-500 text-white text-sm">Share</button>
+              <button onClick={() => seedDoc && fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ campaign: { document_id: seedDoc.id, path: seedDoc.name } }) }).then(() => window.location.reload()).catch(() => {})} className="px-3 py-2 rounded bg-yellow-500 text-white text-sm">Re-Analyze</button>
+              <button onClick={() => seedDoc && fetch('/api/agents/orchestrate/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ document_id: seedDoc.id, workflow_id: seedDoc.workflowId, recommendations: [] }) }).then(() => window.location.reload()).catch(() => {})} className="px-3 py-2 rounded bg-emerald-500 text-white text-sm">Accept & Initiate</button>
+              <button onClick={onClose} className="px-3 py-2 rounded bg-gray-100 text-gray-700 text-sm">Close</button>
+            </div>
           </div>
           {isLoading && <div className="text-gray-600">Loading...</div>}
           {error && <div className="text-red-600 text-sm mb-2">{error}</div>}

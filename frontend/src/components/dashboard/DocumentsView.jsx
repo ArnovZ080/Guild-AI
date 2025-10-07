@@ -472,37 +472,10 @@ function DocumentCard({ doc, onOpenTask, onPreview, onDownload, onShare, onReana
         <p className="text-sm text-gray-600 line-clamp-2">Open to view analysis summary and recommendations.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        <button onClick={onPreview} className="flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600">
+      <div className="mt-3">
+        <button onClick={onOpenTask} className="w-full flex items-center justify-center space-x-2 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600">
           <Eye className="w-4 h-4" />
-          <span>View</span>
-        </button>
-        <div className="relative">
-          <button onClick={() => setShowDownloadMenu(showDownloadMenu === doc.id ? null : doc.id)} className="w-full flex items-center justify-center space-x-2 bg-green-500 text-white px-3 py-2 rounded-lg hover:bg-green-600">
-            <Download className="w-4 h-4" />
-            <span>Download</span>
-          </button>
-          {showDownloadMenu === doc.id && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-              <button onClick={() => onDownload('original')} className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm">Original</button>
-              <button onClick={() => onDownload('pdf')} className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm">PDF</button>
-              <button onClick={() => onDownload('google')} className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm">Google Suite</button>
-              <button onClick={() => onDownload('office')} className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm">MS Office</button>
-              <button onClick={() => onDownload('image')} className="w-full px-4 py-2 text-left hover:bg-gray-50 text-sm">Image</button>
-            </div>
-          )}
-        </div>
-        <button onClick={() => onShare({})} className="flex items-center justify-center space-x-2 bg-purple-500 text-white px-3 py-2 rounded-lg hover:bg-purple-600">
-          <Share className="w-4 h-4" />
-          <span>Share</span>
-        </button>
-        <button onClick={onReanalyze} className="flex items-center justify-center space-x-2 bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600">
-          <Brain className="w-4 h-4" />
-          <span>Re-Analyze</span>
-        </button>
-        <button onClick={() => onAccept([])} className="col-span-2 flex items-center justify-center space-x-2 bg-emerald-500 text-white px-3 py-2 rounded-lg hover:bg-emerald-600">
-          <Zap className="w-4 h-4" />
-          <span>Accept & Initiate Recommendations</span>
+          <span>Open</span>
         </button>
       </div>
     </motion.div>
