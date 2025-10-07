@@ -197,7 +197,10 @@ const DocumentsView = () => {
   const [apiSuccess, setApiSuccess] = useState('');
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
+  const [newRoomDescription, setNewRoomDescription] = useState('');
+  const [newRoomNotes, setNewRoomNotes] = useState('');
   const [newRoomProvider, setNewRoomProvider] = useState('workspace');
+  const [newRoomFiles, setNewRoomFiles] = useState([]);
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   // Try to load real data; gracefully fall back to mockDocuments if empty or failing
   useEffect(() => {
@@ -1120,6 +1123,14 @@ const DocumentsView = () => {
                 <input value={newRoomName} onChange={(e)=>setNewRoomName(e.target.value)} className="w-full px-3 py-2 border rounded" placeholder="e.g., Marketing Assets" />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea value={newRoomDescription} onChange={(e)=>setNewRoomDescription(e.target.value)} className="w-full px-3 py-2 border rounded" rows={3} placeholder="What is this data room for?" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea value={newRoomNotes} onChange={(e)=>setNewRoomNotes(e.target.value)} className="w-full px-3 py-2 border rounded" rows={2} placeholder="Any extra notes" />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Provider</label>
                 <select value={newRoomProvider} onChange={(e)=>setNewRoomProvider(e.target.value)} className="w-full px-3 py-2 border rounded">
                   <option value="workspace">Workspace</option>
@@ -1127,15 +1138,29 @@ const DocumentsView = () => {
                   <option value="notion">Notion</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Add Documents (optional)</label>
+                <input type="file" multiple onChange={(e)=>setNewRoomFiles(Array.from(e.target.files||[]))} className="block w-full text-sm" />
+              </div>
             </div>
             <div className="flex justify-end gap-3 mt-6">
               <button onClick={()=>setShowCreateRoom(false)} className="px-4 py-2 border rounded">Cancel</button>
               <button disabled={!newRoomName || isCreatingRoom} onClick={async ()=>{
                 try {
                   setIsCreatingRoom(true);
-                  const payload = { name: newRoomName, provider: newRoomProvider, config: {} };
+                  const payload = { name: newRoomName, provider: newRoomProvider, config: { description: newRoomDescription, notes: newRoomNotes } };
                   const res = await fetch('/api/data-rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                   if (!res.ok) throw new Error('create failed');
+                  const room = await res.json();
+                  // If files selected, upload to workspace assets or documents endpoint
+                  if (newRoomFiles.length) {
+                    for (const f of newRoomFiles) {
+                      const fd = new FormData();
+                      fd.append('file', f);
+                      fd.append('data_room_id', room.id || room.data?.id || '');
+                      await fetch('/api/workspace/assets', { method: 'POST', body: fd });
+                    }
+                  }
                   setApiSuccess('Data room created');
                   setTimeout(()=> setApiSuccess(''), 2500);
                   setShowCreateRoom(false);
