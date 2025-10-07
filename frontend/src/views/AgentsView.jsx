@@ -2136,6 +2136,51 @@ const AgentsView = () => {
     );
   };
 
+  // First-run multi-select for included agents
+  const getTierLimit = (t) => {
+    const key = (t || '').toLowerCase();
+    if (key === 'starter') return 5;
+    if (key === 'growth') return 15;
+    if (key === 'professional') return 25;
+    if (key === 'enterprise') return 999;
+    return 3;
+  };
+  const planLimit = getTierLimit(subscriptionInfo?.tier || 'free');
+  const [showFirstRunPicker, setShowFirstRunPicker] = useState(false);
+  const [pickedIds, setPickedIds] = useState(new Set());
+
+  useEffect(() => {
+    try {
+      const key = `guild.workforce.initialized.${(subscriptionInfo?.tier || 'free').toLowerCase()}`;
+      const already = localStorage.getItem(key) === '1';
+      if (!already && includedAgentsSorted.length > 0 && planLimit >= 15) {
+        // preselect up to limit
+        const pre = new Set();
+        includedAgentsSorted.slice(0, Math.min(planLimit, includedAgentsSorted.length)).forEach(a => pre.add(a.agent_id || a.id));
+        setPickedIds(pre);
+        setShowFirstRunPicker(true);
+      }
+    } catch {}
+  }, [subscriptionInfo?.tier, includedAgentsSorted.length, planLimit]);
+
+  const togglePick = (id) => {
+    setPickedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); return next; }
+      if (next.size >= planLimit) return next; // enforce cap
+      next.add(id);
+      return next;
+    });
+  };
+
+  const confirmFirstRunPicks = () => {
+    try {
+      const key = `guild.workforce.initialized.${(subscriptionInfo?.tier || 'free').toLowerCase()}`;
+      localStorage.setItem(key, '1');
+    } catch {}
+    setShowFirstRunPicker(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
@@ -2241,7 +2286,7 @@ const AgentsView = () => {
                         name: a.name,
                         category: a.category || 'automation',
                         type: a.type || 'management',
-                        status: 'active',
+                        status: (showFirstRunPicker ? (pickedIds.has(a.agent_id || a.id) ? 'active' : 'inactive') : 'active'),
                         capabilities: a.capabilities || ['Core capability'],
                         description: a.description || a.name
                       }}
@@ -2303,6 +2348,47 @@ const AgentsView = () => {
             ))}
           </div>
         )
+      )}
+
+      {/* First-run picker modal */}
+      {activeTab === 'workforce' && showFirstRunPicker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => setShowFirstRunPicker(false)}>
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b">
+              <h3 className="text-lg font-semibold text-gray-900">Choose your initial active agents</h3>
+              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowFirstRunPicker(false)}>×</button>
+            </div>
+            <div className="px-4 py-3 text-sm text-gray-600">
+              Select up to <span className="font-semibold">{planLimit}</span> included agents to activate now.
+            </div>
+            <div className="p-4 overflow-auto" style={{ maxHeight: '60vh' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {includedAgentsSorted.map(a => {
+                  const id = a.agent_id || a.id;
+                  const checked = pickedIds.has(id);
+                  const disabled = !checked && pickedIds.size >= planLimit;
+                  return (
+                    <label key={id} className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer ${checked ? 'bg-emerald-50 border-emerald-300' : 'bg-white hover:bg-gray-50'}`}>
+                      <input type="checkbox" className="mt-1" checked={checked} disabled={disabled} onChange={() => togglePick(id)} />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">{a.name}</div>
+                        <div className="text-xs text-gray-500 capitalize">{a.category || 'automation'} • {a.type || 'management'}</div>
+                      </div>
+                      <div className="text-[10px] text-gray-500">Included</div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex items-center justify-between px-4 py-3 border-t">
+              <div className="text-sm text-gray-700">Selected: <span className="font-semibold">{pickedIds.size}</span> / {planLimit}</div>
+              <div className="flex items-center gap-2">
+                <button className="px-3 py-2 border rounded text-sm" onClick={() => setShowFirstRunPicker(false)}>Cancel</button>
+                <button className="px-4 py-2 bg-emerald-600 text-white rounded text-sm disabled:opacity-60" disabled={pickedIds.size === 0} onClick={confirmFirstRunPicks}>Activate selected</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Workflow Builder Tab */}
