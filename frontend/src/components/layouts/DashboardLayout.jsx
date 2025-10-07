@@ -91,14 +91,19 @@ const DashboardLayout = ({ children }) => {
                 </p>
               </div>
               
-              {/* Sidebar Toggle Button */}
-              <button
-                onClick={() => setSidebarExpanded(!sidebarExpanded)}
-                className="p-2 rounded-lg bg-white/80 hover:bg-white transition-colors shadow-sm"
-                title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              >
-                <Menu className="w-5 h-5 text-gray-600" />
-              </button>
+              {/* Right header area: avatar + sidebar toggle */}
+              <div className="flex items-center gap-3">
+                {settings?.profile?.profilePictureUrl && (
+                  <img src={settings.profile.profilePictureUrl} alt="Me" className="w-8 h-8 rounded-full object-cover border" />
+                )}
+                <button
+                  onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                  className="p-2 rounded-lg bg-white/80 hover:bg-white transition-colors shadow-sm"
+                  title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+                >
+                  <Menu className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
             </motion.div>
           </div>
         </motion.section>
