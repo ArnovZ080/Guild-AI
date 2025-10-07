@@ -690,7 +690,10 @@ const EnhancedNode = ({ id, data, selected }: { id: string; data: any; selected:
                             setAgentDropdownOpen(false);
                           }}
                         >
-                          {a.name}
+                          <div className="flex items-center justify-between">
+                            <span className="truncate mr-2">{a.name}</span>
+                            <span className="text-[10px] text-gray-500 whitespace-nowrap">{a.included_in_subscription ? 'Included' : (a.hired_until ? 'Hired' : `$${(a.daily_rate_usd ?? 0)}/day · $${(a.monthly_rate_usd ?? 0)}/mo`)}</span>
+                          </div>
                         </div>
                       ))}
                     {(((data.availableAgents || availableAgents || []) as any[])
@@ -1067,7 +1070,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   const [showCustomIndustryConfig, setShowCustomIndustryConfig] = useState(false);
   const [customIndustryName, setCustomIndustryName] = useState('');
   const [customIndustryDescription, setCustomIndustryDescription] = useState('');
-  const [availableAgents, setAvailableAgents] = useState<Array<{ id: string; name: string }>>([]);
+  const [availableAgents, setAvailableAgents] = useState<Array<{ id: string; name: string; daily_rate_usd?: number; monthly_rate_usd?: number; included_in_subscription?: boolean; hired_until?: string | null }>>([]);
   const [templateId, setTemplateId] = useState<string | null>(null);
   const API = (import.meta as any).env?.VITE_API_BASE_URL || '';
   const [showMyWorkflows, setShowMyWorkflows] = useState(false);
@@ -1149,7 +1152,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
           { id: 'security_agent', name: 'Security Agent' },
           { id: 'wellbeing_agent', name: 'Wellbeing / Workload Agent' },
         ];
-        const mapped = entitled.map((a: any) => ({ id: a.agent_id || a.id, name: a.name }));
+        const mapped = entitled.map((a: any) => ({ id: a.agent_id || a.id, name: a.name, daily_rate_usd: a.daily_rate_usd, monthly_rate_usd: a.monthly_rate_usd, included_in_subscription: Boolean(a.included_in_subscription), hired_until: a.hired_until || null }));
         // Merge and de-duplicate by id
         const byId = new Map<string, { id: string; name: string }>();
         [...defaultIncluded, ...mapped].forEach(a => byId.set(a.id, a));
