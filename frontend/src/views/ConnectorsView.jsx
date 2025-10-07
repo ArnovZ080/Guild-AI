@@ -1,12 +1,8 @@
 import React from 'react';
-import ConnectorManager from '../components/connectors/ConnectorManager.jsx';
+import ConnectorsPage from '../components/dashboard/ConnectorsPage.jsx';
 
 const ConnectorsView = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ConnectorManager />
-    </div>
-  );
+  return <ConnectorsPage />;
 };
 
 export default ConnectorsView;
