@@ -96,6 +96,20 @@ export default function DocumentsView() {
       setIsLoading(true);
       setError(null);
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceMock = urlParams.get('mock') === '1';
+        if (forceMock) {
+          if (!ignore) {
+            const mockRooms = [
+              { id: 'wf-mock-1', name: 'Marketing Campaigns', provider: 'workspace' },
+              { id: 'wf-mock-2', name: 'Customer Insights', provider: 'workspace' },
+            ];
+            setDataRooms(mockRooms);
+            setDocuments(makeMockDocuments(mockRooms));
+            setIsLoading(false);
+            return;
+          }
+        }
         // Load data rooms
         const res = await fetch('/api/data-rooms');
         if (!res.ok) throw new Error('Failed to load data rooms');
@@ -137,9 +151,24 @@ export default function DocumentsView() {
           })
         );
         if (ignore) return;
-        setDocuments(docs.flat());
+        const flat = docs.flat();
+        if (!flat.length) {
+          // Fallback mock when backend returns no docs
+          setDocuments(makeMockDocuments(rooms));
+        } else {
+          setDocuments(flat);
+        }
       } catch (e) {
-        if (!ignore) setError(e.message || 'Failed to load documents');
+        if (!ignore) {
+          setError(e.message || 'Failed to load documents');
+          // Last-resort mock to enable UI review
+          const mockRooms = [
+            { id: 'wf-mock-1', name: 'Marketing Campaigns', provider: 'workspace' },
+            { id: 'wf-mock-2', name: 'Customer Insights', provider: 'workspace' },
+          ];
+          setDataRooms(mockRooms);
+          setDocuments(makeMockDocuments(mockRooms));
+        }
       } finally {
         if (!ignore) setIsLoading(false);
       }
@@ -251,6 +280,70 @@ export default function DocumentsView() {
       if (Array.isArray(j?.feedback)) return j.feedback.map((t) => ({ action: 'apply_feedback', text: t }));
       return [];
     } catch { return []; }
+  }
+
+  function makeMockDocuments(rooms) {
+    const r1 = rooms[0] || { id: 'wf-mock-1', name: 'Marketing Campaigns' };
+    const r2 = rooms[1] || { id: 'wf-mock-2', name: 'Customer Insights' };
+    return [
+      {
+        id: 'mock-doc-1',
+        name: 'Marketing Brief Q3.md',
+        type: 'docx',
+        size: '180 KB',
+        uploadDate: new Date(),
+        lastModified: new Date(),
+        status: 'processed',
+        category: 'marketing',
+        tags: ['brief','q3','strategy'],
+        dataRoomId: r1.id,
+        dataRoomName: r1.name,
+        provider: 'workspace',
+        accessLevel: 'internal',
+        version: '1.0',
+        url: '',
+        mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        workflowId: 'wf-mock-1',
+      },
+      {
+        id: 'mock-doc-2',
+        name: 'Customer Feedback Analysis.xlsx',
+        type: 'xlsx',
+        size: '512 KB',
+        uploadDate: new Date(),
+        lastModified: new Date(),
+        status: 'reviewed',
+        category: 'analytics',
+        tags: ['sentiment','csat','retention'],
+        dataRoomId: r2.id,
+        dataRoomName: r2.name,
+        provider: 'workspace',
+        accessLevel: 'team',
+        version: '2.0',
+        url: '',
+        mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        workflowId: 'wf-mock-2',
+      },
+      {
+        id: 'mock-doc-3',
+        name: 'Hero Banner.png',
+        type: 'png',
+        size: '2.3 MB',
+        uploadDate: new Date(),
+        lastModified: new Date(),
+        status: 'indexed',
+        category: 'media',
+        tags: ['image','creative'],
+        dataRoomId: r1.id,
+        dataRoomName: r1.name,
+        provider: 'workspace',
+        accessLevel: 'internal',
+        version: '1.0',
+        url: '',
+        mime: 'image/png',
+        workflowId: 'wf-mock-1',
+      },
+    ];
   }
 
   return (

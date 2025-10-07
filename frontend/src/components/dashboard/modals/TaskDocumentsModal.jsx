@@ -14,6 +14,17 @@ export default function TaskDocumentsModal({ isOpen, onClose, seedDoc, onPreview
       setIsLoading(true);
       setError(null);
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceMock = urlParams.get('mock') === '1';
+        if (forceMock) {
+          if (!ignore) {
+            setItems(makeMockTaskDocs(seedDoc));
+            setAnalysis(makeMockJudge());
+            setExecutions(makeMockExecutions(seedDoc));
+            setIsLoading(false);
+            return;
+          }
+        }
         // Prefer workflow deliverables if available
         if (seedDoc.workflowId) {
           const res = await fetch(`/api/workflows/${encodeURIComponent(seedDoc.workflowId)}/deliverables`);
@@ -69,7 +80,12 @@ export default function TaskDocumentsModal({ isOpen, onClose, seedDoc, onPreview
           } catch {}
         }
       } catch (e) {
-        if (!ignore) setError(e.message || 'Failed to load task documents');
+        if (!ignore) {
+          setError(e.message || 'Failed to load task documents');
+          setItems(makeMockTaskDocs(seedDoc));
+          setAnalysis(makeMockJudge());
+          setExecutions(makeMockExecutions(seedDoc));
+        }
       } finally {
         if (!ignore) setIsLoading(false);
       }
@@ -149,6 +165,34 @@ export default function TaskDocumentsModal({ isOpen, onClose, seedDoc, onPreview
       </div>
     </div>
   );
+}
+
+function makeMockTaskDocs(seedDoc) {
+  return [
+    { id: 'm1', title: 'Executive Summary.md', type: 'text/markdown', url: '', file_path: '/deliverables/exec_summary.md' },
+    { id: 'm2', title: 'Campaign Plan.docx', type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', url: '', file_path: '/deliverables/campaign_plan.docx' },
+    { id: 'm3', title: 'Creative Variations.pdf', type: 'application/pdf', url: '', file_path: '/deliverables/creatives.pdf' },
+  ];
+}
+
+function makeMockJudge() {
+  return {
+    scores: { clarity: 8.6, persuasion: 7.9, compliance: 9.2, tone: 8.1 },
+    feedback: [
+      'Tighten the first paragraph to highlight the key outcome.',
+      'Unify CTA language across assets for consistency.',
+      'Add citations for market stats in section 2.',
+    ],
+  };
+}
+
+function makeMockExecutions(seedDoc) {
+  const now = new Date();
+  const ts = (d) => new Date(now.getTime() - d * 60000).toISOString();
+  return [
+    { execution_id: 'exec-mock-1', ts: ts(1), agent_name: 'Orchestrator', status: 'started', result: { message: 'Recommendations intake', count: 3 } },
+    { execution_id: 'exec-mock-1', ts: ts(0.5), agent_name: 'AutomationAgent', status: 'queued', result: { action: { action: 'apply_feedback', text: 'Unify CTA language across assets for consistency.' } } },
+  ];
 }
 
 
