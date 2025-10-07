@@ -6,7 +6,7 @@ import CelebrationProvider from './components/celebrations/CelebrationProvider.j
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
 import SettingsPage from './components/dashboard/SettingsPage.jsx';
 import DashboardLayout from './components/layouts/DashboardLayout.jsx';
-import DashboardView from './views/DashboardView.jsx';
+import BusinessDashboardView from './views/BusinessDashboardView.jsx';
 import AgentsView from './views/AgentsView.jsx';
 import WorkflowsView from './views/WorkflowsView.jsx';
 import AnalyticsView from './views/AnalyticsView.jsx';
@@ -67,11 +67,8 @@ function App() {
                   <ChatInterface onNavigateToDashboard={() => window.location.href = '/dashboard'} />
                 </DashboardLayout>
               } />
-              <Route path="/dashboard" element={
-                <DashboardLayout>
-                  <DashboardView />
-                </DashboardLayout>
-              } />
+              <Route path="/dashboard" element={<Navigate to="/dashboard/finances" replace />} />
+              <Route path="/dashboard/:tab" element={<BusinessDashboardView />} />
               <Route path="/agents" element={
                 <DashboardLayout>
                   <AgentsView />
@@ -82,16 +79,10 @@ function App() {
                   <WorkflowsView />
                 </DashboardLayout>
               } />
-              <Route path="/analytics" element={
-                <DashboardLayout>
-                  <AnalyticsView />
-                </DashboardLayout>
-              } />
-              <Route path="/customers" element={
-                <DashboardLayout>
-                  <CustomersView />
-                </DashboardLayout>
-              } />
+              {/* analytics remains available if needed elsewhere */}
+              <Route path="/analytics" element={<DashboardLayout><AnalyticsView /></DashboardLayout>} />
+              {/* Customers now accessible via Business Dashboard tab, keep route for deep-link compatibility */}
+              <Route path="/customers" element={<DashboardLayout><CustomersView /></DashboardLayout>} />
               <Route path="/goals" element={
                 <DashboardLayout>
                   <GoalsView />
@@ -102,26 +93,16 @@ function App() {
                   <CalendarPage />
                 </DashboardLayout>
               } />
-              <Route path="/conversations" element={
-                <DashboardLayout>
-                  <ConversationsTab />
-                </DashboardLayout>
-              } />
+              {/* Conversations also accessible via Business Dashboard */}
+              <Route path="/conversations" element={<DashboardLayout><ConversationsTab /></DashboardLayout>} />
               <Route path="/documents" element={
                 <DashboardLayout>
                   <DocumentsView />
                 </DashboardLayout>
               } />
-          <Route path="/voice" element={
-            <DashboardLayout>
-              <VoiceView />
-            </DashboardLayout>
-          } />
-          <Route path="/connectors" element={
-            <DashboardLayout>
-              <ConnectorsView />
-            </DashboardLayout>
-          } />
+          <Route path="/voice" element={<DashboardLayout><VoiceView /></DashboardLayout>} />
+          {/* Connectors will be accessible inside Settings UI, keep route for direct access */}
+          <Route path="/connectors" element={<DashboardLayout><ConnectorsView /></DashboardLayout>} />
               <Route path="/achievements" element={
                 <DashboardLayout>
                   <AchievementsView />
@@ -132,21 +113,15 @@ function App() {
                   <GrowthDashboard />
                 </DashboardLayout>
               } />
-              <Route path="/content-dashboard" element={
-                <DashboardLayout>
-                  <ContentDashboard />
-                </DashboardLayout>
-              } />
+              {/* Content now under Business Dashboard "Content" tab */}
+              <Route path="/content-dashboard" element={<DashboardLayout><ContentDashboard /></DashboardLayout>} />
               <Route path="/settings" element={
                 <DashboardLayout>
                   <SettingsPage />
                 </DashboardLayout>
               } />
-              <Route path="/financial" element={
-                <DashboardLayout>
-                  <FinancialDashboardView />
-                </DashboardLayout>
-              } />
+              {/* Financial now under Business Dashboard "Finances" tab */}
+              <Route path="/financial" element={<DashboardLayout><FinancialDashboardView /></DashboardLayout>} />
             </Routes>
           </Router>
           </SettingsProvider>

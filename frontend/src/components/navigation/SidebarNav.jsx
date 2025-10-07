@@ -30,17 +30,10 @@ const navigationItems = [
   },
   {
     id: 'dashboard',
-    label: 'Main Dashboard',
+    label: 'Business Dashboard',
     icon: Home,
     category: 'primary',
-    description: 'Your business overview'
-  },
-  {
-    id: 'financial',
-    label: 'Financial Dashboard',
-    icon: BarChart,
-    category: 'primary',
-    description: 'Key financial metrics'
+    description: 'Unified overview with tabs'
   },
   {
     id: 'agents',
@@ -49,34 +42,7 @@ const navigationItems = [
     category: 'primary',
     description: 'Manage your AI agents'
   },
-  {
-    id: 'content-dashboard',
-    label: 'Content Dashboard',
-    icon: TrendingUp,
-    category: 'primary',
-    description: 'Content status & performance'
-  },
-  {
-    id: 'customers',
-    label: 'Customer Dashboard',
-    icon: Users,
-    category: 'primary',
-    description: 'Customer analytics'
-  },
-  {
-    id: 'conversations',
-    label: 'Conversations Dashboard',
-    icon: MessageSquare,
-    category: 'primary',
-    description: 'All conversations'
-  },
-  {
-    id: 'workflows',
-    label: 'Workflows',
-    icon: Zap,
-    category: 'primary',
-    description: 'Active campaigns & projects'
-  },
+  // Other dashboards now live as tabs inside Business Dashboard
   {
     id: 'goals',
     label: 'Goals',
@@ -84,13 +50,7 @@ const navigationItems = [
     category: 'secondary',
     description: 'Track objectives'
   },
-  {
-    id: 'growth',
-    label: 'Growth',
-    icon: TrendingUp,
-    category: 'secondary',
-    description: 'Expansion opportunities'
-  },
+  { id: 'growth', label: 'Growth', icon: TrendingUp, category: 'secondary', description: 'Expansion opportunities' },
   {
     id: 'calendar',
     label: 'Calendar',
@@ -112,13 +72,7 @@ const navigationItems = [
     category: 'utility',
     description: 'Your progress story'
   },
-  {
-    id: 'connectors',
-    label: 'Connectors',
-    icon: Zap,
-    category: 'utility',
-    description: 'External integrations'
-  },
+  // Connectors will be accessible within Settings
   {
     id: 'settings',
     label: 'Settings',

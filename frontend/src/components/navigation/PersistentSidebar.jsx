@@ -23,21 +23,16 @@ export const PersistentSidebar = ({
   recentConversationsLabel
 }) => {
   const dashboards = [
-    { id: 'dashboard', label: 'Main Dashboard', icon: Home, path: '/dashboard' },
-    { id: 'financial', label: 'Financial Dashboard', icon: TrendingUp, path: '/analytics' },
+    { id: 'chat', label: 'AI Assistant', icon: MessageSquare, path: '/chat' },
     { id: 'agents', label: 'Agent Dashboard', icon: Zap, path: '/agents' },
-    { id: 'content', label: 'Content Dashboard', icon: MessageSquare, path: '/analytics' },
-    { id: 'customers', label: 'Customer Dashboard', icon: Users, path: '/customers' },
-    { id: 'conversations', label: 'Conversations Dashboard', icon: MessageSquare, path: '/conversations' },
+    { id: 'business', label: 'Business Dashboard', icon: Home, path: '/dashboard' },
   ];
 
   const utilities = [
     { id: 'calendar', label: 'Calendar', icon: Calendar, path: '/calendar' },
-    { id: 'growth', label: 'Growth Opportunities', icon: TrendingUp, path: '/growth' },
+    { id: 'growth', label: 'Growth', icon: TrendingUp, path: '/growth' },
     { id: 'goals', label: 'Goals', icon: Target, path: '/goals' },
     { id: 'achievements', label: 'Achievements', icon: Trophy, path: '/achievements' },
-    { id: 'marketplace', label: 'Workflow Marketplace (future)', icon: Zap, path: '/agents' },
-    { id: 'connectors', label: 'Connections', icon: Settings, path: '/connectors' },
     { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
   ];
 
