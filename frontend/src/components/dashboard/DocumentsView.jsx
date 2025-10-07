@@ -187,6 +187,55 @@ const DocumentsView = () => {
   const [shareMessage, setShareMessage] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const [analysis, setAnalysis] = useState(null);
+  // Try to load real data; gracefully fall back to mockDocuments if empty or failing
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const forceMock = urlParams.get('mock') === '1';
+        if (forceMock) return; // keep mock explicitly
+        const dr = await fetch('/api/data-rooms');
+        if (!dr.ok) return; // keep mock
+        const drj = await dr.json();
+        const rooms = drj?.data || drj || [];
+        if (!Array.isArray(rooms) || rooms.length === 0) return; // keep mock
+        const docs = await Promise.all(rooms.map(async (r) => {
+          try {
+            const dd = await fetch(`/api/data-rooms/${encodeURIComponent(r.id)}/documents`);
+            if (!dd.ok) return [];
+            const dj = await dd.json();
+            const list = dj?.data?.documents || dj?.documents || [];
+            return list.map(d => ({
+              id: d.id || `${r.id}:${d.source_id}`,
+              name: d.path?.split('/')?.pop() || d.title || d.path || 'Untitled',
+              type: inferTypeFromMimeOrPath(d.mime, d.path),
+              size: d.size || d.metadata?.size || '',
+              uploadDate: new Date(d.created_at || Date.now()),
+              lastModified: new Date(d.updated_at || d.created_at || Date.now()),
+              status: d.status || 'indexed',
+              category: d.category || 'general',
+              tags: d.tags || [],
+              processedBy: d.processed_by || 'Agent',
+              dataRoom: r.name,
+              accessLevel: d.access || 'internal',
+              version: d.version || '1.0',
+              collaborators: d.collaborators || [],
+              url: d.url || d.file_path || null,
+              workflowId: d.workflow_id || null,
+            }));
+          } catch { return []; }
+        }));
+        const flat = docs.flat();
+        if (!cancelled && flat.length) setDocuments(flat);
+      } catch {
+        // keep mock
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
   const [showDocsModal, setShowDocsModal] = useState(false);
   const [taskDocs, setTaskDocs] = useState([]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
