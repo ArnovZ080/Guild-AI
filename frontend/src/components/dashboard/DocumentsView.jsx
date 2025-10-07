@@ -184,6 +184,7 @@ const DocumentsView = () => {
   const [shareEmail, setShareEmail] = useState('');
   const [shareMessage, setShareMessage] = useState('');
   const [showDownloadOptions, setShowDownloadOptions] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
 
   // Handler functions
   const handleViewDocument = (document) => {
@@ -191,8 +192,18 @@ const DocumentsView = () => {
     alert(`Document Viewer: Opening "${document.name}"\n\nType: ${document.type.toUpperCase()}\nSize: ${document.size}\nVersion: ${document.version}`);
   };
 
-  const handleDownloadDocument = (document, format = 'original') => {
+  const handleDownloadDocument = async (document, format = 'original') => {
     setShowDownloadOptions(false);
+    try {
+      const res = await fetch(`/api/documents/${encodeURIComponent(document.id)}/export?format=${encodeURIComponent(format)}`);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = window.URL.createObjectURL(blob);
+      a.download = `${(document.name || 'document').replace(/\s+/g, '_')}.${format === 'original' ? 'bin' : format}`;
+      a.click();
+      window.URL.revokeObjectURL(a.href);
+    } catch {}
   };
 
   const handleShareDocument = (document) => {
@@ -200,13 +211,18 @@ const DocumentsView = () => {
     setShowShareModal(true);
   };
 
-  const handleReanalyzeDocument = (document) => {
-    alert(`AI Re-analysis started for "${document.name}"`);
+  const handleReanalyzeDocument = async (document) => {
+    try {
+      const res = await fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ campaign: { document_id: document.id, path: document.name } }) });
+      if (res.ok) setAnalysis(await res.json());
+    } catch {}
   };
 
-  const handleAcceptRecommendations = (document) => {
-    const recommendations = document.aiInsights.recommendations.join('\n- ');
-    alert(`Accepting Recommendations: "${document.name}"\n\nRecommendations to implement:\n- ${recommendations}`);
+  const handleAcceptRecommendations = async (document) => {
+    try {
+      const recs = (analysis?.feedback || document.aiInsights?.recommendations || []).map(t => ({ action: 'apply_feedback', text: t }));
+      await fetch('/api/agents/orchestrate/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ document_id: document.id, workflow_id: document.workflowId, recommendations: recs }) });
+    } catch {}
   };
 
   // Filter and sort documents
@@ -319,7 +335,7 @@ const DocumentsView = () => {
         whileHover={{ scale: 1.02 }}
         onClick={() => setSelectedDocument(document)}
       >
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-2">
           <div className="flex items-center space-x-3">
             <div className={`p-3 rounded-lg ${getFileTypeColor(document.type)}`}>
               <FileIcon className="w-6 h-6" />
@@ -327,15 +343,15 @@ const DocumentsView = () => {
             <div className="flex-1">
               <h3 className="font-semibold text-gray-900 truncate">{document.name}</h3>
               <p className="text-sm text-gray-500 capitalize">{document.type} • {document.size}</p>
+              <div className="hidden md:flex items-center gap-2 mt-2">
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(document.status)}`}>{document.status}</span>
+                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getAccessLevelStyle(document.accessLevel)}`}>{document.accessLevel}</span>
+              </div>
             </div>
           </div>
-          <div className="flex flex-col space-y-1">
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(document.status)}`}>
-              {document.status}
-            </span>
-            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getAccessLevelStyle(document.accessLevel)}`}>
-              {document.accessLevel}
-            </span>
+          <div className="flex flex-col space-y-1 md:hidden">
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusStyle(document.status)}`}>{document.status}</span>
+            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getAccessLevelStyle(document.accessLevel)}`}>{document.accessLevel}</span>
           </div>
         </div>
 
