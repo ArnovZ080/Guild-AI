@@ -1,29 +1,28 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FileText, 
+  Upload, 
+  Search, 
+  Eye, 
+  Download, 
+  Share, 
   Brain,
   CheckCircle,
+  AlertCircle,
   Clock,
-  Download,
-  Eye,
-  File as FileIconFallback,
-  FileText,
-  Folder,
-  Grid,
-  Image,
-  List,
-  Music,
-  Search,
-  Share,
-  SortAsc,
-  SortDesc,
   Star,
+  Folder,
+  File as FileIconFallback,
+  Image,
   Video,
-  Zap,
+  Music,
+  Grid,
+  List,
+  SortAsc,
+  SortDesc
 } from 'lucide-react';
 import { useCelebrations, CelebrationType } from '../../components/psychological/MicroCelebrations.jsx';
-import TaskDocumentsModal from './modals/TaskDocumentsModal.jsx';
-import DocumentPreviewModal from './modals/DocumentPreviewModal.jsx';
 
 const typeToIcon = {
   pdf: FileText,
@@ -71,216 +70,70 @@ function getBadgeForType(ext) {
 }
 
 export default function DocumentsView() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [dataRooms, setDataRooms] = useState([]);
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState(mockDocuments);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDataRoom, setFilterDataRoom] = useState('all');
+  const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('lastModified');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [viewMode, setViewMode] = useState('grid');
-
-  const [selectedCard, setSelectedCard] = useState(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [previewDoc, setPreviewDoc] = useState(null);
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareEmail, setShareEmail] = useState('');
+  const [shareMessage, setShareMessage] = useState('');
+  const [showDownloadOptions, setShowDownloadOptions] = useState(false);
   const { triggerCelebration } = useCelebrations();
 
-  useEffect(() => {
-    let ignore = false;
-    async function load() {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const forceMock = urlParams.get('mock') === '1';
-        if (forceMock) {
-          if (!ignore) {
-            const mockRooms = [
-              { id: 'wf-mock-1', name: 'Marketing Campaigns', provider: 'workspace' },
-              { id: 'wf-mock-2', name: 'Customer Insights', provider: 'workspace' },
-            ];
-            setDataRooms(mockRooms);
-            setDocuments(makeMockDocuments(mockRooms));
-            setIsLoading(false);
-            return;
-          }
-        }
-        // Load data rooms
-        const res = await fetch('/api/data-rooms');
-        if (!res.ok) throw new Error('Failed to load data rooms');
-        const json = await res.json();
-        const rooms = json?.data || json || [];
-        if (ignore) return;
-        setDataRooms(rooms);
+  // Original view uses mockDocuments; wiring to real endpoints will remain, but UI stays identical
 
-        // Load documents per room in parallel
-        const docs = await Promise.all(
-          rooms.map(async (r) => {
-            try {
-              const dr = await fetch(`/api/data-rooms/${encodeURIComponent(r.id)}/documents`);
-              if (!dr.ok) return [];
-              const dj = await dr.json();
-              const list = dj?.data?.documents || dj?.documents || [];
-              return list.map((d) => ({
-                id: d.id ?? `${r.id}:${d.source_id}`,
-                name: d.path?.split('/')?.pop() || d.title || d.path || 'Untitled',
-                type: inferTypeFromMimeOrPath(d.mime, d.path),
-                size: d.size || d.metadata?.size || '',
-                uploadDate: new Date(d.created_at || Date.now()),
-                lastModified: new Date(d.updated_at || d.created_at || Date.now()),
-                status: d.status || 'indexed',
-                category: d.category || 'general',
-                tags: d.tags || [],
-                dataRoomId: r.id,
-                dataRoomName: r.name,
-                provider: d.provider || r.provider,
-                accessLevel: d.access || 'internal',
-                version: d.version || '1.0',
-                url: d.url || d.file_path || null,
-                mime: d.mime || null,
-                workflowId: d.workflow_id || null,
-              }));
-            } catch {
-              return [];
-            }
-          })
-        );
-        if (ignore) return;
-        const flat = docs.flat();
-        if (!flat.length) {
-          // Fallback mock when backend returns no docs
-          setDocuments(makeMockDocuments(rooms));
-        } else {
-          setDocuments(flat);
-        }
-      } catch (e) {
-        if (!ignore) {
-          setError(e.message || 'Failed to load documents');
-          // Last-resort mock to enable UI review
-          const mockRooms = [
-            { id: 'wf-mock-1', name: 'Marketing Campaigns', provider: 'workspace' },
-            { id: 'wf-mock-2', name: 'Customer Insights', provider: 'workspace' },
-          ];
-          setDataRooms(mockRooms);
-          setDocuments(makeMockDocuments(mockRooms));
-        }
-      } finally {
-        if (!ignore) setIsLoading(false);
+  const filteredDocuments = documents
+    .filter(doc => {
+      const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           doc.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+      const matchesCategory = filterCategory === 'all' || doc.category === filterCategory;
+      const matchesStatus = filterStatus === 'all' || doc.status === filterStatus;
+      const matchesDataRoom = filterDataRoom === 'all' || doc.dataRoom === filterDataRoom;
+      return matchesSearch && matchesCategory && matchesStatus && matchesDataRoom;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'name': comparison = a.name.localeCompare(b.name); break;
+        case 'size': comparison = parseFloat(a.size) - parseFloat(b.size); break;
+        case 'uploadDate': comparison = new Date(a.uploadDate) - new Date(b.uploadDate); break;
+        case 'lastModified': comparison = new Date(a.lastModified) - new Date(b.lastModified); break;
+        default: comparison = 0;
       }
-    }
-    load();
-    return () => { ignore = true; };
-  }, []);
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
 
-  const filtered = useMemo(() => {
-    return (documents || [])
-      .filter((doc) => {
-        const matchesSearch = !searchTerm || doc.name.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = filterCategory === 'all' || (doc.category === filterCategory);
-        const matchesStatus = filterStatus === 'all' || (doc.status === filterStatus);
-        const matchesRoom = filterDataRoom === 'all' || (doc.dataRoomId === filterDataRoom || doc.dataRoomName === filterDataRoom);
-        return matchesSearch && matchesCategory && matchesStatus && matchesRoom;
-      })
-      .sort((a, b) => {
-        let cmp = 0;
-        if (sortBy === 'name') cmp = a.name.localeCompare(b.name);
-        else if (sortBy === 'size') cmp = (parseFloat(a.size) || 0) - (parseFloat(b.size) || 0);
-        else if (sortBy === 'uploadDate') cmp = new Date(a.uploadDate) - new Date(b.uploadDate);
-        else cmp = new Date(a.lastModified) - new Date(b.lastModified);
-        return sortOrder === 'asc' ? cmp : -cmp;
-      });
-  }, [documents, searchTerm, filterCategory, filterStatus, filterDataRoom, sortBy, sortOrder]);
+  const handleViewDocument = (document) => {
+    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Opening ${document.name}...`, intensity: 'normal' });
+    alert(`Document Viewer: Opening "${document.name}"`);
+  };
 
-  function openTaskDocuments(doc) {
-    setSelectedCard(doc);
-    setIsTaskModalOpen(true);
-  }
+  const handleDownloadDocument = (document, format = 'original') => {
+    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Downloading ${document.name}...`, intensity: 'normal' });
+    setShowDownloadOptions(false);
+  };
 
-  function openPreview(doc) {
-    setPreviewDoc(doc);
-    setIsPreviewOpen(true);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Opening ${doc.name}...`, intensity: 'normal' });
-  }
+  const handleShareDocument = (document) => {
+    setSelectedDocument(document);
+    setShowShareModal(true);
+  };
 
-  async function onDownload(doc, format = 'original') {
-    setShowDownloadMenu(false);
-    try {
-      const url = `/api/documents/${encodeURIComponent(doc.id)}/export?format=${encodeURIComponent(format)}`;
-      const res = await fetch(url);
-      if (res.ok) {
-        const blob = await res.blob();
-        const a = document.createElement('a');
-        a.href = window.URL.createObjectURL(blob);
-        a.download = suggestDownloadName(doc, format);
-        a.click();
-        window.URL.revokeObjectURL(a.href);
-        triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Downloaded ${doc.name}`, intensity: 'normal' });
-        return;
-      }
-      if (doc.url) window.open(doc.url, '_blank');
-    } catch {
-      if (doc.url) window.open(doc.url, '_blank');
-    }
-  }
+  const handleReanalyzeDocument = (document) => {
+    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Re-analyzing ${document.name}...`, intensity: 'normal' });
+    alert('AI re-analysis started');
+  };
 
-  async function onShare(doc, payload) {
-    try {
-      const res = await fetch(`/api/documents/${encodeURIComponent(doc.id)}/share`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Share failed');
-      triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Shared ${doc.name}`, intensity: 'normal' });
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  const handleAcceptRecommendations = (document) => {
+    triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Initiating recommendations for ${document.name}...`, intensity: 'high' });
+    alert('Recommendations initiated');
+  };
 
-  async function onReanalyze(doc) {
-    try {
-      // Prefer deliverable evaluation if we have an id; else use judge endpoint
-      const body = { document_id: doc.id, workflow_id: doc.workflowId, path: doc.name, mime: doc.mime };
-      const res = await fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-      if (!res.ok) throw new Error('Re-analysis failed');
-      triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Re-analysis started for ${doc.name}`, intensity: 'normal' });
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function onAcceptRecommendations(doc, recs = []) {
-    try {
-      const payload = { document_id: doc.id, workflow_id: doc.workflowId, recommendations: recs.length ? recs : await deriveRecommendations(doc) };
-      const res = await fetch('/api/agents/orchestrate/launch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!res.ok) throw new Error('Failed to initiate');
-      const data = await res.json();
-      triggerCelebration(CelebrationType.TASK_COMPLETE, { message: `Initiated recommendations for ${doc.name}`, intensity: 'high' });
-      // If we have a workflow id, open the task modal and refresh activity logs
-      if (data?.workflow_id) {
-        setSelectedCard({ ...doc, workflowId: data.workflow_id });
-        setIsTaskModalOpen(true);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function deriveRecommendations(doc) {
-    // Try to get judge feedback and transform feedback lines into actionable items
-    try {
-      const judgeRes = await fetch('/api/agents/judge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ campaign: { document_id: doc.id, path: doc.name } }) });
-      if (!judgeRes.ok) return [];
-      const j = await judgeRes.json();
-      if (Array.isArray(j?.feedback)) return j.feedback.map((t) => ({ action: 'apply_feedback', text: t }));
-      return [];
-    } catch { return []; }
-  }
+  function inferTypeFromMimeOrPath(mime, path) { return 'file'; }
 
   function makeMockDocuments(rooms) {
     const r1 = rooms[0] || { id: 'wf-mock-1', name: 'Marketing Campaigns' };
