@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 
 const Section = ({ title, children }) => (
@@ -52,6 +52,10 @@ const SettingsPage = () => {
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [plansLoading, setPlansLoading] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
+  const [initLoadingPlan, setInitLoadingPlan] = useState('');
+  const [statusMsg, setStatusMsg] = useState('');
+
+  const userEmail = useMemo(() => settings?.profile?.email || '', [settings?.profile?.email]);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -82,7 +86,62 @@ const SettingsPage = () => {
     };
     fetchPlans();
     fetchInfo();
+    // Handle Paystack return (reference in URL)
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('reference');
+    if (reference) {
+      (async () => {
+        try {
+          setStatusMsg('Verifying payment...');
+          const res = await fetch('/subscription/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference }),
+          });
+          if (res.ok) {
+            setStatusMsg('Subscription activated.');
+            await fetchInfo();
+          } else {
+            setStatusMsg('Verification failed.');
+          }
+        } catch {
+          setStatusMsg('Verification error.');
+        } finally {
+          // Clean reference param from URL
+          const url = new URL(window.location.href);
+          url.searchParams.delete('reference');
+          window.history.replaceState({}, '', url.toString());
+        }
+      })();
+    }
   }, []);
+
+  const initializePlan = async (planId, email) => {
+    if (!email) {
+      setStatusMsg('Please set your email in Profile first.');
+      return;
+    }
+    try {
+      setInitLoadingPlan(planId);
+      const res = await fetch('/subscription/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan_id: planId, email }),
+      });
+      if (!res.ok) throw new Error('Failed to initialize');
+      const data = await res.json();
+      const url = data?.authorization_url;
+      if (url) {
+        window.location.href = url;
+      } else {
+        setStatusMsg('Missing authorization URL.');
+      }
+    } catch (e) {
+      setStatusMsg('Failed to start checkout.');
+    } finally {
+      setInitLoadingPlan('');
+    }
+  };
 
   const uploadToEndpoint = async (endpoint, file, onUrl) => {
     const form = new FormData();
@@ -299,12 +358,19 @@ const SettingsPage = () => {
                       {p.extra_agent_daily_usd != null && <div>Daily rental: ${p.extra_agent_daily_usd}/day</div>}
                       {p.trial_days > 0 && <div className="text-green-700">Free trial: {p.trial_days} days</div>}
                     </div>
-                    <button className="mt-4 w-full px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">Select</button>
+                    <button
+                      onClick={() => initializePlan(p.id, userEmail)}
+                      disabled={!!initLoadingPlan}
+                      className="mt-4 w-full px-3 py-2 rounded bg-blue-600 text-white text-sm hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {initLoadingPlan === p.id ? 'Redirecting...' : 'Select / Upgrade'}
+                    </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
+          {statusMsg && <div className="text-xs text-gray-600">{statusMsg}</div>}
         </div>
       </Section>
 
