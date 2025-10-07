@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSettings } from '../contexts/SettingsContext.jsx';
 import ChatInterface from './ChatInterface.jsx';
 
 const ONBOARDING_QUESTIONS = [
@@ -27,6 +28,7 @@ const OnboardingFlow = ({ onOnboardingComplete }) => {
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const { settings, updateSettings } = useSettings();
 
   // Initial welcome message
   useEffect(() => {
@@ -94,6 +96,25 @@ const OnboardingFlow = ({ onOnboardingComplete }) => {
       setStep('setup');
       setIsLoading(true);
       setInputPlaceholder('');
+      // Sync key fields into Settings onboarding source of truth
+      try {
+        updateSettings({
+          onboarding: {
+            ...settings.onboarding,
+            niche: answers[0] || settings.onboarding.niche,
+            targetAudience: answers[3] || settings.onboarding.targetAudience,
+            productsServices: answers[5] || settings.onboarding.productsServices,
+            pricing: answers[6] || settings.onboarding.pricing,
+            goals: `${answers[8] || ''}` || settings.onboarding.goals,
+            businessBlueprint: [
+              answers[0], // description
+              answers[11], // brand voice
+              answers[12], // colors
+              answers[13], // vision
+            ].filter(Boolean).join('\n\n') || settings.onboarding.businessBlueprint,
+          }
+        });
+      } catch {}
       // Persist captured answers to Business Profile API
       ;(async () => {
         try {
