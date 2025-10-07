@@ -15,7 +15,7 @@ import CalendarPage from './components/dashboard/CalendarPage.jsx';
 import CustomersView from './views/CustomersView.jsx';
 import GoalsView from './views/GoalsView.jsx';
 import ConversationsTab from './components/dashboard/ConversationsTab.jsx';
-import DocumentsView from './views/DocumentsView.jsx';
+import DocumentsView from './components/dashboard/DocumentsView.jsx';
 import VoiceView from './views/VoiceView.jsx';
 import OnboardingView from './views/OnboardingView.jsx';
 import ConnectorsView from './views/ConnectorsView.jsx';

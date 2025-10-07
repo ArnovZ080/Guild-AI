@@ -4,8 +4,8 @@ Document Processing API Routes for Guild-AI
 Handles document upload, processing with MarkItDown, and content extraction.
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from typing import Dict, Any, List
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Response
+from typing import Dict, Any, List, Optional
 import tempfile
 import os
 import uuid
@@ -209,3 +209,53 @@ async def test_processing():
             "success": False,
             "message": f"Error during test: {str(e)}"
         }
+
+@router.get("/{document_id}/export")
+async def export_document(document_id: str, format: Optional[str] = "original"):
+    """
+    Export a document in the requested format. Placeholder implementation that
+    returns a small file to unblock frontend integration.
+    """
+    try:
+        content = f"Export for document {document_id}\nRequested format: {format}\nPlaceholder export."
+        if format == "pdf":
+            return Response(content.encode("utf-8"), media_type="application/pdf", headers={
+                "Content-Disposition": f"attachment; filename=export_{document_id}.pdf"
+            })
+        elif format in ("google", "office"):
+            return Response(content.encode("utf-8"), media_type="application/zip", headers={
+                "Content-Disposition": f"attachment; filename=export_{document_id}.zip"
+            })
+        elif format == "image":
+            return Response(content.encode("utf-8"), media_type="image/png", headers={
+                "Content-Disposition": f"attachment; filename=export_{document_id}.png"
+            })
+        else:
+            return Response(content.encode("utf-8"), media_type="application/octet-stream", headers={
+                "Content-Disposition": f"attachment; filename=export_{document_id}.bin"
+            })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+@router.post("/{document_id}/share")
+async def share_document(document_id: str, payload: Dict[str, Any]):
+    """
+    Share a document via email or link. Production should enqueue an email task,
+    persist permissions/audit logs, and generate secure share links.
+    """
+    try:
+        email = payload.get("email") or payload.get("recipient")
+        options = {
+            "view_only": bool(payload.get("view_only", True)),
+            "allow_comments": bool(payload.get("allow_comments", False)),
+            "allow_download": bool(payload.get("allow_download", False)),
+            "message": payload.get("message") or "",
+        }
+        if not email:
+            raise HTTPException(status_code=400, detail="Missing recipient email")
+        share_link = f"https://app.guild-ai.example/share/{document_id}?token=demo"
+        return {"success": True, "shared": True, "document_id": document_id, "recipient": email, "options": options, "share_link": share_link}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Share failed: {str(e)}")

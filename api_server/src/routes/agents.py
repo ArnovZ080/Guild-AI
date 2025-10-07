@@ -542,3 +542,48 @@ async def learning_updates(campaign_id: str):
         return {"updates": updates}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Learning updates failed: {str(e)}")
+
+import uuid
+from datetime import datetime
+
+_orchestrate_execs: Dict[str, List[Dict[str, Any]]] = {}
+
+@router.post("/orchestrate/launch")
+async def orchestrate_launch(payload: Dict[str, Any]):
+    """
+    Initiate an orchestrated workflow to implement AI recommendations for a document/task.
+    Lightweight implementation that records an execution log in-memory and returns identifiers.
+    """
+    try:
+        workflow_id = payload.get("workflow_id") or f"wf-{uuid.uuid4()}"
+        execution_id = f"exec-{uuid.uuid4()}"
+        recommendations = payload.get("recommendations") or []
+        now = datetime.utcnow().isoformat() + "Z"
+        log = _orchestrate_execs.setdefault(workflow_id, [])
+        log.append({
+            "execution_id": execution_id,
+            "ts": now,
+            "agent_name": "Orchestrator",
+            "agent_type": "orchestrator",
+            "status": "started",
+            "result": {"message": "Recommendations intake", "count": len(recommendations)}
+        })
+        for rec in recommendations[:10]:
+            log.append({
+                "execution_id": execution_id,
+                "ts": datetime.utcnow().isoformat() + "Z",
+                "agent_name": "AutomationAgent",
+                "agent_type": "automation",
+                "status": "queued",
+                "result": {"action": rec}
+            })
+        return {"status": "started", "workflow_id": workflow_id, "execution_id": execution_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to launch orchestration: {str(e)}")
+
+@router.get("/orchestrate/executions/{workflow_id}")
+async def orchestrate_executions(workflow_id: str):
+    """
+    Retrieve in-memory execution log for an orchestrated recommendations run.
+    """
+    return _orchestrate_execs.get(workflow_id, [])
