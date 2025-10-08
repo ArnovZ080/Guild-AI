@@ -7,7 +7,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/guild-ai:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
       - '-t'
       - 'gcr.io/$PROJECT_ID/guild-ai:latest'
       - '-f'
@@ -19,7 +19,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/guild-ai:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
     id: 'push-image'
     waitFor: ['build-image']
 
@@ -79,5 +79,5 @@ steps:
 
 # Images to store in Container Registry
 images:
-  - 'gcr.io/$PROJECT_ID/guild-ai:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/guild-ai:latest'
   - 'gcr.io/$PROJECT_ID/guild-ai:latest'
