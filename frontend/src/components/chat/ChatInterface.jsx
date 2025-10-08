@@ -1,17 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2 } from 'lucide-react';
+import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2, Zap, Activity, Eye } from 'lucide-react';
 // Removed celebrations to avoid circular deps and runtime init issues
 import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
 import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
+import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService.js';
+import WorkflowTransparencyModal from '../dashboard/modals/WorkflowTransparencyModal.jsx';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
   const { settings } = useSettings();
   // Check if user has completed onboarding
   const onboardingData = localStorage.getItem('guild_onboarding_data');
   const hasCompletedOnboarding = localStorage.getItem('guild_onboarding_completed') === 'true';
+  const userId = settings?.profile?.id || 'user_' + Math.random().toString(36).substr(2, 9);
+  
+  // Orchestrator integration state
+  const [activeWorkflows, setActiveWorkflows] = useState([]);
+  const [showTransparency, setShowTransparency] = useState(null);
+  const [systemCapabilities, setSystemCapabilities] = useState(null);
   
   const [messages, setMessages] = useState(() => {
     if (hasCompletedOnboarding && onboardingData) {
@@ -261,38 +269,93 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     setInputValue('');
 
     try {
-      // Determine mentioned agent (if any)
-      const atIdx = messageText.lastIndexOf('@');
-      let chosenAgent = null;
-      if (atIdx !== -1) {
-        const after = messageText.slice(atIdx + 1).split(/\s|\n/)[0];
-        // match against available agents by name or id
-        const byName = availableAgents.find(a => a.name.toLowerCase() === after.toLowerCase());
-        const byId = availableAgents.find(a => a.id.toLowerCase() === after.toLowerCase());
-        chosenAgent = byName || byId || null;
-      }
+      // Determine if this is a complex business task that needs full orchestration
+      const businessKeywords = [
+        'increase revenue', 'grow', 'campaign', 'strategy', 'analyze', 'find leads',
+        'customer', 'marketing', 'content', 'sales', 'automate', 'create content',
+        'generate', 'optimize', 'forecast', 'report', 'social media'
+      ];
+      
+      const needsOrchestration = businessKeywords.some(keyword => 
+        messageText.toLowerCase().includes(keyword)
+      );
 
-      const agentId = chosenAgent?.id || 'orchestrator';
-      setActiveAgent(agentId);
-
-      const dispatch = await sendTaskToAgent(agentId, {
-        description: messageText,
-        context: {},
-        priority: 'normal',
-        attachments: [],
-      });
-
-      // Create assistant response
-      let responseContent = "I'm working on that for you! ";
+      let responseContent = "";
       let actions = [];
+      let workflowData = null;
 
-      if (dispatch?.task_id) {
-        responseContent += `Task accepted (ID: ${dispatch.task_id}). I'll update you here as it progresses. `;
-        actions.push('🔔 Notify me on completion');
+      if (needsOrchestration) {
+        // Use Enhanced Orchestrator for complex business tasks
+        const orchestrationResult = await enhancedOrchestratorService.processChatOrchestration(
+          messageText,
+          userId,
+          { priority: 'medium' }
+        );
+
+        if (orchestrationResult.success) {
+          responseContent = orchestrationResult.message || "✅ I've created an autonomous workflow to accomplish your goal.";
+          
+          if (orchestrationResult.workflow_details) {
+            const workflow = orchestrationResult.workflow_details;
+            responseContent += `\n\n📋 **Autonomous Workflow Created:**\n`;
+            responseContent += `• ${workflow.total_agents} specialized agents orchestrated\n`;
+            responseContent += `• ${workflow.integrations_used} integrations used\n`;
+            responseContent += `• Autonomous Level: ${workflow.autonomous_level}\n`;
+            
+            if (workflow.data_sources && workflow.data_sources.length > 0) {
+              responseContent += `• Data Sources: ${workflow.data_sources.slice(0, 3).join(', ')}`;
+            }
+          }
+          
+          actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
+          workflowData = orchestrationResult;
+          
+          // Track active workflow
+          if (orchestrationResult.workflow_id) {
+            setActiveWorkflows(prev => [...prev, {
+              id: orchestrationResult.workflow_id,
+              name: orchestrationResult.workflow_details?.name || 'Autonomous Workflow',
+              created: new Date().toISOString(),
+              status: 'running'
+            }]);
+          }
+        } else {
+          // Orchestrator failed, fall back to single agent
+          responseContent = "Let me work on that for you using specialized agents...";
+        }
       }
+      
+      // Fallback: Use single agent system for simple tasks or if orchestration unavailable
+      if (!needsOrchestration || !responseContent) {
+        // Determine mentioned agent (if any)
+        const atIdx = messageText.lastIndexOf('@');
+        let chosenAgent = null;
+        if (atIdx !== -1) {
+          const after = messageText.slice(atIdx + 1).split(/\s|\n/)[0];
+          const byName = availableAgents.find(a => a.name.toLowerCase() === after.toLowerCase());
+          const byId = availableAgents.find(a => a.id.toLowerCase() === after.toLowerCase());
+          chosenAgent = byName || byId || null;
+        }
 
-      if (!actions.length) {
-        actions = ['📊 View Dashboard', '🔍 Get More Details'];
+        const agentId = chosenAgent?.id || 'orchestrator';
+        setActiveAgent(agentId);
+
+        const dispatch = await sendTaskToAgent(agentId, {
+          description: messageText,
+          context: {},
+          priority: 'normal',
+          attachments: [],
+        });
+
+        responseContent = "I'm working on that for you! ";
+        if (dispatch?.task_id) {
+          responseContent += `Task accepted (ID: ${dispatch.task_id}). I'll update you here as it progresses. `;
+          actions.push('🔔 Notify me on completion');
+        }
+
+        if (!actions.length) {
+          actions = ['📊 View Dashboard', '🔍 Get More Details'];
+        }
       }
 
       const assistantMessage = {
@@ -301,7 +364,8 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         content: responseContent,
         timestamp: new Date(),
         actions: actions,
-        agentId: activeAgent
+        agentId: activeAgent,
+        workflowData: workflowData  // Store workflow data for transparency access
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -325,8 +389,16 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     handleSendMessage(suggestion);
   };
 
-  const handleActionClick = (action) => {
-    if (action.includes('Dashboard') || action.includes('Analytics')) {
+  const handleActionClick = (action, message) => {
+    if (action.includes('Transparency')) {
+      // Open transparency modal for workflow
+      if (message.workflowData?.workflow_id) {
+        setShowTransparency(message.workflowData.workflow_id);
+      }
+    } else if (action.includes('Monitor Progress')) {
+      // Navigate to workflows page
+      window.location.href = '/workflows';
+    } else if (action.includes('Dashboard') || action.includes('Analytics')) {
       onNavigateToDashboard?.();
     } else if (action.includes('Workflow')) {
       // Navigate to workflow details
@@ -341,6 +413,17 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       setMessages(prev => [...prev, actionMessage]);
     }
   };
+
+  // Load system capabilities on mount
+  useEffect(() => {
+    const loadCapabilities = async () => {
+      const result = await enhancedOrchestratorService.getSystemCapabilities();
+      if (result.success) {
+        setSystemCapabilities(result);
+      }
+    };
+    loadCapabilities();
+  }, []);
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 to-white">
@@ -426,7 +509,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
                         {message.actions.map((action, idx) => (
                           <motion.button
                             key={idx}
-                            onClick={() => handleActionClick(action)}
+                            onClick={() => handleActionClick(action, message)}
                             className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs rounded-lg border border-blue-200 transition-colors flex items-center space-x-1"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -547,6 +630,43 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
             </p>
           </div>
         </div>
+
+        {/* Active Workflows Strip */}
+        {activeWorkflows.length > 0 && (
+          <div className="absolute bottom-24 left-0 right-0 bg-white border-t border-gray-200 px-6 py-2">
+            <div className="flex items-center space-x-3 overflow-x-auto">
+              <span className="text-xs font-medium text-gray-600 whitespace-nowrap flex items-center">
+                <Activity className="w-3 h-3 mr-1" />
+                Active:
+              </span>
+              {activeWorkflows.map((workflow) => (
+                <button
+                  key={workflow.id}
+                  onClick={() => setShowTransparency(workflow.id)}
+                  className="flex items-center space-x-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs text-blue-700 hover:bg-blue-100 transition-colors whitespace-nowrap"
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>{workflow.name}</span>
+                  <Eye className="w-3 h-3" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Workflow Transparency Modal */}
+        {showTransparency && (
+          <WorkflowTransparencyModal
+            isOpen={!!showTransparency}
+            onClose={() => setShowTransparency(null)}
+            workflowId={showTransparency}
+            workflowData={{}}  // Would be loaded from API
+            onRefreshWorkflow={async (wfId) => {
+              const status = await enhancedOrchestratorService.getWorkflowStatus(wfId);
+              return status;
+            }}
+          />
+        )}
       </div>
     </div>
   );
