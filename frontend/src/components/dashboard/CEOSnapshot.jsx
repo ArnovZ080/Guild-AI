@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { fetchCeoSnapshot, fetchKpiDetails } from '../../services/biaApi.js';
+import { fetchCeoSnapshot, fetchKpiDetails, fetchKpiHistory } from '../../services/biaApi.js';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import KPIDetailsModal from './KPIDetailsModal.jsx';
 import { AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
+import EnhancedApprovalModal from './modals/EnhancedApprovalModal.jsx';
 
 const StatusPill = ({ status, children }) => {
   const normalized = (status || '').toLowerCase();
@@ -21,6 +23,10 @@ const CEOSnapshot = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalDetails, setModalDetails] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('financial');
+  const [historySeries, setHistorySeries] = useState([]);
+  const [approvalOpen, setApprovalOpen] = useState(false);
+  const [approvalData, setApprovalData] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -55,6 +61,8 @@ const CEOSnapshot = () => {
     setModalOpen(true);
     const details = await fetchKpiDetails(kpiId);
     setModalDetails(details);
+    const hist = await fetchKpiHistory(kpiId, '90d');
+    setHistorySeries(hist?.data || []);
   };
 
   return (
@@ -113,9 +121,28 @@ const CEOSnapshot = () => {
         </div>
       </div>
 
+      {/* Category filter */}
+      <div className="mt-6">
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-xl bg-gray-100 p-1 shadow-inner">
+            {['financial','customer','operational'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  activeCategory===cat ? 'bg-white text-gray-900 shadow' : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {cat.charAt(0).toUpperCase()+cat.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* KPI blocks (clickable for details) */}
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(kpis.financial || []).map((k) => (
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {((kpis[activeCategory]) || []).map((k) => (
           <button key={k.key} onClick={() => openDetails(k.key, k.label)} className="text-left border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
             <div className="flex items-center justify-between">
               <div className="font-medium text-gray-800">{k.label}</div>
@@ -127,7 +154,43 @@ const CEOSnapshot = () => {
         ))}
       </div>
 
-      <KPIDetailsModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle} details={modalDetails} />
+      {/* Trend chart in modal context */}
+      <KPIDetailsModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle} details={modalDetails}>
+        {historySeries?.length > 0 && (
+          <div className="mt-4 h-48">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={historySeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                <XAxis dataKey="name" stroke="#6B7280" />
+                <YAxis stroke="#6B7280" />
+                <Tooltip />
+                <Line type="monotone" dataKey="value" stroke="#3B82F6" dot={false} name="Value" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </KPIDetailsModal>
+
+      <EnhancedApprovalModal
+        isOpen={approvalOpen}
+        onClose={() => setApprovalOpen(false)}
+        approvalData={approvalData}
+        onApprove={() => setApprovalOpen(false)}
+        onReject={() => setApprovalOpen(false)}
+        onRequestMoreInfo={() => {}}
+      />
+
+      {/* Execute immediate actions */}
+      <div className="mt-6 flex justify-end">
+        {(data?.immediate_actions || []).length > 0 && (
+          <button
+            onClick={() => { setApprovalData({ action_title: 'Execute Immediate Action', action_description: data.immediate_actions[0], risk_level: 'Medium', requested_at: Date.now() }); setApprovalOpen(true); }}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+          >
+            Execute Top Immediate Action
+          </button>
+        )}
+      </div>
     </div>
   );
 };

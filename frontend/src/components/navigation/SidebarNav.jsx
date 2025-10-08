@@ -30,17 +30,10 @@ const navigationItems = [
   },
   {
     id: 'dashboard',
-    label: 'Main Dashboard',
+    label: 'Business Dashboard',
     icon: Home,
     category: 'primary',
-    description: 'Your business overview'
-  },
-  {
-    id: 'financial',
-    label: 'Financial Dashboard',
-    icon: BarChart,
-    category: 'primary',
-    description: 'Key financial metrics'
+    description: 'Unified overview with tabs'
   },
   {
     id: 'agents',
@@ -49,34 +42,7 @@ const navigationItems = [
     category: 'primary',
     description: 'Manage your AI agents'
   },
-  {
-    id: 'content-dashboard',
-    label: 'Content Dashboard',
-    icon: TrendingUp,
-    category: 'primary',
-    description: 'Content status & performance'
-  },
-  {
-    id: 'customers',
-    label: 'Customer Dashboard',
-    icon: Users,
-    category: 'primary',
-    description: 'Customer analytics'
-  },
-  {
-    id: 'conversations',
-    label: 'Conversations Dashboard',
-    icon: MessageSquare,
-    category: 'primary',
-    description: 'All conversations'
-  },
-  {
-    id: 'workflows',
-    label: 'Workflows',
-    icon: Zap,
-    category: 'primary',
-    description: 'Active campaigns & projects'
-  },
+  // Other dashboards now live as tabs inside Business Dashboard
   {
     id: 'goals',
     label: 'Goals',
@@ -84,13 +50,7 @@ const navigationItems = [
     category: 'secondary',
     description: 'Track objectives'
   },
-  {
-    id: 'growth',
-    label: 'Growth',
-    icon: TrendingUp,
-    category: 'secondary',
-    description: 'Expansion opportunities'
-  },
+  { id: 'growth', label: 'Growth', icon: TrendingUp, category: 'secondary', description: 'Expansion opportunities' },
   {
     id: 'calendar',
     label: 'Calendar',
@@ -112,6 +72,7 @@ const navigationItems = [
     category: 'utility',
     description: 'Your progress story'
   },
+  // Connectors will be accessible within Settings
   {
     id: 'connectors',
     label: 'Connectors',
@@ -350,8 +311,8 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                 ))}
             </div>
 
-            {/* Secondary Navigation */}
-            <div className="mb-6">
+            {/* Workspace Navigation (replaces Tools, includes previous secondary + desired utility items) */}
+            <div className="mb-2">
               {expanded && (
                 <motion.p 
                   className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2"
@@ -362,8 +323,16 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                   Workspace
                 </motion.p>
               )}
-              {navigationItems
-                .filter(item => item.category === 'secondary')
+              {[
+                'calendar',
+                'growth',
+                'achievements',
+                'goals',
+                'documents',
+                'connectors',
+              ]
+                .map((id) => navigationItems.find(n => n.id === id))
+                .filter(Boolean)
                 .map((item, index) => (
                   <motion.div
                     key={item.id}
@@ -399,21 +368,13 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                 ))}
             </div>
 
-            {/* Utility Navigation */}
-            <div>
-              {expanded && (
-                <motion.p 
-                  className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Tools
-                </motion.p>
-              )}
-              {navigationItems
-                .filter(item => item.category === 'utility')
-                .map((item, index) => (
+            {/* Divider and Settings */}
+            <div className="px-2">
+              <div className="h-px bg-gray-200 dark:bg-gray-700 my-3" />
+              {(() => {
+                const item = navigationItems.find(n => n.id === 'settings');
+                if (!item) return null;
+                return (
                   <motion.div
                     key={item.id}
                     className={getItemClasses(item)}
@@ -433,7 +394,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -10 }}
-                          transition={{ duration: 0.2, delay: index * 0.02 }}
+                          transition={{ duration: 0.2 }}
                         >
                           <div className="font-medium text-slate-700 dark:text-slate-200">
                             {item.label}
@@ -445,7 +406,8 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
                       )}
                     </AnimatePresence>
                   </motion.div>
-                ))}
+                );
+              })()}
             </div>
           </div>
         </div>

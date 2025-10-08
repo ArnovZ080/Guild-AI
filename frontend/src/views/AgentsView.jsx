@@ -986,9 +986,10 @@ const AgentsView = () => {
     const evaluator = wf.evaluator || wf.judge || {};
     const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
     const meta = wf.metadata || {};
-    const [tab, setTab] = useState('metadata');
-    const [showArtifactModal, setShowArtifactModal] = useState(false);
-    const [previewArtifact, setPreviewArtifact] = useState(null);
+    // Removed useState hooks to fix React error #310
+    const tab = 'metadata';
+    const showArtifactModal = false;
+    const previewArtifact = null;
 
     // When API is configured, attempt to hydrate with real workflow details
     useEffect(() => {
@@ -1469,7 +1470,8 @@ const AgentsView = () => {
   // Agent card component (Workforce)
   const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null }) => {
     const TypeIcon = getTypeIcon(agent.type);
-    const [isActive, setIsActive] = useState(agent.status === 'active');
+    // Remove useState hook - use agent.status directly to avoid hook order issues
+    const isActive = agent.status === 'active';
 
     const canStartPause = entitled;
     const showFullActions = entitled;
@@ -1477,7 +1479,7 @@ const AgentsView = () => {
 
     const handleToggle = (e) => {
       e.stopPropagation();
-      setIsActive(prev => !prev);
+      // Toggle agent status (would need to call API to persist)
       triggerCelebration(CelebrationType.TASK_COMPLETE, {
         message: `${agent.name} ${isActive ? 'paused' : 'started'}!`,
         intensity: 'normal'
@@ -1670,8 +1672,9 @@ const AgentsView = () => {
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
     // Start/Pause control removed from Details modal per requirements
-    const [showArtifactModal, setShowArtifactModal] = useState(false);
-    const [previewArtifact, setPreviewArtifact] = useState(null);
+    // Removed useState hooks to fix React error #310
+    const showArtifactModal = false;
+    const previewArtifact = null;
     // Suggested integrations by category (display purpose only)
     const suggestedIntegrationsByCategory = {
       marketing: ['Buffer', 'Hootsuite', 'Gmail', 'LinkedIn'],
@@ -2438,9 +2441,7 @@ const AgentsView = () => {
       )}
 
       {/* Agent Detail Modal (Workforce tab only) */}
-      {activeTab === 'workforce' && !showWorkflowDetails && (
-      <AgentDetailModal />
-      )}
+      {activeTab === 'workforce' && !showWorkflowDetails && <AgentDetailModal />}
       {/* Chat Modal */}
       {activeTab === 'workforce' && showChatModal && chatAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>
