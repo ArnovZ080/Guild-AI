@@ -21,7 +21,29 @@ steps:
     id: 'push-image'
     waitFor: ['build-image']
 
-  # Step 3: Deploy to Cloud Run
+  # Step 3: Run Database Migrations (One-off Job)
+  - name: 'gcr.io/$PROJECT_ID/guild-ai:latest'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        /usr/local/bin/python /app/api_server/src/manage.py migrate
+    id: 'run-migrations'
+    waitFor: ['push-image']
+    env:
+      - 'GOOGLE_CLOUD_PROJECT=guild-ai-080'
+      - 'CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql'
+      - 'POSTGRES_USER=postgres'
+      - 'POSTGRES_DB=workflow_db'
+      - 'DB_SECRET_NAME=db-root-password'
+      - 'REDIS_HOST=10.87.64.4'
+      - 'REDIS_PORT=6379'
+      - 'LLM_PROVIDER=vertex_ai'
+      - 'VERTEX_AI_LOCATION=us-central1'
+      - 'VERTEX_AI_MODEL=gemini-pro'
+      - 'FASTAPI_APP_ENV=production'
+
+  # Step 4: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -65,7 +87,7 @@ steps:
       - '--service-account'
       - 'guild-ai-cloud-run-sa@$PROJECT_ID.iam.gserviceaccount.com'
     id: 'deploy-cloud-run'
-    waitFor: ['push-image']
+    waitFor: ['run-migrations']
 
 # Images to store in Container Registry
 images:
