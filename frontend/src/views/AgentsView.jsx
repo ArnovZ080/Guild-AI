@@ -15,7 +15,9 @@ import { useAgentStatus } from '../hooks/useApiData.js';
 import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
+import AgentActivityFeed from '../components/transparency/AgentActivityFeed.jsx';
 import apiService from '../services/api.js';
+import { useSettings } from '../contexts/SettingsContext.jsx';
 
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -175,6 +177,8 @@ const getAgentActivityData = (agent) => {
 
 const AgentsView = () => {
   const { agents, loading } = useAgentStatus();
+  const { settings } = useSettings();
+  const userId = settings?.profile?.id || 'user_' + Math.random().toString(36).substr(2, 9);
   const API = (import.meta && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '';
   const [apiAgents, setApiAgents] = useState(null);
   const [apiLoading, setApiLoading] = useState(false);
@@ -189,7 +193,7 @@ const AgentsView = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // grid, list, detailed
-  const [activeTab, setActiveTab] = useState('theater'); // theater | workforce | builder
+  const [activeTab, setActiveTab] = useState('theater'); // theater | workforce | builder | activity
   const [workflows, setWorkflows] = useState([]);
   const [wfLoading, setWfLoading] = useState(false);
   const [wfError, setWfError] = useState(null);
@@ -2192,6 +2196,10 @@ const AgentsView = () => {
           <button onClick={()=>setActiveTab('theater')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='theater'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Theater</button>
           <button onClick={()=>setActiveTab('workforce')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='workforce'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Agent Workforce</button>
           <button onClick={()=>setActiveTab('builder')} className={`px-3 py-2 text-sm rounded-md ${activeTab==='builder'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>Workflow Builder</button>
+          <button onClick={()=>setActiveTab('activity')} className={`px-3 py-2 text-sm rounded-md flex items-center space-x-2 ${activeTab==='activity'?'bg-gray-900 text-white':'bg-gray-100 hover:bg-gray-200'}`}>
+            <Activity className="w-4 h-4" />
+            <span>Agent Activity & Transparency</span>
+          </button>
         </div>
       </div>
       {/* Header + Controls (Workforce tab only) */}
@@ -2401,6 +2409,20 @@ const AgentsView = () => {
           <div className="rounded-lg overflow-hidden border">
             <EnhancedWorkflowBuilder />
           </div>
+        </div>
+      )}
+
+      {/* Agent Activity & Transparency Tab */}
+      {activeTab === 'activity' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg p-6 text-white">
+            <h2 className="text-2xl font-bold mb-2">Agent Activity & Transparency</h2>
+            <p className="text-purple-100">
+              Real-time monitoring of all autonomous agent operations with full transparency logging
+            </p>
+          </div>
+          
+          <AgentActivityFeed userId={userId} isCompact={false} maxEvents={100} />
         </div>
       )}
 
