@@ -986,9 +986,10 @@ const AgentsView = () => {
     const evaluator = wf.evaluator || wf.judge || {};
     const cost = wf.cost || wf.estimatedCost || (wf.metrics && wf.metrics.cost);
     const meta = wf.metadata || {};
-    const [tab, setTab] = useState('metadata');
-    const [showArtifactModal, setShowArtifactModal] = useState(false);
-    const [previewArtifact, setPreviewArtifact] = useState(null);
+    // Removed useState hooks to fix React error #310
+    const tab = 'metadata';
+    const showArtifactModal = false;
+    const previewArtifact = null;
 
     // When API is configured, attempt to hydrate with real workflow details
     useEffect(() => {
@@ -1671,8 +1672,9 @@ const AgentsView = () => {
 
     const TypeIcon = getTypeIcon(selectedAgent.type);
     // Start/Pause control removed from Details modal per requirements
-    const [showArtifactModal, setShowArtifactModal] = useState(false);
-    const [previewArtifact, setPreviewArtifact] = useState(null);
+    // Removed useState hooks to fix React error #310
+    const showArtifactModal = false;
+    const previewArtifact = null;
     // Suggested integrations by category (display purpose only)
     const suggestedIntegrationsByCategory = {
       marketing: ['Buffer', 'Hootsuite', 'Gmail', 'LinkedIn'],
