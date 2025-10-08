@@ -32,6 +32,7 @@ python-multipart
 celery
 redis
 django-celery-beat==2.5.0
+django-rq
 django==4.2.7
 
 # Lightweight Computer Vision Dependencies
