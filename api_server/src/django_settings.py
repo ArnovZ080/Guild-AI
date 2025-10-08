@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_celery_beat',
+    'django_rq',
 ]
 
 MIDDLEWARE = [
@@ -106,6 +107,7 @@ CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://redis:6379/0')
 
 # Celery Beat Configuration
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+    'django_rq',
 
 # Celery Task Configuration
 CELERY_TASK_SERIALIZER = 'json'
@@ -122,3 +124,30 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': 60.0,  # Every minute for testing
     },
 }
+
+# Django RQ Configuration
+import json
+
+# Get RQ_QUEUES from environment variable or use default
+rq_queues_env = os.getenv('RQ_QUEUES')
+if rq_queues_env:
+    try:
+        RQ_QUEUES = json.loads(rq_queues_env)
+    except json.JSONDecodeError:
+        # Fallback to default if JSON parsing fails
+        RQ_QUEUES = {
+            'default': {
+                'HOST': os.getenv('REDIS_HOST', 'redis'),
+                'PORT': int(os.getenv('REDIS_PORT', 6379)),
+                'DB': 0,
+            }
+        }
+else:
+    # Default configuration
+    RQ_QUEUES = {
+        'default': {
+            'HOST': os.getenv('REDIS_HOST', 'redis'),
+            'PORT': int(os.getenv('REDIS_PORT', 6379)),
+            'DB': 0,
+        }
+    }
