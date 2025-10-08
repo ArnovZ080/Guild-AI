@@ -1,0 +1,97 @@
+# Cloud Build configuration for Guild-AI
+# This file defines the CI/CD pipeline for building and deploying to Cloud Run
+
+steps:
+  # Step 1: Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/guild-ai:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+      - '-f'
+      - './api_server/Dockerfile'
+      - '.'
+    id: 'build-image'
+
+  # Step 2: Push the Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/guild-ai:$COMMIT_SHA'
+    id: 'push-image'
+    waitFor: ['build-image']
+
+  # Step 3: Push the latest tag
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+    id: 'push-latest'
+    waitFor: ['build-image']
+
+  # Step 4: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'guild-ai-api'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/guild-ai:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '5000'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--timeout'
+      - '300'
+      - '--max-instances'
+      - '10'
+      - '--min-instances'
+      - '1'
+      - '--set-env-vars'
+      - |
+        GOOGLE_CLOUD_PROJECT=$PROJECT_ID,
+        CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql,
+        POSTGRES_USER=postgres,
+        POSTGRES_DB=workflow_db,
+        DB_SECRET_NAME=db-root-password,
+        REDIS_HOST=10.87.64.4,
+        REDIS_PORT=6379,
+        LLM_PROVIDER=vertex_ai,
+        VERTEX_AI_LOCATION=us-central1,
+        VERTEX_AI_MODEL=gemini-pro,
+        FASTAPI_APP_ENV=production
+      - '--add-cloudsql-instances'
+      - 'guild-ai-080:us-central1:guild-ai-sql'
+      - '--service-account'
+      - 'guild-ai-cloud-run-sa@$PROJECT_ID.iam.gserviceaccount.com'
+    id: 'deploy-cloud-run'
+    waitFor: ['push-image']
+
+# Images to store in Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/guild-ai:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+
+# Build timeout (20 minutes)
+timeout: '1200s'
+
+# Use a larger machine type for faster builds
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+  
+# Substitutions for variables (can be overridden)
+substitutions:
+  _REGION: 'us-central1'
+  _SERVICE_NAME: 'guild-ai-api'
+

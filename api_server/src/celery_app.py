@@ -45,11 +45,17 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     worker_max_tasks_per_child=1000,
     
-    # Result backend
-    result_backend='redis://redis:6379/1',
+    # Result backend - use environment variable for Cloud Run compatibility
+    result_backend=os.getenv(
+        'CELERY_RESULT_BACKEND',
+        f"redis://{os.getenv('REDIS_HOST', 'redis')}:{os.getenv('REDIS_PORT', '6379')}/1"
+    ),
     
-    # Broker configuration
-    broker_url='redis://redis:6379/0',
+    # Broker configuration - use environment variable for Cloud Run compatibility
+    broker_url=os.getenv(
+        'CELERY_BROKER_URL',
+        f"redis://{os.getenv('REDIS_HOST', 'redis')}:{os.getenv('REDIS_PORT', '6379')}/0"
+    ),
     
     # Task time limits
     task_soft_time_limit=300,  # 5 minutes

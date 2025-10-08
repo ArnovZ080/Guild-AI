@@ -11,6 +11,55 @@ class LLMProvider(Protocol):
     def generate_json(self, prompt: str, model: str) -> Dict[str, Any]:
         ...
 
+class VertexAIProvider:
+    """LLM provider for Google Cloud Vertex AI."""
+    def __init__(self):
+        from guild.src.core.vertex_ai_client import VertexAIClient
+        
+        # Get configuration from environment
+        project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        location = os.getenv("VERTEX_AI_LOCATION", "us-central1")
+        model_name = os.getenv("VERTEX_AI_MODEL", "gemini-pro")
+        
+        if not project_id:
+            raise ValueError("GOOGLE_CLOUD_PROJECT must be set for Vertex AI provider")
+        
+        self.client = VertexAIClient(
+            project_id=project_id,
+            location=location,
+            model_name=model_name
+        )
+        self.model_name = model_name
+    
+    def generate_json(self, prompt: str, model: str = None) -> Dict[str, Any]:
+        """Generate JSON response using Vertex AI."""
+        print(f"Using VertexAIProvider with model '{model or self.model_name}'...")
+        try:
+            # Note: Vertex AI client's chat method is async, but we need sync here
+            # We'll use a sync wrapper or modify the client
+            import asyncio
+            
+            # Create event loop if needed
+            try:
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+            
+            # Run async chat method
+            response_text = loop.run_until_complete(self.client.chat(prompt))
+            
+            # Try to parse as JSON
+            try:
+                return json.loads(response_text)
+            except json.JSONDecodeError:
+                # If not valid JSON, wrap in a response object
+                return {"response": response_text}
+        
+        except Exception as e:
+            print(f"Error communicating with Vertex AI: {e}")
+            raise
+
 class OllamaProvider:
     """LLM provider for a local Ollama instance."""
     def __init__(self):
@@ -68,6 +117,8 @@ class LlmClient:
             if not settings.TOGETHER_API_KEY:
                 raise ValueError("TOGETHER_API_KEY is not set for Together.ai provider")
             self.provider = TogetherAIProvider()
+        elif llm_config.provider == "vertex_ai":
+            self.provider = VertexAIProvider()
         elif llm_config.provider == "ollama":
             self.provider = OllamaProvider()
         else:
@@ -86,6 +137,10 @@ class LlmClient:
                     messages=[{'role': 'user', 'content': prompt}]
                 )
                 return response['message']['content']
+            elif self.llm_config.provider == "vertex_ai":
+                # Use Vertex AI's async chat method
+                response = await self.provider.client.chat(prompt)
+                return response
             else:
                 # Fallback to the existing method for other providers
                 result = self.provider.generate_json(prompt, self.llm_config.model)
@@ -99,13 +154,37 @@ class LlmClient:
 def get_llm_client() -> LLMProvider:
     """
     Factory function to get the appropriate LLM client.
-    It prioritizes Together.ai if a key is available, otherwise falls back to Ollama.
+    Priority: LLM_PROVIDER env var > Together.ai (if key available) > Ollama (fallback)
     """
+    # Check for explicit LLM_PROVIDER setting
+    llm_provider = os.getenv("LLM_PROVIDER") or settings.LLM_PROVIDER
+    
+    if llm_provider:
+        llm_provider = llm_provider.lower()
+        
+        if llm_provider == "vertex_ai":
+            print("LLM_PROVIDER set to vertex_ai. Using VertexAIProvider.")
+            return VertexAIProvider()
+        
+        elif llm_provider == "together":
+            if not settings.TOGETHER_API_KEY:
+                raise ValueError("LLM_PROVIDER set to 'together' but TOGETHER_API_KEY is not set")
+            print("LLM_PROVIDER set to together. Using TogetherAIProvider.")
+            return TogetherAIProvider()
+        
+        elif llm_provider == "ollama":
+            print("LLM_PROVIDER set to ollama. Using OllamaProvider.")
+            return OllamaProvider()
+        
+        else:
+            raise ValueError(f"Unsupported LLM_PROVIDER: {llm_provider}")
+    
+    # Fallback logic if LLM_PROVIDER not set
     if settings.TOGETHER_API_KEY:
         print("TOGETHER_API_KEY found. Using TogetherAIProvider.")
         return TogetherAIProvider()
 
-    print("No TOGETHER_API_KEY found. Falling back to OllamaProvider.")
+    print("No LLM_PROVIDER or TOGETHER_API_KEY found. Falling back to OllamaProvider.")
     return OllamaProvider()
 
 # A single client instance to be used by agents

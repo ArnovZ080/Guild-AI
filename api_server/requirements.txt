@@ -19,6 +19,11 @@ google-auth-httplib2
 google-auth-oauthlib
 dropbox
 
+# Google Cloud Platform Dependencies (for Cloud Run)
+google-cloud-secret-manager>=2.16.0
+google-cloud-aiplatform>=1.35.0
+vertexai>=1.0.0
+
 # File upload support
 python-multipart
 
