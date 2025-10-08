@@ -42,6 +42,7 @@ steps:
       - 'VERTEX_AI_LOCATION=us-central1'
       - 'VERTEX_AI_MODEL=gemini-pro'
       - 'FASTAPI_APP_ENV=production'
+      - 'RQ_QUEUES={"default": {"HOST": "10.87.64.4", "PORT": 6379, "DB": 0}}'
 
   # Step 4: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
