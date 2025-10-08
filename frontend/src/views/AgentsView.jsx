@@ -2441,9 +2441,7 @@ const AgentsView = () => {
       )}
 
       {/* Agent Detail Modal (Workforce tab only) */}
-      {activeTab === 'workforce' && !showWorkflowDetails && (
-      <AgentDetailModal />
-      )}
+      {activeTab === 'workforce' && !showWorkflowDetails && <AgentDetailModal />}
       {/* Chat Modal */}
       {activeTab === 'workforce' && showChatModal && chatAgent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4" onClick={() => { setShowChatModal(false); setChatAgent(null); }}>
