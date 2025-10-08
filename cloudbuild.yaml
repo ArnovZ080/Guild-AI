@@ -39,7 +39,7 @@ steps:
       - 'deploy'
       - 'guild-ai-api'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/guild-ai:$COMMIT_SHA'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
       - '--region'
       - 'us-central1'
       - '--platform'
