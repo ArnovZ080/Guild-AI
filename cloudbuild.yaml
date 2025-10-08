@@ -81,17 +81,3 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/guild-ai:$COMMIT_SHA'
   - 'gcr.io/$PROJECT_ID/guild-ai:latest'
-
-# Build timeout (20 minutes)
-timeout: '1200s'
-
-# Use a larger machine type for faster builds
-options:
-  machineType: 'N1_HIGHCPU_8'
-  logging: CLOUD_LOGGING_ONLY
-  
-# Substitutions for variables (can be overridden)
-substitutions:
-  _REGION: 'us-central1'
-  _SERVICE_NAME: 'guild-ai-api'
-
