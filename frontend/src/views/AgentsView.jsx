@@ -1469,7 +1469,8 @@ const AgentsView = () => {
   // Agent card component (Workforce)
   const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null }) => {
     const TypeIcon = getTypeIcon(agent.type);
-    const [isActive, setIsActive] = useState(agent.status === 'active');
+    // Remove useState hook - use agent.status directly to avoid hook order issues
+    const isActive = agent.status === 'active';
 
     const canStartPause = entitled;
     const showFullActions = entitled;
@@ -1477,7 +1478,7 @@ const AgentsView = () => {
 
     const handleToggle = (e) => {
       e.stopPropagation();
-      setIsActive(prev => !prev);
+      // Toggle agent status (would need to call API to persist)
       triggerCelebration(CelebrationType.TASK_COMPLETE, {
         message: `${agent.name} ${isActive ? 'paused' : 'started'}!`,
         intensity: 'normal'
