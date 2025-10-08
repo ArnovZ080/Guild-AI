@@ -7,7 +7,8 @@ pydantic-settings
 psycopg2-binary
 
 # Install the local guild package in editable mode
--e ../guild
+# Using absolute path for Docker container (COPY . . puts everything in /app)
+-e /app/guild
 
 # Testing dependencies
 httpx
