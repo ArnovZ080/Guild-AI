@@ -90,7 +90,7 @@ steps:
       - '10'
       - '--min-instances'
       - '1'
-      - '--startup-cpu-boost'
+      - '--cpu-boost'
       - '--set-env-vars'
       - |
         GOOGLE_CLOUD_PROJECT=$PROJECT_ID,
