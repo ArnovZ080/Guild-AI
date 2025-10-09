@@ -33,7 +33,7 @@ steps:
         
         # Start Cloud SQL Proxy in background
         /tmp/cloud_sql_proxy -instances=guild-ai-080:us-central1:guild-ai-sql=tcp:5432 &
-        PROXY_PID=$!
+        PROXY_PID=$$!
         
         # Wait for proxy to be ready
         sleep 5
@@ -42,7 +42,7 @@ steps:
         /usr/local/bin/python /app/api_server/src/manage.py migrate
         
         # Kill proxy
-        kill $PROXY_PID
+        kill $$PROXY_PID
     id: 'run-migrations'
     waitFor: ['push-image']
     env:
