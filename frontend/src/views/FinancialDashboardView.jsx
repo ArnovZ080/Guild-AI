@@ -3,6 +3,7 @@ import { financialApi } from '../services/financialApi.js';
 import { DollarSign, Receipt, TrendingUp, AlertTriangle, LineChart, FileCheck } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line, LineChart as RLineChart, PieChart, Pie, Cell } from 'recharts';
 import FinancialFlowVisualization from '../components/visualizations/FinancialFlowVisualization.jsx';
+import DataSourceBadge from '../components/dashboard/shared/DataSourceBadge.jsx';
 
 const Pill = ({ tone = 'info', children }) => {
   const map = {
@@ -229,6 +230,13 @@ const FinancialDashboardView = () => {
             </h3>
             <Pill tone="good">Up</Pill>
           </div>
+          <div className="flex items-center gap-2 mb-2">
+            <DataSourceBadge 
+              isRealData={false} 
+              recommendedIntegration="Stripe / QuickBooks" 
+              className="text-xs"
+            />
+          </div>
           <div className="text-xs text-gray-500 mb-1">Total recurring revenue flowing in this period.</div>
           <div className="text-2xl font-bold text-gray-900">${analysis?.financial_metrics?.revenue_metrics?.mrr?.current?.toLocaleString?.() || '—'}</div>
           <div className="text-xs text-gray-500 mt-1">Monthly Recurring Revenue</div>
@@ -241,6 +249,13 @@ const FinancialDashboardView = () => {
               Expenses
             </h3>
             <Pill tone="info">Stable</Pill>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <DataSourceBadge 
+              isRealData={false} 
+              recommendedIntegration="QuickBooks / Xero" 
+              className="text-xs"
+            />
           </div>
           <div className="text-xs text-gray-500 mb-1">Total operating costs for the selected period.</div>
           <div className="text-2xl font-bold text-gray-900">${analysis?.financial_metrics?.cash_flow_metrics?.burn_rate?.current?.toLocaleString?.() || '—'}</div>
@@ -255,6 +270,13 @@ const FinancialDashboardView = () => {
             </h3>
             <Pill tone="warn">Needs Attention</Pill>
           </div>
+          <div className="flex items-center gap-2 mb-2">
+            <DataSourceBadge 
+              isRealData={false} 
+              recommendedIntegration="QuickBooks / FreshBooks" 
+              className="text-xs"
+            />
+          </div>
           <div className="text-xs text-gray-500 mb-1">Bills awaiting approval or payment.</div>
           <div className="text-2xl font-bold text-gray-900">—</div>
           <div className="text-xs text-gray-500 mt-1">Pending approvals</div>
@@ -267,6 +289,13 @@ const FinancialDashboardView = () => {
               Cashflow
             </h3>
             <Pill tone={runway >= 12 ? 'good' : runway >= 6 ? 'info' : 'warn'}>{runway >= 12 ? 'Comfortable' : runway >= 6 ? 'Okay' : 'Needs Attention'}</Pill>
+          </div>
+          <div className="flex items-center gap-2 mb-2">
+            <DataSourceBadge 
+              isRealData={false} 
+              recommendedIntegration="QuickBooks / Stripe" 
+              className="text-xs"
+            />
           </div>
           <div className="text-xs text-gray-500 mb-1">How long current cash is expected to last (runway).</div>
           <div className="text-2xl font-bold text-gray-900">{runway ?? '—'} months</div>

@@ -4,6 +4,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import KPIDetailsModal from './KPIDetailsModal.jsx';
 import { AlertTriangle, CheckCircle2, ArrowRight } from 'lucide-react';
 import EnhancedApprovalModal from './modals/EnhancedApprovalModal.jsx';
+import DataSourceBadge from './shared/DataSourceBadge.jsx';
 
 const StatusPill = ({ status, children }) => {
   const normalized = (status || '').toLowerCase();
@@ -147,6 +148,13 @@ const CEOSnapshot = () => {
             <div className="flex items-center justify-between">
               <div className="font-medium text-gray-800">{k.label}</div>
               <StatusPill status={k.status}>{k.status}</StatusPill>
+            </div>
+            <div className="mt-2">
+              <DataSourceBadge 
+                isRealData={false} 
+                recommendedIntegration={k.recommended_integration || "relevant integrations"} 
+                className="text-xs"
+              />
             </div>
             <div className="text-2xl font-bold text-gray-900 mt-1">{k.value}</div>
             <div className="mt-2 text-sm text-blue-600 inline-flex items-center">View details <ArrowRight className="w-4 h-4 ml-1" /></div>

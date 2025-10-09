@@ -16,6 +16,8 @@ from .api.onboarding.routes import router as onboarding_router
 from .api.orchestrator.routes import router as orchestrator_router
 from .api.enhanced_orchestrator_api import router as enhanced_orchestrator_router
 from .api.subscription_api import router as subscription_router
+from .api.integrations.health import router as integrations_health_router
+from .api.analytics.token_usage import router as token_usage_router
 
 # Import agent system
 from .agents.agent_orchestrator import agent_orchestrator
@@ -83,6 +85,10 @@ app.include_router(orchestrator_router)
 app.include_router(enhanced_orchestrator_router)
 # Subscription and agent hiring system
 app.include_router(subscription_router)
+# Integration health monitoring API
+app.include_router(integrations_health_router, prefix="/api/integrations", tags=["integrations"])
+# Token usage tracking and cost monitoring
+app.include_router(token_usage_router, prefix="/api/analytics/token-usage", tags=["analytics"])
 
 @app.get("/")
 async def root():

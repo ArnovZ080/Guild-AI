@@ -17,6 +17,12 @@ from .agent_template import AgentTemplate, AgentCapability, TaskComplexity
 from ..core.llm_client import LlmClient
 from ..core.agent_helpers import inject_knowledge
 
+# Import enhanced evaluator prompts
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent.parent.parent))
+from guild.src.agents.enhanced_judge_prompts import EnhancedEvaluatorPrompts
+
 logger = logging.getLogger(__name__)
 
 class EvaluationStatus(Enum):
@@ -572,43 +578,11 @@ Generate the quality rubric now.
     
     def _build_evaluator_prompt(self, evaluator_id: str, evaluator_info: Dict[str, Any], 
                               deliverable_data: Dict[str, Any], rubric: QualityRubric, task: Dict[str, Any]) -> str:
-        """Build evaluator-specific prompt"""
-        specialization = evaluator_info.get('specialization', 'general_evaluation')
-        
-        return f"""
-# {evaluator_info['name']} - {specialization.title()} Evaluation
-
-## Evaluator Role
-**Specialization:** {specialization}
-**Description:** {evaluator_info['description']}
-
-## Deliverable Data
-{json.dumps(deliverable_data, indent=2)}
-
-## Quality Rubric
-**Task Type:** {rubric.task_type}
-**Objectives:** {json.dumps(rubric.objectives, indent=2)}
-**Criteria:** {json.dumps([{"name": c.name, "description": c.description, "weight": c.weight} for c in rubric.criteria], indent=2)}
-
-## Evaluation Requirements
-Evaluate the deliverable specifically for {specialization}:
-
-1. **Score:** Provide score from 0.0 to 1.0
-2. **Feedback:** Specific feedback on strengths and areas for improvement
-3. **Confidence:** Your confidence in this evaluation (0.0 to 1.0)
-4. **Evidence:** Specific examples from the deliverable
-
-## Output Format
-Return JSON:
-{{
-    "score": 0.85,
-    "feedback": "Detailed feedback with specific examples",
-    "confidence": 0.9,
-    "evidence": ["specific example 1", "specific example 2"]
-}}
-
-Evaluate now focusing on {specialization}.
-"""
+        """Build evaluator-specific prompt using enhanced multi-dimensional prompts"""
+        # Use enhanced prompts for sophisticated evaluation
+        return EnhancedEvaluatorPrompts.get_evaluator_prompt(
+            evaluator_id, evaluator_info, deliverable_data, rubric, task
+        )
     
     def _parse_rubric_response(self, task_id: str, task_type: str, response: str) -> QualityRubric:
         """Parse rubric generation response"""
