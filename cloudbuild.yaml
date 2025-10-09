@@ -87,6 +87,7 @@ steps:
       - '--timeout'
       - '300'
       - '--max-instances'
+      - '--startup-cpu-boost'
       - '10'
       - '--min-instances'
       - '1'
