@@ -1,0 +1,627 @@
+[
+  {
+    "id": "asana",
+    "name": "Asana",
+    "category": "project_management"
+  },
+  {
+    "id": "linear",
+    "name": "Linear",
+    "category": "project_management"
+  },
+  {
+    "id": "monday",
+    "name": "Monday.com",
+    "category": "project_management"
+  },
+  {
+    "id": "notion",
+    "name": "Notion",
+    "category": "productivity"
+  },
+  {
+    "id": "stripe",
+    "name": "Stripe",
+    "category": "payments"
+  },
+  {
+    "id": "hubspot",
+    "name": "HubSpot",
+    "category": "crm"
+  },
+  {
+    "id": "salesforce",
+    "name": "Salesforce",
+    "category": "crm"
+  },
+  {
+    "id": "facebook",
+    "name": "Facebook Business",
+    "category": "social_media"
+  },
+  {
+    "id": "instagram",
+    "name": "Instagram Business",
+    "category": "social_media"
+  },
+  {
+    "id": "linkedin",
+    "name": "LinkedIn",
+    "category": "social_media"
+  },
+  {
+    "id": "slack",
+    "name": "Slack",
+    "category": "communication"
+  },
+  {
+    "id": "gmail",
+    "name": "Gmail",
+    "category": "communication"
+  },
+  {
+    "id": "n8n",
+    "name": "N8N",
+    "category": "automation"
+  },
+  {
+    "id": "zapier",
+    "name": "Zapier",
+    "category": "automation"
+  },
+  {
+    "id": "google_drive",
+    "name": "Google Drive",
+    "category": "productivity"
+  },
+  {
+    "id": "dropbox",
+    "name": "Dropbox",
+    "category": "productivity"
+  },
+  {
+    "id": "whatsapp",
+    "name": "WhatsApp Business",
+    "category": "communication"
+  },
+  {
+    "id": "twitter",
+    "name": "Twitter / X",
+    "category": "social_media"
+  },
+  {
+    "id": "shopify",
+    "name": "Shopify",
+    "category": "ecommerce"
+  },
+  {
+    "id": "github",
+    "name": "GitHub",
+    "category": "development"
+  },
+  {
+    "id": "xero",
+    "name": "Xero",
+    "category": "accounting"
+  },
+  {
+    "id": "quickbooks",
+    "name": "QuickBooks",
+    "category": "accounting"
+  },
+  {
+    "id": "tiktok",
+    "name": "TikTok for Business",
+    "category": "social_media"
+  },
+  {
+    "id": "youtube",
+    "name": "YouTube",
+    "category": "social_media"
+  },
+  {
+    "id": "pinterest",
+    "name": "Pinterest Business",
+    "category": "social_media"
+  },
+  {
+    "id": "google_ads",
+    "name": "Google Ads",
+    "category": "advertising"
+  },
+  {
+    "id": "reddit_ads",
+    "name": "Reddit Ads",
+    "category": "advertising"
+  },
+  {
+    "id": "linkedin_ads",
+    "name": "LinkedIn Ads Manager",
+    "category": "advertising"
+  },
+  {
+    "id": "meta_business_suite",
+    "name": "Meta Business Suite",
+    "category": "advertising"
+  },
+  {
+    "id": "pipedrive",
+    "name": "Pipedrive",
+    "category": "crm"
+  },
+  {
+    "id": "zoho_crm",
+    "name": "Zoho CRM",
+    "category": "crm"
+  },
+  {
+    "id": "activecampaign",
+    "name": "ActiveCampaign",
+    "category": "crm"
+  },
+  {
+    "id": "gohighlevel",
+    "name": "GoHighLevel",
+    "category": "crm"
+  },
+  {
+    "id": "clickfunnels",
+    "name": "ClickFunnels 2.0",
+    "category": "crm"
+  },
+  {
+    "id": "systeme_io",
+    "name": "Systeme.io",
+    "category": "crm"
+  },
+  {
+    "id": "clickup",
+    "name": "ClickUp",
+    "category": "project_management"
+  },
+  {
+    "id": "trello",
+    "name": "Trello",
+    "category": "project_management"
+  },
+  {
+    "id": "basecamp",
+    "name": "Basecamp",
+    "category": "project_management"
+  },
+  {
+    "id": "jira",
+    "name": "Jira",
+    "category": "project_management"
+  },
+  {
+    "id": "paystack",
+    "name": "Paystack",
+    "category": "payments"
+  },
+  {
+    "id": "yoco",
+    "name": "Yoco",
+    "category": "payments"
+  },
+  {
+    "id": "ozow",
+    "name": "Ozow",
+    "category": "payments"
+  },
+  {
+    "id": "wise",
+    "name": "Wise (TransferWise)",
+    "category": "payments"
+  },
+  {
+    "id": "payoneer",
+    "name": "Payoneer",
+    "category": "payments"
+  },
+  {
+    "id": "braintree",
+    "name": "Braintree",
+    "category": "payments"
+  },
+  {
+    "id": "snapscan",
+    "name": "SnapScan",
+    "category": "payments"
+  },
+  {
+    "id": "zapper",
+    "name": "Zapper",
+    "category": "payments"
+  },
+  {
+    "id": "peach_payments",
+    "name": "Peach Payments",
+    "category": "payments"
+  },
+  {
+    "id": "sage",
+    "name": "Sage Business Cloud Accounting",
+    "category": "accounting"
+  },
+  {
+    "id": "freshbooks",
+    "name": "FreshBooks",
+    "category": "accounting"
+  },
+  {
+    "id": "wave",
+    "name": "Wave Accounting",
+    "category": "accounting"
+  },
+  {
+    "id": "zoho_books",
+    "name": "Zoho Books",
+    "category": "accounting"
+  },
+  {
+    "id": "outlook",
+    "name": "Outlook / Office 365 Mail",
+    "category": "communication"
+  },
+  {
+    "id": "telegram",
+    "name": "Telegram",
+    "category": "communication"
+  },
+  {
+    "id": "discord",
+    "name": "Discord",
+    "category": "communication"
+  },
+  {
+    "id": "zoom",
+    "name": "Zoom",
+    "category": "communication"
+  },
+  {
+    "id": "google_meet",
+    "name": "Google Meet",
+    "category": "communication"
+  },
+  {
+    "id": "microsoft_teams",
+    "name": "Microsoft Teams",
+    "category": "communication"
+  },
+  {
+    "id": "twilio",
+    "name": "Twilio",
+    "category": "communication"
+  },
+  {
+    "id": "airtable",
+    "name": "Airtable",
+    "category": "productivity"
+  },
+  {
+    "id": "confluence",
+    "name": "Confluence",
+    "category": "productivity"
+  },
+  {
+    "id": "box",
+    "name": "Box",
+    "category": "productivity"
+  },
+  {
+    "id": "icloud_drive",
+    "name": "iCloud Drive",
+    "category": "productivity"
+  },
+  {
+    "id": "make",
+    "name": "Make (Integromat)",
+    "category": "automation"
+  },
+  {
+    "id": "pabbly",
+    "name": "Pabbly Connect",
+    "category": "automation"
+  },
+  {
+    "id": "tray",
+    "name": "Tray.io",
+    "category": "automation"
+  },
+  {
+    "id": "google_apps_script",
+    "name": "Google Apps Script",
+    "category": "automation"
+  },
+  {
+    "id": "woocommerce",
+    "name": "WooCommerce",
+    "category": "ecommerce"
+  },
+  {
+    "id": "bigcommerce",
+    "name": "BigCommerce",
+    "category": "ecommerce"
+  },
+  {
+    "id": "etsy",
+    "name": "Etsy",
+    "category": "ecommerce"
+  },
+  {
+    "id": "magento",
+    "name": "Magento / Adobe Commerce",
+    "category": "ecommerce"
+  },
+  {
+    "id": "gumroad",
+    "name": "Gumroad",
+    "category": "ecommerce"
+  },
+  {
+    "id": "kajabi",
+    "name": "Kajabi",
+    "category": "ecommerce"
+  },
+  {
+    "id": "teachable",
+    "name": "Teachable",
+    "category": "ecommerce"
+  },
+  {
+    "id": "podia",
+    "name": "Podia",
+    "category": "ecommerce"
+  },
+  {
+    "id": "thinkific",
+    "name": "Thinkific",
+    "category": "ecommerce"
+  },
+  {
+    "id": "payhip",
+    "name": "Payhip",
+    "category": "ecommerce"
+  },
+  {
+    "id": "gitlab",
+    "name": "GitLab",
+    "category": "development"
+  },
+  {
+    "id": "bitbucket",
+    "name": "Bitbucket",
+    "category": "development"
+  },
+  {
+    "id": "aws_cloudwatch",
+    "name": "AWS CloudWatch",
+    "category": "development"
+  },
+  {
+    "id": "cloudflare",
+    "name": "Cloudflare",
+    "category": "development"
+  },
+  {
+    "id": "digitalocean",
+    "name": "DigitalOcean",
+    "category": "development"
+  },
+  {
+    "id": "google_cloud_vertex_ai",
+    "name": "Google Cloud Vertex AI",
+    "category": "development"
+  },
+  {
+    "id": "figma",
+    "name": "Figma",
+    "category": "design"
+  },
+  {
+    "id": "adobe_cc",
+    "name": "Adobe Creative Cloud",
+    "category": "design"
+  },
+  {
+    "id": "midjourney",
+    "name": "Midjourney",
+    "category": "design"
+  },
+  {
+    "id": "stable_diffusion",
+    "name": "Stable Diffusion",
+    "category": "design"
+  },
+  {
+    "id": "runwayml",
+    "name": "RunwayML",
+    "category": "design"
+  },
+  {
+    "id": "descript",
+    "name": "Descript",
+    "category": "design"
+  },
+  {
+    "id": "opusclip",
+    "name": "OpusClip",
+    "category": "design"
+  },
+  {
+    "id": "did",
+    "name": "D-ID",
+    "category": "design"
+  },
+  {
+    "id": "leonardo",
+    "name": "Leonardo AI",
+    "category": "design"
+  },
+  {
+    "id": "lumen5",
+    "name": "Lumen5",
+    "category": "design"
+  },
+  {
+    "id": "synthesia",
+    "name": "Synthesia",
+    "category": "design"
+  },
+  {
+    "id": "zendesk",
+    "name": "Zendesk",
+    "category": "support"
+  },
+  {
+    "id": "freshdesk",
+    "name": "Freshdesk",
+    "category": "support"
+  },
+  {
+    "id": "crisp",
+    "name": "Crisp Chat",
+    "category": "support"
+  },
+  {
+    "id": "drift",
+    "name": "Drift",
+    "category": "support"
+  },
+  {
+    "id": "tidio",
+    "name": "Tidio",
+    "category": "support"
+  },
+  {
+    "id": "livechat",
+    "name": "LiveChat",
+    "category": "support"
+  },
+  {
+    "id": "helpscout",
+    "name": "HelpScout",
+    "category": "support"
+  },
+  {
+    "id": "aircall",
+    "name": "Aircall",
+    "category": "support"
+  },
+  {
+    "id": "justcall",
+    "name": "JustCall",
+    "category": "support"
+  },
+  {
+    "id": "twilio_flex",
+    "name": "Twilio Flex",
+    "category": "support"
+  },
+  {
+    "id": "google_calendar",
+    "name": "Google Calendar",
+    "category": "human_os"
+  },
+  {
+    "id": "outlook_calendar",
+    "name": "Outlook Calendar",
+    "category": "human_os"
+  },
+  {
+    "id": "apple_calendar",
+    "name": "Apple Calendar",
+    "category": "human_os"
+  },
+  {
+    "id": "google_fit",
+    "name": "Google Fit",
+    "category": "human_os"
+  },
+  {
+    "id": "apple_health",
+    "name": "Apple Health",
+    "category": "human_os"
+  },
+  {
+    "id": "openai",
+    "name": "OpenAI API",
+    "category": "human_os"
+  },
+  {
+    "id": "anthropic",
+    "name": "Anthropic (Claude)",
+    "category": "human_os"
+  },
+  {
+    "id": "google_gemini",
+    "name": "Google Gemini",
+    "category": "human_os"
+  },
+  {
+    "id": "snapchat_ads",
+    "name": "Snapchat Ads Manager",
+    "category": "advertising"
+  },
+  {
+    "id": "buffer",
+    "name": "Buffer",
+    "category": "social_media"
+  },
+  {
+    "id": "hootsuite",
+    "name": "Hootsuite",
+    "category": "social_media"
+  },
+  {
+    "id": "later",
+    "name": "Later",
+    "category": "social_media"
+  },
+  {
+    "id": "google_analytics",
+    "name": "Google Analytics 4",
+    "category": "analytics"
+  },
+  {
+    "id": "keap",
+    "name": "Keap (Infusionsoft)",
+    "category": "crm"
+  },
+  {
+    "id": "close",
+    "name": "Close CRM",
+    "category": "crm"
+  },
+  {
+    "id": "freshsales",
+    "name": "Freshsales",
+    "category": "crm"
+  },
+  {
+    "id": "evernote",
+    "name": "Evernote",
+    "category": "productivity"
+  },
+  {
+    "id": "alexa",
+    "name": "Amazon Alexa Skills",
+    "category": "human_os"
+  },
+  {
+    "id": "siri_shortcuts",
+    "name": "Apple Siri Shortcuts",
+    "category": "human_os"
+  },
+  {
+    "id": "taxjar",
+    "name": "TaxJar",
+    "category": "accounting"
+  },
+  {
+    "id": "quickfile",
+    "name": "QuickFile",
+    "category": "accounting"
+  }
+]

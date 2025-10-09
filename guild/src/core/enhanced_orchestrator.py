@@ -24,9 +24,14 @@ from guild.src.core.integration_capability_registry import (
     get_connected_integrations_summary,
     generate_integration_context_for_orchestrator
 )
+# CRITICAL FIX: Import complete integration registry (ALL 125 integrations)
+from guild.src.core.complete_integration_registry import (
+    INTEGRATION_CAPABILITIES as COMPLETE_INTEGRATION_CAPABILITIES,
+    generate_integration_list_for_orchestrator as generate_complete_integration_list
+)
 
-# Import the agent registry
-from guild.src.core.orchestrator import AGENT_REGISTRY
+# Import the complete agent registry (ALL 113 agents)
+from guild.src.core.complete_agent_registry import AGENT_REGISTRY
 
 logger = get_logger(__name__)
 

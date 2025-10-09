@@ -10,65 +10,17 @@ from guild.src.core.llm_client import LlmClient
 from guild.src.models.workflow import Task
 from guild.src.utils.logging_utils import get_logger
 
-# --- Import ALL Agent Classes ---
-# Foundational
-from guild.src.agents.judge_agent import JudgeAgent
-# Executive
-from guild.src.agents.chief_of_staff_agent import ChiefOfStaffAgent
-from guild.src.agents.strategy_agent import StrategyAgent
-from guild.src.agents.strategic_sounding_board_agent import StrategicSoundingBoardAgent
-from guild.src.agents.well_being_agent import WellBeingAgent
-# Temporarily disabled most agents to fix import issues
-from guild.src.agents.accountability_coach_agent import AccountabilityCoachAgent
-# Marketing & Growth
-from guild.src.agents.content_strategist import ContentStrategist
-from guild.src.agents.seo_agent import SEOAgent
-from guild.src.agents.copywriter import Copywriter
-from guild.src.agents.paid_ads_agent import PaidAdsAgent
-from guild.src.agents.pr_outreach_agent import PROutreachAgent
-from guild.src.agents.community_manager_agent import CommunityManagerAgent
-# Sales & Revenue
-from guild.src.agents.sales_funnel_agent import SalesFunnelAgent
-from guild.src.agents.crm_agent import CRMAgent
-from guild.src.agents.outbound_sales_agent import OutboundSalesAgent
-from guild.src.agents.partnerships_agent import PartnershipsAgent
-# Operations
-from guild.src.agents.project_manager_agent import ProjectManagerAgent
-from guild.src.agents.hr_agent import HRAgent
-from guild.src.agents.training_agent import TrainingAgent
-from guild.src.agents.compliance_agent import ComplianceAgent
-from guild.src.agents.skill_development_agent import SkillDevelopmentAgent
-from guild.src.agents.outsourcing_agent import OutsourcingAgent
-# Finance
-from guild.src.agents.bookkeeping_agent import BookkeepingAgent
-from guild.src.agents.investor_relations_agent import InvestorRelationsAgent
-from guild.src.agents.pricing_agent import PricingAgent
-# Product & Customer
-from guild.src.agents.product_manager_agent import ProductManagerAgent
-from guild.src.agents.customer_support_agent import CustomerSupportAgent
-from guild.src.agents.ux_ui_tester_agent import UXUITesterAgent
-from guild.src.agents.churn_predictor_agent import ChurnPredictorAgent
+# --- Import ALL Agent Classes from Complete Registry ---
+# CRITICAL FIX: Using complete agent registry with all 113 agents
+from guild.src.core.complete_agent_registry import AGENT_REGISTRY as COMPLETE_AGENT_REGISTRY
 
-# Additional Agents - All dependencies installed
-from guild.src.agents.business_strategist_agent import BusinessStrategistAgent
-from guild.src.agents.scraper_agent import ScraperAgent
-from guild.src.agents.orchestrator_agent import OrchestratorAgent
-from guild.src.agents.image_generation_agent import ImageGenerationAgent
-from guild.src.agents.video_editor_agent import VideoEditorAgent
-from guild.src.agents.voice_agent import VoiceAgent
-from guild.src.agents.unified_automation_agent import UnifiedAutomationAgent
-from guild.src.agents.onboarding_agent import OnboardingAgent
-from guild.src.agents.lead_personalization_agent import LeadPersonalizationAgent
-from guild.src.agents.research_scraper_agent import ResearchScraperAgent
-from guild.src.agents.telephony_voice_agent import TelephonyVoiceAgent
-from guild.src.agents.wellbeing_workload_agent import WellbeingWorkloadAgent
-from guild.src.agents.crm_automation_agent import CRMAutomationAgent
-from guild.src.agents.hiring_hr_agent import HiringHRAgent
-from guild.src.agents.accounting_agent import AccountingAgent
-
-# Vision & Learning
-from guild.src.agents.visual_agent import VisualAgent
-from guild.src.agents.vision_enhanced_training_agent import VisionEnhancedTrainingAgent
+# Re-export for backward compatibility
+JudgeAgent = COMPLETE_AGENT_REGISTRY.get('JudgeAgent')
+ChiefOfStaffAgent = COMPLETE_AGENT_REGISTRY.get('ChiefOfStaffAgent')
+StrategyAgent = COMPLETE_AGENT_REGISTRY.get('StrategyAgent')
+ContentStrategist = COMPLETE_AGENT_REGISTRY.get('ContentStrategist')
+Copywriter = COMPLETE_AGENT_REGISTRY.get('Copywriter')
+TrainingAgent = COMPLETE_AGENT_REGISTRY.get('TrainingAgent')
 
 logger = get_logger(__name__)
 
@@ -79,65 +31,8 @@ class SimpleWorkflow(BaseModel):
     tasks: List[Task]
 
 # --- The Master Agent Registry ---
-AGENT_REGISTRY = {
-    # Foundational
-    "JudgeAgent": JudgeAgent,
-    # Executive
-    "ChiefOfStaffAgent": ChiefOfStaffAgent,
-    "StrategyAgent": StrategyAgent,
-    "StrategicSoundingBoardAgent": StrategicSoundingBoardAgent,
-    "WellBeingAgent": WellBeingAgent,
-    "AccountabilityCoachAgent": AccountabilityCoachAgent,
-    # Marketing & Growth
-    "ContentStrategist": ContentStrategist,
-    "SEOAgent": SEOAgent,
-    "Copywriter": Copywriter,
-    "PaidAdsAgent": PaidAdsAgent,
-    "PROutreachAgent": PROutreachAgent,
-    "CommunityManagerAgent": CommunityManagerAgent,
-    # Sales & Revenue
-    "SalesFunnelAgent": SalesFunnelAgent,
-    "CRMAgent": CRMAgent,
-    "OutboundSalesAgent": OutboundSalesAgent,
-    "PartnershipsAgent": PartnershipsAgent,
-    # Operations
-    "ProjectManagerAgent": ProjectManagerAgent,
-    "HRAgent": HRAgent,
-    "TrainingAgent": TrainingAgent,
-    "ComplianceAgent": ComplianceAgent,
-    "SkillDevelopmentAgent": SkillDevelopmentAgent,
-    "OutsourcingAgent": OutsourcingAgent,
-    # Finance
-    "BookkeepingAgent": BookkeepingAgent,
-    "InvestorRelationsAgent": InvestorRelationsAgent,
-    "PricingAgent": PricingAgent,
-    # Product & Customer
-    "ProductManagerAgent": ProductManagerAgent,
-    "CustomerSupportAgent": CustomerSupportAgent,
-    "UXUITesterAgent": UXUITesterAgent,
-    "ChurnPredictorAgent": ChurnPredictorAgent,
-    
-    # Additional Agents - All enabled
-    "BusinessStrategistAgent": BusinessStrategistAgent,
-    "ScraperAgent": ScraperAgent,
-    "OrchestratorAgent": OrchestratorAgent,
-    "ImageGenerationAgent": ImageGenerationAgent,
-    "VideoEditorAgent": VideoEditorAgent,
-    "VoiceAgent": VoiceAgent,
-    "UnifiedAutomationAgent": UnifiedAutomationAgent,
-    "OnboardingAgent": OnboardingAgent,
-    "LeadPersonalizationAgent": LeadPersonalizationAgent,
-    "ResearchScraperAgent": ResearchScraperAgent,
-    "TelephonyVoiceAgent": TelephonyVoiceAgent,
-    "WellbeingWorkloadAgent": WellbeingWorkloadAgent,
-    "CRMAutomationAgent": CRMAutomationAgent,
-    "HiringHRAgent": HiringHRAgent,
-    "AccountingAgent": AccountingAgent,
-    
-    # Vision & Learning
-    "VisualAgent": VisualAgent,
-    "VisionEnhancedTrainingAgent": VisionEnhancedTrainingAgent,
-}
+# CRITICAL FIX: Now includes ALL 113 agents from complete registry
+AGENT_REGISTRY = COMPLETE_AGENT_REGISTRY
 
 # --- The Master Orchestrator Prompt ---
 DAG_GENERATION_PROMPT = """
