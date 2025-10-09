@@ -11,7 +11,7 @@ from .security.env_validator import EnvironmentValidator
 # Initialize database tables
 from .database import engine, Base
 from . import models  # noqa: F401
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)  # Disabled: Migrations handle table creation
 
 
 app = FastAPI(
