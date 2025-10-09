@@ -165,7 +165,8 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
   const getIconClasses = (item) => {
     const isActive = activeItem === item.id;
     return cn(
-      "w-5 h-5 transition-all duration-200",
+      "transition-all duration-200",
+      expanded ? "w-5 h-5" : "w-6 h-6",
       isActive ? "text-blue-400" : "text-slate-600 dark:text-slate-300",
       "group-hover:text-blue-400 group-hover:scale-110"
     );
