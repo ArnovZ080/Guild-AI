@@ -39,6 +39,10 @@ ENV DISPLAY=:99
 # Copy all project files into the container
 COPY . .
 
+# Copy and setup entrypoint script
+COPY api_server/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Install Python dependencies from the api_server directory
 RUN pip install --no-cache-dir -r ./api_server/requirements.txt
 
@@ -52,6 +56,9 @@ EXPOSE 5000
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
+
+# Use entrypoint script to wait for dependencies
+ENTRYPOINT ["/app/entrypoint.sh"]
 
 # Run the application
 CMD ["uvicorn", "api_server.src.main:app", "--host", "0.0.0.0", "--port", "5000"]
