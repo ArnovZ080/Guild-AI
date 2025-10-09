@@ -44,6 +44,7 @@ steps:
       - 'FASTAPI_APP_ENV=production'
       - 'RQ_QUEUES={"default": {"HOST": "10.87.64.4", "PORT": 6379, "DB": 0}}'
       - 'DJANGO_SETTINGS_MODULE=api_server.src.django_settings'
+      - 'CLOUDSQL_PUBLIC_IP=YOUR_CLOUD_SQL_PUBLIC_IP'  # Get from: gcloud sql instances describe guild-ai-sql --format='get(ipAddresses[0].ipAddress)'
 
   # Step 4: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'

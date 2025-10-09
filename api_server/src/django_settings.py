@@ -63,17 +63,18 @@ WSGI_APPLICATION = 'api_server.src.wsgi.application'
 
 # Database
 # Database Configuration
-# Check for Cloud SQL (Cloud Run) or local development
+# Handles three scenarios:
+# 1. Cloud Build migrations (uses public IP)
+# 2. Cloud Run deployment (uses Unix socket)
+# 3. Local development (uses 'db' hostname)
 
 CLOUDSQL_CONNECTION_NAME = os.getenv('CLOUDSQL_CONNECTION_NAME')
+CLOUDSQL_PUBLIC_IP = os.getenv('CLOUDSQL_PUBLIC_IP')  # For migrations during Cloud Build
 
 if CLOUDSQL_CONNECTION_NAME:
-    # Cloud Run / Cloud SQL configuration
-    # Use Unix socket for Cloud SQL Proxy
+    # Cloud SQL configuration
     
-    # For Cloud Run, password comes from Secret Manager via the service account
-    # The actual password retrieval is handled by the Cloud SQL Auth Proxy
-    # We can use a placeholder or fetch from Secret Manager if needed
+    # Get password from Secret Manager or environment
     db_password = os.getenv('POSTGRES_PASSWORD', 'placeholder')
     
     # Try to get from Secret Manager if available
@@ -90,10 +91,20 @@ if CLOUDSQL_CONNECTION_NAME:
         # If Secret Manager access fails, use environment variable
         pass
     
+    # Determine connection method
+    # If CLOUDSQL_PUBLIC_IP is set, we're in Cloud Build (migrations)
+    # Otherwise, we're in Cloud Run (use Unix socket)
+    if CLOUDSQL_PUBLIC_IP:
+        # Cloud Build migrations - use public IP with TCP connection
+        db_host = CLOUDSQL_PUBLIC_IP
+    else:
+        # Cloud Run deployment - use Unix socket
+        db_host = f'/cloudsql/{CLOUDSQL_CONNECTION_NAME}'
+    
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'HOST': f'/cloudsql/{CLOUDSQL_CONNECTION_NAME}',
+            'HOST': db_host,
             'NAME': os.getenv('POSTGRES_DB', 'workflow_db'),
             'USER': os.getenv('POSTGRES_USER', 'postgres'),
             'PASSWORD': db_password,
@@ -111,6 +122,7 @@ else:
             'HOST': os.getenv('POSTGRES_HOST', 'db'),
             'PORT': os.getenv('POSTGRES_PORT', '5432'),
         }
+    }
     }
 
 # Password validation
