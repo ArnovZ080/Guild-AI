@@ -21,22 +21,37 @@ steps:
     id: 'push-image'
     waitFor: ['build-image']
 
-  # Step 3: Run Database Migrations (One-off Job)
+  # Step 3: Run Database Migrations (with Cloud SQL Proxy)
   - name: 'gcr.io/$PROJECT_ID/guild-ai:latest'
     entrypoint: 'sh'
     args:
       - '-c'
       - |
+        # Download and setup Cloud SQL Proxy
+        wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /tmp/cloud_sql_proxy
+        chmod +x /tmp/cloud_sql_proxy
+        
+        # Start Cloud SQL Proxy in background
+        /tmp/cloud_sql_proxy -instances=guild-ai-080:us-central1:guild-ai-sql=tcp:5432 &
+        PROXY_PID=$!
+        
+        # Wait for proxy to be ready
+        sleep 5
+        
+        # Run migrations
         /usr/local/bin/python /app/api_server/src/manage.py migrate
+        
+        # Kill proxy
+        kill $PROXY_PID
     id: 'run-migrations'
     waitFor: ['push-image']
     env:
       - 'GOOGLE_CLOUD_PROJECT=guild-ai-080'
-      - 'CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql'
       - 'POSTGRES_USER=postgres'
       - 'POSTGRES_DB=workflow_db'
-      - 'DB_SECRET_NAME=db-root-password'
       - 'POSTGRES_PASSWORD=${_DB_PASSWORD}'
+      - 'POSTGRES_HOST=127.0.0.1'
+      - 'POSTGRES_PORT=5432'
       - 'REDIS_HOST=10.87.64.4'
       - 'REDIS_PORT=6379'
       - 'LLM_PROVIDER=vertex_ai'
@@ -45,7 +60,6 @@ steps:
       - 'FASTAPI_APP_ENV=production'
       - 'RQ_QUEUES={"default": {"HOST": "10.87.64.4", "PORT": 6379, "DB": 0}}'
       - 'DJANGO_SETTINGS_MODULE=api_server.src.django_settings'
-      - 'CLOUDSQL_PUBLIC_IP=35.223.123.143'  # Get from: gcloud sql instances describe guild-ai-sql --format='get(ipAddresses[0].ipAddress)'
 
   # Step 4: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
