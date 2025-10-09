@@ -7,7 +7,7 @@ import asyncio
 from guild.src.agents.content_intelligence_agent import generate_comprehensive_content_intelligence_strategy
 from guild.src.agents.strategy_agent import generate_comprehensive_strategy_plan
 from guild.src.agents.copywriter import generate_comprehensive_copywriting_strategy as copywriter_strategy
-from guild.src.agents.judge_agent import generate_comprehensive_judgement_rubric as judge_rubric  # type: ignore
+from guild.src.agents.judge_agent import generate_comprehensive_quality_evaluation as judge_rubric  # type: ignore
 from guild.src.agents.seo_agent import conduct_comprehensive_seo_analysis  # type: ignore
 from guild.src.agents.compliance_agent import generate_comprehensive_compliance_strategy as compliance_strategy  # type: ignore
 from guild.src.agents.crm_agent import generate_comprehensive_crm_strategy
