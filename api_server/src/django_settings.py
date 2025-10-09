@@ -107,7 +107,6 @@ CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://redis:6379/0')
 
 # Celery Beat Configuration
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
-    'django_rq',
 
 # Celery Task Configuration
 CELERY_TASK_SERIALIZER = 'json'
