@@ -6,7 +6,7 @@ import {
   Shield, Zap, Brain, Users, TrendingUp, FileText, Camera,
   Mic, Headphones, Settings, Star, Heart, Lightbulb, BarChart
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 import apiService from '../../services/api.js';
 
 const OnboardingAgent = ({ onComplete }) => {

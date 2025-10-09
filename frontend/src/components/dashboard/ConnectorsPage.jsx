@@ -6,7 +6,7 @@ import {
   Database, Settings, Activity, Zap, Info, TrendingUp,
   Clock, Shield, ArrowRight
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 import ConnectModal from '../connectors/ConnectModal.jsx';
 import { 
   connectorConfigurations, 

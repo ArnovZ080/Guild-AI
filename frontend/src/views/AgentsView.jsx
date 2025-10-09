@@ -12,7 +12,7 @@ import {
   Workflow, GitBranch, RefreshCw, Upload, Wrench, Network, Link, Share, Headphones
 } from 'lucide-react';
 import { useAgentStatus } from '../hooks/useApiData.js';
-import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from '../components/celebrations/MicroCelebrations.jsx';
 import EnhancedWorkflowBuilder from '../components/workflow/EnhancedWorkflowBuilder.tsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
 import AgentActivityFeed from '../components/transparency/AgentActivityFeed.jsx';

@@ -7,7 +7,7 @@ import {
   BarChart, Wrench, Plus, X, Eye, EyeOff, Video,
   Play, Pause, Square, Monitor, MousePointer, Save, MessageSquare
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 const ConnectorManager = () => {
   const [activeTab, setActiveTab] = useState('available');

@@ -11,7 +11,7 @@ import {
   Filter, Search, RefreshCw, Download, Eye, Settings, Activity,
   Loader
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 // Import modals
 import GrowthOpportunityModal from './modals/GrowthOpportunityModal.jsx';

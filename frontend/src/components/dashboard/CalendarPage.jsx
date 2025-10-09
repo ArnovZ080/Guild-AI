@@ -18,7 +18,7 @@ import DailyWrapUpModal from './modals/DailyWrapUpModal';
 import WeeklyReviewModal from './modals/WeeklyReviewModal';
 import MeetingCompanionOverlay from './calendar/MeetingCompanionOverlay';
 import FocusModeOverlay from './calendar/FocusModeOverlay';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from '../celebrations/MicroCelebrations.jsx';
 
 // Mock data for initial events - will be replaced with API calls
 const mockEvents = [

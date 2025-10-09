@@ -24,7 +24,7 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 // Mock data for calendar events
 const mockEvents = [

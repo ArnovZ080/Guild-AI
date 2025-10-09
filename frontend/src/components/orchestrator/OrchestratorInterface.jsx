@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Mic, MicOff, Bot, User, Sparkles, Zap, Brain, Target, TrendingUp } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 const OrchestratorInterface = () => {
   const [messages, setMessages] = useState([

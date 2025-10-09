@@ -7,7 +7,7 @@ import {
   TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon
 } from 'lucide-react';
 import { useBusinessMetrics } from '../hooks/useApiData.js';
-import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 import ContentPerformanceGarden from '../components/visualizations/ContentPerformanceGarden.jsx';
 import { ProgressMomentumTracker } from '../components/visualizations/ProgressMomentumTracker.tsx';
 

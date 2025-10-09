@@ -5,7 +5,7 @@ import {
   Brain, Heart, AlertCircle, CheckCircle, Clock,
   Settings, User, Bot, MessageSquare, Zap
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 const VoiceAgent = () => {
   const [isRecording, setIsRecording] = useState(false);

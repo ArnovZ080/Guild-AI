@@ -8,7 +8,7 @@ import {
   Link, Zap as ZapIcon, ArrowRight, ArrowDown, Wrench, FileText, Network, Mail, MessageSquare, Share, Headphones, Camera
 } from 'lucide-react';
 import { useWorkflows } from '../hooks/useApiData.js';
-import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from '../components/celebrations/MicroCelebrations.jsx';
 import apiService from '../services/api.js';
 import NoDataPlaceholder from '../components/placeholders/NoDataPlaceholder.jsx';
 

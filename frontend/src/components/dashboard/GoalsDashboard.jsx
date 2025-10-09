@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Edit, TrendingUp, Brain, X, CheckCircle, Clock } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 import AddGoalModal from './modals/AddGoalModal.jsx';
 import GoalDetailModal from './modals/GoalDetailModal.jsx';
 import GoalInsightsModal from './modals/GoalInsightsModal.jsx';

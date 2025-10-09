@@ -8,7 +8,7 @@ import {
   Link, Zap as ZapIcon, Zapier, ArrowRight, ArrowDown, Wrench,
   ExternalLink, Copy, Trash2, Edit, Save, X, Info
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 const AutomationAgent = () => {
   const [activeTab, setActiveTab] = useState('blueprints'); // blueprints, workflows, deploy

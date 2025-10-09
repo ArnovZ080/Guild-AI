@@ -6,7 +6,7 @@ import {
   TrendingUp, TrendingDown, Filter, Download, Upload,
   Lightbulb, Target, Zap, CheckCircle, AlertCircle
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 const MemoryAgent = () => {
   const [memories, setMemories] = useState([

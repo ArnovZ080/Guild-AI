@@ -6,7 +6,7 @@ import OpportunityRadar from '../components/visualizations/OpportunityRadar.jsx'
 import ContentPerformanceGarden from '../components/visualizations/ContentPerformanceGarden.jsx';
 import MarketingCampaignCreator from '../components/MarketingCampaignCreator.jsx';
 import CustomerJourneyConstellation from '../components/visualizations/CustomerJourneyConstellation.jsx';
-import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 import ActionTheater from '../components/theater/ActionTheater.jsx';
 import { AgentActivityTheater } from '../components/theater/AgentActivityTheater.tsx';
 import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow.jsx';

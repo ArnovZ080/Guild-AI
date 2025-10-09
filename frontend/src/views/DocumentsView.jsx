@@ -33,7 +33,7 @@ import {
   SortAsc,
   SortDesc
 } from 'lucide-react';
-import { useCelebrations, CelebrationType } from '../components/psychological/MicroCelebrations.jsx';
+import { useCelebrations, CelebrationType } from "../celebrations/MicroCelebrations.jsx';
 
 // Mock document data with autonomous processing capabilities
 const mockDocuments = [
