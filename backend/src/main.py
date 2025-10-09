@@ -15,6 +15,7 @@ from .api.agents.routes import router as agents_router
 from .api.onboarding.routes import router as onboarding_router
 from .api.orchestrator.routes import router as orchestrator_router
 from .api.enhanced_orchestrator_api import router as enhanced_orchestrator_router
+from .api.subscription_api import router as subscription_router
 
 # Import agent system
 from .agents.agent_orchestrator import agent_orchestrator
@@ -80,6 +81,8 @@ app.include_router(onboarding_router)
 app.include_router(orchestrator_router)
 # Enhanced Orchestrator with full agent and integration awareness
 app.include_router(enhanced_orchestrator_router)
+# Subscription and agent hiring system
+app.include_router(subscription_router)
 
 @app.get("/")
 async def root():
