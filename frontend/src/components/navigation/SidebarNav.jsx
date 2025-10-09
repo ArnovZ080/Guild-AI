@@ -137,11 +137,17 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
   const itemVariants = {
     collapsed: {
       justifyContent: "center",
-      padding: "12px",
+      paddingLeft: "12px",
+      paddingRight: "12px",
+      paddingTop: "12px",
+      paddingBottom: "12px",
     },
     expanded: {
       justifyContent: "flex-start",
-      padding: "12px 16px",
+      paddingLeft: "12px",
+      paddingRight: "16px",
+      paddingTop: "12px",
+      paddingBottom: "12px",
     }
   };
 
