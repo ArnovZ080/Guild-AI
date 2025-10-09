@@ -136,7 +136,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
 
   const itemVariants = {
     collapsed: {
-      justifyContent: "center",
+      justifyContent: "flex-start",
       paddingLeft: "12px",
       paddingRight: "12px",
       paddingTop: "12px",
@@ -155,7 +155,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
     const isActive = activeItem === item.id;
     const isHovered = hoveredItem === item.id;
     return cn(
-      "relative flex items-center w-full rounded-lg transition-all duration-200 group cursor-pointer",
+      "relative flex items-center w-full rounded-lg transition-all duration-200 group cursor-pointer px-3 py-2",
       "hover:bg-white/10 dark:hover:bg-slate-700/50",
       isActive && "bg-white/20 dark:bg-slate-700/70 shadow-lg",
       isHovered && "scale-105"
@@ -167,6 +167,7 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
     return cn(
       "transition-all duration-200",
       expanded ? "w-5 h-5" : "w-6 h-6",
+      "flex-shrink-0",
       isActive ? "text-blue-400" : "text-slate-600 dark:text-slate-300",
       "group-hover:text-blue-400 group-hover:scale-110"
     );
