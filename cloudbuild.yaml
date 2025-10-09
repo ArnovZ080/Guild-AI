@@ -85,7 +85,7 @@ steps:
       - '--cpu'
       - '2'
       - '--timeout'
-      - '300'
+      - '600'
       - '--max-instances'
       - '10'
       - '--min-instances'
@@ -108,6 +108,10 @@ steps:
       - 'guild-ai-080:us-central1:guild-ai-sql'
       - '--service-account'
       - 'guild-ai-cloud-run-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--vpc-connector'
+      - 'guild-ai-vpc-connector'
+      - '--vpc-egress'
+      - 'all'
     id: 'deploy-cloud-run'
     waitFor: ['run-migrations']
 
