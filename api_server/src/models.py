@@ -70,7 +70,7 @@ class AgentActionLog(Base):
     agent_type = Column(String(100), nullable=False)
     action = Column(Text, nullable=False)
     rationale = Column(Text, nullable=True)
-    metadata = Column(JSON, default=lambda: {})
+    action_metadata = Column(JSON, default=lambda: {})
     created_at = Column(DateTime, default=datetime.utcnow)
 
     goal = relationship('Goal', back_populates='actions')
