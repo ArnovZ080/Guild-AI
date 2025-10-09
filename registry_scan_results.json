@@ -1,0 +1,1479 @@
+{
+  "total_agents": 113,
+  "total_integrations": 0,
+  "agents": {
+    "AccountabilityCoachAgent": {
+      "filename": "accountability_coach_agent.py",
+      "class_name": "AccountabilityCoachAgent",
+      "description": "Accountability Coach Agent for Guild-AI\nComprehensive coaching and accountability support using advanced prompting strategies.",
+      "capabilities": [
+        "Personalized goal setting",
+        "Progress tracking and monitoring",
+        "Motivational coaching sessions",
+        "Accountability system implementation",
+        "Focus re-alignment support",
+        "Habit formation guidance",
+        "Crisis support and intervention",
+        "Performance analytics and insights"
+      ],
+      "category": "Executive"
+    },
+    "AccountingAgent": {
+      "filename": "accounting_agent.py",
+      "class_name": "AccountingAgent",
+      "description": "Accounting Agent for Guild-AI\nComprehensive financial data processing and reporting using advanced prompting strategies.",
+      "capabilities": [
+        "Financial data processing and validation",
+        "Accounting report generation",
+        "Financial health analysis",
+        "Budget planning and variance analysis",
+        "Compliance and regulatory reporting",
+        "Business intelligence and insights"
+      ],
+      "category": "Content & Marketing"
+    },
+    "AdPerformanceOptimizerAgent": {
+      "filename": "ad_performance_optimizer_agent.py",
+      "class_name": "AdPerformanceOptimizerAgent",
+      "description": "Ad Performance Optimizer Agent for Guild-AI\nComprehensive advertising performance optimization using advanced prompting strategies.",
+      "capabilities": [
+        "Campaign performance analysis",
+        "Cross-platform optimization",
+        "Budget allocation strategy",
+        "Audience targeting refinement",
+        "Creative performance assessment",
+        "Bid strategy optimization",
+        "A/B testing framework development",
+        "ROI and ROAS maximization"
+      ],
+      "category": "Content & Marketing"
+    },
+    "AffiliatePartnershipsAgent": {
+      "filename": "affiliate_partnerships_agent.py",
+      "class_name": "AffiliatePartnershipsAgent",
+      "description": "Affiliate & Partnerships Agent for Guild-AI\nComprehensive affiliate and partnership management using advanced prompting strategies.",
+      "capabilities": [
+        "Affiliate program development and management",
+        "Partner identification and recruitment",
+        "Commission structure optimization",
+        "Partnership agreement creation",
+        "Performance tracking and analysis",
+        "Partner relationship management",
+        "Promotional resource development",
+        "Compliance and quality control"
+      ],
+      "category": "Content & Marketing"
+    },
+    "AgentEvaluator": {
+      "filename": "agent_evaluator.py",
+      "class_name": "AgentEvaluator",
+      "description": "Agent Evaluator for Guild-AI\nComprehensive agent performance evaluation, quality assessment, and optimization recommendations.",
+      "capabilities": [
+        "Agent performance analysis",
+        "Quality assessment and evaluation",
+        "System optimization recommendations",
+        "Performance monitoring and alerting",
+        "User satisfaction analysis",
+        "A/B testing and experimentation"
+      ],
+      "category": "Content & Marketing"
+    },
+    "AutomationAgent": {
+      "filename": "automation_agent.py",
+      "class_name": "AutomationAgent",
+      "description": "Automation Agent - Manages N8N, Zapier, and Make.com integrations\nProvides autonomous workflow execution capabilities for Guild agents",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "AutomationBridgeAgent": {
+      "filename": "automation_bridge_agent.py",
+      "class_name": "AutomationBridgeAgent",
+      "description": "Automation Bridge Agent for Guild-AI\nComprehensive cross-app automation design and orchestration using advanced prompting strategies.",
+      "capabilities": [
+        "Connector mapping",
+        "Data flow design",
+        "Error handling",
+        "Idempotency",
+        "Monitoring & alerting"
+      ],
+      "category": "Sales & Customer"
+    },
+    "BoardAdvisorAgent": {
+      "filename": "board_advisor_agent.py",
+      "class_name": "BoardAdvisorAgent",
+      "description": "Board Advisor Agent for Guild-AI\nComprehensive board advisory simulation using advanced prompting strategies.",
+      "capabilities": [
+        "Corporate governance and board dynamics",
+        "Strategic decision analysis",
+        "Financial oversight and planning",
+        "Marketing strategy and brand positioning",
+        "Product development and roadmapping",
+        "Risk management and compliance",
+        "Executive leadership coaching",
+        "Stakeholder management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "BookkeepingAgent": {
+      "filename": "bookkeeping_agent.py",
+      "class_name": "BookkeepingAgent",
+      "description": "git branch\nBookkeeping Agent for Guild-AI\nComprehensive financial management and bookkeeping using advanced prompting strategies.",
+      "capabilities": [
+        "Transaction processing and categorization",
+        "Account reconciliation and matching",
+        "Financial report generation",
+        "Expense analysis and tracking",
+        "Compliance and audit support",
+        "Data validation and error detection",
+        "Financial automation and workflow",
+        "Cash flow management and forecasting"
+      ],
+      "category": "Content & Marketing"
+    },
+    "BrandStrategistAgent": {
+      "filename": "brand_strategist_agent.py",
+      "class_name": "BrandStrategistAgent",
+      "description": "Brand Strategist Agent for Guild-AI\nComprehensive brand strategy development using advanced prompting strategies.",
+      "capabilities": [
+        "Brand identity and personality development",
+        "Visual brand consistency management",
+        "Tone and voice standardization",
+        "Brand positioning and differentiation",
+        "Brand architecture and hierarchy",
+        "Brand equity building and protection",
+        "Cross-channel brand consistency",
+        "Brand evolution and growth strategy"
+      ],
+      "category": "Content & Marketing"
+    },
+    "BusinessIntelligenceAgent": {
+      "filename": "business_intelligence_agent.py",
+      "class_name": "BusinessIntelligenceAgent",
+      "description": "Business Intelligence Agent for Guild-AI\nCentral coordinator of insights across the entire Guild ecosystem.\nTransforms raw data from multiple agents into digestible, actionable intelligence.",
+      "capabilities": [
+        "Data aggregation from multiple agents and integrations",
+        "Intelligence synthesis and narrative creation",
+        "Dashboard curation and content prioritization",
+        "Alert generation and risk assessment",
+        "Recommendation engine and action planning",
+        "Goal tracking and progress monitoring",
+        "Executive reporting and decision support",
+        "Performance analytics and trend analysis"
+      ],
+      "category": "Content & Marketing"
+    },
+    "BusinessStrategist": {
+      "filename": "business_strategist.py",
+      "class_name": "BusinessStrategist",
+      "description": "Generates comprehensive business strategy using advanced prompting strategies.\n    Implements the full Business Strategist Agent specification from AGENT_PROMPTS.md.",
+      "capabilities": [
+        "Strategic business planning and analysis",
+        "Market opportunity assessment and analysis",
+        "Competitive intelligence and positioning",
+        "Business model development and optimization",
+        "Growth strategy and scaling planning",
+        "Risk assessment and mitigation planning",
+        "Financial planning and resource allocation",
+        "Strategic decision making and recommendations"
+      ],
+      "category": "Financial"
+    },
+    "BusinessStrategistAgent": {
+      "filename": "business_strategist_agent.py",
+      "class_name": "BusinessStrategistAgent",
+      "description": "Business Strategist Agent for Guild-AI\nComprehensive business strategy and strategic planning using advanced prompting strategies.",
+      "capabilities": [
+        "Strong market position",
+        "Innovative product portfolio",
+        "Experienced leadership team"
+      ],
+      "category": "Financial"
+    },
+    "CalendarHarmonyAgent": {
+      "filename": "calendar_harmony_agent.py",
+      "class_name": "CalendarHarmonyAgent",
+      "description": "Calendar Harmony Agent for Guild-AI\nComprehensive schedule harmonization, time-blocking, and conflict resolution.",
+      "capabilities": [
+        "Time-blocking",
+        "Conflict resolution",
+        "Meeting batching",
+        "Priority-aware scheduling",
+        "Timezone coordination"
+      ],
+      "category": "Executive"
+    },
+    "CelebrationNarratorAgent": {
+      "filename": "celebration_narrator_agent.py",
+      "class_name": "CelebrationNarratorAgent",
+      "description": "Celebration Narrator Agent for Guild-AI\nComprehensive achievement recognition, milestone celebration, and motivation amplification.",
+      "capabilities": [
+        "Achievement recognition and validation",
+        "Milestone celebration design",
+        "Team motivation and morale building",
+        "Progress amplification",
+        "Recognition system design",
+        "Celebration storytelling"
+      ],
+      "category": "Financial"
+    },
+    "ChiefOfStaffAgent": {
+      "filename": "chief_of_staff_agent.py",
+      "class_name": "ChiefOfStaffAgent",
+      "description": "Chief of Staff Agent for Guild-AI\nComprehensive executive coordination and strategic management using advanced prompting strategies.",
+      "capabilities": [
+        "Strategic initiatives",
+        "Critical projects",
+        "Stakeholder deliverables"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ChurnPredictorAgent": {
+      "filename": "churn_predictor_agent.py",
+      "class_name": "ChurnPredictorAgent",
+      "description": "Churn Predictor Agent for Guild-AI\nComprehensive customer retention and churn prediction using advanced prompting strategies.",
+      "capabilities": [
+        "Churn prediction modeling",
+        "Customer behavior analysis",
+        "Risk scoring",
+        "Retention recommendations",
+        "Customer health scoring",
+        "Intervention planning",
+        "Predictive analytics",
+        "Lifetime value optimization"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CommunityConnectorAgent": {
+      "filename": "community_connector_agent.py",
+      "class_name": "CommunityConnectorAgent",
+      "description": "Community Connector Agent for Guild-AI\nComprehensive community building, networking, and relationship management optimization.",
+      "capabilities": [
+        "Network analysis and mapping",
+        "Community building strategy",
+        "Networking opportunity identification",
+        "Relationship management",
+        "Event planning and coordination",
+        "Cross-community collaboration"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CommunityManagerAgent": {
+      "filename": "community_manager_agent.py",
+      "class_name": "CommunityManagerAgent",
+      "description": "Community Manager Agent for Guild-AI\nComprehensive community building and social media management using advanced prompting strategies.",
+      "capabilities": [
+        "Community engagement and relationship building",
+        "Social media content creation and management",
+        "Crisis communication and reputation management",
+        "Brand voice development and consistency",
+        "Audience growth and retention strategies",
+        "Platform-specific optimization",
+        "Sentiment analysis and community insights",
+        "Influencer relations and user-generated content"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CompetitiveIntelligenceAgent": {
+      "filename": "competitive_intelligence_agent.py",
+      "class_name": "CompetitiveIntelligenceAgent",
+      "description": "Competitive Intelligence Agent for Guild-AI\nComprehensive competitor landscape analysis using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ComplianceAgent": {
+      "filename": "compliance_agent.py",
+      "class_name": "ComplianceAgent",
+      "description": "Compliance Agent for Guild-AI\nComprehensive regulatory compliance management using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Executive"
+    },
+    "ConnectorAgent": {
+      "filename": "connector_agent.py",
+      "class_name": "ConnectorAgent",
+      "description": "Connector Agent - Manages integrations with external services and APIs",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ContentIntelligenceAgent": {
+      "filename": "content_intelligence_agent.py",
+      "class_name": "ContentIntelligenceAgent",
+      "description": "Content Intelligence Agent for Guild-AI\nContent & Marketing Director for solopreneurs and SMEs.\nHandles end-to-end content lifecycle: strategy \u2192 creation \u2192 scheduling \u2192 performance tracking \u2192 optimiza",
+      "capabilities": [
+        "Content Planning & Strategy",
+        "Multi-Platform Content Creation",
+        "Campaign Management & Optimization",
+        "Performance Analytics & ROI Tracking",
+        "Brand Consistency & Quality Control",
+        "Audience Segmentation & Targeting",
+        "A/B Testing & Experimentation",
+        "Cross-Platform Integration"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ContentRepurposerAgent": {
+      "filename": "content_repurposer_agent.py",
+      "class_name": "ContentRepurposerAgent",
+      "description": "Content Repurposer Agent for Guild-AI\nComprehensive content transformation using advanced prompting strategies.",
+      "capabilities": [
+        "Content format transformation",
+        "Platform-specific adaptation",
+        "Audience segmentation and targeting",
+        "Engagement optimization",
+        "Content performance analysis",
+        "Multi-channel distribution strategy",
+        "Brand consistency maintenance",
+        "Content lifecycle management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ContentStrategist": {
+      "filename": "content_strategist.py",
+      "class_name": "ContentStrategist",
+      "description": "Generates a comprehensive, data-driven content strategy and calendar using advanced prompting strategies.\n    This function implements the full Content Strategist Agent specification from AGENT_PROMPT",
+      "capabilities": [
+        "Strategic content planning and calendar development",
+        "Audience analysis and market intelligence",
+        "Multi-platform content strategy",
+        "Content performance optimization",
+        "Brand voice and messaging alignment",
+        "Competitive content analysis",
+        "Content workflow management",
+        "ROI and performance tracking"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ContractAnalyzerAgent": {
+      "filename": "contract_analyzer_agent.py",
+      "class_name": "ContractAnalyzerAgent",
+      "description": "Contract Analyzer Agent for Guild-AI\nComprehensive contract analysis using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Intelligence & Research"
+    },
+    "Copywriter": {
+      "filename": "copywriter.py",
+      "class_name": "Copywriter",
+      "description": "Generates comprehensive copywriting strategy using advanced prompting strategies.\n    Implements the full Copywriter Agent specification from AGENT_PROMPTS.md.",
+      "capabilities": [
+        "Persuasive copywriting and conversion optimization",
+        "Audience analysis and persona development",
+        "Brand voice and tone development",
+        "Multi-channel copy strategy",
+        "A/B testing and performance optimization",
+        "Emotional psychology and behavioral triggers",
+        "SEO-optimized content creation",
+        "Call-to-action optimization"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CopywriterAgent": {
+      "filename": "copywriter_agent.py",
+      "class_name": "CopywriterAgent",
+      "description": "Copywriter Agent for Guild-AI\nComprehensive copywriting and content creation using advanced prompting strategies.",
+      "capabilities": [
+        "Persuasive copywriting",
+        "Content creation",
+        "Brand messaging",
+        "A/B testing",
+        "Conversion optimization",
+        "Multi-channel adaptation",
+        "Audience psychology"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CrmAgent": {
+      "filename": "crm_agent.py",
+      "class_name": "CrmAgent",
+      "description": "CRM Agent for Guild-AI\nComprehensive customer relationship management and marketing automation using advanced prompting strategies.",
+      "capabilities": [
+        "CRM platform selection and setup",
+        "Marketing automation workflow design",
+        "Lead scoring and qualification",
+        "Customer segmentation and targeting",
+        "Sales pipeline management",
+        "Customer lifecycle optimization"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CrmAutomationAgent": {
+      "filename": "crm_automation_agent.py",
+      "class_name": "CrmAutomationAgent",
+      "description": "CRM Automation Agent for Guild-AI\nComprehensive CRM integration and workflow automation using advanced prompting strategies.",
+      "capabilities": [
+        "CRM Platforms",
+        "Marketing Automation",
+        "Email Marketing",
+        "Lead Nurturing",
+        "Workflow Design",
+        "Data Synchronization"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CustomerIntelligenceAgent": {
+      "filename": "customer_intelligence_agent.py",
+      "class_name": "CustomerIntelligenceAgent",
+      "description": "Customer Intelligence Agent for Guild-AI\nCustomer Success + CRM Manager for solopreneurs and SMEs.\nHandles customer data unification, relationship management, and retention optimization.",
+      "capabilities": [
+        "Customer Data Unification",
+        "Customer Journey Mapping",
+        "Retention & Churn Prevention",
+        "Customer Segmentation",
+        "Support Intelligence",
+        "Voice of Customer Analysis",
+        "Customer Health Scoring",
+        "Cross-Agent Collaboration",
+        "Sentiment Analysis & Real-time Monitoring",
+        "Data Enrichment & Profile Enhancement",
+        "Autonomous Workflow Orchestration"
+      ],
+      "category": "Content & Marketing"
+    },
+    "CustomerSuccessAgent": {
+      "filename": "customer_success_agent.py",
+      "class_name": "CustomerSuccessAgent",
+      "description": "Customer Success Agent for Guild-AI\nComprehensive customer relationship management using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Sales & Customer"
+    },
+    "CustomerSupportAgent": {
+      "filename": "customer_support_agent.py",
+      "class_name": "CustomerSupportAgent",
+      "description": "Customer Support Agent for Guild-AI\nComprehensive customer support and service management using advanced prompting strategies.",
+      "capabilities": [
+        "Ticket management",
+        "FAQ responses",
+        "Issue escalation",
+        "Customer satisfaction tracking",
+        "Customer communication",
+        "Problem resolution",
+        "Knowledge base management"
+      ],
+      "category": "Sales & Customer"
+    },
+    "DataHygieneAgent": {
+      "filename": "data_hygiene_agent.py",
+      "class_name": "DataHygieneAgent",
+      "description": "Data Hygiene Agent for Guild-AI\nComprehensive deduplication, validation, enrichment, and audit logging.",
+      "capabilities": [
+        "Deduplication",
+        "Validation & normalization",
+        "Enrichment",
+        "Audit logging"
+      ],
+      "category": "Executive"
+    },
+    "DesignQaAgent": {
+      "filename": "design_qa_agent.py",
+      "class_name": "DesignQaAgent",
+      "description": "Design QA Agent for Guild-AI\nComprehensive design quality assurance using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Executive"
+    },
+    "DesktopAutomationAgent": {
+      "filename": "desktop_automation_agent.py",
+      "class_name": "DesktopAutomationAgent",
+      "description": "Desktop Automation Agent for Guild-AI\nComprehensive desktop workflow automation (PyAutoGUI/OpenCV) with resilient execution.",
+      "capabilities": [
+        "Visual targeting",
+        "Stable automation primitives",
+        "Retry/backoff",
+        "Idempotent steps",
+        "Safety & monitoring"
+      ],
+      "category": "Executive"
+    },
+    "EnhancedCampaignAgent": {
+      "filename": "enhanced_campaign_agent.py",
+      "class_name": "EnhancedCampaignAgent",
+      "description": "Enhanced Campaign Agent with Meta Business Suite Integration\n\nThis agent can create, manage, and analyze advertising campaigns across Meta platforms\n(Facebook, Instagram, WhatsApp) with full access to",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "EnhancedMarketingAgent": {
+      "filename": "enhanced_marketing_agent.py",
+      "class_name": "EnhancedMarketingAgent",
+      "description": "Enhanced Marketing Agent - Handles marketing campaigns with image generation capabilities",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "EventMarketingAgent": {
+      "filename": "event_marketing_agent.py",
+      "class_name": "EventMarketingAgent",
+      "description": "Event Marketing Agent for Guild-AI\nComprehensive event planning and marketing using advanced prompting strategies.",
+      "capabilities": [
+        "Event strategy and objective setting",
+        "Event format selection and design",
+        "Content development and speaker management",
+        "Promotional campaign planning",
+        "Platform integration and technical setup",
+        "Attendee experience optimization",
+        "Event analytics and performance measurement",
+        "Post-event engagement and follow-up"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ExpenseOptimizerAgent": {
+      "filename": "expense_optimizer_agent.py",
+      "class_name": "ExpenseOptimizerAgent",
+      "description": "Expense Optimizer Agent for Guild-AI\nComprehensive expense optimization using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Financial"
+    },
+    "FacebookSchedulerAdapter": {
+      "filename": "facebook_scheduler_adapter.py",
+      "class_name": "FacebookSchedulerAdapter",
+      "description": "Minimal Facebook scheduling adapter placeholder.\n    Replace with real Business Manager API calls (Graph API) when credentials are available.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "FeedbackCollectorAgent": {
+      "filename": "feedback_collector_agent.py",
+      "class_name": "FeedbackCollectorAgent",
+      "description": "Feedback Collector Agent for Guild-AI\nComprehensive feedback collection and analysis using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Sales & Customer"
+    },
+    "FinancialIntelligenceAgent": {
+      "filename": "financial_intelligence_agent.py",
+      "class_name": "FinancialIntelligenceAgent",
+      "description": "Financial Intelligence Agent for Guild-AI\nCFO in a box for solopreneurs, entrepreneurs, and SMEs.\nTracks, analyzes, and optimizes financial health with comprehensive insights.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "GrantFundingAgent": {
+      "filename": "grant_funding_agent.py",
+      "class_name": "GrantFundingAgent",
+      "description": "Grant/Funding Agent for Guild-AI\nComprehensive grant and funding opportunity identification using advanced prompting strategies.",
+      "capabilities": [
+        "Grant research and identification",
+        "Accelerator program matching",
+        "Eligibility assessment and optimization",
+        "Application strategy development",
+        "Funding calendar management",
+        "Proposal development guidance",
+        "Alternative funding source identification",
+        "Grant compliance and reporting"
+      ],
+      "category": "Content & Marketing"
+    },
+    "GrowthOpportunityAgent": {
+      "filename": "growth_opportunity_agent.py",
+      "class_name": "GrowthOpportunityAgent",
+      "description": "Growth Opportunity Agent for Guild-AI\nAutonomous growth opportunity identification through intelligent analysis of business data,\ncustomer behavior, market trends, and competitive landscape.\n\nThis age",
+      "capabilities": [
+        "business_intelligence",
+        "customer_intelligence"
+      ],
+      "category": "Content & Marketing"
+    },
+    "HiringHrAgent": {
+      "filename": "hiring_hr_agent.py",
+      "class_name": "HiringHrAgent",
+      "description": "Hiring HR Agent for Guild-AI\nComprehensive recruitment and human resources management using advanced prompting strategies.",
+      "capabilities": [
+        "Job description creation and optimization",
+        "CV screening and candidate evaluation",
+        "Interview planning and coordination",
+        "Onboarding plan development",
+        "HR compliance and policy management",
+        "Talent acquisition strategy",
+        "Performance management and development",
+        "Employee relations and retention"
+      ],
+      "category": "Content & Marketing"
+    },
+    "HrAgent": {
+      "filename": "hr_agent.py",
+      "class_name": "HrAgent",
+      "description": "HR Agent for Guild-AI\nComprehensive human resources management and recruitment using advanced prompting strategies.",
+      "capabilities": [
+        "Recruitment strategy development",
+        "Job description creation",
+        "Interview planning and execution",
+        "Onboarding program design",
+        "Performance management",
+        "Employee relations",
+        "Talent acquisition"
+      ],
+      "category": "Content & Marketing"
+    },
+    "IcpEvolutionAgent": {
+      "filename": "icp_evolution_agent.py",
+      "class_name": "IcpEvolutionAgent",
+      "description": "ICP (Ideal Customer Profile) Evolution Agent for Guild-AI\nContinuously refines ICP using product usage, sales feedback, and market signals.",
+      "capabilities": [
+        "ICP modeling",
+        "Hypothesis loops",
+        "Signal weighting",
+        "Playbook design",
+        "Versioning & governance"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ImageGenerationAgent": {
+      "filename": "image_generation_agent.py",
+      "class_name": "ImageGenerationAgent",
+      "description": "Image Generation Agent for Guild-AI\nComprehensive visual content creation using advanced prompting strategies.",
+      "capabilities": [
+        "AI-powered image generation",
+        "Brand-consistent visual design",
+        "Marketing material development",
+        "Social media visual optimization",
+        "Product mockup creation",
+        "Infographic generation"
+      ],
+      "category": "Content & Marketing"
+    },
+    "InfluencerOutreachAgent": {
+      "filename": "influencer_outreach_agent.py",
+      "class_name": "InfluencerOutreachAgent",
+      "description": "Influencer Outreach Agent for Guild-AI\nComprehensive influencer identification and outreach using advanced prompting strategies.",
+      "capabilities": [
+        "Influencer identification and research",
+        "Audience alignment analysis",
+        "Engagement and authenticity assessment",
+        "Outreach strategy development",
+        "Relationship building and management",
+        "Collaboration planning and execution",
+        "Performance tracking and analysis",
+        "ROI optimization and reporting"
+      ],
+      "category": "Content & Marketing"
+    },
+    "InstagramSchedulerAdapter": {
+      "filename": "instagram_scheduler_adapter.py",
+      "class_name": "InstagramSchedulerAdapter",
+      "description": "Minimal Instagram scheduling adapter placeholder (via Graph API on FB pages).\n    Replace with real IG posting when credentials are available.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "InvestorRelationsAgent": {
+      "filename": "investor_relations_agent.py",
+      "class_name": "InvestorRelationsAgent",
+      "description": "Investor Relations Agent for Guild-AI\nComprehensive investor relations and funding management using advanced prompting strategies.",
+      "capabilities": [
+        "Investor relationship management",
+        "Funding update preparation",
+        "Pitch deck creation",
+        "Due diligence support",
+        "Fundraising strategy and execution",
+        "Capital market analysis",
+        "Regulatory compliance",
+        "Investor education and engagement"
+      ],
+      "category": "Content & Marketing"
+    },
+    "InvestorUpdateAgent": {
+      "filename": "investor_update_agent.py",
+      "class_name": "InvestorUpdateAgent",
+      "description": "Investor Update Agent for Guild-AI\nComprehensive investor update generation using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "JudgeAgent": {
+      "filename": "judge_agent.py",
+      "class_name": "JudgeAgent",
+      "description": "Judge Agent for Guild-AI\nComprehensive quality evaluation and rubric management using advanced prompting strategies.",
+      "capabilities": [
+        "Quality rubric generation",
+        "Deliverable evaluation",
+        "Revision cycle management",
+        "Multi-dimensional assessment",
+        "Brand compliance verification",
+        "Audience alignment validation"
+      ],
+      "category": "Content & Marketing"
+    },
+    "KnowledgeManagementAgent": {
+      "filename": "knowledge_management_agent.py",
+      "class_name": "KnowledgeManagementAgent",
+      "description": "Knowledge Management Agent for Guild-AI\nComprehensive knowledge organization using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "KnowledgeUpdater": {
+      "filename": "knowledge_updater.py",
+      "class_name": "KnowledgeUpdater",
+      "description": "Knowledge Updater for Guild-AI\nComprehensive knowledge management, information synthesis, and learning system optimization.",
+      "capabilities": [
+        "Knowledge gap analysis",
+        "Information source evaluation",
+        "Knowledge synthesis and integration",
+        "Learning system optimization",
+        "Information freshness management",
+        "Continuous learning protocols"
+      ],
+      "category": "Executive"
+    },
+    "LeadPersonalizationAgent": {
+      "filename": "lead_personalization_agent.py",
+      "class_name": "LeadPersonalizationAgent",
+      "description": "Lead Personalization Agent for Guild-AI\nComprehensive lead personalization using advanced sales psychology and prompting strategies.",
+      "capabilities": [
+        "Sales psychology application",
+        "Lead data analysis",
+        "Multi-channel message personalization",
+        "Conversion rate optimization",
+        "Behavioral psychology insights",
+        "A/B testing and optimization"
+      ],
+      "category": "Content & Marketing"
+    },
+    "LearningAgent": {
+      "filename": "learning_agent.py",
+      "class_name": "LearningAgent",
+      "description": "Learning Agent for Guild-AI\nComprehensive skill development, learning path design, and knowledge acquisition optimization.",
+      "capabilities": [
+        "Skill gap analysis",
+        "Learning path design",
+        "Resource curation",
+        "Progress tracking",
+        "Adaptive learning",
+        "Competency assessment"
+      ],
+      "category": "Content & Marketing"
+    },
+    "LinkedinSchedulerAdapter": {
+      "filename": "linkedin_scheduler_adapter.py",
+      "class_name": "LinkedinSchedulerAdapter",
+      "description": "Minimal LinkedIn scheduling adapter placeholder.\n    Replace with real LinkedIn Marketing API calls when credentials are available.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "LocalizationAgent": {
+      "filename": "localization_agent.py",
+      "class_name": "LocalizationAgent",
+      "description": "Localization Agent for Guild-AI\nComprehensive content localization using advanced prompting strategies.",
+      "capabilities": [
+        "Cultural adaptation and sensitivity",
+        "Language translation and localization",
+        "Market-specific content optimization",
+        "Regional compliance and regulations",
+        "Visual and design localization",
+        "Messaging effectiveness across cultures",
+        "Local SEO and digital presence",
+        "Cross-cultural user experience"
+      ],
+      "category": "Content & Marketing"
+    },
+    "MarketTrendsAgent": {
+      "filename": "market_trends_agent.py",
+      "class_name": "MarketTrendsAgent",
+      "description": "Market Trends Agent for Guild-AI\nComprehensive market trend analysis using advanced prompting strategies.",
+      "capabilities": [
+        "Indicator synthesis",
+        "Trend quantification",
+        "Segmentation & geo analysis",
+        "Forecast framing",
+        "Actionable recommendations"
+      ],
+      "category": "Content & Marketing"
+    },
+    "MarketingAgent": {
+      "filename": "marketing_agent.py",
+      "class_name": "MarketingAgent",
+      "description": "Marketing Agent for Guild-AI\nComprehensive marketing strategy and campaign management using advanced prompting strategies.",
+      "capabilities": [
+        "Marketing strategy development",
+        "Campaign planning and execution",
+        "Brand positioning and messaging",
+        "Multi-channel marketing",
+        "Performance optimization",
+        "Customer acquisition",
+        "Marketing analytics"
+      ],
+      "category": "Content & Marketing"
+    },
+    "MeetingNotesAgent": {
+      "filename": "meeting_notes_agent.py",
+      "class_name": "MeetingNotesAgent",
+      "description": "Meeting Notes Agent for Guild-AI\nComprehensive meeting documentation using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "MotivationCoachAgent": {
+      "filename": "motivation_coach_agent.py",
+      "class_name": "MotivationCoachAgent",
+      "description": "Motivation Coach Agent for Guild-AI\nPersonalized motivation, habit systems, and accountability nudges.",
+      "capabilities": [
+        "Tiny-habits",
+        "Motivational interviewing",
+        "Streaks & cues",
+        "Check-ins & accountability",
+        "Celebration & reward"
+      ],
+      "category": "Executive"
+    },
+    "MultiChannelInboxAgent": {
+      "filename": "multi_channel_inbox_agent.py",
+      "class_name": "MultiChannelInboxAgent",
+      "description": "Multi-Channel Inbox Agent for Guild-AI\nUnified triage and routing across email, Slack, and other channels.",
+      "capabilities": [
+        "Priority detection",
+        "Rule-based routing",
+        "Auto-replies",
+        "Assignments",
+        "Batching"
+      ],
+      "category": "Executive"
+    },
+    "OkrGoalTrackingAgent": {
+      "filename": "okr_goal_tracking_agent.py",
+      "class_name": "OkrGoalTrackingAgent",
+      "description": "OKR/Goal Tracking Agent for Guild-AI\nComprehensive OKR and goal tracking using advanced prompting strategies.",
+      "capabilities": [
+        "OKR methodology and implementation",
+        "Goal setting and progress tracking",
+        "Performance metrics and analytics",
+        "Strategic alignment and business focus",
+        "Accountability systems and reminders",
+        "Milestone planning and achievement",
+        "Reporting and visualization",
+        "Adaptive goal management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "OnboardingAgent": {
+      "filename": "onboarding_agent.py",
+      "class_name": "OnboardingAgent",
+      "description": "Generates comprehensive onboarding strategy using advanced prompting strategies.\n    Implements the full Onboarding Agent specification from AGENT_PROMPTS.md.",
+      "capabilities": [
+        "Welcome user",
+        "Explain process",
+        "Set expectations"
+      ],
+      "category": "Content & Marketing"
+    },
+    "OrchestrationTuner": {
+      "filename": "orchestration_tuner.py",
+      "class_name": "OrchestrationTuner",
+      "description": "Orchestration Tuner for Guild-AI\nComprehensive workflow orchestration optimization, agent coordination, and system tuning.",
+      "capabilities": [
+        "Workflow orchestration optimization",
+        "Agent coordination pattern analysis",
+        "Multi-agent system performance tuning",
+        "Resource allocation and load balancing",
+        "Parallel execution optimization",
+        "System bottleneck identification"
+      ],
+      "category": "Content & Marketing"
+    },
+    "OrchestratorAgent": {
+      "filename": "orchestrator_agent.py",
+      "class_name": "OrchestratorAgent",
+      "description": "Orchestrator Agent for Guild-AI\nComprehensive workflow orchestration and multi-agent coordination using advanced prompting strategies.",
+      "capabilities": [
+        "id",
+        "agent_{i}"
+      ],
+      "category": "Content & Marketing"
+    },
+    "OutboundSalesAgent": {
+      "filename": "outbound_sales_agent.py",
+      "class_name": "OutboundSalesAgent",
+      "description": "Outbound Sales Agent for Guild-AI\nComprehensive sales outreach and lead generation using advanced prompting strategies.",
+      "capabilities": [
+        "Lead research and data scraping",
+        "Personalized outreach message creation",
+        "Multi-channel campaign management",
+        "Lead qualification and scoring",
+        "Sales pipeline management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "OutsourcingAgent": {
+      "filename": "outsourcing_agent.py",
+      "class_name": "OutsourcingAgent",
+      "description": "Generates comprehensive outsourcing strategy using advanced prompting strategies.\n    Implements the full Outsourcing Agent specification from AGENT_PROMPTS.md.",
+      "capabilities": [
+        "Task analysis and outsourcing assessment",
+        "Freelancer sourcing and platform management",
+        "Job posting creation and optimization",
+        "Freelancer evaluation and selection",
+        "Project management and communication",
+        "Quality assurance and delivery management",
+        "Payment processing and contract management",
+        "Vendor relationship management"
+      ],
+      "category": "Executive"
+    },
+    "PaidAdsAgent": {
+      "filename": "paid_ads_agent.py",
+      "class_name": "PaidAdsAgent",
+      "description": "Paid Ads Agent - Manages paid advertising campaigns across platforms",
+      "capabilities": [
+        "Multi-platform campaign management",
+        "Audience targeting and segmentation",
+        "Ad creative development and optimization",
+        "Budget allocation and management",
+        "A/B testing and performance optimization",
+        "Campaign analytics and reporting",
+        "Conversion tracking and attribution",
+        "Platform-specific best practices"
+      ],
+      "category": "Content & Marketing"
+    },
+    "PartnershipsAgent": {
+      "filename": "partnerships_agent.py",
+      "class_name": "PartnershipsAgent",
+      "description": "Partnerships Agent for Guild-AI\nComprehensive strategic partnerships and business development using advanced prompting strategies.",
+      "capabilities": [
+        "Partnership opportunity identification",
+        "Strategic partnership evaluation",
+        "Partnership deal structuring",
+        "Alliance relationship management",
+        "Partnership performance optimization",
+        "Business development strategy",
+        "Joint venture management",
+        "Channel partnership development"
+      ],
+      "category": "Content & Marketing"
+    },
+    "PrOutreachAgent": {
+      "filename": "pr_outreach_agent.py",
+      "class_name": "PrOutreachAgent",
+      "description": "PR Outreach Agent for Guild-AI\nComprehensive public relations and media outreach using advanced prompting strategies.",
+      "capabilities": [
+        "Press release writing and distribution",
+        "Media contact identification and management",
+        "Pitch development and outreach",
+        "Backlink strategy and execution",
+        "Crisis communication management",
+        "Brand messaging and narrative development",
+        "Media monitoring and coverage analysis",
+        "Relationship building and management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "PricingAgent": {
+      "filename": "pricing_agent.py",
+      "class_name": "PricingAgent",
+      "description": "Pricing Agent for Guild-AI\nOptimizes pricing strategy and testing.",
+      "capabilities": [
+        "Pricing strategy development and optimization",
+        "Competitive pricing analysis and benchmarking",
+        "Value-based pricing and customer value assessment",
+        "A/B testing and pricing experiments",
+        "Dynamic pricing and revenue optimization",
+        "Price psychology and behavioral economics",
+        "Market positioning and pricing models",
+        "Revenue forecasting and pricing analytics"
+      ],
+      "category": "Financial"
+    },
+    "PricingIntelligenceAgent": {
+      "filename": "pricing_intelligence_agent.py",
+      "class_name": "PricingIntelligenceAgent",
+      "description": "Pricing Intelligence Agent for Guild-AI\nComprehensive pricing research, elasticity analysis, and packaging recommendations.",
+      "capabilities": [
+        "Competitor benchmarking",
+        "WTP synthesis",
+        "Elasticity modeling",
+        "Packaging design",
+        "Experiment rollout"
+      ],
+      "category": "Financial"
+    },
+    "ProductManagerAgent": {
+      "filename": "product_manager_agent.py",
+      "class_name": "ProductManagerAgent",
+      "description": "Product Manager Agent for Guild-AI\nComprehensive product strategy and development management using advanced prompting strategies.",
+      "capabilities": [
+        "Product roadmap planning",
+        "Feature prioritization",
+        "Customer feedback analysis",
+        "Product strategy development",
+        "Market research and analysis",
+        "Product-market fit optimization",
+        "Release management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ProjectManagerAgent": {
+      "filename": "project_manager_agent.py",
+      "class_name": "ProjectManagerAgent",
+      "description": "Project Manager Agent for Guild-AI\nComprehensive project coordination and management using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ProposalWriterAgent": {
+      "filename": "proposal_writer_agent.py",
+      "class_name": "ProposalWriterAgent",
+      "description": "Proposal Writer Agent for Guild-AI\nComprehensive proposal development using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ResearchAgent": {
+      "filename": "research_agent.py",
+      "class_name": "ResearchAgent",
+      "description": "Research Agent for Guild-AI\nComprehensive research and information gathering using advanced prompting strategies.",
+      "capabilities": [
+        "Information gathering",
+        "Web research",
+        "Data analysis",
+        "Source validation",
+        "Market research",
+        "Competitive analysis",
+        "Knowledge synthesis"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ResearchScraperAgent": {
+      "filename": "research_scraper_agent.py",
+      "class_name": "ResearchScraperAgent",
+      "description": "Research & Scraper Agent for Guild-AI\nComprehensive research and data collection using advanced prompting strategies.",
+      "capabilities": [
+        "Web research and data collection",
+        "Market intelligence gathering",
+        "Competitive analysis",
+        "Data validation and cleaning",
+        "Trend analysis and forecasting",
+        "Source verification and fact-checking"
+      ],
+      "category": "Content & Marketing"
+    },
+    "RiskManagementAgent": {
+      "filename": "risk_management_agent.py",
+      "class_name": "RiskManagementAgent",
+      "description": "Risk Management Agent for Guild-AI\nComprehensive risk identification and mitigation using advanced prompting strategies.",
+      "capabilities": [
+        "Legal and regulatory compliance risk assessment",
+        "Operational and process risk identification",
+        "Financial and market risk analysis",
+        "Strategic and business model risk evaluation",
+        "Cybersecurity and data protection risk management",
+        "Reputational and brand risk monitoring",
+        "Supply chain and vendor risk assessment",
+        "Human capital and talent risk mitigation"
+      ],
+      "category": "Content & Marketing"
+    },
+    "SalesFunnelAgent": {
+      "filename": "sales_funnel_agent.py",
+      "class_name": "SalesFunnelAgent",
+      "description": "Sales Funnel Agent for Guild-AI\nComprehensive sales funnel optimization and conversion rate enhancement using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ScalabilityAgent": {
+      "filename": "scalability_agent.py",
+      "class_name": "ScalabilityAgent",
+      "description": "Scalability Agent for Guild-AI\nComprehensive scalability analysis, performance optimization, and growth planning.",
+      "capabilities": [
+        "Performance analysis and optimization",
+        "Bottleneck identification and resolution",
+        "Scalability architecture design",
+        "Capacity planning and forecasting",
+        "Cost optimization for scale",
+        "Performance monitoring and alerting"
+      ],
+      "category": "Financial"
+    },
+    "ScenarioPlannerAgent": {
+      "filename": "scenario_planner_agent.py",
+      "class_name": "ScenarioPlannerAgent",
+      "description": "Scenario Planner Agent for Guild-AI\nComprehensive scenario planning and \"what if\" modeling using advanced prompting strategies.",
+      "capabilities": [
+        "Strategic foresight and scenario development",
+        "Financial modeling and projection",
+        "Risk assessment and mitigation planning",
+        "Resource allocation optimization",
+        "Sensitivity analysis and stress testing",
+        "Decision tree and contingency planning",
+        "Business model simulation",
+        "Market condition modeling"
+      ],
+      "category": "Content & Marketing"
+    },
+    "ScraperAgent": {
+      "filename": "scraper_agent.py",
+      "class_name": "ScraperAgent",
+      "description": "Advanced Scraper Agent for Guild-AI\nComprehensive lead prospecting and data collection using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "SecurityAgent": {
+      "filename": "security_agent.py",
+      "class_name": "SecurityAgent",
+      "description": "Security Agent for Guild-AI\nComprehensive security assessment, threat analysis, and protection strategy optimization.",
+      "capabilities": [
+        "Security risk assessment",
+        "Threat analysis and modeling",
+        "Vulnerability identification",
+        "Security control evaluation",
+        "Incident response planning",
+        "Compliance management"
+      ],
+      "category": "Financial"
+    },
+    "SeoAgent": {
+      "filename": "seo_agent.py",
+      "class_name": "SeoAgent",
+      "description": "SEO Agent - Comprehensive SEO optimization and analysis using advanced prompting strategies",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "SkillDevelopmentAgent": {
+      "filename": "skill_development_agent.py",
+      "class_name": "SkillDevelopmentAgent",
+      "description": "Generates comprehensive skill development strategy using advanced prompting strategies.\n    Implements the full Skill Development Agent specification from AGENT_PROMPTS.md.",
+      "capabilities": [
+        "Skill gap analysis and assessment",
+        "Personalized learning plan development",
+        "Learning resource curation and recommendation",
+        "Industry insight and trend analysis",
+        "Practical application project design",
+        "Learning progress tracking and optimization",
+        "Business-aligned skill development",
+        "Micro-learning and just-in-time training"
+      ],
+      "category": "Content & Marketing"
+    },
+    "SopAgent": {
+      "filename": "sop_agent.py",
+      "class_name": "SopAgent",
+      "description": "SOP (Standard Operating Procedure) Agent for Guild-AI\nComprehensive process documentation using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "StorageAgent": {
+      "filename": "storage_agent.py",
+      "class_name": "StorageAgent",
+      "description": "Storage Agent - Manages local and cloud data storage for sensitive business information",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "StrategicSoundingBoardAgent": {
+      "filename": "strategic_sounding_board_agent.py",
+      "class_name": "StrategicSoundingBoardAgent",
+      "description": "Strategic Sounding Board Agent for Guild-AI\nComprehensive strategic advisory and decision support using advanced prompting strategies.",
+      "capabilities": [
+        "Strategic decision analysis",
+        "Assumption challenging",
+        "Alternative perspective generation",
+        "Risk-benefit assessment",
+        "Implementation feasibility analysis",
+        "Strategic framework application",
+        "Executive decision support",
+        "Market and competitive analysis"
+      ],
+      "category": "Financial"
+    },
+    "StrategyAgent": {
+      "filename": "strategy_agent.py",
+      "class_name": "StrategyAgent",
+      "description": "Strategy Agent for Guild-AI\nComprehensive strategic planning and market analysis using advanced prompting strategies.",
+      "capabilities": [
+        "AI-powered market penetration",
+        "Automated customer acquisition",
+        "Intelligent process optimization",
+        "Data-driven decision making"
+      ],
+      "category": "Content & Marketing"
+    },
+    "SupplierResearchAgent": {
+      "filename": "supplier_research_agent.py",
+      "class_name": "SupplierResearchAgent",
+      "description": "Supplier Research Agent for Guild-AI\nComprehensive supplier discovery, vetting, and selection recommendations.",
+      "capabilities": [
+        "name",
+        ",",
+        ":",
+        ",",
+        ":",
+        ",",
+        ":["
+      ],
+      "category": "Financial"
+    },
+    "TaxAdvisorAgent": {
+      "filename": "tax_advisor_agent.py",
+      "class_name": "TaxAdvisorAgent",
+      "description": "Tax Advisor Agent for Guild-AI\nComprehensive tax compliance and advisory using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Financial"
+    },
+    "TelephonyVoiceAgent": {
+      "filename": "telephony_voice_agent.py",
+      "class_name": "TelephonyVoiceAgent",
+      "description": "Telephony/Voice Calls Agent - Manages voice communications and telephony operations",
+      "capabilities": [
+        "Voice call management and automation",
+        "Telephony integration and provider management",
+        "Speech-to-text processing and transcription",
+        "Text-to-speech generation and voice synthesis",
+        "Call analytics and performance monitoring",
+        "Voice message automation and scheduling",
+        "Call routing and customer service",
+        "Compliance and regulatory management"
+      ],
+      "category": "Content & Marketing"
+    },
+    "TiktokSchedulerAdapter": {
+      "filename": "tiktok_scheduler_adapter.py",
+      "class_name": "TiktokSchedulerAdapter",
+      "description": "Minimal TikTok scheduling adapter placeholder.\n    Replace with real TikTok API integration when credentials are available.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "TrainingAgent": {
+      "filename": "training_agent.py",
+      "class_name": "TrainingAgent",
+      "description": "Training Agent - Builds and updates internal SOP libraries and delivers micro-trainings",
+      "capabilities": [
+        "Training program design and development",
+        "Standard Operating Procedure (SOP) creation and maintenance",
+        "Micro-learning and just-in-time training",
+        "Knowledge management and documentation",
+        "Instructional design and learning theory",
+        "Process documentation and workflow design",
+        "Training delivery and assessment",
+        "Continuous learning and improvement"
+      ],
+      "category": "Content & Marketing"
+    },
+    "TrendSpotterAgent": {
+      "filename": "trend_spotter_agent.py",
+      "class_name": "TrendSpotterAgent",
+      "description": "Trend Spotter Agent for Guild-AI\nComprehensive trend detection and insight generation using advanced prompting strategies.",
+      "capabilities": [
+        "Weak-signal detection",
+        "Cross-source triangulation",
+        "Theme clustering",
+        "Opportunity mapping",
+        "Risk scanning",
+        "Indicator framework design"
+      ],
+      "category": "Content & Marketing"
+    },
+    "TwitterSchedulerAdapter": {
+      "filename": "twitter_scheduler_adapter.py",
+      "class_name": "TwitterSchedulerAdapter",
+      "description": "Minimal Twitter/X scheduling adapter placeholder.\n    Replace with real X API posting when credentials are available.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "UnifiedAutomationAgent": {
+      "filename": "unified_automation_agent.py",
+      "class_name": "UnifiedAutomationAgent",
+      "description": "Unified Automation Agent for Guild-AI\n\nThis agent combines visual automation (PyAutoGUI, OpenCV) and web automation (Selenium)\nto provide comprehensive automation capabilities for any application or w",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Executive"
+    },
+    "UpsellCrossSellAgent": {
+      "filename": "upsell_cross_sell_agent.py",
+      "class_name": "UpsellCrossSellAgent",
+      "description": "Upsell/Cross-sell Agent for Guild-AI\nComprehensive revenue expansion strategy using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Financial"
+    },
+    "UxUiTesterAgent": {
+      "filename": "ux_ui_tester_agent.py",
+      "class_name": "UxUiTesterAgent",
+      "description": "UX/UI Tester Agent for Guild-AI\nAnalyzes product usability and suggests design improvements.",
+      "capabilities": [
+        "Usability testing and analysis",
+        "Design consistency evaluation",
+        "Accessibility compliance assessment",
+        "User experience optimization",
+        "Design system recommendations",
+        "Performance and usability metrics",
+        "User journey analysis",
+        "Interface testing and validation"
+      ],
+      "category": "Executive"
+    },
+    "VendorManagementAgent": {
+      "filename": "vendor_management_agent.py",
+      "class_name": "VendorManagementAgent",
+      "description": "Vendor Management Agent for Guild-AI\nComprehensive supplier relationship management using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Executive"
+    },
+    "VideoEditorAgent": {
+      "filename": "video_editor_agent.py",
+      "class_name": "VideoEditorAgent",
+      "description": "Video Editor Agent for Guild-AI\n\nThis agent provides video editing capabilities using MoviePy for creating\nmarketing videos, social media content, and other video materials.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "VisionEnhancedTrainingAgent": {
+      "filename": "vision_enhanced_training_agent.py",
+      "class_name": "VisionEnhancedTrainingAgent",
+      "description": "Vision-Enhanced Training Agent for Guild AI\n\nThis agent extends the Training Agent with computer vision capabilities to:\n- Learn from visual demonstrations\n- Create visual SOPs with screenshots\n- Auto",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "VisualAgent": {
+      "filename": "visual_agent.py",
+      "class_name": "VisualAgent",
+      "description": "Visual Agent for Guild AI\n\nThis agent specializes in visual tasks and can use the computer vision system\nto interact with GUIs, learn from demonstrations, and automate visual workflows.",
+      "capabilities": [
+        "click",
+        "type",
+        "scroll",
+        "screenshot"
+      ],
+      "category": "Content & Marketing"
+    },
+    "VoiceAgent": {
+      "filename": "voice_agent.py",
+      "class_name": "VoiceAgent",
+      "description": "Voice Agent for Guild-AI\nComprehensive audio processing and voice communication using advanced prompting strategies.",
+      "capabilities": [
+        "Text-to-speech generation",
+        "Speech-to-text transcription",
+        "Audio quality enhancement",
+        "Voice communication optimization",
+        "Accessibility and inclusive design",
+        "Multi-language audio processing"
+      ],
+      "category": "Content & Marketing"
+    },
+    "VoicePersonaAgent": {
+      "filename": "voice_persona_agent.py",
+      "class_name": "VoicePersonaAgent",
+      "description": "Voice Persona Agent for Guild-AI\nComprehensive voice and tone development using advanced prompting strategies.",
+      "capabilities": [
+        "multi_purpose_agent"
+      ],
+      "category": "Content & Marketing"
+    },
+    "WellBeingAgent": {
+      "filename": "well_being_agent.py",
+      "class_name": "WellBeingAgent",
+      "description": "Generates comprehensive wellbeing strategy using advanced prompting strategies.\n    Implements the full Well-being Agent specification from AGENT_PROMPTS.md.",
+      "capabilities": [
+        "Workload analysis and optimization",
+        "Burnout prevention and risk assessment",
+        "Time management and productivity coaching",
+        "Work-life balance optimization",
+        "Stress management and mental health support",
+        "Behavioral nudges and habit formation",
+        "Scheduling optimization and calendar management",
+        "Performance monitoring and analytics"
+      ],
+      "category": "Executive"
+    },
+    "WellbeingAgent": {
+      "filename": "wellbeing_agent.py",
+      "class_name": "WellbeingAgent",
+      "description": "Well-being & Workload Optimization Agent - Monitors and optimizes team well-being and workload distribution.",
+      "capabilities": [
+        "Team wellbeing monitoring and assessment",
+        "Workload distribution optimization",
+        "Burnout prevention and risk management",
+        "Work-life balance promotion",
+        "Productivity metrics and analytics",
+        "Stress management and mental health support",
+        "Team performance optimization",
+        "Organizational health and culture"
+      ],
+      "category": "Content & Marketing"
+    },
+    "WellbeingWorkloadAgent": {
+      "filename": "wellbeing_workload_agent.py",
+      "class_name": "WellbeingWorkloadAgent",
+      "description": "Well-being & Workload Optimization Agent - Monitors workload and prevents burnout",
+      "capabilities": [
+        "Workload analysis and utilization tracking",
+        "Burnout prevention and risk assessment",
+        "Time management and productivity optimization",
+        "Work-life balance and scheduling",
+        "Stress management and mental health support",
+        "Behavioral nudges and habit formation",
+        "Performance monitoring and analytics",
+        "Sustainable productivity coaching"
+      ],
+      "category": "Sales & Customer"
+    },
+    "WellnessAgent": {
+      "filename": "wellness_agent.py",
+      "class_name": "WellnessAgent",
+      "description": "Wellness Agent for Guild-AI\nComprehensive wellness coaching, stress management, and work-life balance optimization.",
+      "capabilities": [
+        "Stress assessment and management",
+        "Work-life balance optimization",
+        "Energy management coaching",
+        "Mental health awareness",
+        "Burnout prevention",
+        "Wellness routine design"
+      ],
+      "category": "Content & Marketing"
+    }
+  },
+  "integrations": {},
+  "agent_categories": {
+    "Executive": 14,
+    "Content & Marketing": 81,
+    "Sales & Customer": 5,
+    "Financial": 12,
+    "Intelligence & Research": 1
+  },
+  "integration_categories": {}
+}
