@@ -62,16 +62,56 @@ TEMPLATES = [
 WSGI_APPLICATION = 'api_server.src.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('POSTGRES_DB', 'workflow_db'),
-        'USER': os.getenv('POSTGRES_USER', 'postgres'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'password'),
-        'HOST': os.getenv('POSTGRES_HOST', 'db'),
-        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+# Database Configuration
+# Check for Cloud SQL (Cloud Run) or local development
+
+CLOUDSQL_CONNECTION_NAME = os.getenv('CLOUDSQL_CONNECTION_NAME')
+
+if CLOUDSQL_CONNECTION_NAME:
+    # Cloud Run / Cloud SQL configuration
+    # Use Unix socket for Cloud SQL Proxy
+    
+    # For Cloud Run, password comes from Secret Manager via the service account
+    # The actual password retrieval is handled by the Cloud SQL Auth Proxy
+    # We can use a placeholder or fetch from Secret Manager if needed
+    db_password = os.getenv('POSTGRES_PASSWORD', 'placeholder')
+    
+    # Try to get from Secret Manager if available
+    try:
+        from google.cloud import secretmanager
+        client = secretmanager.SecretManagerServiceClient()
+        secret_name = os.getenv('DB_SECRET_NAME', 'db-root-password')
+        project_id = os.getenv('GOOGLE_CLOUD_PROJECT')
+        if project_id and secret_name:
+            name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+            response = client.access_secret_version(request={"name": name})
+            db_password = response.payload.data.decode("UTF-8")
+    except Exception as e:
+        # If Secret Manager access fails, use environment variable
+        pass
+    
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'HOST': f'/cloudsql/{CLOUDSQL_CONNECTION_NAME}',
+            'NAME': os.getenv('POSTGRES_DB', 'workflow_db'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': db_password,
+            'PORT': '5432',
+        }
     }
-}
+else:
+    # Local development configuration
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('POSTGRES_DB', 'workflow_db'),
+            'USER': os.getenv('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'password'),
+            'HOST': os.getenv('POSTGRES_HOST', 'db'),
+            'PORT': os.getenv('POSTGRES_PORT', '5432'),
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
