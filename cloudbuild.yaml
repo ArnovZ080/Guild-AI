@@ -36,6 +36,7 @@ steps:
       - 'POSTGRES_USER=postgres'
       - 'POSTGRES_DB=workflow_db'
       - 'DB_SECRET_NAME=db-root-password'
+      - 'POSTGRES_PASSWORD=${_DB_PASSWORD}'
       - 'REDIS_HOST=10.87.64.4'
       - 'REDIS_PORT=6379'
       - 'LLM_PROVIDER=vertex_ai'
