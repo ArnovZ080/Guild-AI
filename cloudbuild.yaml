@@ -87,10 +87,10 @@ steps:
       - '--timeout'
       - '300'
       - '--max-instances'
-      - '--startup-cpu-boost'
       - '10'
       - '--min-instances'
       - '1'
+      - '--startup-cpu-boost'
       - '--set-env-vars'
       - |
         GOOGLE_CLOUD_PROJECT=$PROJECT_ID,
