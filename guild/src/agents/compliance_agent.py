@@ -108,6 +108,6 @@ Generate the comprehensive compliance strategy now, ensuring all elements are th
                 "error": "Failed to parse JSON response",
                 "raw_response": response[:1000] + "..." if len(response) > 1000 else response
             }
-        except Exception as e:
+    except Exception as e:
         print(f"Compliance Agent: Execution error: {e}")
         return {"error": str(e)}
