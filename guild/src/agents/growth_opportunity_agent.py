@@ -19,6 +19,30 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class GrowthOpportunity:
+    """Represents a single growth opportunity identified by the agent"""
+    id: str
+    title: str
+    description: str
+    category: str  # marketing, sales, product, operations, financial
+    priority: str  # high, medium, low
+    impact: str  # high, medium, low
+    effort: str  # high, medium, low
+    timeframe: str  # e.g., "2-4 weeks"
+    expected_roi: str
+    expected_revenue: str
+    confidence_score: float  # 0.0 to 1.0
+    data_sources: List[str]  # Which intelligence agents contributed
+    supporting_data: List[Dict[str, Any]]
+    requirements: List[str]
+    risks: List[str]
+    recommended_agents: List[str]  # Agents needed to implement
+    workflow_steps: List[Dict[str, Any]]  # Proposed workflow steps
+    reasoning: str  # Why this opportunity was identified
+    created_at: datetime
+    status: str  # pending, accepted, rejected, in_progress, completed
+
 class GrowthOpportunityAgent:
     """
     Growth Opportunity Agent for Guild-AI
@@ -279,30 +303,6 @@ class GrowthOpportunityAgent:
             risks.extend(opp.risks)
 
         return list(set(risks))  # Remove duplicates
-
-@dataclass
-class GrowthOpportunity:
-    """Represents a single growth opportunity identified by the agent"""
-    id: str
-    title: str
-    description: str
-    category: str  # marketing, sales, product, operations, financial
-    priority: str  # high, medium, low
-    impact: str  # high, medium, low
-    effort: str  # high, medium, low
-    timeframe: str  # e.g., "2-4 weeks"
-    expected_roi: str
-    expected_revenue: str
-    confidence_score: float  # 0.0 to 1.0
-    data_sources: List[str]  # Which intelligence agents contributed
-    supporting_data: List[Dict[str, Any]]
-    requirements: List[str]
-    risks: List[str]
-    recommended_agents: List[str]  # Agents needed to implement
-    workflow_steps: List[Dict[str, Any]]  # Proposed workflow steps
-    reasoning: str  # Why this opportunity was identified
-    created_at: datetime
-    status: str  # pending, accepted, rejected, in_progress, completed
 
 @inject_knowledge
 async def analyze_growth_opportunities(
