@@ -117,12 +117,12 @@ POSTGRES_PORT=5432
 ```bash
 # Paystack API Keys
 # Development - use test keys
-PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-PAYSTACK_PUBLIC_KEY=pk_test_xxxxxxxxxxxxxxxxxxxx
+PAYSTACK_SECRET_KEY=sk_test_REPLACE_WITH_YOUR_TEST_KEY_FROM_PAYSTACK
+PAYSTACK_PUBLIC_KEY=pk_test_REPLACE_WITH_YOUR_PUBLIC_KEY
 
 # Production - use live keys
-# PAYSTACK_SECRET_KEY=sk_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-# PAYSTACK_PUBLIC_KEY=pk_live_xxxxxxxxxxxxxxxxxxxx
+# PAYSTACK_SECRET_KEY=sk_live_REPLACE_WITH_LIVE_KEY
+# PAYSTACK_PUBLIC_KEY=pk_live_REPLACE_WITH_LIVE_KEY
 ```
 
 ### Optional Services
@@ -171,8 +171,8 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 
 # Paystack Configuration (Test Keys)
-PAYSTACK_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-PAYSTACK_PUBLIC_KEY=pk_test_xxxxxxxxxxxxxxxxxxxx
+PAYSTACK_SECRET_KEY=sk_test_REPLACE_WITH_YOUR_TEST_SECRET_KEY
+PAYSTACK_PUBLIC_KEY=pk_test_REPLACE_WITH_YOUR_TEST_PUBLIC_KEY
 
 # Optional: Exchange Rate API
 EXCHANGE_RATE_API_KEY=your_api_key_here
