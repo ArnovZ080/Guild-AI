@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
-import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert.jsx'
+import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award, AlertTriangle } from 'lucide-react'
 
 function LandingPage() {
   const navigate = useNavigate();
+  const { firebaseConfigured } = useAuth();
 
   const plans = [
     {
@@ -150,6 +153,17 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      {/* Configuration Warning (only shown if Firebase not configured) */}
+      {!firebaseConfigured && (
+        <Alert className="m-4 border-amber-500 bg-amber-50 dark:bg-amber-950">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800 dark:text-amber-200">
+            <strong>Demo Mode:</strong> Firebase authentication is not configured. To enable full functionality, 
+            add Firebase environment variables in Netlify. See FIREBASE_SETUP_GUIDE.md for details.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">

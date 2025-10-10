@@ -9,7 +9,7 @@ import {
   sendPasswordResetEmail,
   updateProfile
 } from 'firebase/auth';
-import { auth } from '../config/firebase';
+import { auth, isFirebaseConfigured } from '../config/firebase';
 
 const AuthContext = createContext({});
 
@@ -26,8 +26,18 @@ export const AuthProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [firebaseConfigured, setFirebaseConfigured] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  useEffect(() => {
+    // Check if Firebase is configured
+    setFirebaseConfigured(isFirebaseConfigured());
+    if (!isFirebaseConfigured()) {
+      console.warn('⚠️ Firebase not configured - authentication disabled');
+      setLoading(false);
+    }
+  }, []);
 
   // Create user profile in backend
   const createBackendProfile = async (firebaseUser) => {
@@ -188,6 +198,11 @@ export const AuthProvider = ({ children }) => {
 
   // Listen to auth state changes
   useEffect(() => {
+    if (!auth || !firebaseConfigured) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
@@ -202,13 +217,14 @@ export const AuthProvider = ({ children }) => {
     });
 
     return unsubscribe;
-  }, []);
+  }, [firebaseConfigured]);
 
   const value = {
     currentUser,
     userProfile,
     loading,
     error,
+    firebaseConfigured,
     signup,
     login,
     loginWithGoogle,
