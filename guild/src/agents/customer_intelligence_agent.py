@@ -298,19 +298,19 @@ class CustomerIntelligenceAgent:
         self.cross_agent_meta_kpis = {}
         self.retention_strategies = {}
         
-                # Initialize coordination agents
-                self.coordination_agents = {}
-                if AGENT_COORDINATION_AVAILABLE:
-                    self._initialize_coordination_agents()
+        # Initialize coordination agents
+        self.coordination_agents = {}
+        if AGENT_COORDINATION_AVAILABLE:
+            self._initialize_coordination_agents()
+        
+        # Initialize inter-agent communication
+        self.communication_client = None
+        if COMMUNICATION_AVAILABLE:
+            self._initialize_communication()
                 
-                # Initialize inter-agent communication
-                self.communication_client = None
-                if COMMUNICATION_AVAILABLE:
-                    self._initialize_communication()
-                
-                # Sentiment analysis cache
-                self.sentiment_cache = {}
-                self.sentiment_analysis_history = []
+            # Sentiment analysis cache
+            self.sentiment_cache = {}
+            self.sentiment_analysis_history = []
                 
         # Data enrichment tracking
         self.enrichment_queue = []
