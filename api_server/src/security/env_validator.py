@@ -6,17 +6,18 @@ class EnvironmentValidator:
     """Validates and manages environment variables securely"""
     
     REQUIRED_VARS = [
-        'SUPABASE_URL',
-        'SUPABASE_SERVICE_KEY', 
-        'PAYSTACK_SECRET_KEY',
-        'DATABASE_URL'
+        'GOOGLE_CLOUD_PROJECT',
+        'POSTGRES_PASSWORD',
+        # PAYSTACK_SECRET_KEY is optional for now - only needed for payment features
+        # 'PAYSTACK_SECRET_KEY',
     ]
     
     SENSITIVE_VARS = [
-        'SUPABASE_SERVICE_KEY',
+        'POSTGRES_PASSWORD',
         'PAYSTACK_SECRET_KEY',
         'DATABASE_URL',
-        'PAYSTACK_PUBLIC_KEY'
+        'PAYSTACK_PUBLIC_KEY',
+        'DB_SECRET_NAME'
     ]
     
     @classmethod
