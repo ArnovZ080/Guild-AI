@@ -5,6 +5,7 @@ import { PsychologicalOptimizationProvider } from './contexts/PsychologicalOptim
 import { AdaptiveModeProvider } from './contexts/AdaptiveModeContext.jsx';
 import CelebrationProvider from './components/celebrations/CelebrationProvider.jsx';
 import { SettingsProvider } from './contexts/SettingsContext.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 // Auth pages
 import LandingPage from './pages/LandingPage.jsx';
@@ -320,6 +321,7 @@ function AppRoutes() {
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <CelebrationProvider celebrationMode="full">
           <PsychologicalOptimizationProvider>
