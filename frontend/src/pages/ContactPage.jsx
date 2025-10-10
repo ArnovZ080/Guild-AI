@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
@@ -11,7 +12,7 @@ import {
 } from 'lucide-react'
 import guildLogo from '../assets/guild-logo.png'
 
-function Contact() {
+function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -139,7 +140,7 @@ function Contact() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
-              <img src={guildLogo} alt="Guild AI Logo" className="w-8 h-8 rounded-lg text-sky-600 dark:text-sky-400" />
+              <img src={guildLogo} alt="Guild AI Logo" className="w-8 h-8 rounded-lg" />
               <span className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-emerald-600 bg-clip-text text-transparent">
                 Guild AI
               </span>
@@ -449,5 +450,5 @@ function Contact() {
   )
 }
 
-export default Contact
+export default ContactPage
 
