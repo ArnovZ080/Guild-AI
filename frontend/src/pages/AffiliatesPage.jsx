@@ -498,5 +498,5 @@ function AffiliatesPage() {
   )
 }
 
-export default Affiliates
+export default AffiliatesPage
 
