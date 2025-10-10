@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge.jsx';
 import { Alert, AlertDescription } from '@/components/ui/alert.jsx';
 import { Check, Loader2, ArrowLeft } from 'lucide-react';
+import guildLogo from '../assets/guild-logo.png';
 
 function SubscriptionPage() {
   const navigate = useNavigate();
@@ -182,7 +183,7 @@ function SubscriptionPage() {
           
           <div className="flex items-center space-x-3">
             <img 
-              src="https://i.postimg.cc/kXWX5H30/Guild-AI-logo.png" 
+              src={guildLogo}
               alt="Guild AI Logo" 
               className="w-10 h-10 rounded-lg"
             />

@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge.jsx'
 import { Alert, AlertDescription } from '@/components/ui/alert.jsx'
 import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award, AlertTriangle } from 'lucide-react'
+import guildLogo from '../assets/guild-logo.png'
 
 function LandingPage() {
   const navigate = useNavigate();
@@ -170,7 +171,7 @@ function LandingPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img 
-                src="https://i.postimg.cc/kXWX5H30/Guild-AI-logo.png" 
+                src={guildLogo}
                 alt="Guild AI Logo" 
                 className="w-10 h-10 rounded-lg"
               />
@@ -183,7 +184,7 @@ function LandingPage() {
                 Login
               </Button>
               <Button 
-                className="bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-700 hover:to-emerald-700"
+                className="bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-700 hover:to-emerald-700 text-white"
                 onClick={() => handleSignup('Growth')}
               >
                 Get Started
@@ -212,14 +213,11 @@ function LandingPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <Button 
             size="lg" 
-            className="bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-700 hover:to-emerald-700 text-lg px-8 py-6"
+            className="bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-700 hover:to-emerald-700 text-white text-lg px-8 py-6"
             onClick={() => handleSignup('Free')}
           >
             Start Free Trial
             <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
-          <Button size="lg" variant="outline" className="text-lg px-8 py-6">
-            Watch Demo
           </Button>
         </div>
 
@@ -484,7 +482,7 @@ function LandingPage() {
               </CardHeader>
               <CardContent>
                 <Button 
-                  className={`w-full mb-6 ${plan.popular ? 'bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-700 hover:to-emerald-700' : plan.isFree ? 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700' : ''}`}
+                  className={`w-full mb-6 ${plan.popular ? 'bg-gradient-to-r from-sky-600 to-emerald-600 hover:from-sky-700 hover:to-emerald-700 text-white' : plan.isFree ? 'bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white' : ''}`}
                   variant={plan.popular || plan.isFree ? 'default' : 'outline'}
                   onClick={() => handleSignup(plan.name)}
                 >
@@ -540,13 +538,6 @@ function LandingPage() {
                 Start Your Free Trial
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10 text-lg px-8 py-6"
-              >
-                Schedule a Demo
-              </Button>
             </div>
             <p className="mt-6 text-sm text-sky-100">
               ✓ No credit card required • ✓ Full access to all 114 agents • ✓ Cancel anytime
@@ -562,7 +553,7 @@ function LandingPage() {
             <div>
               <div className="flex items-center space-x-3 mb-4">
                 <img 
-                  src="https://i.postimg.cc/kXWX5H30/Guild-AI-logo.png" 
+                  src={guildLogo}
                   alt="Guild AI Logo" 
                   className="w-8 h-8 rounded-lg"
                 />

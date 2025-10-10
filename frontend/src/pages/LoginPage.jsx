@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input.jsx';
 import { Label } from '@/components/ui/label.jsx';
 import { Alert, AlertDescription } from '@/components/ui/alert.jsx';
 import { Loader2 } from 'lucide-react';
+import guildLogo from '../assets/guild-logo.png';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ function LoginPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img 
-            src="https://i.postimg.cc/kXWX5H30/Guild-AI-logo.png" 
+            src={guildLogo}
             alt="Guild AI Logo" 
             className="w-16 h-16 rounded-lg mb-4"
           />

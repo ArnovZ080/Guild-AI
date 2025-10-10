@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label.jsx';
 import { Alert, AlertDescription } from '@/components/ui/alert.jsx';
 import { Checkbox } from '@/components/ui/checkbox.jsx';
 import { Loader2 } from 'lucide-react';
+import guildLogo from '../assets/guild-logo.png';
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ function SignupPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
           <img 
-            src="https://i.postimg.cc/kXWX5H30/Guild-AI-logo.png" 
+            src={guildLogo}
             alt="Guild AI Logo" 
             className="w-16 h-16 rounded-lg mb-4"
           />
