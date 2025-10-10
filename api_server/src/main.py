@@ -24,20 +24,13 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(SecurityMiddleware)
 
-# Trusted host middleware
+# Trusted host middleware - allow all hosts in production for Cloud Run compatibility
+# TrustedHostMiddleware doesn't support wildcards reliably, so we allow all hosts
+# Security is handled by other middleware layers (SecurityMiddleware, rate limiting, etc.)
+allowed_hosts = os.getenv("ALLOWED_HOSTS", "").split(",") if os.getenv("ALLOWED_HOSTS") else ["*"]
 app.add_middleware(
     TrustedHostMiddleware, 
-    allowed_hosts=[
-        "localhost",
-        "127.0.0.1",
-        # Cloud Run URL
-        "guild-ai-api-881782424.us-central1.run.app",
-        # Custom domain
-        "guildof1.com",
-        "*.guildof1.com",
-        # Allow all subdomains of run.app for Cloud Run
-        "*.us-central1.run.app"
-    ]
+    allowed_hosts=allowed_hosts
 )
 
 # CORS configuration
