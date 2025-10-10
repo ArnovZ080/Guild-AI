@@ -100,7 +100,6 @@ function LandingPage() {
         'Dedicated support',
         'White-label options',
         'API access',
-        'Hire additional agents at $8/mo'
       ],
       popular: false
     }
@@ -112,7 +111,7 @@ function LandingPage() {
       title: 'Judge Layer Quality Assurance',
       description: 'Every output is automatically validated before you see it. No other AI platform has built-in QA.',
       color: 'from-blue-500 to-cyan-500',
-      benefit: 'Zero manual quality checks needed—save 10+ hours/week'
+      benefit: 'Zero manual quality checks needed - save 10+ hours/week'
     },
     {
       icon: <TrendingUp className="w-6 h-6" />,
@@ -126,7 +125,7 @@ function LandingPage() {
       title: 'Local AI Generation',
       description: 'Unlimited AI images, videos, and voice at zero per-use cost. Save $5K-15K/year on API fees.',
       color: 'from-amber-500 to-orange-500',
-      benefit: 'Create unlimited content for $0—competitors charge per image'
+      benefit: 'Create unlimited content for $0 - competitors charge per image'
     },
     {
       icon: <Brain className="w-6 h-6" />,
@@ -205,7 +204,7 @@ function LandingPage() {
         </h1>
         <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-4 max-w-3xl mx-auto">
           Say "Increase my revenue by 50%" and watch 114 AI agents create the strategy, launch campaigns, 
-          and execute everything autonomously—while validating their own quality.
+          and execute everything autonomously while validating their own quality.
         </p>
         <p className="text-lg text-sky-600 dark:text-sky-400 mb-8 max-w-2xl mx-auto font-semibold">
           The only AI platform with built-in quality assurance that no competitor can match.
@@ -242,7 +241,7 @@ function LandingPage() {
         <div className="mt-12 p-6 bg-gradient-to-r from-emerald-50 to-sky-50 dark:from-emerald-950 dark:to-sky-950 rounded-lg max-w-3xl mx-auto">
           <p className="text-slate-700 dark:text-slate-300 text-lg italic mb-2">
             "Other AI tools just execute tasks. Guild AI is the first platform that validates its own quality 
-            before showing you results—like having a QA team built into every agent."
+            before showing you results, like having a QA team built into every agent."
           </p>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             — Fortune 500-level capabilities at startup pricing
@@ -378,7 +377,7 @@ function LandingPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-slate-600 dark:text-slate-400 mb-4">
-                  Campaigns launched, content created, customers contacted—all autonomous
+                  Campaigns launched, content created, customers contacted - all autonomous
                 </p>
                 <p className="text-sm text-slate-500 dark:text-slate-500">
                   You review results, not tasks.
@@ -436,7 +435,7 @@ function LandingPage() {
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-4">
             Replace a Marketing Director ($120K), Sales Rep ($70K), Content Manager ($80K), 
-            Financial Analyst ($90K), and more—for less than a coffee budget.
+            Financial Analyst ($90K), and more → for less than a coffee budget.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <p className="text-lg text-emerald-600 dark:text-emerald-400 font-semibold">

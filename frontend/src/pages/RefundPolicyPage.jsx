@@ -186,7 +186,7 @@ function RefundPolicyPage() {
                 For questions about our Refund Policy or to request a refund, please contact:
               </p>
               <ul className="list-none space-y-2 text-slate-700 dark:text-slate-300">
-                <li><strong>Email:</strong> support@guildai.com</li>
+                <li><strong>Email:</strong> support@guildof1.com</li>
                 <li><strong>Subject Line:</strong> Refund Request - [Your Account Email]</li>
               </ul>
             </section>

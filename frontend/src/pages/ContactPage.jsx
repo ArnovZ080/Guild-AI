@@ -361,10 +361,10 @@ function ContactPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Guild AI, Inc.<br />
-                  123 AI Innovation Drive<br />
-                  San Francisco, CA 94103<br />
-                  United States
+                  Guild AI<br />
+                  Cape Town<br />
+                  South Africa<br />
+                  8001
                 </p>
               </CardContent>
             </Card>
@@ -378,8 +378,8 @@ function ContactPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 text-slate-600 dark:text-slate-400">
-                  <p><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM EST</p>
-                  <p><strong>Saturday:</strong> 10:00 AM - 4:00 PM EST</p>
+                  <p><strong>Monday - Friday:</strong> 9:00 AM - 6:00 PM SAST</p>
+                  <p><strong>Saturday:</strong> 10:00 AM - 4:00 PM SAST</p>
                   <p><strong>Sunday:</strong> Closed</p>
                   <p className="text-sm mt-4">
                     * Enterprise customers have 24/7 support access

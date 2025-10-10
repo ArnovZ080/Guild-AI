@@ -145,8 +145,8 @@ function PrivacyPolicyPage() {
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
               <ul className="list-none space-y-2 text-slate-700 dark:text-slate-300">
-                <li><strong>Email:</strong> privacy@guildai.com</li>
-                <li><strong>Address:</strong> Guild AI, Inc.</li>
+                <li><strong>Email:</strong> support@guildof1.com</li>
+                <li><strong>Address:</strong> Guild AI</li>
               </ul>
             </section>
           </div>

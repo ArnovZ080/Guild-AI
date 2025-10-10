@@ -170,8 +170,8 @@ function TermsAndConditionsPage() {
                 For questions about these Terms and Conditions, please contact us at:
               </p>
               <ul className="list-none space-y-2 text-slate-700 dark:text-slate-300">
-                <li><strong>Email:</strong> legal@guildai.com</li>
-                <li><strong>Address:</strong> Guild AI, Inc.</li>
+                <li><strong>Email:</strong> Support@guildof1.com</li>
+                <li><strong>Address:</strong> Guild AI</li>
               </ul>
             </section>
           </div>

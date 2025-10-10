@@ -348,7 +348,7 @@ function IntegrationsPage() {
           Connect Your Entire Tech Stack
         </h1>
         <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-8 max-w-3xl mx-auto">
-          Guild AI integrates with 123 platforms to create a seamless workflow across all your business tools. All integrations are fully implemented and working, with more coming soon. If an integration doesn't exist yet, simply screen record the action—Guild will learn and autonomously perform it on your computer.
+          Guild AI integrates with 123 platforms to create a seamless workflow across all your business tools. All integrations are fully implemented and working, with more coming soon. If an integration doesn't exist yet, simply screen record the action and Guild will learn and autonomously perform it on your computer.
         </p>
       </section>
 

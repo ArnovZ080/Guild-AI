@@ -48,17 +48,17 @@ function AboutUsPage() {
       description: 'Began building the platform with a focus on autonomous AI agents, quality assurance, and educational transparency.'
     },
     {
-      year: 'September 2025',
+      year: 'Sept 2025',
       title: '114 Agents & 123 Integrations',
       description: 'Reached 114 specialized AI agents and 123 platform integrations, creating the most comprehensive AI workforce ecosystem.'
     },
     {
-      year: 'October 2025',
+      year: 'Oct 2025',
       title: 'Beta Testing',
       description: 'Launched beta testing program with select users to refine agent capabilities and integration reliability.'
     },
     {
-      year: 'November 2025',
+      year: 'Nov 2025',
       title: 'Public Launch',
       description: 'Official public launch of Guild AI, making autonomous AI workforce automation accessible to everyone.'
     }

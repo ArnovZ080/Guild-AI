@@ -28,7 +28,7 @@ function FeaturesPage() {
     {
       icon: <Globe className="w-6 h-6" />,
       title: '123-Platform Integration Ecosystem',
-      description: '87 fully operational integrations including ALL major business platforms. Connect QuickBooks, HubSpot, Google Ads, LinkedIn, Stripe, and 82 more platforms seamlessly.',
+      description: '123 fully operational integrations including ALL major business platforms. Connect QuickBooks, HubSpot, Google Ads, LinkedIn, Stripe, and 100+ more platforms seamlessly.',
       benefits: ['All accounting platforms', 'All major CRMs', 'All ad platforms', '71% complete coverage'],
       color: 'from-cyan-500 to-blue-500'
     },

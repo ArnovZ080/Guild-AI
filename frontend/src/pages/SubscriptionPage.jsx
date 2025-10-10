@@ -199,7 +199,7 @@ function SubscriptionPage() {
             Choose Your Plan
           </h1>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-4">
-            Select the plan that best fits your needs. All paid plans include a 21-day free trial.
+            Select the plan that best fits your needs. All paid plans include a 21-day free trial for the first 2 months of the launch.
           </p>
           {exchangeRate && (
             <p className="text-sm text-slate-500 dark:text-slate-400">
