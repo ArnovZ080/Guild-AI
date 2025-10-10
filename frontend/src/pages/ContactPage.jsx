@@ -338,7 +338,7 @@ function Contact() {
                       className="text-sky-600 hover:text-sky-700 dark:text-sky-400 font-semibold text-sm"
                     >
                       {dept.email}
-                    </Link>
+                    </a>
                   </div>
                 </div>
               </CardHeader>
