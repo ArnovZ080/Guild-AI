@@ -10,6 +10,98 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class KnowledgeManagementAgent:
+    """
+    Knowledge Management Agent for Guild-AI
+    Expert in information architecture, content organization, and knowledge accessibility.
+    """
+    
+    def __init__(self, name: str = "Knowledge Management Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Knowledge Management Agent"
+        self.agent_type = "Intelligence"
+        self.role = "Comprehensive Information Organization"
+        self.expertise = [
+            "Information Architecture Design",
+            "Content Organization & Taxonomy",
+            "Knowledge Capture & Preservation",
+            "Search Optimization & Discoverability",
+            "Access Control & Permissions",
+            "Knowledge Base Maintenance",
+            "Content Lifecycle Management",
+            "User Experience & Accessibility"
+        ]
+        self.capabilities = [
+            "Organize and maintain company knowledge base",
+            "Create structured, searchable information repositories",
+            "Design intuitive taxonomy and categorization systems",
+            "Optimize search and discoverability",
+            "Establish access controls and permissions",
+            "Implement knowledge capture workflows",
+            "Manage content lifecycle and archival",
+            "Ensure knowledge accessibility across organization"
+        ]
+        self.knowledge_base = {}
+        self.taxonomy = {}
+        self.access_controls = {}
+        self.content_index = {}
+    
+    async def generate_knowledge_strategy(
+        self,
+        organizational_information: Dict[str, Any],
+        knowledge_assets: Dict[str, Any],
+        access_requirements: Dict[str, Any],
+        user_personas: Dict[str, Any],
+        current_challenges: Dict[str, Any],
+        strategic_goals: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a comprehensive knowledge management strategy.
+        
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_comprehensive_knowledge_management_strategy(
+            organizational_information, knowledge_assets, access_requirements,
+            user_personas, current_challenges, strategic_goals
+        )
+    
+    def create_taxonomy(self, domain: str, depth: int = 3) -> Dict[str, Any]:
+        """Create a hierarchical taxonomy for a knowledge domain."""
+        return {
+            "domain": domain,
+            "depth": depth,
+            "categories": [],
+            "tags": [],
+            "relationships": []
+        }
+    
+    def index_content(self, content: Dict[str, Any]) -> str:
+        """Index content for search and retrieval."""
+        content_id = f"content_{len(self.content_index)}"
+        self.content_index[content_id] = {
+            "content": content,
+            "indexed_at": datetime.utcnow(),
+            "metadata": content.get("metadata", {})
+        }
+        return content_id
+    
+    def search_knowledge(self, query: str, filters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+        """Search the knowledge base with optional filters."""
+        results = []
+        # Simple implementation - would use vector search in production
+        for content_id, indexed_content in self.content_index.items():
+            if query.lower() in str(indexed_content["content"]).lower():
+                results.append({
+                    "id": content_id,
+                    "content": indexed_content["content"],
+                    "relevance": 1.0
+                })
+        return results
 
 @inject_knowledge
 async def generate_comprehensive_knowledge_management_strategy(
