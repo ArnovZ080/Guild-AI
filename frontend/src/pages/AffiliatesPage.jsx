@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
@@ -10,9 +12,8 @@ import {
   Rocket, Globe, MessageSquare
 } from 'lucide-react'
 import guildLogo from '../assets/guild-logo.png'
-import { useState } from 'react'
 
-function Affiliates() {
+function AffiliatesPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
