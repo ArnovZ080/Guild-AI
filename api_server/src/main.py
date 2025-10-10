@@ -27,7 +27,17 @@ app.add_middleware(SecurityMiddleware)
 # Trusted host middleware
 app.add_middleware(
     TrustedHostMiddleware, 
-    allowed_hosts=["localhost", "127.0.0.1", "*.yourdomain.com"]  # Update with your domains
+    allowed_hosts=[
+        "localhost",
+        "127.0.0.1",
+        # Cloud Run URL
+        "guild-ai-api-881782424.us-central1.run.app",
+        # Custom domain
+        "guildof1.com",
+        "*.guildof1.com",
+        # Allow all subdomains of run.app for Cloud Run
+        "*.us-central1.run.app"
+    ]
 )
 
 # CORS configuration
