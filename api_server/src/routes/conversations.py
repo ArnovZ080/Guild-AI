@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Path
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
@@ -179,7 +179,7 @@ async def get_conversation_analytics():
 
 
 @router.get("/customers/{email}/messages")
-async def get_messages_for_customer(email: str = Query(..., description="Customer email")):
+async def get_messages_for_customer(email: str = Path(..., description="Customer email")):
     try:
         email_l = (email or "").lower()
         conversations = _mock_conversations()
