@@ -19,6 +19,267 @@ import uuid
 
 logger = logging.getLogger(__name__)
 
+class GrowthOpportunityAgent:
+    """
+    Growth Opportunity Agent for Guild-AI
+    Autonomous growth opportunity identification through intelligent analysis of business data,
+    customer behavior, market trends, and competitive landscape.
+    """
+
+    def __init__(self, name: str = "Growth Opportunity Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Growth Opportunity Agent"
+        self.agent_type = "Growth"
+        self.role = "Autonomous Growth Opportunity Identification"
+        self.expertise = [
+            "Business Intelligence Analysis",
+            "Customer Behavior Pattern Recognition",
+            "Market Trend Analysis",
+            "Competitive Landscape Assessment",
+            "Growth Strategy Development",
+            "ROI Optimization",
+            "Cross-Agent Coordination",
+            "Workflow Planning"
+        ]
+        self.capabilities = [
+            "Comprehensive growth opportunity identification",
+            "Data-driven opportunity scoring and prioritization",
+            "Multi-source intelligence synthesis",
+            "Automated workflow generation",
+            "Risk assessment and mitigation",
+            "Implementation roadmap creation",
+            "Performance prediction and tracking",
+            "Cross-agent collaboration for execution"
+        ]
+        self.opportunity_cache = {}
+        self.growth_strategies = {}
+        self.market_insights = {}
+        self.competitive_data = {}
+
+        # Initialize coordination agents for seamless collaboration
+        try:
+            from .business_intelligence_agent import BusinessIntelligenceAgent
+            from .customer_intelligence_agent import CustomerIntelligenceAgent
+            from .content_intelligence_agent import ContentIntelligenceAgent
+            from .financial_intelligence_agent import FinancialIntelligenceAgent
+            from .orchestrator_agent import OrchestratorAgent
+            from .judge_agent import JudgeAgent
+            COORDINATION_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Some coordination agents not available: {e}")
+            COORDINATION_AVAILABLE = False
+
+        self.coordination_agents = {}
+        if COORDINATION_AVAILABLE:
+            self._initialize_coordination_agents()
+
+    def _initialize_coordination_agents(self):
+        """Initialize coordination agents for seamless collaboration."""
+        try:
+            from .business_intelligence_agent import BusinessIntelligenceAgent
+            from .customer_intelligence_agent import CustomerIntelligenceAgent
+            from .content_intelligence_agent import ContentIntelligenceAgent
+            from .financial_intelligence_agent import FinancialIntelligenceAgent
+            from .orchestrator_agent import OrchestratorAgent
+            from .judge_agent import JudgeAgent
+
+            self.coordination_agents = {
+                'business_intelligence': BusinessIntelligenceAgent(),
+                'customer_intelligence': CustomerIntelligenceAgent(),
+                'content_intelligence': ContentIntelligenceAgent(),
+                'financial_intelligence': FinancialIntelligenceAgent(),
+                'orchestrator': OrchestratorAgent(),
+                'judge': JudgeAgent()
+            }
+        except ImportError as e:
+            logging.warning(f"Failed to initialize some coordination agents: {e}")
+
+    async def analyze_growth_opportunities(
+        self,
+        business_intelligence: Dict[str, Any],
+        customer_intelligence: Dict[str, Any],
+        content_intelligence: Dict[str, Any],
+        financial_intelligence: Dict[str, Any],
+        business_goals: Dict[str, Any],
+        user_context: Dict[str, Any]
+    ) -> List[GrowthOpportunity]:
+        """
+        Analyzes comprehensive business data and identifies high-impact growth opportunities.
+
+        This method wraps the standalone function for class-based access.
+        """
+        return await analyze_growth_opportunities(
+            business_intelligence, customer_intelligence, content_intelligence,
+            financial_intelligence, business_goals, user_context
+        )
+
+    async def generate_workflow_for_opportunity(
+        self,
+        opportunity: GrowthOpportunity,
+        user_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a detailed workflow plan for implementing a growth opportunity.
+        This creates the contract that the Orchestrator Agent will execute.
+
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_workflow_for_opportunity(opportunity, user_context)
+
+    async def execute_growth_strategy(self, strategy_config: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a comprehensive growth strategy based on identified opportunities.
+        """
+        try:
+            # Validate strategy configuration
+            required_fields = ['business_goals', 'available_agents', 'timeline', 'budget']
+            for field in required_fields:
+                if field not in strategy_config:
+                    raise ValueError(f"Missing required field: {field}")
+
+            # Generate opportunities based on strategy
+            opportunities = await self.analyze_growth_opportunities(
+                business_intelligence=strategy_config.get('business_intelligence', {}),
+                customer_intelligence=strategy_config.get('customer_intelligence', {}),
+                content_intelligence=strategy_config.get('content_intelligence', {}),
+                financial_intelligence=strategy_config.get('financial_intelligence', {}),
+                business_goals=strategy_config['business_goals'],
+                user_context=strategy_config.get('user_context', {})
+            )
+
+            # Filter opportunities based on strategy constraints
+            filtered_opportunities = self._filter_opportunities_by_strategy(
+                opportunities, strategy_config
+            )
+
+            # Generate workflows for top opportunities
+            workflows = []
+            for opportunity in filtered_opportunities[:3]:  # Top 3 opportunities
+                workflow = await self.generate_workflow_for_opportunity(
+                    opportunity, strategy_config.get('user_context', {})
+                )
+                workflows.append(workflow)
+
+            # Create comprehensive strategy report
+            strategy_report = {
+                'strategy_id': str(uuid.uuid4()),
+                'opportunities_identified': len(opportunities),
+                'opportunities_selected': len(filtered_opportunities),
+                'workflows_generated': len(workflows),
+                'estimated_impact': self._calculate_strategy_impact(filtered_opportunities),
+                'implementation_timeline': self._calculate_implementation_timeline(workflows),
+                'resource_requirements': self._calculate_resource_requirements(workflows),
+                'success_metrics': self._define_success_metrics(filtered_opportunities),
+                'risk_assessment': self._assess_strategy_risks(filtered_opportunities),
+                'created_at': datetime.utcnow()
+            }
+
+            return strategy_report
+
+        except Exception as e:
+            logger.error(f"Error executing growth strategy: {e}")
+            raise
+
+    def _filter_opportunities_by_strategy(self, opportunities: List[GrowthOpportunity], strategy_config: Dict[str, Any]) -> List[GrowthOpportunity]:
+        """Filter opportunities based on strategy constraints."""
+        filtered = []
+
+        for opportunity in opportunities:
+            # Check timeline compatibility
+            if strategy_config.get('timeline'):
+                if not self._is_timeline_compatible(opportunity.timeframe, strategy_config['timeline']):
+                    continue
+
+            # Check budget compatibility
+            if strategy_config.get('budget'):
+                if not self._is_budget_compatible(opportunity, strategy_config['budget']):
+                    continue
+
+            # Check agent availability
+            if strategy_config.get('available_agents'):
+                if not self._are_agents_available(opportunity.recommended_agents, strategy_config['available_agents']):
+                    continue
+
+            filtered.append(opportunity)
+
+        return filtered
+
+    def _is_timeline_compatible(self, opportunity_timeline: str, strategy_timeline: Dict[str, Any]) -> bool:
+        """Check if opportunity timeline fits within strategy timeline."""
+        # Simple timeline compatibility check
+        return True  # Placeholder implementation
+
+    def _is_budget_compatible(self, opportunity: GrowthOpportunity, budget: Dict[str, Any]) -> bool:
+        """Check if opportunity fits within budget constraints."""
+        # Simple budget compatibility check
+        return True  # Placeholder implementation
+
+    def _are_agents_available(self, required_agents: List[str], available_agents: List[str]) -> bool:
+        """Check if required agents are available."""
+        for agent in required_agents:
+            if agent not in available_agents:
+                return False
+        return True
+
+    def _calculate_strategy_impact(self, opportunities: List[GrowthOpportunity]) -> Dict[str, Any]:
+        """Calculate overall impact of selected opportunities."""
+        total_roi = 0
+        total_revenue = 0
+        confidence_sum = 0
+
+        for opp in opportunities:
+            try:
+                roi_value = float(opp.expected_roi.replace('%', '').replace('$', '').replace(',', ''))
+                total_roi += roi_value
+                revenue_value = float(opp.expected_revenue.replace('$', '').replace('/month', '').replace(',', ''))
+                total_revenue += revenue_value
+                confidence_sum += opp.confidence_score
+            except:
+                continue
+
+        avg_confidence = confidence_sum / len(opportunities) if opportunities else 0
+
+        return {
+            'total_estimated_roi': total_roi,
+            'total_estimated_revenue': total_revenue,
+            'average_confidence': avg_confidence,
+            'opportunity_count': len(opportunities)
+        }
+
+    def _calculate_implementation_timeline(self, workflows: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Calculate overall implementation timeline."""
+        return {
+            'estimated_duration': '8-12 weeks',
+            'parallel_execution_possible': True,
+            'critical_path': '4-6 weeks'
+        }
+
+    def _calculate_resource_requirements(self, workflows: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Calculate resource requirements for strategy execution."""
+        return {
+            'agent_hours': '40-60 hours',
+            'external_resources': 'Minimal',
+            'budget_range': '$1,000-$3,000'
+        }
+
+    def _define_success_metrics(self, opportunities: List[GrowthOpportunity]) -> List[str]:
+        """Define success metrics for the strategy."""
+        metrics = []
+        for opp in opportunities:
+            metrics.append(f"Achieve {opp.expected_roi}")
+            metrics.append(f"Complete within {opp.timeframe}")
+
+        return list(set(metrics))  # Remove duplicates
+
+    def _assess_strategy_risks(self, opportunities: List[GrowthOpportunity]) -> List[str]:
+        """Assess risks for the overall strategy."""
+        risks = []
+        for opp in opportunities:
+            risks.extend(opp.risks)
+
+        return list(set(risks))  # Remove duplicates
+
 @dataclass
 class GrowthOpportunity:
     """Represents a single growth opportunity identified by the agent"""
