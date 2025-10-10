@@ -337,34 +337,34 @@ class CustomerIntelligenceAgent:
             JOURNEY_TRACKING_AVAILABLE = False
         
 # Customer communication timeline integration
-try:
-    from guild.src.core.customer_communication_timeline import customer_communication_timeline
-    self.communication_timeline = customer_communication_timeline
-    COMMUNICATION_TIMELINE_AVAILABLE = True
-except ImportError as e:
-    logging.warning(f"Customer communication timeline not available: {e}")
-    self.communication_timeline = None
-    COMMUNICATION_TIMELINE_AVAILABLE = False
-
-# Proactive customer success integration
-try:
-    from guild.src.core.proactive_customer_success import proactive_customer_success
-    self.proactive_success = proactive_customer_success
-    PROACTIVE_SUCCESS_AVAILABLE = True
-except ImportError as e:
-    logging.warning(f"Proactive customer success not available: {e}")
-    self.proactive_success = None
-    PROACTIVE_SUCCESS_AVAILABLE = False
-
-# Intelligent resolution system integration
-try:
-    from guild.src.core.intelligent_resolution_system import intelligent_resolution_system
-    self.resolution_system = intelligent_resolution_system
-    RESOLUTION_SYSTEM_AVAILABLE = True
-except ImportError as e:
-    logging.warning(f"Intelligent resolution system not available: {e}")
-    self.resolution_system = None
-    RESOLUTION_SYSTEM_AVAILABLE = False
+        try:
+            from guild.src.core.customer_communication_timeline import customer_communication_timeline
+            self.communication_timeline = customer_communication_timeline
+            COMMUNICATION_TIMELINE_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Customer communication timeline not available: {e}")
+            self.communication_timeline = None
+            COMMUNICATION_TIMELINE_AVAILABLE = False
+        
+        # Proactive customer success integration
+        try:
+            from guild.src.core.proactive_customer_success import proactive_customer_success
+            self.proactive_success = proactive_customer_success
+            PROACTIVE_SUCCESS_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Proactive customer success not available: {e}")
+            self.proactive_success = None
+            PROACTIVE_SUCCESS_AVAILABLE = False
+        
+        # Intelligent resolution system integration
+        try:
+            from guild.src.core.intelligent_resolution_system import intelligent_resolution_system
+            self.resolution_system = intelligent_resolution_system
+            RESOLUTION_SYSTEM_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Intelligent resolution system not available: {e}")
+            self.resolution_system = None
+            RESOLUTION_SYSTEM_AVAILABLE = False
 
 # Predictive action engine integration
 try:
