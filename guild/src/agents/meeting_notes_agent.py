@@ -10,6 +10,84 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class MeetingNotesAgent:
+    """
+    Meeting Notes Agent for Guild-AI
+    Expert in meeting documentation, conversation synthesis, and action tracking.
+    """
+    
+    def __init__(self, name: str = "Meeting Notes Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Meeting Notes Agent"
+        self.agent_type = "Documentation"
+        self.role = "Comprehensive Discussion Documentation"
+        self.expertise = [
+            "Conversation Analysis & Synthesis",
+            "Key Point Extraction",
+            "Decision Documentation",
+            "Action Item Tracking",
+            "Meeting Summarization",
+            "Context Preservation",
+            "Information Organization",
+            "Follow-up Facilitation"
+        ]
+        self.capabilities = [
+            "Create structured, actionable meeting summaries",
+            "Transform transcripts into clear, organized notes",
+            "Extract and track action items with owners and deadlines",
+            "Document decisions with context and rationale",
+            "Generate concise meeting overviews",
+            "Preserve important context and nuances",
+            "Facilitate post-meeting follow-up",
+            "Make information accessible for participants and non-attendees"
+        ]
+        self.meeting_history = []
+        self.action_items = []
+    
+    async def generate_meeting_notes(
+        self,
+        meeting_transcript: str,
+        meeting_context: Dict[str, Any],
+        participant_information: Dict[str, Any],
+        organizational_knowledge: Dict[str, Any],
+        documentation_requirements: Dict[str, Any],
+        follow_up_needs: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate comprehensive meeting notes from transcript.
+        
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_comprehensive_meeting_notes_strategy(
+            meeting_transcript, meeting_context, participant_information,
+            organizational_knowledge, documentation_requirements, follow_up_needs
+        )
+    
+    def extract_action_items(self, notes: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Extract action items from meeting notes."""
+        action_items = notes.get("action_items", [])
+        for item in action_items:
+            self.action_items.append({
+                "description": item.get("description"),
+                "owner": item.get("owner"),
+                "deadline": item.get("deadline"),
+                "status": "pending",
+                "created_at": datetime.utcnow()
+            })
+        return self.action_items
+    
+    def track_meeting_history(self, meeting_data: Dict[str, Any]) -> None:
+        """Track meeting history for reference."""
+        self.meeting_history.append({
+            "timestamp": datetime.utcnow(),
+            "meeting_data": meeting_data,
+            "meeting_id": meeting_data.get("id", f"meeting_{len(self.meeting_history)}")
+        })
 
 @inject_knowledge
 async def generate_comprehensive_meeting_notes_strategy(
