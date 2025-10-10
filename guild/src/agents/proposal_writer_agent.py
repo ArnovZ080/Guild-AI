@@ -10,6 +10,101 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class ProposalWriterAgent:
+    """
+    Proposal Writer Agent for Guild-AI
+    Expert in creating persuasive, tailored business proposals that win clients and partnerships.
+    """
+    
+    def __init__(self, name: str = "Proposal Writer Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Proposal Writer Agent"
+        self.agent_type = "Sales"
+        self.role = "Comprehensive Business Proposal Development"
+        self.expertise = [
+            "Client Need Analysis & Solution Matching",
+            "Value Proposition Development",
+            "Competitive Differentiation",
+            "Pricing Strategy & Presentation",
+            "Proposal Structure & Flow",
+            "Persuasive Business Writing",
+            "Visual Presentation & Design",
+            "Objection Anticipation & Handling"
+        ]
+        self.capabilities = [
+            "Create persuasive, tailored business proposals",
+            "Analyze client needs and match solutions",
+            "Develop compelling value propositions",
+            "Position competitively against alternatives",
+            "Design effective pricing strategies",
+            "Structure logical, compelling proposal documents",
+            "Write client-focused, persuasive content",
+            "Anticipate and address potential objections"
+        ]
+        self.proposal_templates = {}
+        self.client_proposals = {}
+    
+    async def generate_proposal(
+        self,
+        client_information: Dict[str, Any],
+        project_requirements: Dict[str, Any],
+        solution_offerings: Dict[str, Any],
+        competitive_landscape: Dict[str, Any],
+        pricing_guidelines: Dict[str, Any],
+        proposal_parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a comprehensive business proposal.
+        
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_comprehensive_proposal_strategy(
+            client_information, project_requirements, solution_offerings,
+            competitive_landscape, pricing_guidelines, proposal_parameters
+        )
+    
+    def create_proposal_template(self, proposal_type: str) -> Dict[str, Any]:
+        """Create a reusable template for specific proposal types."""
+        templates = {
+            "service": {
+                "sections": [
+                    "Executive Summary",
+                    "Understanding Your Needs",
+                    "Proposed Solution",
+                    "Our Approach",
+                    "Timeline & Deliverables",
+                    "Investment & Pricing",
+                    "Why Choose Us",
+                    "Next Steps"
+                ]
+            },
+            "product": {
+                "sections": [
+                    "Executive Summary",
+                    "Challenge Overview",
+                    "Product Solution",
+                    "Features & Benefits",
+                    "Implementation Plan",
+                    "Pricing Options",
+                    "Case Studies",
+                    "Terms & Conditions"
+                ]
+            }
+        }
+        return templates.get(proposal_type, templates["service"])
+    
+    def track_proposal(self, proposal_id: str, proposal_data: Dict[str, Any]) -> None:
+        """Track proposal for follow-up and analysis."""
+        self.client_proposals[proposal_id] = {
+            "created_at": datetime.utcnow(),
+            "proposal_data": proposal_data,
+            "status": "submitted"
+        }
 
 @inject_knowledge
 async def generate_comprehensive_proposal_strategy(
