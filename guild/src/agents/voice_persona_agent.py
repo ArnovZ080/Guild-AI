@@ -10,6 +10,82 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class VoicePersonaAgent:
+    """
+    Voice Persona Agent for Guild-AI
+    Expert in brand voice development, communication style, and messaging consistency.
+    """
+    
+    def __init__(self, name: str = "Voice Persona Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Voice Persona Agent"
+        self.agent_type = "Marketing"
+        self.role = "Comprehensive Brand Voice Development"
+        self.expertise = [
+            "Brand Voice Definition & Development",
+            "Tone Variation & Adaptation",
+            "Audience-Specific Communication",
+            "Channel-Appropriate Messaging",
+            "Voice Consistency Management",
+            "Linguistic Style Guidelines",
+            "Communication Pattern Development",
+            "Voice Evolution & Refinement"
+        ]
+        self.capabilities = [
+            "Develop distinctive, consistent brand voice",
+            "Create tone variations for different contexts",
+            "Adapt communication style for various audiences",
+            "Ensure channel-appropriate messaging",
+            "Maintain voice consistency across content",
+            "Establish linguistic style guidelines",
+            "Evolve brand voice strategically over time",
+            "Support brand values through communication"
+        ]
+        self.voice_guidelines = {}
+        self.tone_variations = {}
+    
+    async def generate_voice_strategy(
+        self,
+        brand_identity: Dict[str, Any],
+        audience_segments: Dict[str, Any],
+        communication_channels: Dict[str, Any],
+        content_types: Dict[str, Any],
+        competitive_landscape: Dict[str, Any],
+        strategic_objectives: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a comprehensive brand voice and persona strategy.
+        
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_comprehensive_voice_persona_strategy(
+            brand_identity, audience_segments, communication_channels,
+            content_types, competitive_landscape, strategic_objectives
+        )
+    
+    def define_voice_characteristics(self, characteristics: Dict[str, Any]) -> None:
+        """Define the core voice characteristics for the brand."""
+        self.voice_guidelines["core_characteristics"] = {
+            "traits": characteristics.get("traits", []),
+            "attributes": characteristics.get("attributes", {}),
+            "do_list": characteristics.get("do_list", []),
+            "dont_list": characteristics.get("dont_list", []),
+            "created_at": datetime.utcnow()
+        }
+    
+    def add_tone_variation(self, context: str, tone_config: Dict[str, Any]) -> None:
+        """Add a tone variation for specific context or channel."""
+        self.tone_variations[context] = {
+            "tone": tone_config.get("tone"),
+            "formality": tone_config.get("formality"),
+            "energy": tone_config.get("energy"),
+            "guidelines": tone_config.get("guidelines", [])
+        }
 
 @inject_knowledge
 async def generate_comprehensive_voice_persona_strategy(

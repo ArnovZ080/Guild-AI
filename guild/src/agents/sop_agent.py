@@ -10,6 +10,83 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class SopAgent:
+    """
+    SOP (Standard Operating Procedure) Agent for Guild-AI
+    Expert in process documentation, workflow optimization, and knowledge standardization.
+    """
+    
+    def __init__(self, name: str = "SOP Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "SOP Agent"
+        self.agent_type = "Operations"
+        self.role = "Comprehensive Process Documentation"
+        self.expertise = [
+            "Process Analysis & Mapping",
+            "Procedural Documentation",
+            "Workflow Optimization",
+            "Compliance Integration",
+            "Knowledge Standardization",
+            "Visual Process Representation",
+            "Training Material Development",
+            "Documentation Usability & Accessibility"
+        ]
+        self.capabilities = [
+            "Create clear, structured process documentation",
+            "Ensure consistency and compliance across operations",
+            "Map and optimize business workflows",
+            "Develop standard operating procedures",
+            "Facilitate training and knowledge transfer",
+            "Create visual process representations",
+            "Integrate compliance requirements into documentation",
+            "Maintain and update operational documentation"
+        ]
+        self.sop_library = {}
+        self.process_maps = {}
+    
+    async def generate_sop(
+        self,
+        process_information: Dict[str, Any],
+        organizational_context: Dict[str, Any],
+        compliance_requirements: Dict[str, Any],
+        user_roles: Dict[str, Any],
+        existing_documentation: Dict[str, Any],
+        documentation_goals: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a comprehensive standard operating procedure.
+        
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_comprehensive_sop_strategy(
+            process_information, organizational_context, compliance_requirements,
+            user_roles, existing_documentation, documentation_goals
+        )
+    
+    def create_process_map(self, process_name: str, steps: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """Create a visual process map."""
+        process_id = f"process_{len(self.process_maps)}"
+        self.process_maps[process_id] = {
+            "name": process_name,
+            "steps": steps,
+            "created_at": datetime.utcnow(),
+            "version": "1.0"
+        }
+        return self.process_maps[process_id]
+    
+    def store_sop(self, sop_id: str, sop_data: Dict[str, Any]) -> None:
+        """Store SOP in library for reference and versioning."""
+        self.sop_library[sop_id] = {
+            "data": sop_data,
+            "created_at": datetime.utcnow(),
+            "version": sop_data.get("version", "1.0"),
+            "status": "active"
+        }
 
 @inject_knowledge
 async def generate_comprehensive_sop_strategy(
