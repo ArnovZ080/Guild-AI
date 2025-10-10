@@ -21,7 +21,7 @@ from guild.src.agents.competitive_intelligence_agent import CompetitiveIntellige
 from guild.src.agents.connector_agent import ConnectorAgent
 from guild.src.agents.content_intelligence_agent import ContentIntelligenceAgent
 from guild.src.agents.content_repurposer_agent import ContentRepurposerAgent
-from guild.src.agents.content_strategist import ContentStrategist
+from guild.src.agents.content_strategist import ContentStrategistAgent as ContentStrategist
 from guild.src.agents.copywriter import Copywriter
 from guild.src.agents.copywriter_agent import CopywriterAgent
 from guild.src.agents.crm_agent import CRMAgent
@@ -34,9 +34,9 @@ from guild.src.agents.facebook_scheduler_adapter import FacebookSchedulerAdapter
 from guild.src.agents.financial_intelligence_agent import FinancialIntelligenceAgent
 from guild.src.agents.grant_funding_agent import GrantFundingAgent
 from guild.src.agents.growth_opportunity_agent import GrowthOpportunityAgent
-from guild.src.agents.hiring_hr_agent import HiringHrAgent
-from guild.src.agents.hr_agent import HrAgent
-from guild.src.agents.icp_evolution_agent import IcpEvolutionAgent
+from guild.src.agents.hiring_hr_agent import HiringHRAgent as HiringHrAgent
+from guild.src.agents.hr_agent import HRAgent as HrAgent
+from guild.src.agents.icp_evolution_agent import ICPEvolutionAgent as IcpEvolutionAgent
 from guild.src.agents.image_generation_agent import ImageGenerationAgent
 from guild.src.agents.influencer_outreach_agent import InfluencerOutreachAgent
 from guild.src.agents.instagram_scheduler_adapter import InstagramSchedulerAdapter
@@ -51,14 +51,14 @@ from guild.src.agents.localization_agent import LocalizationAgent
 from guild.src.agents.market_trends_agent import MarketTrendsAgent
 from guild.src.agents.marketing_agent import MarketingAgent
 from guild.src.agents.meeting_notes_agent import MeetingNotesAgent
-from guild.src.agents.okr_goal_tracking_agent import OkrGoalTrackingAgent
+from guild.src.agents.okr_goal_tracking_agent import OKRGoalTrackingAgent as OkrGoalTrackingAgent
 from guild.src.agents.onboarding_agent import OnboardingAgent
 from guild.src.agents.orchestration_tuner import OrchestrationTuner
 from guild.src.agents.orchestrator_agent import OrchestratorAgent
 from guild.src.agents.outbound_sales_agent import OutboundSalesAgent
 from guild.src.agents.paid_ads_agent import PaidAdsAgent
 from guild.src.agents.partnerships_agent import PartnershipsAgent
-from guild.src.agents.pr_outreach_agent import PrOutreachAgent
+from guild.src.agents.pr_outreach_agent import PROutreachAgent as PrOutreachAgent
 from guild.src.agents.product_manager_agent import ProductManagerAgent
 from guild.src.agents.project_manager_agent import ProjectManagerAgent
 from guild.src.agents.proposal_writer_agent import ProposalWriterAgent
@@ -68,7 +68,7 @@ from guild.src.agents.risk_management_agent import RiskManagementAgent
 from guild.src.agents.sales_funnel_agent import SalesFunnelAgent
 from guild.src.agents.scenario_planner_agent import ScenarioPlannerAgent
 from guild.src.agents.scraper_agent import ScraperAgent
-from guild.src.agents.seo_agent import SeoAgent
+from guild.src.agents.seo_agent import SEOAgent as SeoAgent
 from guild.src.agents.skill_development_agent import SkillDevelopmentAgent
 from guild.src.agents.sop_agent import SopAgent
 from guild.src.agents.storage_agent import StorageAgent
@@ -98,12 +98,12 @@ from guild.src.agents.motivation_coach_agent import MotivationCoachAgent
 from guild.src.agents.multi_channel_inbox_agent import MultiChannelInboxAgent
 from guild.src.agents.outsourcing_agent import OutsourcingAgent
 from guild.src.agents.unified_automation_agent import UnifiedAutomationAgent
-from guild.src.agents.ux_ui_tester_agent import UxUiTesterAgent
+from guild.src.agents.ux_ui_tester_agent import UXUITesterAgent as UxUiTesterAgent
 from guild.src.agents.vendor_management_agent import VendorManagementAgent
 from guild.src.agents.well_being_agent import WellBeingAgent
 
 # Financial
-from guild.src.agents.business_strategist import BusinessStrategist
+from guild.src.agents.business_strategist import BusinessStrategistAgent as BusinessStrategist
 from guild.src.agents.business_strategist_agent import BusinessStrategistAgent
 from guild.src.agents.celebration_narrator_agent import CelebrationNarratorAgent
 from guild.src.agents.expense_optimizer_agent import ExpenseOptimizerAgent

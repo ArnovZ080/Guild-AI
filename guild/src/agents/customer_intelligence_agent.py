@@ -336,7 +336,7 @@ class CustomerIntelligenceAgent:
             self.journey_tracker = None
             JOURNEY_TRACKING_AVAILABLE = False
         
-# Customer communication timeline integration
+        # Customer communication timeline integration
         try:
             from guild.src.core.customer_communication_timeline import customer_communication_timeline
             self.communication_timeline = customer_communication_timeline
@@ -366,25 +366,25 @@ class CustomerIntelligenceAgent:
             self.resolution_system = None
             RESOLUTION_SYSTEM_AVAILABLE = False
 
-# Predictive action engine integration
-try:
-    from guild.src.core.predictive_action_engine import predictive_action_engine
-    self.action_engine = predictive_action_engine
-    ACTION_ENGINE_AVAILABLE = True
-except ImportError as e:
-    logging.warning(f"Predictive action engine not available: {e}")
-    self.action_engine = None
-    ACTION_ENGINE_AVAILABLE = False
+        # Predictive action engine integration
+        try:
+            from guild.src.core.predictive_action_engine import predictive_action_engine
+            self.action_engine = predictive_action_engine
+            ACTION_ENGINE_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Predictive action engine not available: {e}")
+            self.action_engine = None
+            ACTION_ENGINE_AVAILABLE = False
 
-# Voice customer intelligence integration
-try:
-    from guild.src.core.voice_customer_intelligence import voice_customer_intelligence
-    self.voice_intelligence = voice_customer_intelligence
-    VOICE_INTELLIGENCE_AVAILABLE = True
-except ImportError as e:
-    logging.warning(f"Voice customer intelligence not available: {e}")
-    self.voice_intelligence = None
-    VOICE_INTELLIGENCE_AVAILABLE = False
+        # Voice customer intelligence integration
+        try:
+            from guild.src.core.voice_customer_intelligence import voice_customer_intelligence
+            self.voice_intelligence = voice_customer_intelligence
+            VOICE_INTELLIGENCE_AVAILABLE = True
+        except ImportError as e:
+            logging.warning(f"Voice customer intelligence not available: {e}")
+            self.voice_intelligence = None
+            VOICE_INTELLIGENCE_AVAILABLE = False
     
     def _initialize_coordination_agents(self):
         """Initialize coordination agents for seamless collaboration."""
