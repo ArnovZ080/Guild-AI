@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
@@ -566,27 +566,26 @@ function LandingPage() {
             <div>
               <h3 className="font-semibold text-white mb-4">Product</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#features" className="hover:text-sky-400 transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-sky-400 transition-colors">Pricing</a></li>
-                <li><a href="#agents" className="hover:text-sky-400 transition-colors">AI Agents</a></li>
-                <li><a href="#integrations" className="hover:text-sky-400 transition-colors">Integrations</a></li>
+                <li><Link to="/features" className="hover:text-sky-400 transition-colors">Features</Link></li>
+                <li><Link to="/pricing" className="hover:text-sky-400 transition-colors">Pricing</Link></li>
+                <li><Link to="/ai-agents" className="hover:text-sky-400 transition-colors">AI Agents</Link></li>
+                <li><Link to="/integrations" className="hover:text-sky-400 transition-colors">Integrations</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-white mb-4">Company</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="#about" className="hover:text-sky-400 transition-colors">About Us</a></li>
-                <li><a href="#blog" className="hover:text-sky-400 transition-colors">Blog</a></li>
-                <li><a href="#careers" className="hover:text-sky-400 transition-colors">Careers</a></li>
-                <li><a href="#contact" className="hover:text-sky-400 transition-colors">Contact</a></li>
+                <li><Link to="/about" className="hover:text-sky-400 transition-colors">About Us</Link></li>
+                <li><Link to="/affiliates" className="hover:text-sky-400 transition-colors">Affiliates</Link></li>
+                <li><Link to="/contact" className="hover:text-sky-400 transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-white mb-4">Legal</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="/privacy-policy" className="hover:text-sky-400 transition-colors">Privacy Policy</a></li>
-                <li><a href="/terms-and-conditions" className="hover:text-sky-400 transition-colors">Terms & Conditions</a></li>
-                <li><a href="/refund-policy" className="hover:text-sky-400 transition-colors">Refund Policy</a></li>
+                <li><Link to="/privacy-policy" className="hover:text-sky-400 transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms-and-conditions" className="hover:text-sky-400 transition-colors">Terms & Conditions</Link></li>
+                <li><Link to="/refund-policy" className="hover:text-sky-400 transition-colors">Refund Policy</Link></li>
               </ul>
             </div>
           </div>

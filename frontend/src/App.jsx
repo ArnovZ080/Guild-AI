@@ -34,10 +34,17 @@ import GrowthDashboard from './components/dashboard/GrowthDashboard.jsx';
 import AchievementsView from './components/dashboard/AchievementsView.jsx';
 import ContentDashboard from './components/dashboard/ContentDashboard.jsx';
 
-// Legal pages (placeholders for now)
+// Legal and public pages
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage.jsx';
 import TermsAndConditionsPage from './pages/TermsAndConditionsPage.jsx';
 import RefundPolicyPage from './pages/RefundPolicyPage.jsx';
+import FeaturesPage from './pages/FeaturesPage.jsx';
+import PricingPage from './pages/PricingPage.jsx';
+import AIAgentsPage from './pages/AIAgentsPage.jsx';
+import IntegrationsPage from './pages/IntegrationsPage.jsx';
+import ContactPage from './pages/ContactPage.jsx';
+import AboutUsPage from './pages/AboutUsPage.jsx';
+import AffiliatesPage from './pages/AffiliatesPage.jsx';
 
 import './App.css';
 import './index.css';
@@ -139,6 +146,15 @@ function AppRoutes() {
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       <Route path="/terms-and-conditions" element={<TermsAndConditionsPage />} />
       <Route path="/refund-policy" element={<RefundPolicyPage />} />
+      
+      {/* Public Information Pages */}
+      <Route path="/features" element={<FeaturesPage />} />
+      <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/ai-agents" element={<AIAgentsPage />} />
+      <Route path="/integrations" element={<IntegrationsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route path="/about" element={<AboutUsPage />} />
+      <Route path="/affiliates" element={<AffiliatesPage />} />
 
       {/* Subscription Route - protected */}
       <Route path="/subscription" element={
