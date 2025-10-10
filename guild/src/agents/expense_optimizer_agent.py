@@ -10,6 +10,25 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class ExpenseOptimizerAgent:
+    """
+    Expense Optimizer Agent
+    """
+    
+    def __init__(self, name: str = "Expense Optimizer Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Expense Optimizer Agent"
+        self.agent_type = "Agent"
+        self.role = "Expense Optimizer Agent"
+        self.expertise = []
+        self.capabilities = []
+
 
 @inject_knowledge
 async def generate_comprehensive_expense_optimization_strategy(

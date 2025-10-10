@@ -1,4 +1,23 @@
 from typing import Dict, Any, List
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class LinkedinSchedulerAdapter:
+    """
+    LinkedIn Scheduler Adapter
+    """
+    
+    def __init__(self, name: str = "LinkedIn Scheduler Adapter", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "LinkedIn Scheduler Adapter"
+        self.agent_type = "Agent"
+        self.role = "LinkedIn Scheduler Adapter"
+        self.expertise = []
+        self.capabilities = []
+
 
 
 class LinkedInSchedulerAdapter:

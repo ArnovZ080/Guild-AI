@@ -1,4 +1,23 @@
 from typing import Dict, Any, List
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class TiktokSchedulerAdapter:
+    """
+    TikTok Scheduler Adapter
+    """
+    
+    def __init__(self, name: str = "TikTok Scheduler Adapter", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "TikTok Scheduler Adapter"
+        self.agent_type = "Agent"
+        self.role = "TikTok Scheduler Adapter"
+        self.expertise = []
+        self.capabilities = []
+
 
 
 class TikTokSchedulerAdapter:

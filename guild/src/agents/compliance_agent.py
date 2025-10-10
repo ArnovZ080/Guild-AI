@@ -10,6 +10,25 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class ComplianceAgent:
+    """
+    Compliance Agent
+    """
+    
+    def __init__(self, name: str = "Compliance Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Compliance Agent"
+        self.agent_type = "Agent"
+        self.role = "Compliance Agent"
+        self.expertise = []
+        self.capabilities = []
+
 
 @inject_knowledge
 async def generate_comprehensive_compliance_strategy(

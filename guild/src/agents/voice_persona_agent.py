@@ -10,6 +10,25 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class VoicePersonaAgent:
+    """
+    Voice Persona Agent
+    """
+    
+    def __init__(self, name: str = "Voice Persona Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Voice Persona Agent"
+        self.agent_type = "Agent"
+        self.role = "Voice Persona Agent"
+        self.expertise = []
+        self.capabilities = []
+
 
 @inject_knowledge
 async def generate_comprehensive_voice_persona_strategy(

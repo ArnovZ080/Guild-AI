@@ -10,6 +10,25 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class TaxAdvisorAgent:
+    """
+    Tax Advisor Agent
+    """
+    
+    def __init__(self, name: str = "Tax Advisor Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Tax Advisor Agent"
+        self.agent_type = "Agent"
+        self.role = "Tax Advisor Agent"
+        self.expertise = []
+        self.capabilities = []
+
 
 @inject_knowledge
 async def generate_comprehensive_tax_advisory_strategy(
