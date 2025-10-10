@@ -10,6 +10,120 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+logger = logging.getLogger(__name__)
+
+class InvestorUpdateAgent:
+    """
+    Investor Update Agent for Guild-AI
+    Expert in investor relations, business communication, and financial reporting.
+    """
+    
+    def __init__(self, name: str = "Investor Update Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Investor Update Agent"
+        self.agent_type = "Financial"
+        self.role = "Investor Relations & Communication"
+        self.expertise = [
+            "Financial Performance Reporting",
+            "Milestone Achievement Highlighting",
+            "Strategic Progress Communication",
+            "Challenge & Solution Framing",
+            "Data Visualization & Presentation",
+            "Investor Expectation Management",
+            "Future Planning & Roadmap Communication",
+            "Engagement & Relationship Building"
+        ]
+        self.capabilities = [
+            "Auto-generate monthly/quarterly investor updates",
+            "Create professional financial reports with visualizations",
+            "Frame achievements in context of business goals",
+            "Communicate challenges transparently with action plans",
+            "Develop engaging visual elements for investor presentations",
+            "Maintain consistent investor communication",
+            "Build and strengthen investor relationships",
+            "Optimize update delivery for maximum impact"
+        ]
+        self.update_history = []
+        self.investor_profiles = {}
+        self.communication_templates = {}
+    
+    async def generate_investor_update(
+        self,
+        business_metrics: Dict[str, Any],
+        financial_performance: Dict[str, Any],
+        milestone_achievements: Dict[str, Any],
+        challenges_obstacles: Dict[str, Any],
+        future_plans: Dict[str, Any],
+        investor_preferences: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate a comprehensive investor update.
+        
+        This method wraps the standalone function for class-based access.
+        """
+        return await generate_comprehensive_investor_update_strategy(
+            business_metrics, financial_performance, milestone_achievements,
+            challenges_obstacles, future_plans, investor_preferences
+        )
+    
+    async def create_update_template(self, update_type: str = "monthly") -> Dict[str, Any]:
+        """Create a reusable template for investor updates."""
+        templates = {
+            "monthly": {
+                "sections": [
+                    "Executive Summary",
+                    "Key Metrics",
+                    "Financial Performance",
+                    "Major Accomplishments",
+                    "Challenges & Solutions",
+                    "Next Month's Focus",
+                    "Ask/Support Needed"
+                ],
+                "format": "concise",
+                "recommended_length": "2-3 pages"
+            },
+            "quarterly": {
+                "sections": [
+                    "Quarter in Review",
+                    "Financial Performance Deep Dive",
+                    "Strategic Milestones Achieved",
+                    "Market Position & Competitive Landscape",
+                    "Challenges & Learnings",
+                    "Next Quarter Roadmap",
+                    "Long-term Vision Update",
+                    "Investor Engagement Opportunities"
+                ],
+                "format": "comprehensive",
+                "recommended_length": "5-7 pages"
+            },
+            "annual": {
+                "sections": [
+                    "Year in Review",
+                    "Comprehensive Financial Analysis",
+                    "Strategic Achievements & Pivots",
+                    "Team & Organization Growth",
+                    "Market Analysis & Position",
+                    "Lessons Learned",
+                    "Next Year's Strategic Plan",
+                    "Long-term Vision & Trajectory"
+                ],
+                "format": "detailed",
+                "recommended_length": "10-15 pages"
+            }
+        }
+        
+        return templates.get(update_type, templates["monthly"])
+    
+    def track_update_history(self, update: Dict[str, Any]) -> None:
+        """Track investor update history for consistency and reference."""
+        self.update_history.append({
+            "timestamp": datetime.utcnow(),
+            "update": update,
+            "type": update.get("type", "monthly")
+        })
 
 @inject_knowledge
 async def generate_comprehensive_investor_update_strategy(
