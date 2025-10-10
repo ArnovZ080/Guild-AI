@@ -10,6 +10,35 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class CustomerSuccessAgent:
+    """
+    Customer Success Agent for Guild-AI
+    Customer Success & Satisfaction
+    """
+    
+    def __init__(self, name: str = "Customer Success Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Customer Success Agent"
+        self.agent_type = "Customer"
+        self.role = "Customer Success & Satisfaction"
+        self.expertise = [
+            "Customer Onboarding",
+            "Relationship Management",
+            "Success Planning",
+            "Retention Strategy"
+        ]
+        self.capabilities = [
+            "Ensure customer success",
+            "Manage customer relationships",
+            "Drive adoption and retention"
+        ]
+
 
 @inject_knowledge
 async def generate_comprehensive_customer_success_strategy(

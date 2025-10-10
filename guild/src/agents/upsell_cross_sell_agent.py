@@ -10,6 +10,35 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class UpsellCrossSellAgent:
+    """
+    Upsell Cross Sell Agent for Guild-AI
+    Revenue Growth Through Upsells & Cross-sells
+    """
+    
+    def __init__(self, name: str = "Upsell Cross Sell Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Upsell Cross Sell Agent"
+        self.agent_type = "Sales"
+        self.role = "Revenue Growth Through Upsells & Cross-sells"
+        self.expertise = [
+            "Customer Analysis",
+            "Product Matching",
+            "Opportunity Identification",
+            "Sales Strategy"
+        ]
+        self.capabilities = [
+            "Identify upsell opportunities",
+            "Recommend complementary products",
+            "Increase customer lifetime value"
+        ]
+
 
 @inject_knowledge
 async def generate_comprehensive_upsell_cross_sell_strategy(

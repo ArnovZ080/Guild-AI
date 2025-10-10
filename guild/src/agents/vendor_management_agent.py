@@ -10,6 +10,35 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class VendorManagementAgent:
+    """
+    Vendor Management Agent for Guild-AI
+    Vendor Relationship Management
+    """
+    
+    def __init__(self, name: str = "Vendor Management Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Vendor Management Agent"
+        self.agent_type = "Operations"
+        self.role = "Vendor Relationship Management"
+        self.expertise = [
+            "Vendor Selection",
+            "Contract Negotiation",
+            "Performance Monitoring",
+            "Relationship Management"
+        ]
+        self.capabilities = [
+            "Manage vendor relationships",
+            "Negotiate contracts",
+            "Monitor vendor performance"
+        ]
+
 
 @inject_knowledge
 async def generate_comprehensive_vendor_management_strategy(

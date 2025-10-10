@@ -10,6 +10,35 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class ContractAnalyzerAgent:
+    """
+    Contract Analyzer Agent for Guild-AI
+    Contract Review & Analysis
+    """
+    
+    def __init__(self, name: str = "Contract Analyzer Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Contract Analyzer Agent"
+        self.agent_type = "Legal"
+        self.role = "Contract Review & Analysis"
+        self.expertise = [
+            "Contract Review",
+            "Risk Assessment",
+            "Terms Analysis",
+            "Compliance Verification"
+        ]
+        self.capabilities = [
+            "Analyze contracts",
+            "Identify risks",
+            "Verify compliance"
+        ]
+
 
 @inject_knowledge
 async def generate_comprehensive_contract_analysis(

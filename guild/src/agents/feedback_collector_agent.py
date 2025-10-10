@@ -10,6 +10,35 @@ from datetime import datetime
 from guild.src.core.agent_helpers import inject_knowledge
 import asyncio
 import json
+import logging
+
+
+logger = logging.getLogger(__name__)
+
+class FeedbackCollectorAgent:
+    """
+    Feedback Collector Agent for Guild-AI
+    Customer Feedback Collection & Analysis
+    """
+    
+    def __init__(self, name: str = "Feedback Collector Agent", user_input=None):
+        self.name = name
+        self.user_input = user_input
+        self.agent_name = "Feedback Collector Agent"
+        self.agent_type = "Customer"
+        self.role = "Customer Feedback Collection & Analysis"
+        self.expertise = [
+            "Feedback Collection",
+            "Sentiment Analysis",
+            "Survey Design",
+            "Insight Extraction"
+        ]
+        self.capabilities = [
+            "Collect customer feedback",
+            "Analyze sentiment",
+            "Extract actionable insights"
+        ]
+
 
 @inject_knowledge
 async def generate_comprehensive_feedback_collection_strategy(
