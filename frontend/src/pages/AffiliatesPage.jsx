@@ -148,7 +148,7 @@ function AffiliatesPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center space-x-2">
-              <img src={guildLogo} alt="Guild AI Logo" className="w-8 h-8 rounded-lg text-sky-600 dark:text-sky-400" />
+              <img src={guildLogo} alt="Guild AI Logo" className="w-8 h-8 rounded-lg" />
               <span className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-emerald-600 bg-clip-text text-transparent">
                 Guild AI
               </span>
