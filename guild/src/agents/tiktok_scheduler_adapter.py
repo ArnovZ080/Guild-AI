@@ -24,3 +24,5 @@ class TikTokSchedulerAdapter:
         return results
 
 
+# Alias for import compatibility
+TiktokSchedulerAdapter = TikTokSchedulerAdapter
