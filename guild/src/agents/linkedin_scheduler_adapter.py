@@ -25,3 +25,7 @@ class LinkedInSchedulerAdapter:
         return results
 
 
+# Alias for import compatibility
+LinkedinSchedulerAdapter = LinkedInSchedulerAdapter
+
+
