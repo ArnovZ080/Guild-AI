@@ -24,7 +24,7 @@ from guild.src.agents.content_repurposer_agent import ContentRepurposerAgent
 from guild.src.agents.content_strategist import ContentStrategist
 from guild.src.agents.copywriter import Copywriter
 from guild.src.agents.copywriter_agent import CopywriterAgent
-from guild.src.agents.crm_agent import CrmAgent
+from guild.src.agents.crm_agent import CRMAgent
 from guild.src.agents.crm_automation_agent import CrmAutomationAgent
 from guild.src.agents.customer_intelligence_agent import CustomerIntelligenceAgent
 from guild.src.agents.enhanced_campaign_agent import EnhancedCampaignAgent
@@ -149,7 +149,7 @@ AGENT_REGISTRY = {
     "ContentStrategist": ContentStrategist,
     "Copywriter": Copywriter,
     "CopywriterAgent": CopywriterAgent,
-    "CrmAgent": CrmAgent,
+    "CrmAgent": CRMAgent,
     "CrmAutomationAgent": CrmAutomationAgent,
     "CustomerIntelligenceAgent": CustomerIntelligenceAgent,
     "EnhancedCampaignAgent": EnhancedCampaignAgent,
