@@ -191,7 +191,7 @@ function SignupPage() {
                 <Checkbox
                   id="terms"
                   checked={acceptedTerms}
-                  onCheckedChange={setAcceptedTerms}
+                  onChange={(e) => setAcceptedTerms(e.target.checked)}
                   disabled={loading}
                 />
                 <label
