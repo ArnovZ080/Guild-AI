@@ -52,7 +52,7 @@ const OnboardingContainer = ({ onComplete }) => {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
       // Get Firebase token
-      const { auth } = await import('../config/firebase');
+      const { auth } = await import('../../config/firebase.js');
       const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
       
       if (!token) {
