@@ -41,11 +41,39 @@ jobs:
       
       - name: Build and Deploy to Cloud Run
         run: |
-          gcloud builds submit --config=cloudbuild.yaml . \
+          # Submit build and get build ID
+          BUILD_ID=$(gcloud builds submit --config=cloudbuild.yaml . \
             --substitutions=_DB_PASSWORD="${{ steps.secrets.outputs.DB_PASSWORD }}" \
-            --project=${{ env.PROJECT_ID }}
+            --project=${{ env.PROJECT_ID }} \
+            --format="value(id)" 2>&1 | grep -oP '[a-f0-9-]{36}' | head -1)
+          
+          echo "Build ID: $BUILD_ID"
+          echo "View logs: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=${{ env.PROJECT_ID }}"
+          
+          # Wait for build to complete
+          echo "Waiting for build to complete..."
+          for i in {1..60}; do
+            STATUS=$(gcloud builds describe $BUILD_ID --project=${{ env.PROJECT_ID }} --format="value(status)" 2>/dev/null || echo "UNKNOWN")
+            echo "Build status: $STATUS (check $i/60)"
+            
+            if [ "$STATUS" = "SUCCESS" ]; then
+              echo "✅ Build completed successfully!"
+              exit 0
+            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "TIMEOUT" ] || [ "$STATUS" = "CANCELLED" ]; then
+              echo "❌ Build failed with status: $STATUS"
+              echo "View logs: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=${{ env.PROJECT_ID }}"
+              exit 1
+            fi
+            
+            sleep 30
+          done
+          
+          echo "⏱️ Build timeout after 30 minutes"
+          echo "View logs: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=${{ env.PROJECT_ID }}"
+          exit 1
       
       - name: Show Service URL
+        if: success()
         run: |
           echo "🚀 Deployment complete!"
           echo "Service URL: https://${SERVICE_NAME}-881782424.${REGION}.run.app"
