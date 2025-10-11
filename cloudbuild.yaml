@@ -28,6 +28,19 @@ steps:
         
         echo "Frontend built successfully!"
         ls -la dist/
+        
+        # Verify dist exists and has files
+        if [ ! -d "dist" ]; then
+          echo "ERROR: dist directory not created!"
+          exit 1
+        fi
+        
+        if [ ! -f "dist/index.html" ]; then
+          echo "ERROR: dist/index.html not found!"
+          exit 1
+        fi
+        
+        echo "✅ Frontend build verified: $(du -sh dist)"
     id: 'build-frontend'
   
   # Step 1: Build the Docker image
@@ -40,6 +53,7 @@ steps:
       - './api_server/Dockerfile'
       - '.'
     id: 'build-image'
+    waitFor: ['build-frontend']
 
   # Step 2: Push the Docker image to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
