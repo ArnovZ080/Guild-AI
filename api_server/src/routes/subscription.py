@@ -327,6 +327,82 @@ async def start_trial_subscription(
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to start trial: {str(e)}")
 
+@router.post("/convert-trial")
+async def convert_trial_to_paid(
+    request: InitializeSubscriptionRequest,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Convert a trialing subscription to paid by initializing Paystack payment"""
+    try:
+        # Find existing trial subscription
+        trial_sub = db.query(models.Subscription).filter(
+            models.Subscription.user_id == current_user.id,
+            models.Subscription.status == "trialing"
+        ).first()
+        
+        if not trial_sub:
+            # No trial, treat as new subscription
+            return await initialize_subscription(request, current_user, db)
+        
+        # Get plan details
+        plan = SUBSCRIPTION_PLANS.get(request.plan_id or trial_sub.tier)
+        if not plan:
+            raise HTTPException(status_code=404, detail="Plan not found")
+        
+        # Initialize Paystack subscription
+        paystack_url = "https://api.paystack.co/transaction/initialize"
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        # Use plan code for recurring subscription
+        payload = {
+            "email": request.email,
+            "plan": plan["paystack_plan_code"],
+            "amount": int(plan["usd_price"] * 100),  # Convert to cents
+            "currency": "USD",
+            "callback_url": f"{os.getenv('FRONTEND_URL', 'https://guildof1.com')}/settings?payment=success",
+            "metadata": {
+                "user_id": current_user.id,
+                "subscription_id": trial_sub.id,
+                "plan_id": request.plan_id or trial_sub.tier,
+                "converting_trial": True
+            }
+        }
+        
+        response = requests.post(paystack_url, json=payload, headers=headers)
+        
+        if response.status_code != 200:
+            logger.error(f"Paystack API error: {response.text}")
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Payment initialization failed: {response.text}"
+            )
+        
+        data = response.json()
+        
+        if not data.get("status"):
+            raise HTTPException(status_code=400, detail="Payment initialization failed")
+        
+        # Store Paystack customer code if provided
+        if data.get("data", {}).get("customer_code"):
+            current_user.paystack_customer_id = data["data"]["customer_code"]
+            db.commit()
+        
+        return {
+            "authorization_url": data["data"]["authorization_url"],
+            "access_code": data["data"]["access_code"],
+            "reference": data["data"]["reference"]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Trial conversion error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to convert trial: {str(e)}")
+
 @router.post("/initialize")
 async def initialize_subscription(
     request: InitializeSubscriptionRequest,
