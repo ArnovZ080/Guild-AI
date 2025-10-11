@@ -45,6 +45,45 @@ steps:
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ALTER COLUMN supabase_id DROP NOT NULL;"
         
+        # Create onboarding_data table if it doesn't exist
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
+        CREATE TABLE IF NOT EXISTS onboarding_data (
+          id VARCHAR PRIMARY KEY,
+          user_id VARCHAR UNIQUE REFERENCES users(id),
+          business_type VARCHAR,
+          business_description TEXT,
+          industry VARCHAR,
+          target_audience TEXT,
+          customer_avatar JSONB,
+          audience_problems TEXT,
+          audience_size VARCHAR,
+          brand_voice_tone VARCHAR,
+          brand_personality JSONB,
+          brand_colors JSONB,
+          logo_status VARCHAR,
+          brand_values JSONB,
+          brand_story TEXT,
+          brand_differentiation TEXT,
+          brand_consistency VARCHAR,
+          pricing_status VARCHAR,
+          pricing_model VARCHAR,
+          marketing_budget VARCHAR,
+          revenue_goals VARCHAR,
+          priority_3months TEXT,
+          key_metrics JSONB,
+          success_definition TEXT,
+          communication_style VARCHAR,
+          data_storage_preference VARCHAR,
+          security_preference VARCHAR,
+          incomplete_fields JSONB DEFAULT '[]',
+          completion_percentage INTEGER DEFAULT 0,
+          needs_follow_up BOOLEAN DEFAULT FALSE,
+          raw_responses JSONB DEFAULT '{}',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          completed_at TIMESTAMP
+        );"
+        
         # Run migrations
         /usr/local/bin/python /app/api_server/src/manage.py migrate
         

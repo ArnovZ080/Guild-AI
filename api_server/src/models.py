@@ -237,6 +237,67 @@ class User(Base):
     workflows = relationship("Workflow", back_populates="user")
     usage_logs = relationship("UsageLog", back_populates="user")
     credit_transactions = relationship("CreditTransaction", back_populates="user")
+    onboarding_data = relationship("OnboardingData", back_populates="user", uselist=False)
+
+class OnboardingData(Base):
+    """Source of truth for user's business information collected during onboarding"""
+    __tablename__ = "onboarding_data"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, unique=True)
+    
+    # Business Information
+    business_type = Column(String, nullable=True)
+    business_description = Column(Text, nullable=True)
+    industry = Column(String, nullable=True)
+    
+    # Audience Information
+    target_audience = Column(Text, nullable=True)
+    customer_avatar = Column(JSON, nullable=True)
+    audience_problems = Column(Text, nullable=True)
+    audience_size = Column(String, nullable=True)
+    
+    # Brand Information
+    brand_voice_tone = Column(String, nullable=True)
+    brand_personality = Column(JSON, nullable=True)
+    brand_colors = Column(JSON, nullable=True)
+    logo_status = Column(String, nullable=True)
+    brand_values = Column(JSON, nullable=True)
+    brand_story = Column(Text, nullable=True)
+    brand_differentiation = Column(Text, nullable=True)
+    brand_consistency = Column(String, nullable=True)
+    
+    # Financial Information
+    pricing_status = Column(String, nullable=True)
+    pricing_model = Column(String, nullable=True)
+    marketing_budget = Column(String, nullable=True)
+    revenue_goals = Column(String, nullable=True)
+    
+    # Goals & Priorities
+    priority_3months = Column(Text, nullable=True)
+    key_metrics = Column(JSON, nullable=True)
+    success_definition = Column(Text, nullable=True)
+    
+    # Preferences
+    communication_style = Column(String, nullable=True)
+    data_storage_preference = Column(String, nullable=True)
+    security_preference = Column(String, nullable=True)
+    
+    # Completion tracking
+    incomplete_fields = Column(JSON, default=lambda: [])  # List of fields that need follow-up
+    completion_percentage = Column(Integer, default=0)
+    needs_follow_up = Column(Boolean, default=False)
+    
+    # Raw onboarding responses (full data)
+    raw_responses = Column(JSON, default=lambda: {})
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    completed_at = Column(DateTime, nullable=True)
+    
+    # Relationship
+    user = relationship("User", back_populates="onboarding_data")
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
