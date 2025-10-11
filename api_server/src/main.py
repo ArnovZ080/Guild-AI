@@ -59,7 +59,7 @@ async def startup_event():
 
 # Import routes
 from .routes import agents, oauth, document_processing, auth, subscription, credits
-from .routes import execution_layer, connectors, onboarding, workspace, orchestrator
+from .routes import execution_layer, connectors, onboarding, workspace, orchestrator, quality_control
 from .routes import agents_available
 from .routes import settings as settings_routes
 from .routes import notifications as notifications_routes
@@ -83,6 +83,7 @@ app.include_router(execution_layer.router)
 app.include_router(connectors.router)
 app.include_router(onboarding.router)
 app.include_router(orchestrator.router)
+app.include_router(quality_control.router)
 app.include_router(workspace.router)
 app.include_router(agents_available.router)
 app.include_router(settings_routes.router)
