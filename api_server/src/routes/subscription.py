@@ -17,6 +17,7 @@ router = APIRouter(prefix="/subscription", tags=["subscription"])
 
 # Paystack configuration
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")
+PAYSTACK_SUBACCOUNT = os.getenv("PAYSTACK_SUBACCOUNT", "ACCT_rhpjaolq4elgsqg")  # Guild subaccount
 PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY")
 PAYSTACK_BASE_URL = "https://api.paystack.co"
 
@@ -357,12 +358,16 @@ async def convert_trial_to_paid(
             "Content-Type": "application/json"
         }
         
+        # Calculate ZAR price
+        zar_price = await calculate_zar_price(plan["usd_price"])
+        
         # Use plan code for recurring subscription
         payload = {
             "email": request.email,
             "plan": plan["paystack_plan_code"],
-            "amount": int(plan["usd_price"] * 100),  # Convert to cents
-            "currency": "USD",
+            "amount": int(zar_price * 100),  # ZAR in kobo
+            "currency": "ZAR",
+            "subaccount": PAYSTACK_SUBACCOUNT,
             "callback_url": f"{os.getenv('FRONTEND_URL', 'https://guildof1.com')}/settings?payment=success",
             "metadata": {
                 "user_id": current_user.id,
@@ -731,6 +736,280 @@ async def get_exchange_rate():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get exchange rate: {str(e)}")
 
+@router.post("/upgrade-plan")
+async def upgrade_plan(
+    plan_id: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Upgrade or downgrade to a different plan"""
+    try:
+        # Get current subscription
+        current_sub = db.query(models.Subscription).filter(
+            models.Subscription.user_id == current_user.id,
+            models.Subscription.status.in_(["active", "trialing"])
+        ).first()
+        
+        # Get new plan
+        new_plan = SUBSCRIPTION_PLANS.get(plan_id)
+        if not new_plan:
+            raise HTTPException(status_code=404, detail="Plan not found")
+        
+        current_plan_id = current_sub.tier if current_sub else "free"
+        current_plan = SUBSCRIPTION_PLANS.get(current_plan_id, SUBSCRIPTION_PLANS["free"])
+        
+        # Determine if upgrade or downgrade
+        plan_order = ["free", "starter", "growth", "professional", "enterprise"]
+        is_upgrade = plan_order.index(plan_id) > plan_order.index(current_plan_id)
+        
+        # Handle downgrade to free (immediate, no payment)
+        if plan_id == "free":
+            if current_sub:
+                current_sub.status = "cancelled"
+                current_sub.cancelled_at = datetime.utcnow()
+            
+            current_user.subscription_tier = "free"
+            current_user.subscription_status = "active"
+            current_user.credits_limit = 100
+            
+            db.commit()
+            
+            return {
+                "message": "Downgraded to free plan",
+                "plan": "free",
+                "effective_immediately": True
+            }
+        
+        # For paid plans, initialize payment
+        if not PAYSTACK_SECRET_KEY:
+            raise HTTPException(status_code=500, detail="Paystack not configured")
+        
+        # Calculate prorated amount if upgrading mid-period
+        proration_credit = 0
+        if current_sub and is_upgrade:
+            # Calculate days remaining in current period
+            days_remaining = (current_sub.current_period_end - datetime.utcnow()).days
+            if days_remaining > 0:
+                # Credit for unused days
+                daily_rate = current_plan["usd_price"] / 30
+                proration_credit = daily_rate * days_remaining
+        
+        # Calculate ZAR price
+        zar_price = await calculate_zar_price(new_plan["usd_price"])
+        
+        # Initialize Paystack transaction
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        reference = f"guild_upgrade_{uuid.uuid4().hex[:12]}"
+        
+        payload = {
+            "email": current_user.email,
+            "amount": int((zar_price - proration_credit) * 100),  # ZAR in kobo, with proration
+            "currency": "ZAR",
+            "reference": reference,
+            "plan": new_plan["paystack_plan_code"],
+            "subaccount": PAYSTACK_SUBACCOUNT,
+            "callback_url": f"{os.getenv('FRONTEND_URL', 'https://guildof1.com')}/settings?plan_change=success",
+            "metadata": {
+                "user_id": current_user.id,
+                "plan_id": plan_id,
+                "previous_plan": current_plan_id,
+                "is_upgrade": is_upgrade,
+                "proration_credit": proration_credit
+            }
+        }
+        
+        response = requests.post(
+            f"{PAYSTACK_BASE_URL}/transaction/initialize",
+            json=payload,
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        
+        data = response.json()
+        
+        if not data.get("status"):
+            raise HTTPException(status_code=400, detail="Payment initialization failed")
+        
+        return {
+            "authorization_url": data["data"]["authorization_url"],
+            "reference": reference,
+            "action": "upgrade" if is_upgrade else "downgrade",
+            "new_plan": plan_id,
+            "amount_zar": zar_price - proration_credit,
+            "proration_credit": proration_credit,
+            "message": f"{'Upgrading' if is_upgrade else 'Changing'} to {new_plan['name']} plan"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Plan change error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to change plan: {str(e)}")
+
+@router.post("/buy-credits")
+async def buy_credits(
+    amount_usd: int,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """One-time purchase of bonus credits"""
+    try:
+        if amount_usd < 5:
+            raise HTTPException(status_code=400, detail="Minimum purchase is $5")
+        
+        # Calculate credits (e.g., $1 = 100 credits)
+        credits = amount_usd * 100
+        
+        # Calculate ZAR price
+        zar_price = await calculate_zar_price(amount_usd)
+        
+        # Initialize Paystack transaction
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        reference = f"guild_credits_{uuid.uuid4().hex[:12]}"
+        
+        payload = {
+            "email": current_user.email,
+            "amount": int(zar_price * 100),  # ZAR in kobo
+            "currency": "ZAR",
+            "reference": reference,
+            "subaccount": PAYSTACK_SUBACCOUNT,
+            "callback_url": f"{os.getenv('FRONTEND_URL', 'https://guildof1.com')}/dashboard?credits_added=success",
+            "metadata": {
+                "user_id": current_user.id,
+                "purchase_type": "credits",
+                "credits_amount": credits,
+                "usd_amount": amount_usd
+            }
+        }
+        
+        response = requests.post(
+            f"{PAYSTACK_BASE_URL}/transaction/initialize",
+            json=payload,
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        
+        data = response.json()
+        
+        if not data.get("status"):
+            raise HTTPException(status_code=400, detail="Payment initialization failed")
+        
+        return {
+            "authorization_url": data["data"]["authorization_url"],
+            "reference": reference,
+            "credits": credits,
+            "amount_usd": amount_usd,
+            "amount_zar": zar_price,
+            "message": f"Purchase {credits:,} bonus credits for ${amount_usd}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Credits purchase error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to purchase credits: {str(e)}")
+
+@router.post("/hire-agent")
+async def hire_agent(
+    agent_id: str,
+    duration: str,  # 'daily' or 'monthly'
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """One-time payment to hire an additional agent"""
+    try:
+        # Get agent pricing from user's plan
+        current_sub = db.query(models.Subscription).filter(
+            models.Subscription.user_id == current_user.id,
+            models.Subscription.status.in_(["active", "trialing"])
+        ).first()
+        
+        current_tier = current_sub.tier if current_sub else "free"
+        plan = SUBSCRIPTION_PLANS.get(current_tier, SUBSCRIPTION_PLANS["free"])
+        
+        # Calculate price
+        if duration == "daily":
+            usd_price = plan.get("extra_agent_daily_usd", 2.0)
+            duration_days = 1
+        elif duration == "monthly":
+            usd_price = plan.get("extra_agent_monthly_usd", 15.0)
+            duration_days = 30
+        else:
+            raise HTTPException(status_code=400, detail="Duration must be 'daily' or 'monthly'")
+        
+        # Calculate ZAR price
+        zar_price = await calculate_zar_price(usd_price)
+        
+        # Initialize Paystack transaction
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        reference = f"guild_agent_{uuid.uuid4().hex[:12]}"
+        hired_until = datetime.utcnow() + timedelta(days=duration_days)
+        
+        payload = {
+            "email": current_user.email,
+            "amount": int(zar_price * 100),  # ZAR in kobo
+            "currency": "ZAR",
+            "reference": reference,
+            "subaccount": PAYSTACK_SUBACCOUNT,
+            "callback_url": f"{os.getenv('FRONTEND_URL', 'https://guildof1.com')}/agents?agent_hired=success",
+            "metadata": {
+                "user_id": current_user.id,
+                "purchase_type": "agent_hire",
+                "agent_id": agent_id,
+                "duration": duration,
+                "duration_days": duration_days,
+                "hired_until": hired_until.isoformat(),
+                "usd_amount": usd_price
+            }
+        }
+        
+        response = requests.post(
+            f"{PAYSTACK_BASE_URL}/transaction/initialize",
+            json=payload,
+            headers=headers
+        )
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        
+        data = response.json()
+        
+        if not data.get("status"):
+            raise HTTPException(status_code=400, detail="Payment initialization failed")
+        
+        return {
+            "authorization_url": data["data"]["authorization_url"],
+            "reference": reference,
+            "agent_id": agent_id,
+            "duration": duration,
+            "hired_until": hired_until.isoformat(),
+            "amount_usd": usd_price,
+            "amount_zar": zar_price,
+            "message": f"Hire {agent_id} for {duration_days} day(s)"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Agent hire error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to hire agent: {str(e)}")
+
 @router.post("/webhook")
 async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
     """Handle Paystack webhooks for subscription events"""
@@ -753,7 +1032,9 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
         data = event_data.get("data", {})
         
         # Handle different webhook events
-        if event_type == "subscription.create":
+        if event_type == "charge.success":
+            await handle_charge_success(data, db)
+        elif event_type == "subscription.create":
             await handle_subscription_created(data, db)
         elif event_type == "subscription.disable":
             await handle_subscription_cancelled(data, db)
@@ -766,6 +1047,100 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Webhook processing failed: {str(e)}")
+
+async def handle_charge_success(data: dict, db: Session):
+    """Handle successful one-time payment (credits, agent hire, plan change)"""
+    try:
+        metadata = data.get("metadata", {})
+        purchase_type = metadata.get("purchase_type")
+        user_id = metadata.get("user_id")
+        
+        if not user_id:
+            logger.warning("No user_id in charge.success webhook")
+            return
+        
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if not user:
+            logger.warning(f"User {user_id} not found for charge.success")
+            return
+        
+        # Handle different purchase types
+        if purchase_type == "credits":
+            # Add bonus credits
+            credits_amount = metadata.get("credits_amount", 0)
+            user.bonus_credits = (user.bonus_credits or 0) + credits_amount
+            logger.info(f"Added {credits_amount} bonus credits to user {user_id}")
+        
+        elif purchase_type == "agent_hire":
+            # TODO: Create agent_hires table to track hired agents
+            # For now, log it
+            agent_id = metadata.get("agent_id")
+            hired_until = metadata.get("hired_until")
+            logger.info(f"User {user_id} hired agent {agent_id} until {hired_until}")
+            # Future: Store in agent_hires table
+        
+        elif purchase_type == "plan_change" or metadata.get("is_upgrade"):
+            # Handle plan upgrade/change
+            plan_id = metadata.get("plan_id")
+            if plan_id:
+                plan = SUBSCRIPTION_PLANS.get(plan_id)
+                if plan:
+                    # Update or create subscription
+                    subscription = db.query(models.Subscription).filter(
+                        models.Subscription.user_id == user_id,
+                        models.Subscription.status.in_(["active", "trialing"])
+                    ).first()
+                    
+                    if subscription:
+                        subscription.tier = plan_id
+                        subscription.status = "active"
+                        subscription.paystack_subscription_code = data.get("subscription", {}).get("subscription_code")
+                    else:
+                        # Create new subscription
+                        subscription = models.Subscription(
+                            id=str(uuid.uuid4()),
+                            user_id=user_id,
+                            tier=plan_id,
+                            status="active",
+                            paystack_subscription_code=data.get("subscription", {}).get("subscription_code"),
+                            paystack_plan_code=plan["paystack_plan_code"],
+                            amount=plan["usd_price"],
+                            currency="USD",
+                            monthly_credits=plan["credits"],
+                            current_period_start=datetime.utcnow(),
+                            current_period_end=datetime.utcnow() + timedelta(days=30)
+                        )
+                        db.add(subscription)
+                    
+                    # Update user
+                    user.subscription_tier = plan_id
+                    user.subscription_status = "active"
+                    user.credits_limit = plan["credits"]
+                    
+                    logger.info(f"User {user_id} plan changed to {plan_id}")
+        
+        elif metadata.get("converting_trial"):
+            # Trial conversion to paid
+            subscription_id = metadata.get("subscription_id")
+            if subscription_id:
+                subscription = db.query(models.Subscription).filter(
+                    models.Subscription.id == subscription_id
+                ).first()
+                
+                if subscription:
+                    subscription.status = "active"
+                    subscription.paystack_subscription_code = data.get("subscription", {}).get("subscription_code")
+                    subscription.trial_end = None  # Clear trial end
+                    
+                    user.subscription_status = "active"
+                    
+                    logger.info(f"Converted trial to paid for user {user_id}")
+        
+        db.commit()
+        
+    except Exception as e:
+        logger.error(f"Error handling charge.success: {str(e)}")
+        db.rollback()
 
 async def handle_subscription_created(data: dict, db: Session):
     """Handle subscription creation webhook"""
