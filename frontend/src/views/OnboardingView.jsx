@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import OnboardingContainer from '../components/onboarding/OnboardingContainer.jsx';
 import onboardingFollowUpService from '../services/onboardingFollowUpService.js';
 
 const OnboardingView = () => {
   const [isCompleted, setIsCompleted] = useState(false);
+  const navigate = useNavigate();
 
   const handleOnboardingComplete = (data) => {
     // Store onboarding data in localStorage for persistence
@@ -25,9 +27,15 @@ const OnboardingView = () => {
     setIsCompleted(true);
   };
 
+  useEffect(() => {
+    if (isCompleted) {
+      // Use React Router navigation instead of full page reload
+      navigate('/chat', { replace: true });
+    }
+  }, [isCompleted, navigate]);
+
   if (isCompleted) {
-    // Redirect immediately to chat after completion
-    window.location.href = '/chat';
+    // Show nothing while navigating
     return null;
   }
 

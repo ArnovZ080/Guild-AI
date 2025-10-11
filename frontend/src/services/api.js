@@ -54,6 +54,37 @@ class ApiService {
     }
   }
 
+  // Convenience methods for common HTTP verbs
+  async get(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'GET'
+    });
+  }
+
+  async post(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async put(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+  }
+
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: 'DELETE'
+    });
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');
