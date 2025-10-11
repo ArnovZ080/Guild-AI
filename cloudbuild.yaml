@@ -190,3 +190,8 @@ steps:
 # Images to store in Container Registry
 images:
   - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+
+# Logging configuration (required when using custom service account)
+options:
+  logging: CLOUD_LOGGING_ONLY
+  logStreamingOption: STREAM_ON
