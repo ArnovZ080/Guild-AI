@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Alert, AlertDescription } from '@/components/ui/alert.jsx'
-import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award, AlertTriangle } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award, AlertTriangle, Calculator } from 'lucide-react'
 import guildLogo from '../assets/guild-logo.png'
 
 function LandingPage() {
@@ -510,6 +510,99 @@ function LandingPage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* Cost Comparison */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-slate-100">
+            The Math is Simple
+          </h2>
+          <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            See how much you save compared to hiring a human team
+          </p>
+        </div>
+
+        <Card className="max-w-4xl mx-auto">
+          <CardContent className="p-8">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center">
+                  <Calculator className="w-6 h-6 mr-2 text-red-600" />
+                  Traditional Team
+                </h3>
+                <div className="space-y-2 text-slate-700 dark:text-slate-300">
+                  <div className="flex justify-between">
+                    <span>Content Writer:</span>
+                    <span className="font-semibold">$4,000/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Social Media Manager:</span>
+                    <span className="font-semibold">$3,500/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Data Analyst:</span>
+                    <span className="font-semibold">$5,000/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Virtual Assistant:</span>
+                    <span className="font-semibold">$2,000/mo</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Researcher:</span>
+                    <span className="font-semibold">$3,500/mo</span>
+                  </div>
+                  <div className="border-t border-slate-300 dark:border-slate-700 pt-2 mt-4 flex justify-between text-xl font-bold">
+                    <span>Total:</span>
+                    <span className="text-red-600">$18,000/mo</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 flex items-center">
+                  <Sparkles className="w-6 h-6 mr-2 text-emerald-600" />
+                  Guild AI
+                </h3>
+                <div className="space-y-2 text-slate-700 dark:text-slate-300">
+                  <div className="flex justify-between">
+                    <span>10 AI Agents (Growth):</span>
+                    <span className="font-semibold">$99/mo</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 dark:text-slate-500">
+                    <span>Works 24/7:</span>
+                    <span>✓</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 dark:text-slate-500">
+                    <span>Never takes breaks:</span>
+                    <span>✓</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 dark:text-slate-500">
+                    <span>Quality guaranteed:</span>
+                    <span>✓</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 dark:text-slate-500">
+                    <span>Instant scaling:</span>
+                    <span>✓</span>
+                  </div>
+                  <div className="border-t border-slate-300 dark:border-slate-700 pt-2 mt-4 flex justify-between text-xl font-bold">
+                    <span>Total:</span>
+                    <span className="text-emerald-600">$99/mo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-center">
+              <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-400 mb-2">
+                Save $17,901/month (99.4%)
+              </p>
+              <p className="text-slate-600 dark:text-slate-400">
+                That's $214,812 saved per year with Guild AI
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       {/* CTA Section */}
