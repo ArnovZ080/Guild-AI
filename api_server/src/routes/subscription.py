@@ -253,13 +253,87 @@ async def get_available_plans():
             "error": "Using fallback pricing due to exchange rate service unavailability"
         }
 
+@router.post("/start-trial")
+async def start_trial_subscription(
+    plan_id: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Start a 21-day free trial for a paid plan without payment"""
+    try:
+        # Get plan details
+        plan = SUBSCRIPTION_PLANS.get(plan_id)
+        if not plan:
+            raise HTTPException(status_code=404, detail="Plan not found")
+        
+        if plan_id == "free":
+            raise HTTPException(status_code=400, detail="Free plan doesn't have a trial")
+        
+        trial_days = plan.get("trial_days", 21)
+        
+        # Check if user already has an active subscription or trial
+        existing_sub = db.query(models.Subscription).filter(
+            models.Subscription.user_id == current_user.id,
+            models.Subscription.status.in_(["active", "trialing"])
+        ).first()
+        
+        if existing_sub:
+            return {
+                "message": "User already has an active subscription",
+                "subscription_id": existing_sub.id
+            }
+        
+        # Create trial subscription (no payment required)
+        trial_end = datetime.utcnow() + timedelta(days=trial_days)
+        period_end = datetime.utcnow() + timedelta(days=trial_days)
+        
+        new_subscription = models.Subscription(
+            id=str(uuid.uuid4()),
+            user_id=current_user.id,
+            paystack_subscription_code=None,  # No Paystack subscription yet
+            paystack_plan_code=plan["paystack_plan_code"],
+            status="trialing",
+            tier=plan_id,
+            amount=plan["usd_price"],
+            currency="USD",
+            monthly_credits=plan["credits"],
+            current_period_start=datetime.utcnow(),
+            current_period_end=period_end,
+            trial_end=trial_end,
+            created_at=datetime.utcnow()
+        )
+        
+        # Update user with trial
+        current_user.subscription_tier = plan_id
+        current_user.subscription_status = "trialing"
+        current_user.credits_limit = plan["credits"]
+        current_user.credits_used_this_month = 0
+        
+        db.add(new_subscription)
+        db.commit()
+        db.refresh(new_subscription)
+        
+        return {
+            "message": "Trial started successfully",
+            "subscription_id": new_subscription.id,
+            "plan": plan_id,
+            "trial_end": trial_end.isoformat(),
+            "credits": plan["credits"],
+            "status": "trialing",
+            "trial_days_remaining": trial_days
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to start trial: {str(e)}")
+
 @router.post("/initialize")
 async def initialize_subscription(
     request: InitializeSubscriptionRequest,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Initialize a subscription payment with current ZAR pricing"""
+    """Initialize a subscription payment with current ZAR pricing (after trial ends)"""
     try:
         # Get plan details
         plan = SUBSCRIPTION_PLANS.get(request.plan_id)

@@ -58,14 +58,39 @@ function SignupPage() {
     try {
       setError('');
       setLoading(true);
-      await signup(email, password, fullName);
       
-      // Navigate to subscription page if plan selected, otherwise to dashboard
+      // Create Firebase account and backend profile
+      const result = await signup(email, password, fullName);
+      
+      // If user selected a paid plan, start free trial automatically
       if (selectedPlan && selectedPlan !== 'free') {
-        navigate(`/subscription?plan=${selectedPlan}`);
-      } else {
-        navigate('/dashboard');
+        try {
+          const token = await result.user.getIdToken();
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+          
+          const response = await fetch(`${API_URL}/subscription/start-trial?plan_id=${selectedPlan}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            console.error('Failed to start trial, but user account created');
+          } else {
+            const trialData = await response.json();
+            console.log('Trial started:', trialData);
+          }
+        } catch (trialError) {
+          console.error('Trial start error:', trialError);
+          // Don't fail signup if trial activation fails
+        }
       }
+      
+      // Navigate to dashboard (trial is active, no payment needed)
+      navigate('/dashboard');
+      
     } catch (err) {
       setError(err.message || 'Failed to create account');
     } finally {
