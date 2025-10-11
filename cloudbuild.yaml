@@ -41,6 +41,10 @@ steps:
         # Create database if it doesn't exist
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'workflow_db'" | grep -q 1 ||         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE workflow_db"
         
+        # Add firebase_uid column if it doesn't exist
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ALTER COLUMN supabase_id DROP NOT NULL;"
+        
         # Run migrations
         /usr/local/bin/python /app/api_server/src/manage.py migrate
         
