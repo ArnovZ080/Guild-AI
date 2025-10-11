@@ -18,13 +18,15 @@ SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 # Pydantic models
 class CreateProfileRequest(BaseModel):
-    supabase_id: str
+    firebase_uid: Optional[str] = None  # Firebase UID
+    supabase_id: Optional[str] = None  # Legacy Supabase ID (for backwards compatibility)
     email: EmailStr
     full_name: Optional[str] = None
     avatar_url: Optional[str] = None
 
 class UpdateLoginRequest(BaseModel):
-    supabase_id: str
+    firebase_uid: Optional[str] = None
+    supabase_id: Optional[str] = None
 
 class UserProfileResponse(BaseModel):
     id: str
@@ -85,11 +87,17 @@ async def create_user_profile(
     request: CreateProfileRequest,
     db: Session = Depends(get_db)
 ):
-    """Create a new user profile after Supabase signup"""
+    """Create a new user profile after Firebase signup"""
     try:
+        # Use firebase_uid if provided, otherwise fall back to supabase_id for backwards compatibility
+        user_id = request.firebase_uid or request.supabase_id
+        
+        if not user_id:
+            raise HTTPException(status_code=400, detail="Either firebase_uid or supabase_id must be provided")
+        
         # Check if user already exists
         existing_user = db.query(models.User).filter(
-            models.User.supabase_id == request.supabase_id
+            (models.User.firebase_uid == user_id) | (models.User.supabase_id == user_id)
         ).first()
         
         if existing_user:
@@ -97,7 +105,8 @@ async def create_user_profile(
         
         # Create new user
         new_user = models.User(
-            supabase_id=request.supabase_id,
+            firebase_uid=request.firebase_uid,
+            supabase_id=request.supabase_id,  # Keep for backwards compatibility
             email=request.email,
             full_name=request.full_name,
             avatar_url=request.avatar_url,

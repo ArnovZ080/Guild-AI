@@ -59,7 +59,13 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create backend profile');
+        const errorData = await response.text();
+        console.error('Backend profile creation failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData
+        });
+        throw new Error(`Failed to create backend profile: ${response.status} ${errorData}`);
       }
 
       return await response.json();

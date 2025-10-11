@@ -210,7 +210,8 @@ class User(Base):
     __tablename__ = "users"
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    supabase_id = Column(String, unique=True, nullable=False)  # Supabase user ID
+    firebase_uid = Column(String, unique=True, nullable=True)  # Firebase user ID
+    supabase_id = Column(String, unique=True, nullable=True)  # Legacy Supabase user ID (for backwards compatibility)
     email = Column(String, unique=True, nullable=False)
     full_name = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
