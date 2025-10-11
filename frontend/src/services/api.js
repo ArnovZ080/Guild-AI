@@ -1,4 +1,6 @@
 // API service for connecting to the Guild-AI backend
+import { auth } from '../config/firebase';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
 class ApiService {
@@ -6,11 +8,29 @@ class ApiService {
     this.baseURL = API_BASE_URL;
   }
 
+  async getAuthToken() {
+    // Get Firebase ID token if user is authenticated
+    if (auth && auth.currentUser) {
+      try {
+        return await auth.currentUser.getIdToken();
+      } catch (error) {
+        console.warn('Failed to get Firebase ID token:', error);
+        return null;
+      }
+    }
+    return null;
+  }
+
   async request(endpoint, options = {}) {
     const url = `${this.baseURL}${endpoint}`;
+    
+    // Get Firebase ID token
+    const token = await this.getAuthToken();
+    
     const config = {
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
       ...options,
