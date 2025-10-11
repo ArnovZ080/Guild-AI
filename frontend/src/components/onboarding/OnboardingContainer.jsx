@@ -49,28 +49,42 @@ const OnboardingContainer = ({ onComplete }) => {
 
   const persistProfile = async (data) => {
     try {
-      const payload = {
-        company_name: data.company_name,
-        description: data.business_description || data.tagline || data.business_blurb,
-        team_size: data.team_size ? parseInt(data.team_size) : undefined,
-        years_active: data.years_active ? parseInt(data.years_active) : undefined,
-        ideal_client: data.ideal_customer || data.icp,
-        products_services: data.products_services || data.offerings,
-        pricing_strategy: data.pricing_strategy,
-        turnover_current: data.revenue_current,
-        turnover_goals_6m: data.revenue_goal_6m,
-        turnover_goals_12m: data.revenue_goal_12m,
-        pain_points: data.primary_pain_points,
-        platforms: data.platforms || { social: data.social_platforms, email: data.email_platforms },
-        brand_voice: data.brand_voice,
-        brand_colors: data.brand_colors,
-        brand_fonts: data.brand_fonts,
-        long_term_vision: data.vision,
-        guidelines: data.guidelines
-      };
-      await fetch('/api/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      
+      // Get Firebase token
+      const { auth } = await import('../config/firebase');
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+      
+      if (!token) {
+        console.warn('No auth token available, skipping source of truth save');
+        return;
+      }
+      
+      // Save to source of truth endpoint
+      const response = await fetch(`${API_URL}/onboarding/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          responses: data,
+          incomplete_fields: unknowns  // Pass the tracked unknowns
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Source of truth saved:', result);
+        console.log(`Completion: ${result.completion_percentage}%`);
+        console.log(`Needs follow-up: ${result.needs_follow_up}`);
+        console.log(`Incomplete fields: ${result.incomplete_fields?.join(', ') || 'none'}`);
+      } else {
+        console.error('Failed to save source of truth:', await response.text());
+      }
+      
     } catch (e) {
-      console.warn('Failed to persist onboarding profile', e);
+      console.error('Failed to persist onboarding data:', e);
     }
   };
 
