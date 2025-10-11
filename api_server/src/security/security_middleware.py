@@ -34,12 +34,12 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
         
-        # Rate limiting
-        if rate_limiter.is_rate_limited(client_ip):
+        # Rate limiting (1000 requests per hour per IP)
+        if rate_limiter.is_rate_limited(client_ip, max_requests=1000, window_minutes=60):
             secure_logger.log_rate_limit_hit(
                 client_ip, 
                 str(request.url), 
-                100  # Default limit
+                1000  # Increased limit
             )
             return JSONResponse(
                 status_code=429,

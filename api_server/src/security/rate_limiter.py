@@ -12,7 +12,7 @@ class RateLimiter:
         self.blocks = defaultdict(lambda: datetime.min)
         self.logger = logging.getLogger(__name__)
     
-    def is_rate_limited(self, identifier: str, max_requests: int = 100, window_minutes: int = 60) -> bool:
+    def is_rate_limited(self, identifier: str, max_requests: int = 1000, window_minutes: int = 60) -> bool:
         """Check if identifier is rate limited"""
         now = datetime.now()
         
@@ -28,16 +28,16 @@ class RateLimiter:
         
         # Check if over limit
         if len(self.requests[identifier]) >= max_requests:
-            # Block for 15 minutes
-            self.blocks[identifier] = now + timedelta(minutes=15)
-            self.logger.warning(f"Rate limit exceeded for {identifier}, blocking for 15 minutes")
+            # Block for 5 minutes (reduced from 15)
+            self.blocks[identifier] = now + timedelta(minutes=5)
+            self.logger.warning(f"Rate limit exceeded for {identifier}, blocking for 5 minutes")
             return True
         
         # Record this request
         self.requests[identifier].append(now)
         return False
     
-    def get_remaining_requests(self, identifier: str, max_requests: int = 100) -> int:
+    def get_remaining_requests(self, identifier: str, max_requests: int = 1000) -> int:
         """Get remaining requests for identifier"""
         now = datetime.now()
         cutoff = now - timedelta(minutes=60)
