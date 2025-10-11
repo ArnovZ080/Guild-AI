@@ -2,6 +2,34 @@
 # This file defines the CI/CD pipeline for building and deploying to Cloud Run
 
 steps:
+  # Step 0: Build Frontend
+  - name: 'node:18'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        echo "Building frontend..."
+        cd frontend
+        
+        # Install dependencies
+        npm ci
+        
+        # Set production API URL (same domain as backend)
+        echo "VITE_API_URL=https://guildof1.com" > .env.production
+        echo "VITE_FIREBASE_API_KEY=${_FIREBASE_API_KEY}" >> .env.production
+        echo "VITE_FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN}" >> .env.production
+        echo "VITE_FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID}" >> .env.production
+        echo "VITE_FIREBASE_STORAGE_BUCKET=${_FIREBASE_STORAGE_BUCKET}" >> .env.production
+        echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${_FIREBASE_MESSAGING_SENDER_ID}" >> .env.production
+        echo "VITE_FIREBASE_APP_ID=${_FIREBASE_APP_ID}" >> .env.production
+        
+        # Build for production
+        npm run build
+        
+        echo "Frontend built successfully!"
+        ls -la dist/
+    id: 'build-frontend'
+  
   # Step 1: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:

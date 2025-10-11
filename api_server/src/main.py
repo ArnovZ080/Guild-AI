@@ -3,6 +3,9 @@ from fastapi.staticfiles import StaticFiles  # type: ignore[reportMissingImports
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[reportMissingImports]
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Security imports
 from .security.security_middleware import SecurityMiddleware, SecurityHeadersMiddleware
@@ -129,9 +132,25 @@ app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 async def health():
     return {"status": "ok"}
 
-@app.get("/")
-async def root():
-    """
-    Root endpoint for health checks.
-    """
-    return {"message": "Guild API Server is running."}
+@app.get("/api/health")
+async def api_health():
+    """API health check endpoint"""
+    return {"message": "Guild API Server is running.", "status": "ok"}
+
+# Serve frontend static files (must be last!)
+# This catches all routes not matched by API endpoints
+frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+if os.path.exists(frontend_dist):
+    logger.info(f"Serving frontend from: {frontend_dist}")
+    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+else:
+    logger.warning(f"Frontend dist directory not found: {frontend_dist}")
+    
+    @app.get("/")
+    async def root_fallback():
+        """Fallback when frontend is not built"""
+        return {
+            "message": "Guild API Server is running",
+            "note": "Frontend not built. Run 'cd frontend && npm run build' to build frontend.",
+            "api_docs": "/docs"
+        }
