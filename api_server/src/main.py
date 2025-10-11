@@ -17,7 +17,10 @@ from . import models  # noqa: F401
 app = FastAPI(
     title="Guild API Server",
     description="The API for orchestrating the Guild AI workforce.",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 # Security middleware (applied first)
