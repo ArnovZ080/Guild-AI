@@ -72,7 +72,7 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Public Only Route Component (redirects to dashboard if already logged in)
+// Public Only Route Component (redirects to chat/onboarding if already logged in)
 function PublicOnlyRoute({ children }) {
   const { currentUser, loading } = useAuth();
 
@@ -88,7 +88,9 @@ function PublicOnlyRoute({ children }) {
   }
 
   if (currentUser) {
-    return <Navigate to="/dashboard" replace />;
+    // Check if onboarding is completed
+    const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
+    return <Navigate to={onboardingCompleted ? "/chat" : "/onboarding"} replace />;
   }
 
   return children;
