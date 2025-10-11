@@ -30,7 +30,10 @@ function LoginPage() {
       setError('');
       setLoading(true);
       await login(email, password);
-      navigate('/dashboard');
+      
+      // Check if onboarding is completed
+      const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
+      navigate(onboardingCompleted ? '/chat' : '/onboarding');
     } catch (err) {
       setError(err.message || 'Failed to log in');
     } finally {
@@ -43,7 +46,10 @@ function LoginPage() {
       setError('');
       setLoading(true);
       await loginWithGoogle();
-      navigate('/dashboard');
+      
+      // Check if onboarding is completed
+      const onboardingCompleted = localStorage.getItem('guild_onboarding_completed') === 'true';
+      navigate(onboardingCompleted ? '/chat' : '/onboarding');
     } catch (err) {
       setError(err.message || 'Failed to log in with Google');
     } finally {

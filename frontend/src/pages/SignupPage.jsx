@@ -88,8 +88,8 @@ function SignupPage() {
         }
       }
       
-      // Navigate to dashboard (trial is active, no payment needed)
-      navigate('/dashboard');
+      // Navigate to onboarding first (then chat after completion)
+      navigate('/onboarding');
       
     } catch (err) {
       setError(err.message || 'Failed to create account');
