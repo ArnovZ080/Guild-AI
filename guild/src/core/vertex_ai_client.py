@@ -24,7 +24,7 @@ class VertexAIClient:
         self,
         project_id: Optional[str] = None,
         location: str = "us-central1",
-        model_name: str = "gemini-pro"
+        model_name: str = "gemini-1.5-flash"  # Changed default to Flash for cost optimization
     ):
         """
         Initialize Vertex AI client.
@@ -32,11 +32,12 @@ class VertexAIClient:
         Args:
             project_id: Google Cloud project ID (uses GOOGLE_CLOUD_PROJECT env var if not provided)
             location: GCP region for Vertex AI (default: us-central1)
-            model_name: Model to use (gemini-pro, gemini-pro-vision, text-bison, etc.)
+            model_name: Model to use (gemini-1.5-flash, gemini-1.5-pro, gemini-pro-vision, etc.)
         """
         self.project_id = project_id or os.getenv("GOOGLE_CLOUD_PROJECT")
         self.location = location
-        self.model_name = model_name
+        # Use env var if set, otherwise use provided model_name, default to Flash
+        self.model_name = os.getenv("VERTEX_AI_MODEL", model_name)
         
         if not self.project_id:
             raise ValueError(

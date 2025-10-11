@@ -349,9 +349,19 @@ class EnhancedOrchestratorService {
     try {
       const response = await apiService.get(`${ORCHESTRATOR_BASE}/system/capabilities`);
       
+      // Handle null response (API not available)
+      if (!response) {
+        return {
+          success: false,
+          error: 'API not available',
+          total_agents: 0,
+          categories: {}
+        };
+      }
+      
       return {
         success: true,
-        ...response.data
+        ...(response.data || response)
       };
     } catch (error) {
       console.error('Failed to get system capabilities:', error);
@@ -381,9 +391,17 @@ class EnhancedOrchestratorService {
         priority: context.priority || 'medium'
       });
       
+      // Handle null response
+      if (!response) {
+        return {
+          success: false,
+          error: 'API not available'
+        };
+      }
+      
       return {
         success: true,
-        ...response.data
+        ...(response.data || response)
       };
     } catch (error) {
       console.error('Failed to process chat orchestration:', error);
