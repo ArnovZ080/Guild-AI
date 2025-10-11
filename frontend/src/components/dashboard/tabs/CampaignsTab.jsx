@@ -502,7 +502,7 @@ const CampaignsTab = ({ campaigns = [], onCampaignAction, onCreateCampaign, onRe
             profile = j?.data || null;
           } catch {}
 
-          const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+          const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';
           // Judge Layer gate using content/create
           const judgePayload = {
             brief: {

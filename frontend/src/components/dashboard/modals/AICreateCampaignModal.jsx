@@ -152,7 +152,7 @@ const AICreateCampaignModal = ({ isOpen, onClose, onCreateCampaign }) => {
         platforms: generatedCampaign.platform ? [generatedCampaign.platform] : [],
         brand: profile ? { voice: profile.brand_voice, colors: profile.brand_colors, guidelines: profile.guidelines } : undefined
       };
-      const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';
       const resp = await fetch(`${apiBase}/content/create`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       const judge = await resp.json();
       const approved = judge?.data?.approved !== false;

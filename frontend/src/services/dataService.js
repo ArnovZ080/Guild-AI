@@ -1,7 +1,7 @@
 // Centralized data service for connecting frontend components to backend APIs
 class DataService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     this.wsConnection = null;
     this.subscribers = new Map();
   }

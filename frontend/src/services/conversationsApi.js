@@ -4,7 +4,7 @@
  * to provide unified conversation data across all channels
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // Mock data for development - in production this would come from actual agents
 const mockConversationsData = [

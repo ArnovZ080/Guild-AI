@@ -2,7 +2,7 @@
 class AgentService {
   constructor() {
     // Use environment variable if set, otherwise use localhost for development
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   }
 
   // Generic agent interaction method

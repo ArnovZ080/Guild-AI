@@ -260,7 +260,7 @@ const ComposeEmailModal = ({ open, onClose, defaultSegmentId, onSent, defaultTo 
               const json = await res.json();
               profile = json?.data || null;
             } catch {}
-            const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+            const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';
             const payload = {
               brief: {
                 objective: 'Compose email draft',

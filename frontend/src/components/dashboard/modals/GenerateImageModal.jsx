@@ -75,7 +75,7 @@ const GenerateImageModal = ({ onClose, onGenerate, availableAssets = [], initial
         const profRes = await fetch('/api/profile');
         const profJson = await profRes.json();
         const profile = profJson?.data || null;
-        const apiBase = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5001';
         const judgePayload = {
           brief: {
             objective: 'Generate image asset',

@@ -72,7 +72,7 @@ const ConversationsTab = () => {
 
   // Try to subscribe to a conversations websocket if available; fallback is the polling above
   useEffect(() => {
-    const base = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     try {
       const wsUrl = base.replace('http://', 'ws://').replace('https://', 'wss://') + '/ws/conversations';
       const ws = new WebSocket(wsUrl);
@@ -604,7 +604,7 @@ const ConversationsTab = () => {
           onApprove={async () => {
             setConfirmActionOpen(false);
             try {
-              await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8000'}/orchestrator/delegate`, {
+              await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/orchestrator/delegate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -15,7 +15,7 @@ class ContentIntelligenceWebSocket {
 
   connect() {
     try {
-      const wsUrl = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws/content-intelligence';
+      const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/content-intelligence';
       this.ws = new WebSocket(wsUrl);
       
       this.ws.onopen = () => {

@@ -18,7 +18,7 @@ import { Loader2, CheckCircle, XCircle, FileText, BrainCircuit, Bot } from 'luci
 // Resolve API base URL from props or environment
 const DEFAULT_API_URL =
     (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
-    (typeof process !== 'undefined' && process.env && process.env.REACT_APP_API_URL) ||
+    (typeof process !== 'undefined' && process.env && import.meta.env.VITE_API_URL) ||
     'http://localhost:8000';
 
 const nodeStatusIcons = {

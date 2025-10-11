@@ -91,7 +91,7 @@ const OAuthConnections = () => {
 
   const fetchConnections = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/oauth/providers`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/oauth/providers`);
       const data = await response.json();
       
       if (data.providers) {
@@ -163,7 +163,7 @@ const OAuthConnections = () => {
     try {
       // Start OAuth flow
       const response = await fetch(
-        `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/oauth/${provider.name || provider}/start`,
+        `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/oauth/${provider.name || provider}/start`,
         { method: 'POST' }
       );
       
@@ -212,7 +212,7 @@ const OAuthConnections = () => {
     if (confirm('Are you sure you want to disconnect this account?')) {
       try {
         await fetch(
-          `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/oauth/credentials/${credentialId}`,
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/oauth/credentials/${credentialId}`,
           { method: 'DELETE' }
         );
         setCredentials(credentials.filter(cred => cred.id !== credentialId));
