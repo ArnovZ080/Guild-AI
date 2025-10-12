@@ -16,8 +16,8 @@ class EnvironmentValidator:
         'POSTGRES_PASSWORD',
         'PAYSTACK_SECRET_KEY',
         'DATABASE_URL',
-        'PAYSTACK_PUBLIC_KEY',
-        'DB_SECRET_NAME'
+        'PAYSTACK_PUBLIC_KEY'
+        # DB_SECRET_NAME is just a reference name, not sensitive
     ]
     
     @classmethod

@@ -177,19 +177,9 @@ steps:
       - '1'
       - '--cpu-boost'
       - '--set-env-vars'
-      - |
-        GOOGLE_CLOUD_PROJECT=$PROJECT_ID,
-        CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql,
-        POSTGRES_USER=postgres,
-        POSTGRES_DB=workflow_db,
-        POSTGRES_PASSWORD=${_DB_PASSWORD},
-        DB_SECRET_NAME=db-root-password,
-        REDIS_HOST=10.87.64.4,
-        REDIS_PORT=6379,
-        LLM_PROVIDER=vertex_ai,
-        VERTEX_AI_LOCATION=us-central1,
-        VERTEX_AI_MODEL=gemini-pro,
-        FASTAPI_APP_ENV=production
+      - 'GOOGLE_CLOUD_PROJECT=guild-ai-080,CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql,POSTGRES_USER=postgres,POSTGRES_DB=workflow_db,REDIS_HOST=10.87.64.4,REDIS_PORT=6379,LLM_PROVIDER=vertex_ai,VERTEX_AI_LOCATION=us-central1,VERTEX_AI_MODEL=gemini-pro,FASTAPI_APP_ENV=production'
+      - '--update-secrets'
+      - 'POSTGRES_PASSWORD=db-root-password:latest'
       - '--add-cloudsql-instances'
       - 'guild-ai-080:us-central1:guild-ai-sql'
       - '--service-account'
