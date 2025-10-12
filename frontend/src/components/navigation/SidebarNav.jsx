@@ -9,7 +9,6 @@ import {
   Zap, 
   Target, 
   TrendingUp,
-  Brain,
   MessageSquare,
   Calendar,
   FileText,
@@ -194,9 +193,11 @@ export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelec
             {settings?.profile?.brand?.logoUrl ? (
               <img src={settings.profile.brand.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-cover border" />
             ) : (
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
-              </div>
+              <img 
+                src="/guild-logo.png" 
+                alt="Guild AI Logo" 
+                className="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-gray-200"
+              />
             )}
             <AnimatePresence>
               {expanded && (
