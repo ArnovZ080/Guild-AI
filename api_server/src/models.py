@@ -226,6 +226,11 @@ class User(Base):
     beta_access_granted_at = Column(DateTime, nullable=True)
     beta_access_granted_by = Column(String, nullable=True)  # Admin who granted access
     
+    # Admin access
+    is_admin = Column(Boolean, default=False)  # True for platform admins/owners
+    admin_role = Column(String, nullable=True)  # owner, admin, moderator
+    admin_granted_at = Column(DateTime, nullable=True)
+    
     # Usage tracking
     credits_used_this_month = Column(Integer, default=0)
     credits_limit = Column(Integer, default=100)  # Free tier limit

@@ -92,6 +92,11 @@ steps:
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_at TIMESTAMP;"
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_by VARCHAR;"
         
+        # Add admin columns to users table
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;"
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR;"
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_granted_at TIMESTAMP;"
+        
         # Create waiting_list table if it doesn't exist
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
         CREATE TABLE IF NOT EXISTS waiting_list (

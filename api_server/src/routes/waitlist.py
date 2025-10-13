@@ -13,6 +13,7 @@ import os
 from ..database import get_db
 from .. import models
 from .auth import get_current_user
+from .admin_auth import get_current_admin, get_current_user_with_admin_check
 
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
 
@@ -160,20 +161,36 @@ async def check_beta_access(
 
 # Admin endpoints (require authentication)
 
+@router.get("/is-admin")
+async def check_admin_status(
+    db: Session = Depends(get_db),
+    user_and_admin: tuple = Depends(get_current_user_with_admin_check)
+):
+    """
+    Check if current user is an admin
+    Returns admin status for conditional UI rendering
+    """
+    current_user, is_admin = user_and_admin
+    
+    return {
+        "is_admin": is_admin,
+        "admin_role": current_user.admin_role if is_admin else None,
+        "email": current_user.email
+    }
+
+
 @router.get("/list")
 async def get_waitlist(
     skip: int = 0,
     limit: int = 100,
     status: Optional[str] = None,
-    current_user: models.User = Depends(get_current_user),
+    current_admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Get waiting list entries
-    Admin only - requires authentication
+    Admin only - requires admin authentication
     """
-    # Check if user is admin (you can add admin flag to User model later)
-    # For now, any authenticated user can view (you can restrict this)
     
     query = db.query(models.WaitingList)
     
@@ -209,12 +226,12 @@ async def get_waitlist(
 @router.post("/grant-beta-access")
 async def grant_beta_access(
     request: GrantBetaAccessRequest,
-    current_user: models.User = Depends(get_current_user),
+    current_admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Grant beta access to a waiting list email
-    Admin only
+    Admin only - requires admin authentication
     """
     try:
         email_lower = request.email.lower()
@@ -239,7 +256,7 @@ async def grant_beta_access(
             # Mark existing user as beta tester
             user.is_beta_tester = True
             user.beta_access_granted_at = datetime.utcnow()
-            user.beta_access_granted_by = current_user.email
+            user.beta_access_granted_by = current_admin.email
         
         db.commit()
         
@@ -258,12 +275,12 @@ async def grant_beta_access(
 @router.post("/revoke-beta-access")
 async def revoke_beta_access(
     request: GrantBetaAccessRequest,
-    current_user: models.User = Depends(get_current_user),
+    current_admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Revoke beta access from a user
-    Admin only
+    Admin only - requires admin authentication
     """
     try:
         email_lower = request.email.lower()
@@ -305,12 +322,12 @@ async def revoke_beta_access(
 
 @router.get("/stats")
 async def get_waitlist_stats(
-    current_user: models.User = Depends(get_current_user),
+    current_admin: models.User = Depends(get_current_admin),
     db: Session = Depends(get_db)
 ):
     """
     Get waiting list statistics
-    Admin only
+    Admin only - requires admin authentication
     """
     try:
         total = db.query(models.WaitingList).count()

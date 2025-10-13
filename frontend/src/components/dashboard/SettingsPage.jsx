@@ -76,6 +76,7 @@ const SettingsPage = () => {
   const [addrLoading, setAddrLoading] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const setDefaultPaymentMethod = (id) => {
     setPaymentMethods((prev) => prev.map(pm => ({ ...pm, default: pm.id === id })));
@@ -89,6 +90,28 @@ const SettingsPage = () => {
   };
 
   const userEmail = useMemo(() => settings?.profile?.email || '', [settings?.profile?.email]);
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || '';
+        const response = await fetch(`${API_URL}/waitlist/is-admin`, {
+          headers: {
+            'Authorization': `Bearer ${await window.firebaseAuth?.currentUser?.getIdToken()}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setIsAdmin(data.is_admin);
+        }
+      } catch (err) {
+        console.log('Admin check failed, user is not admin');
+        setIsAdmin(false);
+      }
+    };
+    checkAdminStatus();
+  }, []);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -712,12 +735,14 @@ const SettingsPage = () => {
 
       {/* 3. Onboarding & Business Source of Truth */}
       {/* Beta Access Management - Admin Only */}
-      <Section title="Beta Access Management">
-        <div className="text-sm text-gray-500 mb-4">
-          Manage waiting list and grant beta access to users
-        </div>
-        <BetaAccessManager />
-      </Section>
+      {isAdmin && (
+        <Section title="Beta Access Management">
+          <div className="text-sm text-gray-500 mb-4">
+            Manage waiting list and grant beta access to users
+          </div>
+          <BetaAccessManager />
+        </Section>
+      )}
 
       <Section title="Onboarding & Business Source of Truth">
         <div className="text-sm text-gray-500 mb-3">This section reflects your onboarding answers and remains editable.</div>
