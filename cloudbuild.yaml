@@ -2,7 +2,37 @@
 # This file defines the CI/CD pipeline for building and deploying to Cloud Run
 
 steps:
-  # Step 0: Build Frontend
+  # Step 0: Fetch Firebase Config from Secret Manager
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Fetching Firebase configuration from Secret Manager..."
+        
+        # Fetch all Firebase secrets
+        FIREBASE_API_KEY=$(gcloud secrets versions access latest --secret=firebase-api-key)
+        FIREBASE_AUTH_DOMAIN=$(gcloud secrets versions access latest --secret=firebase-auth-domain)
+        FIREBASE_PROJECT_ID=$(gcloud secrets versions access latest --secret=firebase-project-id)
+        FIREBASE_STORAGE_BUCKET=$(gcloud secrets versions access latest --secret=firebase-storage-bucket)
+        FIREBASE_MESSAGING_SENDER_ID=$(gcloud secrets versions access latest --secret=firebase-messaging-sender-id)
+        FIREBASE_APP_ID=$(gcloud secrets versions access latest --secret=firebase-app-id)
+        
+        # Create .env.production file for frontend build
+        cat > frontend/.env.production <<EOF
+        VITE_API_URL=https://guildof1.com
+        VITE_FIREBASE_API_KEY=$FIREBASE_API_KEY
+        VITE_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN
+        VITE_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
+        VITE_FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET
+        VITE_FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID
+        VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID
+        EOF
+        
+        echo "✅ Firebase configuration fetched and written to frontend/.env.production"
+    id: 'fetch-firebase-config'
+
+  # Step 1: Build Frontend
   - name: 'node:20'
     entrypoint: 'sh'
     args:
@@ -14,16 +44,7 @@ steps:
         # Install dependencies
         npm ci
         
-        # Set production API URL (same domain as backend)
-        echo "VITE_API_URL=https://guildof1.com" > .env.production
-        echo "VITE_FIREBASE_API_KEY=${_FIREBASE_API_KEY}" >> .env.production
-        echo "VITE_FIREBASE_AUTH_DOMAIN=${_FIREBASE_AUTH_DOMAIN}" >> .env.production
-        echo "VITE_FIREBASE_PROJECT_ID=${_FIREBASE_PROJECT_ID}" >> .env.production
-        echo "VITE_FIREBASE_STORAGE_BUCKET=${_FIREBASE_STORAGE_BUCKET}" >> .env.production
-        echo "VITE_FIREBASE_MESSAGING_SENDER_ID=${_FIREBASE_MESSAGING_SENDER_ID}" >> .env.production
-        echo "VITE_FIREBASE_APP_ID=${_FIREBASE_APP_ID}" >> .env.production
-        
-        # Build for production
+        # Build for production (uses .env.production from previous step)
         npm run build
         
         echo "Frontend built successfully!"
@@ -42,8 +63,9 @@ steps:
         
         echo "✅ Frontend build verified: $(du -sh dist)"
     id: 'build-frontend'
+    waitFor: ['fetch-firebase-config']
   
-  # Step 1: Build the Docker image
+  # Step 2: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -55,7 +77,7 @@ steps:
     id: 'build-image'
     waitFor: ['build-frontend']
 
-  # Step 2: Push the Docker image to Google Container Registry
+  # Step 3: Push the Docker image to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
@@ -63,7 +85,7 @@ steps:
     id: 'push-image'
     waitFor: ['build-image']
 
-  # Step 3: Run Database Migrations (with Cloud SQL Proxy)
+  # Step 4: Run Database Migrations (with Cloud SQL Proxy)
   - name: 'gcr.io/$PROJECT_ID/guild-ai:latest'
     entrypoint: 'sh'
     args:
@@ -185,7 +207,7 @@ steps:
       - 'RQ_QUEUES={"default": {"HOST": "10.87.64.4", "PORT": 6379, "DB": 0}}'
       - 'DJANGO_SETTINGS_MODULE=api_server.src.django_settings'
 
-  # Step 4: Deploy to Cloud Run
+  # Step 5: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
