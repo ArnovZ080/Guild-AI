@@ -149,15 +149,16 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         
-        # More permissive CSP for Swagger UI and Firebase to work
-        # Allows: CDN resources, Firebase Auth, Google APIs
+        # More permissive CSP for Swagger UI, Firebase, and Google OAuth to work
+        # Allows: CDN resources, Firebase Auth, Google APIs, Google OAuth
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://apis.google.com https://accounts.google.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
             "img-src 'self' data: https://cdn.jsdelivr.net; "
             "font-src 'self' data: https://cdn.jsdelivr.net; "
-            "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://www.googleapis.com"
+            "connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com https://firestore.googleapis.com https://www.googleapis.com https://accounts.google.com; "
+            "frame-src https://accounts.google.com https://guild-ai-080.firebaseapp.com"
         )
         
         return response
