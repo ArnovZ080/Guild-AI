@@ -26,8 +26,8 @@ echo "📝 Updating Cloud Run service..."
 gcloud run services update $SERVICE_NAME \
   --region $REGION \
   --project $PROJECT_ID \
-  --set-env-vars ADMIN_EMAILS="$ADMIN_EMAIL" \
-  --update-env-vars BETA_TESTER_EMAILS="$BETA_TESTERS"
+  --set-env-vars "ADMIN_EMAILS=$ADMIN_EMAIL" \
+  --update-env-vars "BETA_TESTER_EMAILS=$BETA_TESTERS"
 
 echo ""
 echo "✅ Setup complete!"
