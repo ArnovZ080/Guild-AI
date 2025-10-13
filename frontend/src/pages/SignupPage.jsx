@@ -59,7 +59,25 @@ function SignupPage() {
       setError('');
       setLoading(true);
       
-      // Create Firebase account and backend profile
+      // Check for beta access first
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      const betaCheckResponse = await fetch(`${API_URL}/waitlist/check-beta-access`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email: email.toLowerCase() })
+      });
+      
+      const betaCheck = await betaCheckResponse.json();
+      
+      // If no beta access, redirect to waiting list
+      if (!betaCheck.has_beta_access) {
+        navigate(`/waitlist?email=${encodeURIComponent(email)}`);
+        return;
+      }
+      
+      // Has beta access - proceed with signup
       const result = await signup(email, password, fullName);
       
       // If user selected a paid plan, start free trial automatically

@@ -221,6 +221,11 @@ class User(Base):
     subscription_tier = Column(String, default="free")    # free, starter, professional, enterprise
     paystack_customer_id = Column(String, nullable=True)
     
+    # Beta testing access
+    is_beta_tester = Column(Boolean, default=False)  # True for beta testers with full access
+    beta_access_granted_at = Column(DateTime, nullable=True)
+    beta_access_granted_by = Column(String, nullable=True)  # Admin who granted access
+    
     # Usage tracking
     credits_used_this_month = Column(Integer, default=0)
     credits_limit = Column(Integer, default=100)  # Free tier limit
@@ -238,6 +243,39 @@ class User(Base):
     usage_logs = relationship("UsageLog", back_populates="user")
     credit_transactions = relationship("CreditTransaction", back_populates="user")
     onboarding_data = relationship("OnboardingData", back_populates="user", uselist=False)
+
+
+class WaitingList(Base):
+    """Waiting list for users who want to join before launch"""
+    __tablename__ = "waiting_list"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email = Column(String, unique=True, nullable=False, index=True)
+    full_name = Column(String, nullable=True)
+    company = Column(String, nullable=True)
+    role = Column(String, nullable=True)
+    how_heard = Column(String, nullable=True)  # How they heard about Guild AI
+    use_case = Column(Text, nullable=True)  # What they plan to use it for
+    
+    # Status tracking
+    status = Column(String, default="pending")  # pending, invited, converted, rejected
+    invited_at = Column(DateTime, nullable=True)
+    converted_at = Column(DateTime, nullable=True)  # When they became a user
+    converted_user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    
+    # Metadata
+    referral_source = Column(String, nullable=True)
+    utm_campaign = Column(String, nullable=True)
+    utm_source = Column(String, nullable=True)
+    utm_medium = Column(String, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Notes from admin
+    admin_notes = Column(Text, nullable=True)
+
 
 class OnboardingData(Base):
     """Source of truth for user's business information collected during onboarding"""

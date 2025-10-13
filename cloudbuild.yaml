@@ -87,6 +87,37 @@ steps:
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ALTER COLUMN supabase_id DROP NOT NULL;"
         
+        # Add beta tester columns to users table
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT FALSE;"
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_at TIMESTAMP;"
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_by VARCHAR;"
+        
+        # Create waiting_list table if it doesn't exist
+        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
+        CREATE TABLE IF NOT EXISTS waiting_list (
+          id VARCHAR PRIMARY KEY,
+          email VARCHAR UNIQUE NOT NULL,
+          full_name VARCHAR,
+          company VARCHAR,
+          role VARCHAR,
+          how_heard VARCHAR,
+          use_case TEXT,
+          status VARCHAR DEFAULT 'pending',
+          invited_at TIMESTAMP,
+          converted_at TIMESTAMP,
+          converted_user_id VARCHAR REFERENCES users(id),
+          referral_source VARCHAR,
+          utm_campaign VARCHAR,
+          utm_source VARCHAR,
+          utm_medium VARCHAR,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          admin_notes TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_waiting_list_email ON waiting_list(email);
+        CREATE INDEX IF NOT EXISTS idx_waiting_list_status ON waiting_list(status);
+        "
+        
         # Create onboarding_data table if it doesn't exist
         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
         CREATE TABLE IF NOT EXISTS onboarding_data (

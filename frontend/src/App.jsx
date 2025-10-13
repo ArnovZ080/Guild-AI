@@ -11,6 +11,7 @@ import ScrollToTop from './components/ScrollToTop.jsx';
 import LandingPage from './pages/LandingPage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
+import WaitlistPage from './pages/WaitlistPage.jsx';
 import SubscriptionPage from './pages/SubscriptionPage.jsx';
 
 // Dashboard pages
@@ -144,6 +145,7 @@ function AppRoutes() {
           <SignupPage />
         </PublicOnlyRoute>
       } />
+      <Route path="/waitlist" element={<WaitlistPage />} />
       
       {/* Legal Routes - public */}
       <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

@@ -1,0 +1,232 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  ✅ DNS FIXED! - NEXT STEPS TO ACCESS SITE                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+CURRENT DNS STATUS: ✅ CORRECT!
+─────────────────────────────────
+
+Your DNS now shows ONLY Google Cloud Run IPs:
+✅ 216.239.36.21
+✅ 216.239.34.21
+✅ 216.239.32.21
+✅ 216.239.38.21
+
+❌ 75.2.60.5 - DELETED! (No longer present)
+
+The old AWS server IP is GONE! Perfect! 🎉
+
+═════════════════════════════════════════════════════════════════════════════════
+
+WAIT TIME: 5-15 MINUTES FOR GLOBAL PROPAGATION
+───────────────────────────────────────────────
+
+DNS changes propagate at different speeds:
+• Your computer:     May take 5-15 minutes
+• Global DNS:        Up to 30 minutes
+• Chrome HSTS:       Needs manual clearing
+
+═════════════════════════════════════════════════════════════════════════════════
+
+STEP 1: CLEAR CHROME HSTS CACHE (CRITICAL!)
+────────────────────────────────────────────
+
+Even with DNS fixed, Chrome has cached the HSTS security policy.
+You MUST clear it:
+
+1. Open Chrome
+2. Navigate to: chrome://net-internals/#hsts
+3. Scroll down to "Delete domain security policies"
+4. Enter: guildof1.com
+5. Click "Delete" button
+6. Verify deletion:
+   - Scroll to "Query HSTS/PKP domain"
+   - Enter: guildof1.com
+   - Should show: "Not found" ✅
+7. Close Chrome completely
+8. Reopen Chrome
+
+═════════════════════════════════════════════════════════════════════════════════
+
+STEP 2: TEST YOUR SITE (3 OPTIONS)
+───────────────────────────────────
+
+OPTION A: Incognito Mode (EASIEST - Works Immediately)
+───────────────────────────────────────────────────────
+1. Press: Cmd+Shift+N (Mac) or Ctrl+Shift+N (Windows)
+2. Navigate to: https://guildof1.com
+3. Should load with green padlock! ✅
+
+OPTION B: Regular Chrome (After HSTS Cache Clear)
+──────────────────────────────────────────────────
+1. Complete STEP 1 above (clear HSTS cache)
+2. Close and reopen Chrome
+3. Navigate to: https://guildof1.com
+4. Should load with green padlock! ✅
+
+OPTION C: Different Browser (Safari, Firefox, Edge)
+────────────────────────────────────────────────────
+1. Open Safari, Firefox, or Edge
+2. Navigate to: https://guildof1.com
+3. Should load immediately! ✅
+
+═════════════════════════════════════════════════════════════════════════════════
+
+STEP 3: IF STILL SHOWING ERROR IN CHROME
+─────────────────────────────────────────
+
+Try these in order:
+
+1. Flush DNS Cache on Your Computer
+   ────────────────────────────────────
+
+   Mac:
+   $ sudo dscacheutil -flushcache
+   $ sudo killall -HUP mDNSResponder
+
+   Windows:
+   > ipconfig /flushdns
+
+   Linux:
+   $ sudo systemd-resolve --flush-caches
+
+2. Wait 5 More Minutes
+   ────────────────────
+   DNS changes can take up to 15 minutes to reach your computer
+
+3. Try Incognito Mode
+   ──────────────────
+   Incognito bypasses all caches
+   Press: Cmd+Shift+N (Mac) or Ctrl+Shift+N (Windows)
+   Go to: https://guildof1.com
+
+4. Test from Your Phone
+   ─────────────────────
+   Try accessing https://guildof1.com from your mobile phone
+   (Use cellular data, not WiFi, for faster DNS update)
+
+═════════════════════════════════════════════════════════════════════════════════
+
+VERIFICATION CHECKLIST
+──────────────────────
+
+[ ] DNS shows only Cloud Run IPs (4 addresses: 216.239.x.x)
+    ✅ DONE! Verified above
+
+[ ] Waited 5-15 minutes for DNS propagation
+    ⏱️  START TIMER NOW
+
+[ ] Cleared Chrome HSTS cache at chrome://net-internals/#hsts
+    🔲 DO THIS NOW!
+
+[ ] Tried Incognito mode: https://guildof1.com
+    🔲 TEST IN 5 MINUTES
+
+[ ] Site loads with green padlock and valid SSL
+    🔲 WILL WORK AFTER STEPS ABOVE
+
+═════════════════════════════════════════════════════════════════════════════════
+
+MEANWHILE: ACCESS YOUR APP RIGHT NOW
+─────────────────────────────────────
+
+Your Cloud Run deployment is LIVE and working with valid SSL:
+
+   🚀 https://guild-ai-api-7addhhtmoa-uc.a.run.app
+
+This URL works RIGHT NOW with:
+✅ Valid SSL certificate
+✅ Green padlock
+✅ No security warnings
+✅ Full app access
+
+Use this while waiting for DNS + HSTS cache to clear!
+
+═════════════════════════════════════════════════════════════════════════════════
+
+EXPECTED RESULTS (After 5-15 minutes)
+──────────────────────────────────────
+
+When you access https://guildof1.com you should see:
+
+✅ Green padlock icon in address bar
+✅ No security warnings
+✅ "Connection is secure" message
+✅ Certificate issued to: guildof1.com
+✅ Certificate issued by: Google Trust Services
+✅ Your Guild-AI app loads perfectly
+✅ All features work (login, signup, dashboard, etc.)
+
+═════════════════════════════════════════════════════════════════════════════════
+
+TROUBLESHOOTING
+───────────────
+
+Still seeing HSTS error after 15 minutes?
+──────────────────────────────────────────
+
+1. Double-check HSTS cache was cleared:
+   chrome://net-internals/#hsts → Delete → guildof1.com
+
+2. Test DNS is working:
+   $ dig guildof1.com A +short
+   Should show ONLY: 216.239.x.x (no 75.2.60.5)
+
+3. Test SSL certificate:
+   $ curl -I https://guildof1.com
+   Should return: 200 OK (or 301/302 redirect)
+
+4. Check from different network:
+   Use your phone's cellular data (not WiFi)
+   This confirms DNS is globally updated
+
+5. Try a different browser:
+   Safari, Firefox, or Edge won't have HSTS cached
+
+═════════════════════════════════════════════════════════════════════════════════
+
+TIMELINE SUMMARY
+────────────────
+
+NOW:          DNS fixed ✅ (75.2.60.5 deleted)
++5 min:       Try Incognito mode
++10 min:      Should work in all browsers
++15 min:      Guaranteed to work everywhere
++30 min:      Global DNS fully propagated
+
+CRITICAL:     Must clear Chrome HSTS cache!
+              chrome://net-internals/#hsts
+
+═════════════════════════════════════════════════════════════════════════════════
+
+WHAT TO DO RIGHT NOW
+─────────────────────
+
+1. ⏱️  SET A 10-MINUTE TIMER
+
+2. 🧹 CLEAR CHROME HSTS CACHE
+   Go to: chrome://net-internals/#hsts
+   Delete domain: guildof1.com
+
+3. ☕ TAKE A 10-MINUTE BREAK
+   DNS needs time to propagate
+
+4. 🔍 TEST IN INCOGNITO MODE (After 10 min)
+   Cmd+Shift+N → https://guildof1.com
+
+5. 🎉 CELEBRATE!
+   Your site should load perfectly!
+
+═════════════════════════════════════════════════════════════════════════════════
+
+CONGRATULATIONS! 🎉
+───────────────────
+
+You've successfully:
+✅ Identified the DNS problem (old AWS IP)
+✅ Deleted the problematic A record
+✅ Verified DNS now shows only Cloud Run IPs
+✅ Cloud Run SSL certificate is active and valid
+
+In 10-15 minutes, https://guildof1.com will work perfectly!
+
+═════════════════════════════════════════════════════════════════════════════════

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
+import BetaAccessManager from '../admin/BetaAccessManager.jsx';
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(false);
@@ -710,6 +711,14 @@ const SettingsPage = () => {
       </Section>
 
       {/* 3. Onboarding & Business Source of Truth */}
+      {/* Beta Access Management - Admin Only */}
+      <Section title="Beta Access Management">
+        <div className="text-sm text-gray-500 mb-4">
+          Manage waiting list and grant beta access to users
+        </div>
+        <BetaAccessManager />
+      </Section>
+
       <Section title="Onboarding & Business Source of Truth">
         <div className="text-sm text-gray-500 mb-3">This section reflects your onboarding answers and remains editable.</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
