@@ -107,24 +107,24 @@ steps:
         sleep 5
         
         # Create database if it doesn't exist
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'workflow_db'" | grep -q 1 ||         PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE workflow_db"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'workflow_db'" | grep -q 1 ||         PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE workflow_db"
         
         # Add firebase_uid column if it doesn't exist
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ALTER COLUMN supabase_id DROP NOT NULL;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ALTER COLUMN supabase_id DROP NOT NULL;"
         
         # Add beta tester columns to users table
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT FALSE;"
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_at TIMESTAMP;"
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_by VARCHAR;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT FALSE;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_at TIMESTAMP;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_by VARCHAR;"
         
         # Add admin columns to users table
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;"
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR;"
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_granted_at TIMESTAMP;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR;"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_granted_at TIMESTAMP;"
         
         # Create waiting_list table if it doesn't exist
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
         CREATE TABLE IF NOT EXISTS waiting_list (
           id VARCHAR PRIMARY KEY,
           email VARCHAR UNIQUE NOT NULL,
@@ -150,7 +150,7 @@ steps:
         "
         
         # Create onboarding_data table if it doesn't exist
-        PGPASSWORD=${_DB_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
         CREATE TABLE IF NOT EXISTS onboarding_data (
           id VARCHAR PRIMARY KEY,
           user_id VARCHAR UNIQUE REFERENCES users(id),
@@ -199,7 +199,7 @@ steps:
       - 'GOOGLE_CLOUD_PROJECT=guild-ai-080'
       - 'POSTGRES_USER=postgres'
       - 'POSTGRES_DB=workflow_db'
-      - 'POSTGRES_PASSWORD=${_DB_PASSWORD}'
+      - 'POSTGRES_PASSWORD=$${POSTGRES_PASSWORD}'
       - 'POSTGRES_HOST=127.0.0.1'
       - 'POSTGRES_PORT=5432'
       - 'REDIS_HOST=10.87.64.4'
