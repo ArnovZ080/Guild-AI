@@ -12,7 +12,8 @@ import {
   MessageSquare,
   Calendar,
   FileText,
-  Sparkles
+  Sparkles,
+  Brain
 } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { cn } from '../../lib/utils';
