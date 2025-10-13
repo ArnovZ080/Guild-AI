@@ -18,6 +18,9 @@ steps:
         FIREBASE_MESSAGING_SENDER_ID=$(gcloud secrets versions access latest --secret=firebase-messaging-sender-id)
         FIREBASE_APP_ID=$(gcloud secrets versions access latest --secret=firebase-app-id)
         
+        # Paystack public key (from env-vars.yaml or will be set via Cloud Run)
+        PAYSTACK_PUBLIC_KEY="pk_live_922abd14db6d404fb684764611c349c601d9151d"
+        
         # Create .env.production file for frontend build
         cat > frontend/.env.production <<ENVFILE
         VITE_API_URL=https://guildof1.com
@@ -27,9 +30,10 @@ steps:
         VITE_FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
         VITE_FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}
         VITE_FIREBASE_APP_ID=${FIREBASE_APP_ID}
+        VITE_PAYSTACK_PUBLIC_KEY=${PAYSTACK_PUBLIC_KEY}
         ENVFILE
         
-        echo "✅ Firebase configuration fetched and written to frontend/.env.production"
+        echo "✅ Firebase and Paystack configuration written to frontend/.env.production"
     id: 'fetch-firebase-config'
 
   # Step 1: Build Frontend

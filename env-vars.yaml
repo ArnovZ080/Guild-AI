@@ -1,0 +1,32 @@
+# Complete environment variables for Cloud Run deployment
+# This includes ALL required env vars from cloudbuild.yaml
+
+# Project Configuration
+GOOGLE_CLOUD_PROJECT: guild-ai-080
+DB_SECRET_NAME: db-root-password
+
+# Database Configuration
+CLOUDSQL_CONNECTION_NAME: guild-ai-080:us-central1:guild-ai-sql
+POSTGRES_USER: postgres
+POSTGRES_DB: workflow_db
+
+# Redis Configuration
+REDIS_HOST: 10.87.64.4
+REDIS_PORT: "6379"
+
+# LLM Configuration
+LLM_PROVIDER: vertex_ai
+VERTEX_AI_LOCATION: us-central1
+VERTEX_AI_MODEL: gemini-pro
+
+# Application Environment
+FASTAPI_APP_ENV: production
+
+# Admin and Beta Access
+ADMIN_EMAILS: arnovzyl080@gmail.com
+BETA_TESTER_EMAILS: arnovzyl080@gmail.com,renault.agnes@gmail.com
+
+# Paystack Payment Configuration
+PAYSTACK_SECRET_KEY: sk_live_734abe9a227058d6f7ac24014cd6814cd5aa6ea1
+PAYSTACK_PUBLIC_KEY: pk_live_922abd14db6d404fb684764611c349c601d9151d
+PAYSTACK_SUBACCOUNT: ACCT_rhpjaolq4elgsqg
