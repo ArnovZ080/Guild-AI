@@ -159,7 +159,7 @@ function LandingPage() {
           <AlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 dark:text-amber-200">
             <strong>Demo Mode:</strong> Firebase authentication is not configured. To enable full functionality, 
-            add Firebase environment variables in Netlify. See FIREBASE_SETUP_GUIDE.md for details.
+            please contact support. The platform is currently being set up.
           </AlertDescription>
         </Alert>
       )}
