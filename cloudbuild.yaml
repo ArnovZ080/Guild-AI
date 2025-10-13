@@ -19,15 +19,15 @@ steps:
         FIREBASE_APP_ID=$(gcloud secrets versions access latest --secret=firebase-app-id)
         
         # Create .env.production file for frontend build
-        cat > frontend/.env.production <<EOF
+        cat > frontend/.env.production <<ENVFILE
         VITE_API_URL=https://guildof1.com
-        VITE_FIREBASE_API_KEY=$FIREBASE_API_KEY
-        VITE_FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN
-        VITE_FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID
-        VITE_FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET
-        VITE_FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID
-        VITE_FIREBASE_APP_ID=$FIREBASE_APP_ID
-        EOF
+        VITE_FIREBASE_API_KEY=${FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN=${FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
+        VITE_FIREBASE_MESSAGING_SENDER_ID=${FIREBASE_MESSAGING_SENDER_ID}
+        VITE_FIREBASE_APP_ID=${FIREBASE_APP_ID}
+        ENVFILE
         
         echo "✅ Firebase configuration fetched and written to frontend/.env.production"
     id: 'fetch-firebase-config'
