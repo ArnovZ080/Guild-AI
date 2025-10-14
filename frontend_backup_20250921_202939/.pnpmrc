@@ -1,5 +1,0 @@
-enable-pre-post-scripts=true
-auto-install-peers=true
-scripts-prepend-node-path=true
-strict-peer-dependencies=false
-shamefully-hoist=true

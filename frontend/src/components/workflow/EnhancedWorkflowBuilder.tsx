@@ -1468,6 +1468,147 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     }
   };
 
+  // Load Fortune 500-level template
+  const loadFortune500Template = (template: any) => {
+    try {
+      // Clear existing workflow
+      setNodes([]);
+      setEdges([]);
+      
+      // Set workflow metadata
+      setWorkflowName(template.name);
+      setWorkflowDescription(template.description);
+      setTemplateId(template.id);
+      
+      // Create nodes based on template agents
+      const newNodes: Node[] = [];
+      const newEdges: Edge[] = [];
+      
+      // Add orchestrator node
+      const orchestratorId = 'orchestrator-1';
+      newNodes.push({
+        id: orchestratorId,
+        type: 'enhancedNode',
+        position: { x: 100, y: 200 },
+        data: {
+          label: 'Unified Orchestrator',
+          category: 'orchestrator',
+          description: 'Fortune 500-level business intelligence orchestration',
+          status: 'pending',
+          estimatedCredits: 10,
+          estimatedCost: 1.0,
+          naturalLanguageDescription: `Coordinate ${template.agents.length} agents for ${template.category.toLowerCase()} workflow`,
+          availableAgents
+        }
+      });
+      
+      // Add agent nodes
+      template.agents.forEach((agent: string, index: number) => {
+        const agentId = `agent-${index + 1}`;
+        const x = 400 + (index % 3) * 300;
+        const y = 100 + Math.floor(index / 3) * 200;
+        
+        newNodes.push({
+          id: agentId,
+          type: 'enhancedNode',
+          position: { x, y },
+          data: {
+            label: agent,
+            category: 'agent',
+            description: `${agent} for ${template.category.toLowerCase()}`,
+            status: 'pending',
+            estimatedCredits: 5,
+            estimatedCost: 0.5,
+            naturalLanguageDescription: `Execute ${agent} tasks as part of ${template.name}`,
+            availableAgents
+          }
+        });
+        
+        // Connect to orchestrator
+        newEdges.push({
+          id: `${orchestratorId}->${agentId}`,
+          source: orchestratorId,
+          target: agentId
+        });
+      });
+      
+      // Add quality assurance node
+      const qaId = 'quality-assurance';
+      newNodes.push({
+        id: qaId,
+        type: 'enhancedNode',
+        position: { x: 100, y: 400 },
+        data: {
+          label: 'Quality Assurance',
+          category: 'quality',
+          description: 'Judge Layer quality validation',
+          status: 'pending',
+          estimatedCredits: 3,
+          estimatedCost: 0.3,
+          naturalLanguageDescription: 'Validate workflow quality and performance',
+          availableAgents
+        }
+      });
+      
+      // Connect quality assurance to orchestrator
+      newEdges.push({
+        id: `${orchestratorId}->${qaId}`,
+        source: orchestratorId,
+        target: qaId
+      });
+      
+      // Add dashboard sync node
+      const dashboardId = 'dashboard-sync';
+      newNodes.push({
+        id: dashboardId,
+        type: 'enhancedNode',
+        position: { x: 400, y: 400 },
+        data: {
+          label: 'Dashboard Synchronization',
+          category: 'sync',
+          description: 'Real-time dashboard updates',
+          status: 'pending',
+          estimatedCredits: 2,
+          estimatedCost: 0.2,
+          naturalLanguageDescription: 'Sync results with business dashboards',
+          availableAgents
+        }
+      });
+      
+      // Connect dashboard sync to orchestrator
+      newEdges.push({
+        id: `${orchestratorId}->${dashboardId}`,
+        source: orchestratorId,
+        target: dashboardId
+      });
+      
+      // Update nodes and edges
+      setNodes(newNodes);
+      setEdges(newEdges);
+      
+      // Show success message
+      toast.success(`Loaded ${template.name} template with ${template.agents.length} agents!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      
+    } catch (error) {
+      console.error('Failed to load Fortune 500 template:', error);
+      toast.error('Failed to load template. Please try again.', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  };
+
   // Save and Activate handlers
   const serializeWorkflow = () => ({
     id: templateId || `wf_${Date.now()}`,
@@ -1666,187 +1807,362 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                 <>
                   <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Wand2 className="w-5 h-5 text-purple-600" />
-                    Pre-built Workflows by Industry
+                    Fortune 500-Level Business Intelligence Workflows
                   </h2>
+                  
+                  {/* Enhanced Business Intelligence Templates */}
+                  <div className="mb-6">
+                    <h3 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <Brain className="w-4 h-4 text-blue-600" />
+                      Advanced Business Intelligence
+                    </h3>
                   <div className="space-y-3">
-                    {Object.entries(ENHANCED_NODE_TYPES).map(([type, config]) => (
-                      <div
-                        key={type}
-                        className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all"
-                        onDragStart={(event) => onDragStart(event, type)}
-                        draggable
-                      >
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="text-2xl">{config.icon}</div>
-                          <div>
-                            <h3 className="font-semibold text-gray-800 capitalize">{type}</h3>
-                            <p className="text-xs text-gray-600">{config.description}</p>
+                      {[
+                        {
+                          id: 'comprehensive-business-analysis',
+                          name: 'Comprehensive Business Intelligence Analysis',
+                          description: 'Complete business analysis across all intelligence agents with Fortune 500-level insights',
+                          icon: '🧠',
+                          category: 'Business Intelligence',
+                          agents: ['Unified Orchestrator', 'Business Intelligence Agent', 'Financial Intelligence Agent', 'Customer Intelligence Agent', 'Content Intelligence Agent', 'Judge Agent'],
+                          features: ['Multi-agent coordination', 'Quality assurance', 'Dashboard sync', 'Vertex AI integration'],
+                          value: 'Provides complete business overview with actionable insights',
+                          difficulty: 'High',
+                          estimatedTime: '30-60 minutes'
+                        },
+                        {
+                          id: 'autonomous-customer-success',
+                          name: 'Autonomous Customer Success Management',
+                          description: 'Proactive customer success with predictive interventions and retention optimization',
+                          icon: '🚀',
+                          category: 'Customer Success',
+                          agents: ['Customer Intelligence Agent', 'Proactive Success System', 'Intelligent Resolution System', 'Predictive Action Engine'],
+                          features: ['Predictive analytics', 'Automated interventions', 'Self-healing systems', 'Real-time optimization'],
+                          value: 'Automatically manages customer success with minimal human intervention',
+                          difficulty: 'High',
+                          estimatedTime: '20-45 minutes'
+                        },
+                        {
+                          id: 'vertex-ai-content-creation',
+                          name: 'Vertex AI-Powered Content Creation',
+                          description: 'AI-powered content creation with Vertex AI integration and brand consistency',
+                          icon: '✨',
+                          category: 'Content Creation',
+                          agents: ['Content Intelligence Agent', 'Vertex AI Provider', 'Brand Consistency Agent', 'Quality Controller'],
+                          features: ['Vertex AI integration', 'Brand consistency', 'Quality assurance', 'Cost optimization'],
+                          value: 'Creates high-quality, brand-consistent content using advanced AI',
+                          difficulty: 'Medium',
+                          estimatedTime: '15-30 minutes'
+                        },
+                        {
+                          id: 'financial-intelligence-forecast',
+                          name: 'Advanced Financial Intelligence & Forecasting',
+                          description: 'Comprehensive financial analysis with predictive forecasting and risk assessment',
+                          icon: '📈',
+                          category: 'Financial Intelligence',
+                          agents: ['Financial Intelligence Agent', 'Risk Assessment Agent', 'Forecasting Agent', 'Investment Advisor'],
+                          features: ['Predictive forecasting', 'Risk assessment', 'Investment analysis', 'Scenario planning'],
+                          value: 'Provides Fortune 500-level financial intelligence and forecasting',
+                          difficulty: 'High',
+                          estimatedTime: '25-40 minutes'
+                        }
+                      ].map((template) => (
+                        <div
+                          key={template.id}
+                          className="p-4 border border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 cursor-pointer transition-all bg-gradient-to-r from-blue-50 to-purple-50"
+                          onClick={() => loadFortune500Template(template)}
+                        >
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="text-2xl">{template.icon}</div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-800 mb-1">{template.name}</h4>
+                              <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {template.estimatedTime}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Target className="w-3 h-3" />
+                                  {template.difficulty}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {template.agents.length} agents
+                                </span>
                           </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-xs font-medium text-gray-700">Examples:</p>
-                          {config.examples.slice(0, 2).map((example, index) => (
-                            <p key={index} className="text-xs text-gray-600 italic">"{example}"</p>
-                          ))}
+                          </div>
+                          
+                          {/* Features */}
+                          <div className="mb-2">
+                            <div className="text-xs text-gray-500 mb-1">Key Features:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {template.features.map((feature, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                  {feature}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Value Proposition */}
+                          <div className="text-xs text-gray-600 italic">
+                            💡 {template.value}
                         </div>
                       </div>
                     ))}
                   </div>
-                </>
-              )}
             </div>
 
-            {/* React Flow Canvas */}
-            <div className="flex-1 h-full" ref={reactFlowWrapper}>
-              <ReactFlowProvider>
-                <ReactFlow
-                  nodes={nodes}
-                  edges={edges}
-                  onNodesChange={onNodesChange}
-                  onEdgesChange={onEdgesChange}
-                  onConnect={onConnect}
-                  onEdgeDoubleClick={(_, edge) => setEdges((eds) => eds.filter((e) => e.id !== edge.id))}
-                  onInit={setReactFlowInstance}
-                  onDrop={onDrop}
-                  onDragOver={onDragOver}
-                  nodeTypes={nodeTypes}
-                  fitView
-                  className="bg-gray-50"
-                >
-                  <MiniMap />
-                  <Controls />
-                  <Background variant="dots" gap={12} size={1} />
-                </ReactFlow>
-              </ReactFlowProvider>
-            </div>
+                  {/* Orchestrated Business Operations */}
+                  <div className="mb-6">
+                    <h3 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <Workflow className="w-4 h-4 text-green-600" />
+                      Orchestrated Business Operations
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        {
+                          id: 'orchestrated-marketing-campaign',
+                          name: 'Orchestrated Multi-Channel Marketing Campaign',
+                          description: 'Comprehensive marketing campaign with multi-agent coordination and real-time optimization',
+                          icon: '🎯',
+                          category: 'Marketing',
+                          agents: ['Unified Orchestrator', 'Marketing Agency Agent', 'Content Intelligence Agent', 'Campaign Optimizer'],
+                          features: ['Multi-agent coordination', 'Real-time optimization', 'Cross-channel integration', 'Performance tracking'],
+                          value: 'Creates and manages sophisticated marketing campaigns with autonomous optimization',
+                          difficulty: 'Medium',
+                          estimatedTime: '20-35 minutes'
+                        },
+                        {
+                          id: 'business-automation-suite',
+                          name: 'Complete Business Automation Suite',
+                          description: 'End-to-end business automation with workflow orchestration and quality assurance',
+                          icon: '⚙️',
+                          category: 'Automation',
+                          agents: ['Unified Orchestrator', 'Workflow Manager', 'Automation Agent', 'Quality Controller'],
+                          features: ['End-to-end automation', 'Quality assurance', 'Performance monitoring', 'Continuous optimization'],
+                          value: 'Automates complex business processes with Fortune 500-level reliability',
+                          difficulty: 'High',
+                          estimatedTime: '30-50 minutes'
+                        },
+                        {
+                          id: 'customer-journey-optimization',
+                          name: 'Customer Journey Optimization & Personalization',
+                          description: 'Advanced customer journey mapping with AI-powered personalization and optimization',
+                          icon: '🛤️',
+                          category: 'Customer Experience',
+                          agents: ['Customer Intelligence Agent', 'Journey Tracker', 'Personalization Engine', 'Optimization Agent'],
+                          features: ['Journey mapping', 'AI personalization', 'Real-time optimization', 'Performance tracking'],
+                          value: 'Optimizes customer experiences with AI-powered personalization',
+                          difficulty: 'High',
+                          estimatedTime: '25-40 minutes'
+                        },
+                        {
+                          id: 'strategic-business-planning',
+                          name: 'Strategic Business Planning & Growth',
+                          description: 'Comprehensive strategic planning with market analysis and growth optimization',
+                          icon: '🎯',
+                          category: 'Strategy',
+                          agents: ['Strategy Agent', 'Market Research Agent', 'Growth Optimizer', 'Competitive Intelligence Agent'],
+                          features: ['Market analysis', 'Competitive intelligence', 'Growth optimization', 'Strategic planning'],
+                          value: 'Provides comprehensive strategic planning with market intelligence',
+                          difficulty: 'High',
+                          estimatedTime: '35-60 minutes'
+                        }
+                      ].map((template) => (
+                        <div
+                          key={template.id}
+                          className="p-4 border border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 cursor-pointer transition-all bg-gradient-to-r from-green-50 to-blue-50"
+                          onClick={() => loadFortune500Template(template)}
+                        >
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="text-2xl">{template.icon}</div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-800 mb-1">{template.name}</h4>
+                              <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {template.estimatedTime}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Target className="w-3 h-3" />
+                                  {template.difficulty}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {template.agents.length} agents
+                                </span>
           </div>
         </div>
       </div>
 
-      {/* AI Assistant now lives in the sidebar when mode is AI */}
-
-      {/* Save/Activate Controls */}
-      <div className="px-4 pb-4">
-        <div className="flex items-center justify-end gap-3">
-          <button onClick={saveWorkflow} className="px-4 py-2 border rounded bg-white hover:bg-gray-50" disabled={saving}>
-            {saving ? 'Saving…' : 'Save this workflow'}
-          </button>
-          <button onClick={activateWorkflow} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" disabled={activating}>
-            {activating ? 'Activating…' : 'Activate this workflow'}
-          </button>
+                          {/* Features */}
+                          <div className="mb-2">
+                            <div className="text-xs text-gray-500 mb-1">Key Features:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {template.features.map((feature, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                  {feature}
+                                </span>
+                              ))}
         </div>
       </div>
 
-      {/* My Workflows Drawer */}
-      {showMyWorkflows && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 z-40" onClick={() => setShowMyWorkflows(false)}>
-          <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">My Workflows</h3>
-              <button className="text-gray-500 hover:text-gray-700" onClick={() => setShowMyWorkflows(false)}>✕</button>
+                          {/* Value Proposition */}
+                          <div className="text-xs text-gray-600 italic">
+                            💡 {template.value}
             </div>
-            <div className="flex border-b mb-3">
-              <button className={`px-3 py-2 text-sm ${wfTab==='owned' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`} onClick={() => setWfTab('owned')}>Owned</button>
-              <button className={`px-3 py-2 text-sm ${wfTab==='purchased' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-600'}`} onClick={() => setWfTab('purchased')}>Purchased</button>
             </div>
-            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100% - 120px)' }}>
-              {(wfTab === 'owned' ? ownedWorkflows : purchasedWorkflows).map((t: any) => (
-                <div key={t.id} className="p-3 border rounded mb-2 hover:bg-gray-50 cursor-pointer" onClick={() => hydrateFromTemplate(t)}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-gray-800">{t.name}</div>
-                      <div className="text-xs text-gray-500">{t.category || 'general'} • {t.is_public ? 'Public' : 'Draft'}</div>
+                      ))}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {t.execution_cost_credits ?? t.estimated_credits} cr
                     </div>
+
+                  {/* Advanced Intelligence Systems */}
+                  <div className="mb-6">
+                    <h3 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-purple-600" />
+                      Advanced Intelligence Systems
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        {
+                          id: 'data-intelligence-hub',
+                          name: 'Data Intelligence & Analytics Hub',
+                          description: 'Centralized data intelligence with advanced analytics and actionable insights',
+                          icon: '📊',
+                          category: 'Analytics',
+                          agents: ['Data Intelligence Agent', 'Analytics Agent', 'Insights Generator', 'Visualization Agent'],
+                          features: ['Advanced analytics', 'Data visualization', 'Insight generation', 'Actionable recommendations'],
+                          value: 'Transforms data into actionable business intelligence',
+                          difficulty: 'Medium',
+                          estimatedTime: '20-35 minutes'
+                        },
+                        {
+                          id: 'voice-enabled-customer-relations',
+                          name: 'Voice-Enabled Customer Relations System',
+                          description: 'Advanced voice-enabled customer relations with emotional intelligence and automation',
+                          icon: '🎤',
+                          category: 'Customer Relations',
+                          agents: ['Voice Intelligence Agent', 'Customer Relations Agent', 'Emotional Intelligence Agent', 'Automation Engine'],
+                          features: ['Voice interactions', 'Emotional intelligence', 'Automated responses', 'Continuous learning'],
+                          value: 'Provides sophisticated voice-enabled customer relations with emotional intelligence',
+                          difficulty: 'High',
+                          estimatedTime: '25-40 minutes'
+                        },
+                        {
+                          id: 'revenue-optimization-engine',
+                          name: 'Revenue Optimization & Growth Engine',
+                          description: 'Advanced revenue optimization with predictive analytics and growth strategies',
+                          icon: '💰',
+                          category: 'Revenue Optimization',
+                          agents: ['Revenue Optimizer', 'Pricing Intelligence Agent', 'Growth Strategist', 'Analytics Agent'],
+                          features: ['Revenue analysis', 'Pricing optimization', 'Growth strategies', 'Performance tracking'],
+                          value: 'Maximizes revenue through intelligent optimization and growth strategies',
+                          difficulty: 'High',
+                          estimatedTime: '30-45 minutes'
+                        },
+                        {
+                          id: 'ai-powered-sales-automation',
+                          name: 'AI-Powered Sales Automation & Intelligence',
+                          description: 'Complete sales automation with AI-powered lead scoring and conversion optimization',
+                          icon: '🤖',
+                          category: 'Sales Automation',
+                          agents: ['Sales Automation Agent', 'Lead Intelligence Agent', 'Conversion Optimizer', 'Pipeline Manager'],
+                          features: ['Sales automation', 'Lead scoring', 'Conversion optimization', 'Pipeline management'],
+                          value: 'Automates sales processes with AI-powered intelligence and optimization',
+                          difficulty: 'Medium',
+                          estimatedTime: '25-40 minutes'
+                        }
+                      ].map((template) => (
+                        <div
+                          key={template.id}
+                          className="p-4 border border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 cursor-pointer transition-all bg-gradient-to-r from-purple-50 to-pink-50"
+                          onClick={() => loadFortune500Template(template)}
+                        >
+                          <div className="flex items-start gap-3 mb-3">
+                            <div className="text-2xl">{template.icon}</div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-800 mb-1">{template.name}</h4>
+                              <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                              <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {template.estimatedTime}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Target className="w-3 h-3" />
+                                  {template.difficulty}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3 h-3" />
+                                  {template.agents.length} agents
+                                </span>
                   </div>
                 </div>
-              ))}
-              {((wfTab === 'owned' ? ownedWorkflows : purchasedWorkflows).length === 0) && (
-                <div className="text-sm text-gray-500">No workflows to show.</div>
-              )}
+                          </div>
+                          
+                          {/* Features */}
+                          <div className="mb-2">
+                            <div className="text-xs text-gray-500 mb-1">Key Features:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {template.features.map((feature, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
+                                  {feature}
+                                </span>
+                              ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Scheduling Modal removed from builder scope */}
-
-      {/* Custom Industry Configuration Modal */}
-      {showCustomIndustryConfig && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full mx-4">
-            <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-              🔧 Create Custom Industry
-            </h2>
-            
-            <p className="text-gray-600 mb-6">
-              Don't see your industry? Create a custom one with specialized workflows and automation!
-            </p>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Industry Name *
-                </label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  value={customIndustryName}
-                  onChange={(e) => setCustomIndustryName(e.target.value)}
-                  placeholder="e.g., Pet Grooming, Wedding Planning, Tutoring"
-                />
+                          
+                          {/* Value Proposition */}
+                          <div className="text-xs text-gray-600 italic">
+                            💡 {template.value}
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Industry Description *
-                </label>
-                <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  rows={3}
-                  value={customIndustryDescription}
-                  onChange={(e) => setCustomIndustryDescription(e.target.value)}
-                  placeholder="Describe your industry and what kind of automation would be helpful..."
-                />
               </div>
-              
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-medium text-blue-900 mb-2">💡 Example Custom Industries:</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• <strong>Pet Grooming:</strong> "Schedule appointments, send reminders, track pet preferences"</li>
-                  <li>• <strong>Wedding Planning:</strong> "Manage vendor communications, track timelines, send updates"</li>
-                  <li>• <strong>Tutoring:</strong> "Schedule sessions, track student progress, send homework reminders"</li>
-                  <li>• <strong>Event Planning:</strong> "Manage guest lists, coordinate vendors, send invitations"</li>
-                </ul>
+                      ))}
               </div>
             </div>
             
-            <div className="flex justify-end space-x-4 mt-6">
-              <button
-                className="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100"
-                onClick={() => {
-                  setShowCustomIndustryConfig(false);
-                  setCustomIndustryName('');
-                  setCustomIndustryDescription('');
-                  setSelectedIndustry('general');
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                onClick={handleCustomIndustrySave}
-                disabled={!customIndustryName.trim() || !customIndustryDescription.trim()}
-              >
-                Create Industry
-              </button>
+                  {/* Original Industry Templates */}
+                  <div>
+                    <h3 className="text-md font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                      <Building className="w-4 h-4 text-gray-600" />
+                      Standard Industry Workflows
+                    </h3>
+                    <div className="space-y-3">
+                      {Object.entries(ENHANCED_NODE_TYPES).map(([type, config]) => (
+                        <div
+                          key={type}
+                          className="p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 cursor-grab transition-all"
+                          onDragStart={(event) => onDragStart(event, type)}
+                          draggable
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="text-2xl">{config.icon}</div>
+                            <div>
+                              <h3 className="font-semibold text-gray-800 capitalize">{type}</h3>
+                              <p className="text-xs text-gray-600">{config.description}</p>
             </div>
           </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-medium text-gray-700">Examples:</p>
+                            {config.examples.slice(0, 2).map((example, index) => (
+                              <p key={index} className="text-xs text-gray-600 italic">"{example}"</p>
+                            ))}
         </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
       )}
     </div>
+          </div>
+        </div>
+      </div>
+    </ReactFlowProvider>
   );
 };
 
