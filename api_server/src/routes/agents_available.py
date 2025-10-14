@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request
 from typing import List, Dict, Any
 from datetime import datetime, timedelta
 
-router = APIRouter(tags=["agents"])
+router = APIRouter(prefix="/api", tags=["agents"])
 
 
 def _now_iso() -> str:

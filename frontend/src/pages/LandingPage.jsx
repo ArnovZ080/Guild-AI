@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Alert, AlertDescription } from '@/components/ui/alert.jsx'
-import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award, AlertTriangle, Calculator } from 'lucide-react'
+import { Check, ArrowRight, Sparkles, Shield, TrendingUp, Users, Zap, Brain, Target, Award, AlertTriangle, Calculator, GitBranch } from 'lucide-react'
 import guildLogo from '../assets/guild-logo.png'
 
 function LandingPage() {
@@ -90,10 +90,10 @@ function LandingPage() {
       price: '$499',
       period: '/month',
       description: 'Unlimited AI workforce',
-      agents: 'All 114 Agents',
+      agents: 'All 115+ Agents',
       credits: '10,000 credits/month',
       features: [
-        'All 114 AI Agents included',
+        'All 115+ AI Agents included',
         '10,000 monthly credits',
         'Judge Layer Quality Assurance',
         'All integrations + custom connectors',
@@ -106,6 +106,13 @@ function LandingPage() {
   ]
 
   const features = [
+    {
+      icon: <GitBranch className="w-6 h-6" />,
+      title: 'Intelligent Orchestration',
+      description: 'One AI Orchestrator coordinates 115+ specialized agents automatically—like a CEO managing your entire company. No manual coordination needed.',
+      color: 'from-violet-500 to-purple-500',
+      benefit: 'ChatGPT: 1 agent, you coordinate | Guild: 115+ agents, Orchestrator coordinates'
+    },
     {
       icon: <Shield className="w-6 h-6" />,
       title: 'Judge Layer Quality Assurance',
@@ -137,8 +144,8 @@ function LandingPage() {
   ]
 
   const stats = [
-    { number: '114', label: 'Specialized AI Agents', icon: <Users className="w-5 h-5" /> },
-    { number: '123', label: 'Platform Integrations', icon: <Target className="w-5 h-5" /> },
+    { number: '115+', label: 'Specialized AI Agents', icon: <Users className="w-5 h-5" /> },
+    { number: '120+', label: 'Platform Integrations', icon: <Target className="w-5 h-5" /> },
     { number: '99%', label: 'Cost Savings vs Human Team', icon: <Award className="w-5 h-5" /> },
     { number: '40+', label: 'Business KPIs Tracked', icon: <TrendingUp className="w-5 h-5" /> }
   ]
@@ -153,7 +160,6 @@ function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
-      {/* Configuration Warning (only shown if Firebase not configured) */}
       {!firebaseConfigured && (
         <Alert className="m-4 border-amber-500 bg-amber-50 dark:bg-amber-950">
           <AlertTriangle className="h-4 w-4 text-amber-600" />
@@ -164,7 +170,6 @@ function LandingPage() {
         </Alert>
       )}
       
-      {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -193,21 +198,20 @@ function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <Badge className="mb-6 bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300 border-sky-200 dark:border-sky-800">
           <Sparkles className="w-3 h-3 mr-1" />
-          114 Specialized AI Agents • 123 Platform Integrations
+          115+ Specialized AI Agents • 120+ Platform Integrations • Intelligent Orchestration
         </Badge>
         <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-slate-900 via-sky-800 to-emerald-800 dark:from-slate-100 dark:via-sky-400 dark:to-emerald-400 bg-clip-text text-transparent">
-          Replace Your Entire Office<br />With AI That Actually Works
+          Other Platforms Give You AI Tools.<br />Guild Gives You An AI Organization.
         </h1>
         <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-400 mb-4 max-w-3xl mx-auto">
-          Say "Increase my revenue by 50%" and watch 114 AI agents create the strategy, launch campaigns, 
-          and execute everything autonomously while validating their own quality.
+          Say "Increase my revenue by 50%" and watch an intelligent Orchestrator coordinate 115+ specialized agents, 
+          create the strategy, launch campaigns, and execute everything autonomously—all with built-in quality validation.
         </p>
         <p className="text-lg text-sky-600 dark:text-sky-400 mb-8 max-w-2xl mx-auto font-semibold">
-          The only AI platform with built-in quality assurance that no competitor can match.
+          The only AI platform where agents coordinate like a real team, not random tools.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
           <Button 
@@ -220,7 +224,6 @@ function LandingPage() {
           </Button>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-16">
           {stats.map((stat, index) => (
             <div key={index} className="p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow">
@@ -237,33 +240,30 @@ function LandingPage() {
           ))}
         </div>
 
-        {/* Social Proof */}
         <div className="mt-12 p-6 bg-gradient-to-r from-emerald-50 to-sky-50 dark:from-emerald-950 dark:to-sky-950 rounded-lg max-w-3xl mx-auto">
           <p className="text-slate-700 dark:text-slate-300 text-lg italic mb-2">
-            "Other AI tools just execute tasks. Guild AI is the first platform that validates its own quality 
-            before showing you results, like having a QA team built into every agent."
+            "Other AI tools just execute tasks. Guild AI is the first platform with an Orchestrator that coordinates 115+ agents automatically—and validates quality before you see results."
           </p>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            — Fortune 500-level capabilities at startup pricing
+            — Fortune 500-level coordination at startup pricing
           </p>
         </div>
       </section>
 
-      {/* Unique Features */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
             🏆 No Competitor Has These
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-slate-100">
-            4 Features That Make Guild Unstoppable
+            5 Features That Make Guild Unstoppable
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
             While other AI platforms hope for quality, Guild guarantees it. Here's why we're years ahead.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {features.map((feature, index) => (
             <Card key={index} className="border-2 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
@@ -279,7 +279,7 @@ function LandingPage() {
                 {feature.benefit && (
                   <div className="mt-3 p-3 bg-sky-50 dark:bg-sky-950 rounded-lg">
                     <p className="text-sm font-semibold text-sky-700 dark:text-sky-300">
-                      💰 {feature.benefit}
+                      💡 {feature.benefit}
                     </p>
                   </div>
                 )}
@@ -288,7 +288,6 @@ function LandingPage() {
           ))}
         </div>
 
-        {/* Comparison callout */}
         <div className="mt-12 max-w-4xl mx-auto">
           <div className="bg-gradient-to-r from-slate-900 to-sky-900 dark:from-slate-800 dark:to-sky-800 text-white p-8 rounded-xl">
             <h3 className="text-2xl font-bold mb-4 text-center">The Difference Is Clear</h3>
@@ -296,21 +295,21 @@ function LandingPage() {
               <div>
                 <h4 className="font-semibold mb-2 text-slate-300">❌ Other AI Platforms:</h4>
                 <ul className="space-y-2 text-sm text-slate-300">
-                  <li>• Execute tasks, hope for quality</li>
+                  <li>• 1 agent, you coordinate everything</li>
                   <li>• Manual review required</li>
                   <li>• Black box decision-making</li>
                   <li>• Pay per API call</li>
-                  <li>• 5-20 generic agents</li>
+                  <li>• 5-20 generic tools</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-2 text-emerald-300">✅ Guild AI:</h4>
                 <ul className="space-y-2 text-sm text-emerald-100">
-                  <li>• Quality validated before you see it</li>
+                  <li>• Orchestrator coordinates 115+ agents</li>
                   <li>• Built-in QA on every output</li>
                   <li>• Full transparency + learning</li>
                   <li>• Unlimited local AI generation</li>
-                  <li>• 114 specialized agents</li>
+                  <li>• 115+ specialized agents</li>
                 </ul>
               </div>
             </div>
@@ -318,88 +317,99 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works */}
       <section className="container mx-auto px-4 py-20 bg-slate-50 dark:bg-slate-950">
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 border-purple-200 dark:border-purple-800">
             ⚡ See Guild In Action
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-slate-100">
-            True Autonomy In 3 Simple Steps
+            True Autonomy Through Intelligent Orchestration
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Watch how Guild transforms a simple request into complete business execution
+            Watch how Guild's Orchestrator transforms a simple request into complete business execution
           </p>
         </div>
 
         <div className="max-w-5xl mx-auto">
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <div className="grid md:grid-cols-4 gap-6 mb-12">
             <Card className="text-center">
               <CardHeader>
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-sky-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                   1
                 </div>
-                <CardTitle>You Type Your Goal</CardTitle>
+                <CardTitle className="text-lg">You Type Your Goal</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-600 dark:text-slate-400 mb-4">
-                  "Increase my revenue by 50% in 3 months"
+                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  "Increase revenue by 50%"
                 </p>
-                <p className="text-sm text-slate-500 dark:text-slate-500">
-                  Just natural conversation. No complex setup.
+              </CardContent>
+            </Card>
+
+            <Card className="text-center border-2 border-violet-500">
+              <CardHeader>
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-violet-500 to-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  2
+                </div>
+                <CardTitle className="text-lg">Orchestrator Analyzes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  Accesses real business data from 120+ platforms
                 </p>
+                <Badge className="mt-2 bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300 text-xs">
+                  This is unique to Guild
+                </Badge>
               </CardContent>
             </Card>
 
             <Card className="text-center border-2 border-emerald-500">
               <CardHeader>
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  2
+                  3
                 </div>
-                <CardTitle>AI Creates & Validates Plan</CardTitle>
+                <CardTitle className="text-lg">Agents Coordinate</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-600 dark:text-slate-400 mb-4">
-                  114 agents analyze your business, create strategy, validate quality
+                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  115+ agents work together automatically
                 </p>
-                <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-                  This is where Guild is unique
-                </Badge>
               </CardContent>
             </Card>
 
             <Card className="text-center">
               <CardHeader>
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  3
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  4
                 </div>
-                <CardTitle>Agents Execute Everything</CardTitle>
+                <CardTitle className="text-lg">Quality Validated</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-slate-600 dark:text-slate-400 mb-4">
-                  Campaigns launched, content created, customers contacted - all autonomous
-                </p>
-                <p className="text-sm text-slate-500 dark:text-slate-500">
-                  You review results, not tasks.
+                <p className="text-slate-600 dark:text-slate-400 text-sm">
+                  Judge Layer ensures professional results
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Real example */}
           <Card className="bg-gradient-to-br from-slate-900 to-sky-900 dark:from-slate-800 dark:to-sky-800 text-white">
             <CardContent className="p-8">
               <h3 className="text-2xl font-bold mb-6 text-center">What Actually Happens Behind The Scenes:</h3>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <h4 className="font-semibold mb-3 text-sky-300">🤖 Agents Working:</h4>
+                  <h4 className="font-semibold mb-3 text-violet-300">🧠 Orchestrator:</h4>
                   <ul className="space-y-2 text-sm text-slate-200">
-                    <li>✓ Financial Intelligence → Analyzes your Stripe revenue</li>
+                    <li>✓ Accesses your Stripe revenue data</li>
+                    <li>✓ Selects optimal agents automatically</li>
+                    <li>✓ Creates intelligent workflow</li>
+                    <li>✓ Sequences tasks with dependencies</li>
+                  </ul>
+                  <h4 className="font-semibold mb-3 mt-4 text-sky-300">🤖 Agents Working:</h4>
+                  <ul className="space-y-2 text-sm text-slate-200">
+                    <li>✓ Financial Intelligence → Analyzes data</li>
                     <li>✓ Growth Opportunity → Finds 12 opportunities</li>
                     <li>✓ Strategy Agent → Creates growth plan</li>
-                    <li>✓ Campaign Agent → Launches Google & Meta ads</li>
-                    <li>✓ Content Intelligence → Creates supporting content</li>
-                    <li>✓ Judge Agent → Validates everything (94% score)</li>
+                    <li>✓ Campaign Agent → Launches ads</li>
                   </ul>
                 </div>
                 <div>
@@ -410,7 +420,7 @@ function LandingPage() {
                     <li>✓ Weekly progress monitoring</li>
                     <li>✓ Automatic optimization</li>
                     <li>✓ Full transparency log</li>
-                    <li>✓ Quality guaranteed before you see it</li>
+                    <li>✓ Quality guaranteed (Judge Score: 94%)</li>
                   </ul>
                 </div>
               </div>
@@ -424,7 +434,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
       <section className="container mx-auto px-4 py-20 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-950">
         <div className="text-center mb-16">
           <Badge className="mb-4 bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300 border-sky-200 dark:border-sky-800">
@@ -502,7 +511,7 @@ function LandingPage() {
 
         <div className="text-center mt-12">
           <p className="text-slate-600 dark:text-slate-400 mb-4">
-            All plans include: Judge Layer QA • Educational Transparency • Local AI Generation • 24/7 Operation
+            All plans include: Intelligent Orchestration • Judge Layer QA • Educational Transparency • Local AI Generation • 24/7 Operation
           </p>
           <div className="inline-block p-4 bg-emerald-50 dark:bg-emerald-950 rounded-lg">
             <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
@@ -512,7 +521,6 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Cost Comparison */}
       <section className="container mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-slate-100">
@@ -532,6 +540,10 @@ function LandingPage() {
                   Traditional Team
                 </h3>
                 <div className="space-y-2 text-slate-700 dark:text-slate-300">
+                  <div className="flex justify-between">
+                    <span>Marketing Director:</span>
+                    <span className="font-semibold">$10,000/mo</span>
+                  </div>
                   <div className="flex justify-between">
                     <span>Content Writer:</span>
                     <span className="font-semibold">$4,000/mo</span>
@@ -570,11 +582,11 @@ function LandingPage() {
                     <span className="font-semibold">$99/mo</span>
                   </div>
                   <div className="flex justify-between text-slate-500 dark:text-slate-500">
-                    <span>Works 24/7:</span>
+                    <span>Intelligent Orchestration:</span>
                     <span>✓</span>
                   </div>
                   <div className="flex justify-between text-slate-500 dark:text-slate-500">
-                    <span>Never takes breaks:</span>
+                    <span>Works 24/7:</span>
                     <span>✓</span>
                   </div>
                   <div className="flex justify-between text-slate-500 dark:text-slate-500">
@@ -605,7 +617,6 @@ function LandingPage() {
         </Card>
       </section>
 
-      {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
         <Card className="bg-gradient-to-r from-sky-600 to-emerald-600 border-0 text-white">
           <CardContent className="p-12 text-center">
@@ -613,13 +624,13 @@ function LandingPage() {
               🚀 Join The Future of Business
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Stop Managing Tasks.<br />Start Managing Results.
+              Stop Coordinating AI Tools.<br />Start Managing Business Results.
             </h2>
             <p className="text-xl mb-2 text-sky-50">
-              Your AI workforce is ready. 114 agents. Built-in quality control. Unlimited potential.
+              Your AI workforce is ready. 115+ agents. Intelligent Orchestrator. Built-in quality control. Unlimited potential.
             </p>
             <p className="text-lg mb-8 text-sky-100">
-              The only AI platform that guarantees quality before you see it.
+              The only AI platform where agents coordinate like a real team.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
@@ -632,13 +643,12 @@ function LandingPage() {
               </Button>
             </div>
             <p className="mt-6 text-sm text-sky-100">
-              ✓ No credit card required • ✓ Full access to all 114 agents • ✓ Cancel anytime
+              ✓ No credit card required • ✓ Full access to all 115+ agents • ✓ Cancel anytime
             </p>
           </CardContent>
         </Card>
       </section>
 
-      {/* Footer */}
       <footer className="bg-slate-900 text-slate-300 py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
@@ -652,7 +662,7 @@ function LandingPage() {
                 <span className="text-xl font-bold text-white">Guild AI</span>
               </div>
               <p className="text-sm text-slate-400">
-                Your autonomous AI workforce. 114 specialized agents working 24/7 to grow your business.
+                Your autonomous AI workforce. 115+ specialized agents working 24/7 to grow your business.
               </p>
             </div>
             <div>
@@ -691,4 +701,3 @@ function LandingPage() {
 }
 
 export default LandingPage
-

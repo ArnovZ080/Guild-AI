@@ -11,7 +11,7 @@ from ..database import get_db
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/orchestrator",
+    prefix="/api/orchestrator",
     tags=["Orchestrator"],
 )
 
