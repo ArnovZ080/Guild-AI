@@ -33,6 +33,256 @@ router = APIRouter(
     tags=["Orchestrator"],
 )
 
+async def get_user_subscription_info(user_id: str, db: Session) -> dict:
+    """Get user's subscription information and agent availability"""
+    try:
+        # Get subscription info
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        if not user:
+            return {
+                "tier": "free",
+                "status": "free",
+                "included_agents_limit": 0,
+                "available_agents": []
+            }
+        
+        # Get subscription details
+        subscription = db.query(models.Subscription).filter(
+            models.Subscription.user_id == user_id,
+            models.Subscription.status.in_(["active", "trialing"])
+        ).first()
+        
+        if not subscription:
+            return {
+                "tier": "free",
+                "status": "free",
+                "included_agents_limit": 0,
+                "available_agents": []
+            }
+        
+        # Get available agents from the agents API
+        # This would normally call the agents_available endpoint
+        # For now, we'll use the subscription tier to determine limits
+        tier_limits = {
+            "starter": 5,
+            "growth": 10,
+            "professional": 25,
+            "enterprise": 100
+        }
+        
+        included_limit = tier_limits.get(subscription.tier, 0)
+        
+        return {
+            "tier": subscription.tier,
+            "status": subscription.status,
+            "included_agents_limit": included_limit,
+            "available_agents": []  # Would be populated from agents_available endpoint
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting subscription info: {e}")
+        return {
+            "tier": "free",
+            "status": "free",
+            "included_agents_limit": 0,
+            "available_agents": []
+        }
+
+async def identify_required_agents(objective: str, business_context: dict) -> list:
+    """Identify which agents would be needed for a specific workflow objective"""
+    try:
+        lower_objective = objective.lower()
+        required_agents = []
+        
+        # Content creation workflows
+        if any(keyword in lower_objective for keyword in ['content', 'blog', 'article', 'post', 'copy', 'write']):
+            required_agents.extend(['content_strategist_agent', 'writer_agent', 'seo_agent'])
+            
+        if any(keyword in lower_objective for keyword in ['social', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok']):
+            required_agents.extend(['social_media_agent', 'content_strategist_agent'])
+            
+        if any(keyword in lower_objective for keyword in ['video', 'youtube', 'tiktok']):
+            required_agents.extend(['video_editor_agent', 'voice_agent'])
+            
+        if any(keyword in lower_objective for keyword in ['image', 'visual', 'graphic', 'design']):
+            required_agents.extend(['image_generation_agent'])
+            
+        # Marketing workflows
+        if any(keyword in lower_objective for keyword in ['marketing', 'campaign', 'ads', 'advertising']):
+            required_agents.extend(['marketing_campaign_agent', 'ad_copy_agent', 'analytics_agent'])
+            
+        # Research workflows
+        if any(keyword in lower_objective for keyword in ['research', 'analyze', 'study', 'investigate']):
+            required_agents.extend(['research_agent', 'advanced_scraper_agent'])
+            
+        # Sales workflows
+        if any(keyword in lower_objective for keyword in ['sales', 'leads', 'prospects', 'outreach']):
+            required_agents.extend(['outbound_sales_agent', 'lead_personalization_agent', 'crm_agent'])
+            
+        # Financial workflows
+        if any(keyword in lower_objective for keyword in ['financial', 'accounting', 'bookkeeping', 'pricing']):
+            required_agents.extend(['accounting_agent', 'bookkeeping_agent', 'pricing_agent'])
+            
+        # Operations workflows
+        if any(keyword in lower_objective for keyword in ['automation', 'workflow', 'process', 'operations']):
+            required_agents.extend(['unified_automation_agent', 'visual_automation_tool'])
+            
+        # Remove duplicates and return
+        return list(set(required_agents))
+        
+    except Exception as e:
+        logger.error(f"Error identifying required agents: {e}")
+        return []
+
+async def check_agent_availability(required_agents: list, user_id: str, db: Session) -> dict:
+    """Check if user has access to required agents and suggest hiring if needed"""
+    try:
+        subscription_info = await get_user_subscription_info(user_id, db)
+        
+        # Always available agents (base pack)
+        always_available = [
+            "orchestrator", "judge_agent", "fact_checker_agent", "brand_checker_agent",
+            "business_intelligence_agent", "financial_intelligence_agent", 
+            "content_intelligence_agent", "customer_intelligence_agent",
+            "chief_of_staff_agent"
+        ]
+        
+        unavailable_agents = []
+        suggestions = []
+        
+        for agent in required_agents:
+            if agent not in always_available:
+                # Check if user has this agent available
+                # This would normally check against the agents_available endpoint
+                # For now, we'll assume they don't have it and suggest hiring
+                unavailable_agents.append(agent)
+                
+                # Get pricing based on user's tier
+                tier_pricing = {
+                    "starter": {"daily": 1.50, "monthly": 12},
+                    "growth": {"daily": 1.25, "monthly": 11},
+                    "professional": {"daily": 1.00, "monthly": 10},
+                    "enterprise": {"daily": 0.50, "monthly": 8}
+                }
+                
+                pricing = tier_pricing.get(subscription_info["tier"], tier_pricing["starter"])
+                
+                suggestions.append({
+                    "agent": agent,
+                    "reason": f"This workflow would work better with the {agent.replace('_', ' ').title()} Agent",
+                    "daily_rate": pricing["daily"],
+                    "monthly_rate": pricing["monthly"],
+                    "hire_url": f"/agents/hire?agent_id={agent}"
+                })
+        
+        return {
+            "has_all_agents": len(unavailable_agents) == 0,
+            "unavailable_agents": unavailable_agents,
+            "suggestions": suggestions,
+            "subscription_info": subscription_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking agent availability: {e}")
+        return {
+            "has_all_agents": False,
+            "unavailable_agents": required_agents,
+            "suggestions": [],
+            "subscription_info": {"tier": "free"}
+        }
+
+async def create_basic_workflow_plan(
+    objective: str, 
+    user_id: str, 
+    business_context: dict, 
+    audience: dict, 
+    additional_notes: str, 
+    agent_availability: dict
+) -> dict:
+    """Create a basic workflow plan using only available agents"""
+    try:
+        from ..llm.gemini_provider import gemini_provider
+        
+        # Always available agents
+        available_agents = [
+            "orchestrator", "judge_agent", "fact_checker_agent", "brand_checker_agent",
+            "business_intelligence_agent", "financial_intelligence_agent", 
+            "content_intelligence_agent", "customer_intelligence_agent",
+            "chief_of_staff_agent"
+        ]
+        
+        basic_plan_prompt = f"""
+        Create a basic workflow plan for: {objective}
+        
+        Business Context: {business_context}
+        Available Agents: {', '.join(available_agents)}
+        
+        Create a simplified workflow that uses only the available agents. Focus on:
+        1. What can be accomplished with the available agents
+        2. Clear steps and deliverables
+        3. Realistic timeline
+        4. Note what would be enhanced with additional agents
+        
+        Return as JSON with:
+        - name: Workflow name
+        - description: What this accomplishes
+        - phases: Array of phases with agents, tasks, outputs
+        - duration: Estimated time
+        - limitations: What's missing due to agent limitations
+        - needs_approval: true
+        - presentation_message: User-friendly message explaining the plan
+        """
+        
+        response = await gemini_provider.generate_with_context(
+            prompt=basic_plan_prompt,
+            business_context=business_context,
+            task_type='workflow_planning',
+            complexity='medium',
+            user_tier=agent_availability.get('subscription_info', {}).get('tier', 'free')
+        )
+        
+        try:
+            import json
+            workflow_plan = json.loads(response['text'])
+        except:
+            # Fallback if JSON parsing fails
+            workflow_plan = {
+                "name": f"Basic {objective.title()} Workflow",
+                "description": f"Simplified workflow to accomplish {objective} using available agents",
+                "phases": [
+                    {
+                        "name": "Planning",
+                        "agents": ["business_intelligence_agent"],
+                        "tasks": ["Analyze requirements", "Create strategy"],
+                        "outputs": ["Strategic plan"]
+                    },
+                    {
+                        "name": "Execution",
+                        "agents": ["orchestrator"],
+                        "tasks": ["Coordinate execution", "Monitor progress"],
+                        "outputs": ["Execution results"]
+                    }
+                ],
+                "duration": "2-4 hours",
+                "limitations": "Limited to basic agents - enhanced results available with additional specialized agents",
+                "needs_approval": True,
+                "presentation_message": f"I've created a basic workflow for {objective} using your available agents. This will give you solid results, though it could be enhanced with additional specialized agents."
+            }
+        
+        return workflow_plan
+        
+    except Exception as e:
+        logger.error(f"Error creating basic workflow plan: {e}")
+        return {
+            "name": f"Basic {objective.title()} Workflow",
+            "description": f"Simplified workflow to accomplish {objective}",
+            "phases": [],
+            "duration": "2-4 hours",
+            "limitations": "Basic workflow using available agents",
+            "needs_approval": True,
+            "presentation_message": f"I've created a basic workflow for {objective} using your available agents."
+        }
+
 async def handle_workflow_request(
     objective: str, 
     user_id: str, 
@@ -45,12 +295,13 @@ async def handle_workflow_request(
     """
     Handle workflow requests with intelligent conversation flow:
     1. Act as proactive business CEO - analyze business context first
-    2. Ask clarifying questions if request is vague
-    3. Create comprehensive plan with specific agents
-    4. Show user the plan before executing
-    5. Execute with agent coordination
-    6. Report back with results
-    7. Suggest additional growth opportunities
+    2. Check agent availability and suggest hiring if needed
+    3. Ask clarifying questions if request is vague
+    4. Create comprehensive plan with specific agents
+    5. Show user the plan before executing
+    6. Execute with agent coordination
+    7. Report back with results
+    8. Suggest additional growth opportunities
     """
     try:
         from ..llm.gemini_provider import gemini_provider
@@ -109,48 +360,86 @@ async def handle_workflow_request(
                     "workflow_details": None
                 }
         
-        # If we have enough detail, coordinate with Chief of Staff first, then create comprehensive plan
-        from .executive_coordination import execute_chief_of_staff_coordination
-        
-        # Get Chief of Staff coordination
-        chief_of_staff_plan = await execute_chief_of_staff_coordination(objective, business_context, user_id)
-        
-        # Create comprehensive plan incorporating Chief of Staff recommendations
-        workflow_plan = await create_comprehensive_workflow_plan(
-            objective, user_id, business_context, audience, additional_notes, chief_of_staff_plan
-        )
-        
-        if workflow_plan.get('needs_approval', False):
-            # Show plan to user for approval
-            plan_id = str(uuid.uuid4())
-            
-            # Store plan in database for approval
-            db_plan = models.Workflow(
-                id=plan_id,
-                user_id=user_id,
-                status="pending_approval",
-                dag_definition=workflow_plan,
-                priority=priority
-            )
-            db.add(db_plan)
-            db.commit()
-            
-            return {
-                "success": True,
-                "workflow_id": plan_id,
-                "message": workflow_plan['presentation_message'],
-                "conversation_type": "workflow_plan",
-                "needs_approval": True,
-                "workflow_details": workflow_plan,
-                "next_steps": [
-                    "Review the comprehensive plan above",
-                    "Approve to start execution",
-                    "Monitor progress in real-time"
-                ]
-            }
-        else:
-            # Execute immediately
-            return await execute_workflow_immediately(workflow_plan, user_id, db)
+                # If we have enough detail, check agent availability first
+                # Determine what agents we might need for this workflow
+                potential_agents = await identify_required_agents(objective, business_context)
+                
+                # Check if user has access to all required agents
+                agent_availability = await check_agent_availability(potential_agents, user_id, db)
+                
+                # Check if user wants to proceed with available agents (from previous message)
+                user_wants_basic_workflow = any(phrase in objective.lower() for phrase in [
+                    'proceed with available agents', 'yes, proceed', 'basic workflow', 
+                    'use available agents', 'continue with what i have'
+                ])
+                
+                if not agent_availability["has_all_agents"] and not user_wants_basic_workflow:
+                    # Suggest hiring missing agents
+                    return {
+                        "success": True,
+                        "message": f"I can help you with {objective}, but this workflow would work better with some additional agents. Here are the recommendations:",
+                        "conversation_type": "agent_hiring_suggestion",
+                        "agent_suggestions": agent_availability["suggestions"],
+                        "subscription_info": agent_availability["subscription_info"],
+                        "alternative_workflow": f"I can still create a basic workflow using your available agents, but it won't be as comprehensive. Would you like me to proceed with what you have, or would you prefer to hire the suggested agents?",
+                        "next_steps": [
+                            "Review the agent suggestions above",
+                            "Choose to hire agents for better results",
+                            "Or proceed with available agents for a basic workflow"
+                        ]
+                    }
+                
+                # Create workflow plan based on available agents
+                workflow_plan = None
+                if user_wants_basic_workflow:
+                    # Create basic workflow using only available agents
+                    workflow_plan = await create_basic_workflow_plan(
+                        objective, user_id, business_context, audience, additional_notes, agent_availability
+                    )
+                else:
+                    # Coordinate with Chief of Staff first, then create comprehensive plan
+                    from .executive_coordination import execute_chief_of_staff_coordination
+                    
+                    # Get Chief of Staff coordination
+                    chief_of_staff_plan = await execute_chief_of_staff_coordination(objective, business_context, user_id)
+                    
+                    # Create comprehensive plan incorporating Chief of Staff recommendations
+                    workflow_plan = await create_comprehensive_workflow_plan(
+                        objective, user_id, business_context, audience, additional_notes, chief_of_staff_plan
+                    )
+                
+                # Handle the workflow plan
+                if workflow_plan and workflow_plan.get('needs_approval', False):
+                    # Show plan to user for approval
+                    plan_id = str(uuid.uuid4())
+                    
+                    # Store plan in database for approval
+                    db_plan = models.Workflow(
+                        id=plan_id,
+                        user_id=user_id,
+                        status="pending_approval",
+                        dag_definition=workflow_plan,
+                        priority=priority
+                    )
+                    db.add(db_plan)
+                    db.commit()
+                    
+                    return {
+                        "success": True,
+                        "workflow_id": plan_id,
+                        "message": workflow_plan['presentation_message'],
+                        "conversation_type": "workflow_plan",
+                        "needs_approval": True,
+                        "workflow_details": workflow_plan,
+                        "next_steps": [
+                            "Review the comprehensive plan above",
+                            "Approve to start execution",
+                            "Monitor progress in real-time"
+                        ]
+                    }
+                elif workflow_plan:
+                    # Execute immediately
+                    return await execute_workflow_immediately(workflow_plan, user_id, db)
             
     except Exception as e:
         logger.error(f"Error in workflow request handling: {e}")

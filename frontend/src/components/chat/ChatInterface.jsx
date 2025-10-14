@@ -288,6 +288,10 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           // Show clarifying questions - no workflow actions needed
           actions = [];
           workflowData = null;
+        } else if (orchestrationResult.conversation_type === 'agent_hiring_suggestion') {
+          // Show agent hiring suggestions
+          actions = ['✅ Proceed with Available Agents', '💰 Hire Suggested Agents'];
+          workflowData = orchestrationResult;
         } else if (orchestrationResult.conversation_type === 'workflow_plan') {
           // Show workflow plan with approval option
           actions = ['✅ Approve & Execute', '❌ Cancel'];
@@ -377,6 +381,25 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       window.location.href = '/workflows';
     } else if (action.includes('Dashboard') || action.includes('Analytics')) {
       onNavigateToDashboard?.();
+    } else if (action.includes('Proceed with Available Agents')) {
+      // Proceed with basic workflow using available agents
+      const proceedMessage = {
+        id: Date.now().toString(),
+        type: 'user',
+        content: 'Yes, please proceed with the available agents for now.',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, proceedMessage]);
+      
+      // Send the request again to create a basic workflow
+      setTimeout(() => {
+        handleSendMessage(message.content);
+      }, 500);
+      
+    } else if (action.includes('Hire Suggested Agents')) {
+      // Navigate to agents page to hire agents
+      window.location.href = '/agents';
+      
     } else if (action.includes('Approve & Execute')) {
       // Approve and execute workflow
       if (message.workflowData?.workflow_id) {
@@ -516,6 +539,42 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
                       <div className="whitespace-pre-wrap text-sm leading-relaxed">
                         {message.content}
                       </div>
+                      
+                      {/* Agent Hiring Suggestions */}
+                      {message.workflowData?.conversation_type === 'agent_hiring_suggestion' && message.workflowData?.agent_suggestions && (
+                        <div className="mt-4 space-y-3">
+                          <div className="text-sm font-medium text-gray-700">Recommended Agents:</div>
+                          {message.workflowData.agent_suggestions.map((suggestion, index) => (
+                            <div key={index} className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="font-medium text-gray-900">
+                                    {suggestion.agent.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())} Agent
+                                  </div>
+                                  <div className="text-sm text-gray-600 mt-1">
+                                    {suggestion.reason}
+                                  </div>
+                                </div>
+                                <div className="text-right ml-4">
+                                  <div className="text-sm font-medium text-green-600">
+                                    ${suggestion.daily_rate}/day
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    ${suggestion.monthly_rate}/month
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {message.workflowData.alternative_workflow && (
+                            <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                              <div className="text-sm text-yellow-800">
+                                {message.workflowData.alternative_workflow}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     {/* Message Actions */}
