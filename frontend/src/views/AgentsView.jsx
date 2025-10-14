@@ -217,6 +217,24 @@ const AgentsView = () => {
   const [showFirstRunPicker, setShowFirstRunPicker] = useState(false);
   const [pickedIds, setPickedIds] = useState(new Set());
 
+  // Early return for loading state - must be after all hooks
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg p-6 shadow-lg">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Canonical capability/description overrides for known agents (shared by cards and modal)
   const capabilityOverrides = {
     'Accountability Coach Agent': {
@@ -1432,23 +1450,6 @@ const AgentsView = () => {
     };
     return styles[status] || 'bg-gray-100 text-gray-800';
   };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-lg">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Agent card component (Workforce)
   const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null }) => {
