@@ -262,10 +262,10 @@ async def get_system_capabilities():
     This endpoint provides the "intelligence" for the orchestrator.
     """
     try:
-        # Get all available agents from the guild system
-        from guild.src.agents import get_all_agents
+        # Get all available agents from the agent capability registry
+        from guild.src.core.agent_capability_registry import get_all_agent_capabilities
         
-        agents = get_all_agents()
+        agents = get_all_agent_capabilities()
         categories = {}
         total_agents = len(agents)
         

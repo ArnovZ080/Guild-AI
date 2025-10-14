@@ -181,3 +181,26 @@ async def get_source_of_truth(
             "preferences": {"communication_style": onboarding.communication_style, "data_storage": onboarding.data_storage_preference, "security": onboarding.security_preference}
         }
     }
+
+@router.get("/incomplete")
+async def get_incomplete_fields(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get incomplete onboarding fields for dashboard widget"""
+    onboarding = db.query(models.OnboardingData).filter(
+        models.OnboardingData.user_id == current_user.id
+    ).first()
+    
+    if not onboarding:
+        return {
+            "incomplete_fields": [],
+            "needs_follow_up": False,
+            "completion_percentage": 0
+        }
+    
+    return {
+        "incomplete_fields": onboarding.incomplete_fields or [],
+        "needs_follow_up": onboarding.needs_follow_up,
+        "completion_percentage": onboarding.completion_percentage
+    }

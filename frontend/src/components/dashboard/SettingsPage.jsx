@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
+import { useAuth } from '../../contexts/AuthContext.jsx';
 import BetaAccessManager from '../admin/BetaAccessManager.jsx';
 
 const Section = ({ title, children }) => {
@@ -64,6 +65,7 @@ const Collapsible = ({ title, children }) => {
 
 const SettingsPage = () => {
   const { settings, updateSettings, appendAuditLog } = useSettings();
+  const { currentUser } = useAuth();
   const [plans, setPlans] = useState([]);
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [plansLoading, setPlansLoading] = useState(false);
@@ -73,6 +75,7 @@ const SettingsPage = () => {
   const [agentsAvailable, setAgentsAvailable] = useState([]);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [addrQuery, setAddrQuery] = useState('');
+  const [sourceOfTruthLoaded, setSourceOfTruthLoaded] = useState(false);
   const [addrLoading, setAddrLoading] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [paymentMethods, setPaymentMethods] = useState([]);
@@ -112,6 +115,92 @@ const SettingsPage = () => {
     };
     checkAdminStatus();
   }, []);
+
+  // Load source of truth data from backend
+  useEffect(() => {
+    const loadSourceOfTruth = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        
+        // Get Firebase token
+        const { auth } = await import('../../config/firebase.js');
+        const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+        
+        if (!token) {
+          console.warn('No auth token available for source of truth load');
+          return;
+        }
+        
+        const response = await fetch(`${API_URL}/onboarding/data`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          if (data.exists) {
+            // Map backend data to settings state
+            updateSettings({
+              onboarding: {
+                // Business
+                business_type: data.data.business.type,
+                business_description: data.data.business.description,
+                industry: data.data.business.industry,
+                
+                // Audience
+                targetAudience: data.data.audience.target,
+                customer_avatar: data.data.audience.avatar,
+                audience_problems: data.data.audience.problems,
+                audience_size: data.data.audience.size,
+                
+                // Brand
+                brand_voice: data.data.brand.voice_tone,
+                brand_personality: data.data.brand.personality,
+                brand_colors: data.data.brand.colors,
+                logo_status: data.data.brand.logo_status,
+                brand_values: data.data.brand.values,
+                brand_story: data.data.brand.story,
+                brand_differentiation: data.data.brand.differentiation,
+                brand_consistency: data.data.brand.consistency,
+                
+                // Financial
+                pricing_status: data.data.financial.pricing_status,
+                pricing_model: data.data.financial.pricing_model,
+                marketing_budget: data.data.financial.marketing_budget,
+                revenue_goals: data.data.financial.revenue_goals,
+                
+                // Goals
+                priority_3months: data.data.goals.priority_3months,
+                key_metrics: data.data.goals.key_metrics,
+                success_definition: data.data.goals.success_definition,
+                
+                // Preferences
+                communication_style: data.data.preferences.communication_style,
+                data_storage: data.data.preferences.data_storage,
+                security_preference: data.data.preferences.security,
+                
+                // Completion tracking
+                completion_percentage: data.completion_percentage,
+                needs_follow_up: data.needs_follow_up,
+                incomplete_fields: data.incomplete_fields || []
+              }
+            });
+            
+            setSourceOfTruthLoaded(true);
+            console.log('✅ Source of truth loaded:', data.completion_percentage + '% complete');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load source of truth:', error);
+      }
+    };
+    
+    if (currentUser) {
+      loadSourceOfTruth();
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const fetchPlans = async () => {

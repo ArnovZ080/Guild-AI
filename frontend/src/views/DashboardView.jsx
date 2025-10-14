@@ -13,6 +13,7 @@ import AgentCollaborationFlow from '../components/theater/AgentCollaborationFlow
 import { BarChart, Radar, Sparkles, Sprout, Megaphone, TrendingUp, Calendar, Target, Users, DollarSign, FileText, Brain } from 'lucide-react';
 import HighLevelOverview from '../components/dashboard/HighLevelOverview.jsx';
 import CEOSnapshot from '../components/dashboard/CEOSnapshot.jsx';
+import IncompleteOnboardingWidget from '../components/dashboard/IncompleteOnboardingWidget.jsx';
 
 // Mock customer data for constellation
 const mockCustomers = [
@@ -313,6 +314,9 @@ const DashboardView = () => {
   return (
     <div className="space-y-6">
       <CEOSnapshot />
+      
+      {/* Incomplete Onboarding Widget - Shows completion status and offers help */}
+      <IncompleteOnboardingWidget />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Financial Health */}
