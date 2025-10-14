@@ -283,8 +283,29 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       if (orchestrationResult?.success) {
         responseContent = orchestrationResult.message || "✅ I've processed your request.";
         
-        // Only show workflow details if an actual workflow was created
-        if (orchestrationResult.workflow_details && orchestrationResult.workflow_id) {
+        // Handle different conversation types
+        if (orchestrationResult.conversation_type === 'clarification_needed') {
+          // Show clarifying questions - no workflow actions needed
+          actions = [];
+          workflowData = null;
+        } else if (orchestrationResult.conversation_type === 'workflow_plan') {
+          // Show workflow plan with approval option
+          actions = ['✅ Approve & Execute', '❌ Cancel'];
+          workflowData = orchestrationResult;
+        } else if (orchestrationResult.conversation_type === 'workflow_execution') {
+          // Workflow is executing - show monitoring options
+          actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
+          workflowData = orchestrationResult;
+          
+          // Track active workflow
+          setActiveWorkflows(prev => [...prev, {
+            id: orchestrationResult.workflow_id,
+            name: orchestrationResult.workflow_details?.name || 'Autonomous Workflow',
+            created: new Date().toISOString(),
+            status: 'running'
+          }]);
+        } else if (orchestrationResult.workflow_details && orchestrationResult.workflow_id) {
+          // Legacy workflow creation
           const workflow = orchestrationResult.workflow_details;
           responseContent += `\n\n📋 **Autonomous Workflow Created:**\n`;
           if (workflow.total_agents != null) responseContent += `• ${workflow.total_agents} specialized agents orchestrated\n`;
@@ -294,7 +315,6 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
             responseContent += `• Data Sources: ${workflow.data_sources.slice(0, 3).join(', ')}`;
           }
           
-          // Only show workflow actions if an actual workflow was created
           actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
           workflowData = orchestrationResult;
 
@@ -346,7 +366,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     handleSendMessage(suggestion);
   };
 
-  const handleActionClick = (action, message) => {
+  const handleActionClick = async (action, message) => {
     if (action.includes('Transparency')) {
       // Open transparency modal for workflow
       if (message.workflowData?.workflow_id) {
@@ -357,6 +377,44 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       window.location.href = '/workflows';
     } else if (action.includes('Dashboard') || action.includes('Analytics')) {
       onNavigateToDashboard?.();
+    } else if (action.includes('Approve & Execute')) {
+      // Approve and execute workflow
+      if (message.workflowData?.workflow_id) {
+        try {
+          const response = await enhancedOrchestratorService.approveWorkflow(message.workflowData.workflow_id);
+          if (response.success) {
+            // Add success message
+            const successMessage = {
+              id: Date.now().toString(),
+              type: 'assistant',
+              content: response.message,
+              timestamp: new Date(),
+              agentId: 'orchestrator'
+            };
+            setMessages(prev => [...prev, successMessage]);
+            
+            // Update workflow tracking
+            setActiveWorkflows(prev => [...prev, {
+              id: message.workflowData.workflow_id,
+              name: message.workflowData.workflow_details?.name || 'Autonomous Workflow',
+              created: new Date().toISOString(),
+              status: 'running'
+            }]);
+          }
+        } catch (error) {
+          console.error('Error approving workflow:', error);
+        }
+      }
+    } else if (action.includes('Cancel')) {
+      // Cancel workflow - just acknowledge
+      const cancelMessage = {
+        id: Date.now().toString(),
+        type: 'assistant',
+        content: "No problem! I've cancelled that workflow. What would you like to work on instead?",
+        timestamp: new Date(),
+        agentId: 'orchestrator'
+      };
+      setMessages(prev => [...prev, cancelMessage]);
     } else if (action.includes('Workflow')) {
       // Navigate to workflow details
     } else {

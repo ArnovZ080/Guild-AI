@@ -61,6 +61,7 @@ async def startup_event():
 from .routes import agents, oauth, document_processing, auth, subscription, credits
 from .routes import execution_layer, connectors, onboarding, workspace, orchestrator, quality_control, business_intelligence, waitlist
 from .routes import agents_available, analytics, health
+from .routes import business_ceo, executive_coordination
 from .routes import settings as settings_routes
 from .routes import notifications as notifications_routes
 from .routes import geocode as geocode_routes
@@ -90,6 +91,8 @@ app.include_router(workspace.router)
 app.include_router(agents_available.router)
 app.include_router(analytics.router)
 app.include_router(health.router)
+app.include_router(business_ceo.router)
+app.include_router(executive_coordination.router)
 app.include_router(settings_routes.router)
 app.include_router(notifications_routes.router)
 app.include_router(geocode_routes.router)

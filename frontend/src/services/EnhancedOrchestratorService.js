@@ -142,6 +142,23 @@ class EnhancedOrchestratorService {
    * @param {string} userId - User ID
    * @returns {Promise<Object>} Approval result
    */
+  async approveWorkflow(workflowId) {
+    try {
+      const response = await apiService.post(`${ORCHESTRATOR_BASE}/workflow/${workflowId}/approve`);
+      
+      return {
+        success: true,
+        ...response.data
+      };
+    } catch (error) {
+      console.error('Failed to approve workflow:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
   async approveWorkflowStep(workflowId, stepId, approved, userId) {
     try {
       const response = await apiService.post(`${ORCHESTRATOR_BASE}/workflow/${workflowId}/step/approve`, {
