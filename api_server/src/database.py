@@ -41,7 +41,8 @@ def get_db_password_from_secret_manager():
         project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
         
         if not db_secret_name or not project_id:
-            raise ValueError("DB_SECRET_NAME and GOOGLE_CLOUD_PROJECT must be set for Cloud Run")
+            print(f"Warning: DB_SECRET_NAME or GOOGLE_CLOUD_PROJECT not set. Using fallback password.")
+            return "fallback_password"
         
         # Create the Secret Manager client
         client = secretmanager.SecretManagerServiceClient()
@@ -61,16 +62,19 @@ def get_db_password_from_secret_manager():
         return os.getenv("POSTGRES_PASSWORD", "password")
 
 # Create the SQLAlchemy engine using the forced database URL with retry logic
+database_url = get_database_url()
+print(f"Database URL: {database_url.replace(database_url.split('@')[0].split('://')[1] if '@' in database_url else 'password', '***')}")
+
 engine = create_engine(
-    get_database_url(),
-    echo=True,  # Enable SQL logging for debugging
+    database_url,
+    echo=False,  # Disable SQL logging for production
     pool_pre_ping=True,  # Verify connections before use
     pool_recycle=3600,   # Recycle connections every hour
     pool_timeout=30,     # Timeout for getting connection from pool
     max_overflow=10,     # Allow 10 extra connections beyond pool_size
     pool_size=5,         # Base number of connections to maintain
     connect_args={
-        "connect_timeout": 10,  # Connection timeout in seconds
+        "connect_timeout": 30,  # Increase connection timeout
         "application_name": "guild-ai-api"
     }
 )

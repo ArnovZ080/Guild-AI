@@ -72,6 +72,7 @@ from .routes import campaign_agents, asset_agents
 from .routes import growth_opportunities
 from .routes import calendar
 from .routes import calendar_oauth
+from .routes import customer_intelligence
 
 # Include routers
 app.include_router(agents.router)
@@ -108,6 +109,8 @@ app.include_router(campaign_agents.router)
 app.include_router(asset_agents.router)
 # Conversations aggregation endpoints
 app.include_router(conversations.router)
+# Customer intelligence endpoints
+app.include_router(customer_intelligence.router)
 # Goals router
 from .routes import goals
 app.include_router(goals.router)

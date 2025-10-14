@@ -209,25 +209,15 @@ function LandingPage() {
         {/* Product Hunt Badge */}
         <div className="mb-6 flex justify-center">
           <a 
-            href="https://www.producthunt.com/products/guild-2?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-guild-2" 
+            href="https://www.producthunt.com/products/guild-2" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="transition-transform hover:scale-105"
+            className="inline-flex items-center px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
           >
-            <img 
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1026182&theme=light" 
-              alt="Guild - Your company of 1 | Product Hunt" 
-              style={{width: '250px', height: '54px'}} 
-              width="250" 
-              height="54"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'block';
-              }}
-            />
-            <div style={{display: 'none', width: '250px', height: '54px', backgroundColor: '#ff6b6b', borderRadius: '8px', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px', fontWeight: 'bold'}}>
-              🚀 Featured on Product Hunt
-            </div>
+            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            🚀 Featured on Product Hunt
           </a>
         </div>
         

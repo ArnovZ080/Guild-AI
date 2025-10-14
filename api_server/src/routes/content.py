@@ -46,6 +46,82 @@ class CalendarUpdateRequest(BaseModel):
     items: List[Dict[str, Any]]
 
 
+@router.get("/platform-data")
+async def get_platform_data(platforms: str = "instagram,linkedin,twitter,facebook,tiktok,youtube,email,blog"):
+    """Get platform data for content intelligence"""
+    try:
+        # Parse platforms from comma-separated string
+        platform_list = [p.strip() for p in platforms.split(',')]
+        
+        # Mock platform data for now - in production this would come from actual platform APIs
+        platform_data = {}
+        
+        for platform in platform_list:
+            platform_data[platform] = {
+                "followers": 1000 + hash(platform) % 50000,
+                "engagement_rate": 3.5 + hash(platform) % 5,
+                "posts_count": 50 + hash(platform) % 200,
+                "reach": 5000 + hash(platform) % 100000,
+                "impressions": 10000 + hash(platform) % 500000,
+                "last_post": "2024-10-14T10:00:00Z",
+                "growth_rate": 2.5 + hash(platform) % 10
+            }
+        
+        return {
+            "success": True,
+            "platforms": platform_data,
+            "total_followers": sum(data["followers"] for data in platform_data.values()),
+            "total_engagement": sum(data["engagement_rate"] for data in platform_data.values()) / len(platform_data),
+            "last_updated": "2024-10-14T16:00:00Z"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching platform data: {str(e)}")
+
+@router.get("/email-performance")
+async def get_email_performance(period: str = "7d"):
+    """Get email marketing performance data"""
+    try:
+        # Mock email performance data
+        return {
+            "success": True,
+            "period": period,
+            "metrics": {
+                "sent": 1250,
+                "delivered": 1180,
+                "opened": 354,
+                "clicked": 89,
+                "unsubscribed": 12,
+                "bounced": 70
+            },
+            "rates": {
+                "delivery_rate": 94.4,
+                "open_rate": 30.0,
+                "click_rate": 7.5,
+                "unsubscribe_rate": 1.0,
+                "bounce_rate": 5.6
+            },
+            "campaigns": [
+                {
+                    "id": "camp_1",
+                    "name": "Weekly Newsletter",
+                    "sent": 500,
+                    "opened": 150,
+                    "clicked": 45,
+                    "date": "2024-10-14"
+                },
+                {
+                    "id": "camp_2", 
+                    "name": "Product Launch",
+                    "sent": 750,
+                    "opened": 204,
+                    "clicked": 44,
+                    "date": "2024-10-12"
+                }
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching email performance: {str(e)}")
+
 @router.post("/calendar/update")
 async def update_calendar_items(req: CalendarUpdateRequest):
     await broadcast_update('calendar_update', {"op": "update", "items": req.items})

@@ -1271,12 +1271,19 @@ async def process_chat_orchestration(
             
             # Get user's business context for personalized responses
             business_context = {}
+            user_name = "there"  # Default greeting
+            
             onboarding = db.query(models.OnboardingData).filter(
                 models.OnboardingData.user_id == user_id
             ).first()
             
             if onboarding and onboarding.raw_responses:
                 business_context = onboarding.raw_responses
+                # Extract user's first name if available
+                if isinstance(business_context, dict):
+                    user_name = business_context.get('first_name', business_context.get('name', 'there'))
+                    # Ensure we have the user's name in the context for personalization
+                    business_context['user_name'] = user_name
             
             # Determine if this is a workflow request or general conversation
             lower_objective = objective.lower()
@@ -1320,13 +1327,13 @@ async def process_chat_orchestration(
                 
         except Exception as e:
             logger.error(f"Smart orchestration failed, falling back to basic response: {e}")
-            # Final fallback - basic response
+            # Final fallback - personal response
             return {
                 "success": True,
-                "message": f"I understand you're asking about: {objective}. I'm here to help! Could you provide more details about what you'd like me to help you with?",
+                "message": f"Hey {user_name}! I can help you with a lot of things! What specifically would you like me to help you with? I can coordinate our 115+ specialized agents to handle everything from content creation to business growth strategies.",
                 "conversation_type": "fallback",
                 "workflow_details": {
-                    "name": "Basic Response",
+                    "name": "Personal Response",
                     "autonomous_level": "basic",
                     "total_agents": 0,
                     "integrations_used": 0,
