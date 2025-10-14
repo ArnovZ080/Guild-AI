@@ -2,6 +2,19 @@
 // This component provides Content & Marketing Director oversight and insights
 
 import React, { useState, useEffect } from 'react';
+import { 
+  ContentIntelligenceAPIService,
+  useContentAnalysis,
+  useActiveCampaigns,
+  useContentPerformance,
+  useEmailPerformance,
+  useCreativeAssets,
+  useContentActions,
+  useRealtimeContentAnalysis,
+  useRealtimeActiveCampaigns,
+  usePlatformData
+} from '../../services/contentIntelligenceApi';
+import campaignStore from '../../services/campaignStore.js';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -114,6 +127,22 @@ const ContentDashboard = () => {
   const [selectedContentItem, setSelectedContentItem] = useState(null);
   const [isOrchestrating, setIsOrchestrating] = useState(false);
   const [userCampaigns, setUserCampaigns] = useState([]);
+  const [campaignStoreCampaigns, setCampaignStoreCampaigns] = useState([]);
+
+  // Load campaigns from campaign store
+  useEffect(() => {
+    const updateCampaigns = (campaigns) => {
+      setCampaignStoreCampaigns(campaigns);
+    };
+    
+    // Subscribe to campaign store updates
+    const unsubscribe = campaignStore.subscribe(updateCampaigns);
+    
+    // Get initial campaigns
+    setCampaignStoreCampaigns(campaignStore.getCampaigns());
+    
+    return unsubscribe;
+  }, []);
 
   // API hooks with real-time updates and platform integration
   const { data: analysis, loading: analysisLoading, error: analysisError } = useRealtimeContentAnalysis();

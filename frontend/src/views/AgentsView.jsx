@@ -18,6 +18,7 @@ import { AgentActivityTheater } from '../components/theater/AgentActivityTheater
 import AgentActivityFeed from '../components/transparency/AgentActivityFeed.jsx';
 import apiService from '../services/api.js';
 import { useSettings } from '../contexts/SettingsContext.jsx';
+import { getSubscriptionInfo, getPlans } from '../services/subscriptionService.js';
 
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -179,6 +180,10 @@ const AgentsView = () => {
   const { agents, loading } = useAgentStatus();
   const { settings } = useSettings();
   const userId = settings?.profile?.id || 'user_' + Math.random().toString(36).substr(2, 9);
+  
+  // Subscription state
+  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
   const API = (import.meta && import.meta.env && import.meta.env.VITE_API_BASE_URL) || '';
   const [apiAgents, setApiAgents] = useState(null);
   const [apiLoading, setApiLoading] = useState(false);
@@ -564,24 +569,18 @@ const AgentsView = () => {
   // Load subscription info for tier and features
   useEffect(() => {
     async function fetchSubscriptionInfo() {
-      if (!API) { setSubscriptionInfo(null); return; }
       try {
-        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-        const res = await fetch(`${API}/subscription/info`, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-          }
-        });
-        if (!res.ok) { setSubscriptionInfo(null); return; }
-        const info = await res.json();
+        const info = await getSubscriptionInfo();
         setSubscriptionInfo(info);
-      } catch {
+      } catch (e) {
+        console.error('Failed to load subscription info:', e);
         setSubscriptionInfo(null);
+      } finally {
+        setSubscriptionLoading(false);
       }
     }
     fetchSubscriptionInfo();
-  }, [API]);
+  }, []);
 
   // Default-select first workflow when entering theater tab or when workflows load
   useEffect(() => {

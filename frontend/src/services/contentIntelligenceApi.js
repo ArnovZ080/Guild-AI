@@ -209,7 +209,7 @@ export class ContentIntelligenceAPIService {
       
       return await response.json();
     } catch (error) {
-      console.log(`API request failed for ${endpoint}, using mock data:`, error.message);
+      console.log(`API request failed for ${endpoint}, falling back to mock data:`, error.message);
       return null;
     }
   }

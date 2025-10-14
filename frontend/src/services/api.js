@@ -48,8 +48,8 @@ class ApiService {
       }
       return await response.json();
     } catch (error) {
-      console.log(`API request failed for ${endpoint}, using mock data:`, error.message);
-      // Don't throw error, return null to trigger fallback
+      console.log(`API request failed for ${endpoint}, falling back to mock data:`, error.message);
+      // Return null to trigger fallback to mock data
       return null;
     }
   }
@@ -287,6 +287,7 @@ class ApiService {
     };
   }
 
+  // Mock data methods for graceful fallback
   getMockAgentStatus() {
     return {
       agents: {
@@ -322,40 +323,6 @@ class ApiService {
     };
   }
 
-  getMockWorkflows() {
-    return [
-      {
-        workflow_id: 'workflow_1',
-        status: 'completed',
-        progress: 100,
-        agents_involved: ['MarketingAgent', 'ResearchAgent'],
-        current_step: 'Campaign launched successfully',
-        results: {
-          campaign: {
-            name: 'Q1 Growth Campaign',
-            target_audience: 'Tech Startups',
-            budget: 5000,
-            duration: 30,
-            channels: ['social', 'email', 'content']
-          },
-          estimated_reach: 50000,
-          expected_conversions: 250
-        },
-        created_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-        updated_at: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
-      },
-      {
-        workflow_id: 'workflow_2',
-        status: 'running',
-        progress: 65,
-        agents_involved: ['ContentStrategist', 'ResearchAgent'],
-        current_step: 'Creating content calendar',
-        results: {},
-        created_at: new Date(Date.now() - 7200000).toISOString(), // 2 hours ago
-        updated_at: new Date(Date.now() - 1800000).toISOString() // 30 minutes ago
-      }
-    ];
-  }
 }
 
 // Create and export a singleton instance

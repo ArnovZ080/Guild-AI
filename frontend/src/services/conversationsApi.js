@@ -144,13 +144,6 @@ const mockConversationsData = [
  */
 export async function fetchConversations(filters = {}) {
   try {
-    // For now, always use mock data since backend isn't running
-    // In production, this would make actual API calls to the agents
-    console.log('Using mock conversations data for development');
-    return filterMockConversations(mockConversationsData, filters);
-    
-    // Uncomment this section when backend is ready:
-    /*
     const response = await fetch(`${API_BASE_URL}/api/conversations`, {
       method: 'POST',
       headers: {
@@ -166,13 +159,11 @@ export async function fetchConversations(filters = {}) {
       const data = await response.json();
       return data.conversations || [];
     } else {
-      console.warn('API not available, using mock data');
+      console.log(`API request failed for conversations, falling back to mock data: HTTP ${response.status}`);
       return filterMockConversations(mockConversationsData, filters);
     }
-    */
   } catch (error) {
-    console.error('Error fetching conversations:', error);
-    // Return filtered mock data as fallback
+    console.log('Error fetching conversations, falling back to mock data:', error.message);
     return filterMockConversations(mockConversationsData, filters);
   }
 }
@@ -235,12 +226,12 @@ export async function getConversationById(conversationId) {
       const data = await response.json();
       return data.conversation;
     } else {
-      // Fallback to mock data
+      console.log(`API request failed for conversation ${conversationId}, falling back to mock data: HTTP ${response.status}`);
       const mockConversation = mockConversationsData.find(conv => conv.id === conversationId);
       return mockConversation || null;
     }
   } catch (error) {
-    console.error('Error fetching conversation details:', error);
+    console.log('Error fetching conversation details, falling back to mock data:', error.message);
     const mockConversation = mockConversationsData.find(conv => conv.id === conversationId);
     return mockConversation || null;
   }
@@ -349,6 +340,7 @@ export async function getConversationAnalytics() {
       const data = await response.json();
       return data.analytics;
     } else {
+      console.log(`API request failed for conversation analytics, falling back to mock data: HTTP ${response.status}`);
       // Return mock analytics
       return {
         total: mockConversationsData.length,
@@ -364,7 +356,7 @@ export async function getConversationAnalytics() {
       };
     }
   } catch (error) {
-    console.error('Error fetching conversation analytics:', error);
+    console.log('Error fetching conversation analytics, falling back to mock data:', error.message);
     // Return mock analytics as fallback
     return {
       total: mockConversationsData.length,

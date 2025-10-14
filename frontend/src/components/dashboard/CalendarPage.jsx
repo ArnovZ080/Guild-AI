@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import calendarDataService from '../../services/calendarDataService';
 import TopNav from './calendar/TopNav';
 import CalendarLeftPanel from './calendar/CalendarLeftPanel';
 import CalendarRightPanel from './calendar/CalendarRightPanel';
@@ -101,6 +102,12 @@ const CalendarPage = () => {
     loadTimeUseAnalytics();
     loadAgentCoordination();
   }, [currentDate]);
+
+  // Load events from calendarDataService
+  useEffect(() => {
+    const loadedEvents = calendarDataService.getEvents();
+    setEvents(loadedEvents);
+  }, []);
 
   // API call functions
   const loadCalendarData = async () => {
@@ -207,6 +214,7 @@ const CalendarPage = () => {
   // Event handlers
   const handleAddEvent = async (eventData) => {
     try {
+      // First try API
       const response = await fetch('/api/calendar/event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -228,34 +236,35 @@ const CalendarPage = () => {
         return;
       }
     } catch (error) {
-      console.error('API not available, using mock data:', error);
+      console.error('API not available, using calendarDataService:', error);
     }
     
-    // Fallback to mock data if API fails or is not available
-    const newEvent = {
-      id: `event-${Date.now()}`,
-      title: eventData.title,
-      type: eventData.type,
-      date: eventData.date,
-      time: eventData.time,
-      duration: eventData.duration,
-      location: eventData.location || '',
-      attendees: Array.isArray(eventData.attendees) ? eventData.attendees : [],
-      description: eventData.description || '',
-      priority: eventData.priority,
-      status: 'scheduled',
-      isPinned: false,
-      tasks: [],
-      recurring: null
-    };
-    
-    setEvents(prev => [...prev, newEvent]);
-    setShowAddEvent(false);
-    
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: "Event added to your calendar! 📅",
-      intensity: 'high'
-    });
+    // Fallback to calendarDataService
+    try {
+      const newEvent = calendarDataService.createEvent({
+        title: eventData.title,
+        type: eventData.type,
+        date: eventData.date,
+        time: eventData.time,
+        duration: eventData.duration,
+        location: eventData.location || '',
+        attendees: Array.isArray(eventData.attendees) ? eventData.attendees : [],
+        description: eventData.description || '',
+        priority: eventData.priority || 'medium',
+        tasks: [],
+        isRecurring: false
+      });
+      
+      setEvents(prev => [...prev, newEvent]);
+      setShowAddEvent(false);
+      
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: "Event added to your calendar! 📅",
+        intensity: 'high'
+      });
+    } catch (error) {
+      console.error('Failed to create event:', error);
+    }
   };
 
   const handleOptimizeWeek = async () => {
