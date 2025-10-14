@@ -23,6 +23,127 @@ import { getSubscriptionInfo, getPlans } from '../services/subscriptionService.j
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
+// Move AgentCard component outside main component to avoid hook order issues
+const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null, onSelect, onAssign, onChat, onHire, triggerCelebration }) => {
+  const TypeIcon = getTypeIcon(agent.type);
+  const isActive = agent.status === 'active';
+
+  const canStartPause = entitled;
+  const showFullActions = entitled;
+  const showHireOnly = !entitled;
+
+  const handleToggle = (e) => {
+    e.stopPropagation();
+    // Toggle agent status (would need to call API to persist)
+    triggerCelebration(CelebrationType.TASK_COMPLETE, {
+      message: `${agent.name} ${isActive ? 'paused' : 'started'}!`,
+      intensity: 'normal'
+    });
+  };
+  
+  return (
+    <motion.div
+      className={`bg-white rounded-lg p-6 shadow-lg border-l-4 ${getCategoryStyle(agent.category)} cursor-pointer hover:shadow-xl transition-shadow h-full flex flex-col`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ scale: 1.02 }}
+      onClick={() => onSelect(agent)}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-3">
+          <div className={`p-2 rounded-lg ${getCategoryStyle(agent.category).replace('100', '200')}`}>
+            <TypeIcon className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">{agent.name}</h3>
+            <p className="text-sm text-gray-500 capitalize">{agent.category} • {agent.type}</p>
+          </div>
+        </div>
+        <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(agent.status)}`}>
+          {agent.status}
+        </div>
+      </div>
+
+      <p className="text-gray-600 text-sm mb-4 line-clamp-2">{(getOverrideForAgent(agent.name)?.purpose) || agent.description}</p>
+
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium text-gray-700">Capabilities:</h4>
+        <div className="flex flex-wrap gap-1">
+          {(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).slice(0, 3).map(capability => (
+            <span key={capability} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+              {capability}
+            </span>
+          ))}
+          {(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).length > 3 && (
+            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+              +{(getOverrideForAgent(agent.name)?.capabilities || agent.capabilities).length - 3} more
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mt-4 mt-auto">
+        {canStartPause && (
+        <button 
+            className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200' : 'bg-green-100 text-green-800 hover:bg-green-200'}`}
+            onClick={handleToggle}
+          >
+            {isActive ? (
+              <>
+                <Pause className="w-4 h-4 inline mr-1" />
+                Pause
+              </>
+            ) : (
+              <>
+          <Play className="w-4 h-4 inline mr-1" />
+          Start
+              </>
+            )}
+        </button>
+        )}
+        {showFullActions && (
+          <>
+          <button 
+            className="px-3 py-2 bg-blue-100 text-blue-800 rounded-md text-sm font-medium hover:bg-blue-200 transition-colors"
+              onClick={(e) => { e.stopPropagation(); onSelect({ ...agent, _entitled: true, _hasHistory: true, _raw: rawAgent }); }}
+            title="Details"
+          >
+            Details
+          </button>
+            <div className="grid grid-cols-2 gap-2 col-span-2">
+          <button 
+            className="px-3 py-2 bg-indigo-100 text-indigo-800 rounded-md text-sm font-medium hover:bg-indigo-200 transition-colors"
+            onClick={(e) => { e.stopPropagation(); onAssign(agent); }}
+            title="Assign Task"
+          >
+              Assign Task
+          </button>
+          <button 
+            className="px-3 py-2 bg-purple-100 text-purple-800 rounded-md text-sm font-medium hover:bg-purple-200 transition-colors"
+                onClick={(e) => { e.stopPropagation(); onChat(agent); }}
+            title="Chat"
+          >
+            Chat
+          </button>
+            </div>
+          </>
+        )}
+        {showHireOnly && (
+          <button 
+            className="px-3 py-2 bg-orange-100 text-orange-800 rounded-md text-sm font-medium hover:bg-orange-200 transition-colors col-span-2"
+            onClick={(e) => { e.stopPropagation(); onHire(agent); }}
+            title="Hire Agent"
+          >
+            <DollarSign className="w-4 h-4 inline mr-1" />
+            Hire Agent
+          </button>
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
 // Fallback minimal metadata (category/type) for known ids can be expanded later
 const defaultAgentMeta = (id) => (agentMeta[id] || {
   category: 'automation',
@@ -1451,8 +1572,7 @@ const AgentsView = () => {
     return styles[status] || 'bg-gray-100 text-gray-800';
   };
 
-  // Agent card component (Workforce)
-  const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null }) => {
+  // Agent Theater card (distinct visual with quick actions)
     const TypeIcon = getTypeIcon(agent.type);
     // Remove useState hook - use agent.status directly to avoid hook order issues
     const isActive = agent.status === 'active';
@@ -2282,6 +2402,11 @@ const AgentsView = () => {
                       entitled={true}
                       source="api"
                       rawAgent={a}
+                      onSelect={setSelectedAgent}
+                      onAssign={setShowAssignModal}
+                      onChat={(agent) => { setChatAgent(agent); setShowChatModal(true); }}
+                      onHire={(agent) => { setHireCandidate(agent); setShowHireModal(true); }}
+                      triggerCelebration={triggerCelebration}
                     />
                   ))}
                 </div>
@@ -2312,6 +2437,11 @@ const AgentsView = () => {
                       entitled={false}
                       source="api"
                       rawAgent={a}
+                      onSelect={setSelectedAgent}
+                      onAssign={setShowAssignModal}
+                      onChat={(agent) => { setChatAgent(agent); setShowChatModal(true); }}
+                      onHire={(agent) => { setHireCandidate(agent); setShowHireModal(true); }}
+                      triggerCelebration={triggerCelebration}
                     />
                   ))}
                 </div>
@@ -2329,7 +2459,17 @@ const AgentsView = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <AnimatePresence>
                   {workforceList.filter(a => a.category === category).map(agent => (
-                    <AgentCard key={agent.id} agent={agent} />
+                    <AgentCard 
+                      key={agent.id} 
+                      agent={agent} 
+                      entitled={true}
+                      source="local"
+                      onSelect={setSelectedAgent}
+                      onAssign={setShowAssignModal}
+                      onChat={(agent) => { setChatAgent(agent); setShowChatModal(true); }}
+                      onHire={(agent) => { setHireCandidate(agent); setShowHireModal(true); }}
+                      triggerCelebration={triggerCelebration}
+                    />
                   ))}
                 </AnimatePresence>
               </div>

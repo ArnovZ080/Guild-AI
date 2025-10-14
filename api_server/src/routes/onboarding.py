@@ -100,6 +100,18 @@ async def save_onboarding_data(
 ):
     """Save onboarding responses as source of truth for all agent operations"""
     try:
+        # Ensure user exists
+        if not current_user:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+        
+        if not current_user.id:
+            raise HTTPException(status_code=400, detail="User ID not found")
+        
+        # Check if user exists in database
+        user = db.query(models.User).filter(models.User.id == current_user.id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found in database")
+        
         onboarding = db.query(models.OnboardingData).filter(
             models.OnboardingData.user_id == current_user.id
         ).first()
