@@ -1205,64 +1205,65 @@ async def process_chat_orchestration(
         
         logger.info(f"Processing chat orchestration for user {user_id}: {objective[:100]}...")
         
-        # Prefer the enhanced autonomous workflow executor (template-based) when applicable
-        # Fallback to legacy orchestrator DAG generation if no template mapping applies
-        created_via_template = False
-        workflow_id = None
-
+        # Use the comprehensive Guild orchestrator system for intelligent workflow creation
         try:
-            from guild.src.core.autonomous_workflow_executor import create_workflow as aw_create_workflow
-            from guild.src.core.autonomous_workflow_executor import execute_workflow as aw_execute_workflow
-            from guild.src.core.inter_agent_communication import MessagePriority as AWPriority
-            # Simple intent-to-template mapping (extend as needed)
-            lower_obj = (objective or "").lower()
-            template_name = None
-            template_params = {}
-
-            if any(k in lower_obj for k in ["retain", "churn", "sentiment", "keep customers"]):
-                template_name = "customer_retention"
-                template_params = {"customer_id": None, "interaction_data": None}
-            elif any(k in lower_obj for k in ["onboard", "welcome", "new customer"]):
-                template_name = "customer_onboarding"
-                template_params = {"customer_id": None, "customer_data": None}
-            elif any(k in lower_obj for k in ["content", "optimize", "performance"]):
-                template_name = "content_optimization"
-                template_params = {"content_id": None}
-
-            if template_name:
-                workflow_id = await aw_create_workflow(
-                    template_name=template_name,
-                    parameters=template_params,
-                    initiated_by=str(user_id),
-                    priority=AWPriority.HIGH if priority == 'high' else (AWPriority.LOW if priority == 'low' else AWPriority.MEDIUM)
+            from guild.src.core.orchestrator import Orchestrator
+            from guild.src.models.user_input import UserInput
+            
+            # Create UserInput object for the guild orchestrator
+            user_input = UserInput(
+                objective=objective,
+                additional_notes=additional_notes or "",
+                priority=priority,
+                deadline="flexible",
+                budget=None,
+                audience=audience or {},
+                business_context=business_context or {}
+            )
+            
+            # Initialize the comprehensive orchestrator
+            orchestrator = Orchestrator(user_input)
+            
+            # Generate the workflow DAG using the intelligent orchestrator
+            workflow_dag = await orchestrator.generate_dag()
+            
+            if workflow_dag and not workflow_dag.get("error"):
+                # Create a workflow in the database
+                workflow_id = str(uuid.uuid4())
+                
+                db_workflow = models.Workflow(
+                    id=workflow_id,
+                    user_id=user_id,
+                    status="created",
+                    dag_definition=workflow_dag,
+                    priority=priority
                 )
-                created_via_template = True
-                # Kick off execution asynchronously
-                import asyncio
-                asyncio.create_task(aw_execute_workflow(workflow_id))
-        except Exception as _:
-            # Silent fallback to legacy orchestrator path below
-            created_via_template = False
-
-        if created_via_template and workflow_id:
-            return {
-                "success": True,
-                "workflow_id": workflow_id,
-                "status": "running",
-                "message": f"I've created an autonomous workflow to: {objective}",
-                "next_steps": [
-                    "Open transparency to monitor steps",
-                    "Approve any high-risk steps if prompted",
-                    "Review results in dashboards"
-                ],
-                "workflow_details": {
-                    "name": "Autonomous Workflow",
-                    "autonomous_level": "enhanced",
-                    "total_agents": None,
-                    "integrations_used": None,
-                    "data_sources": []
+                db.add(db_workflow)
+                db.commit()
+                
+                return {
+                    "success": True,
+                    "workflow_id": workflow_id,
+                    "message": f"I've created a comprehensive workflow to: {objective}",
+                    "conversation_type": "workflow_created",
+                    "workflow_details": {
+                        "name": workflow_dag.get("workflow_name", "Intelligent Workflow"),
+                        "description": workflow_dag.get("workflow_description", ""),
+                        "total_agents": len(workflow_dag.get("tasks", [])),
+                        "quality_criteria": workflow_dag.get("quality_criteria", ""),
+                        "success_metrics": workflow_dag.get("success_metrics", []),
+                        "autonomous_level": "intelligent"
+                    },
+                    "next_steps": [
+                        "Review the comprehensive workflow plan",
+                        "Approve to start execution",
+                        "Monitor progress in real-time"
+                    ]
                 }
-            }
+                
+        except Exception as e:
+            logger.error(f"Guild orchestrator integration failed: {e}")
+            # Continue to fallback below
 
         # Intelligent Orchestrator with proper workflow management
         try:
