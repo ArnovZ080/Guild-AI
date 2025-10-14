@@ -269,93 +269,46 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     setInputValue('');
 
     try {
-      // Determine if this is a complex business task that needs full orchestration
-      const businessKeywords = [
-        'increase revenue', 'grow', 'campaign', 'strategy', 'analyze', 'find leads',
-        'customer', 'marketing', 'content', 'sales', 'automate', 'create content',
-        'generate', 'optimize', 'forecast', 'report', 'social media'
-      ];
-      
-      const needsOrchestration = businessKeywords.some(keyword => 
-        messageText.toLowerCase().includes(keyword)
-      );
-
+      // Always use Enhanced Orchestrator for user messages
       let responseContent = "";
       let actions = [];
       let workflowData = null;
 
-      if (needsOrchestration) {
-        // Use Enhanced Orchestrator for complex business tasks
-        const orchestrationResult = await enhancedOrchestratorService.processChatOrchestration(
-          messageText,
-          userId,
-          { priority: 'medium' }
-        );
+      const orchestrationResult = await enhancedOrchestratorService.processChatOrchestration(
+        messageText,
+        userId,
+        { priority: 'medium' }
+      );
 
-        if (orchestrationResult.success) {
-          responseContent = orchestrationResult.message || "✅ I've created an autonomous workflow to accomplish your goal.";
-          
-          if (orchestrationResult.workflow_details) {
-            const workflow = orchestrationResult.workflow_details;
-            responseContent += `\n\n📋 **Autonomous Workflow Created:**\n`;
-            responseContent += `• ${workflow.total_agents} specialized agents orchestrated\n`;
-            responseContent += `• ${workflow.integrations_used} integrations used\n`;
-            responseContent += `• Autonomous Level: ${workflow.autonomous_level}\n`;
-            
-            if (workflow.data_sources && workflow.data_sources.length > 0) {
-              responseContent += `• Data Sources: ${workflow.data_sources.slice(0, 3).join(', ')}`;
-            }
+      if (orchestrationResult?.success) {
+        responseContent = orchestrationResult.message || "✅ I've created an autonomous workflow to accomplish your goal.";
+        
+        if (orchestrationResult.workflow_details) {
+          const workflow = orchestrationResult.workflow_details;
+          responseContent += `\n\n📋 **Autonomous Workflow Created:**\n`;
+          if (workflow.total_agents != null) responseContent += `• ${workflow.total_agents} specialized agents orchestrated\n`;
+          if (workflow.integrations_used != null) responseContent += `• ${workflow.integrations_used} integrations used\n`;
+          if (workflow.autonomous_level) responseContent += `• Autonomous Level: ${workflow.autonomous_level}\n`;
+          if (workflow.data_sources && workflow.data_sources.length > 0) {
+            responseContent += `• Data Sources: ${workflow.data_sources.slice(0, 3).join(', ')}`;
           }
-          
-          actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
-          workflowData = orchestrationResult;
-          
-          // Track active workflow
-          if (orchestrationResult.workflow_id) {
-            setActiveWorkflows(prev => [...prev, {
-              id: orchestrationResult.workflow_id,
-              name: orchestrationResult.workflow_details?.name || 'Autonomous Workflow',
-              created: new Date().toISOString(),
-              status: 'running'
-            }]);
-          }
-        } else {
-          // Orchestrator failed, fall back to single agent
-          responseContent = "Let me work on that for you using specialized agents...";
-        }
-      }
-      
-      // Fallback: Use single agent system for simple tasks or if orchestration unavailable
-      if (!needsOrchestration || !responseContent) {
-        // Determine mentioned agent (if any)
-        const atIdx = messageText.lastIndexOf('@');
-        let chosenAgent = null;
-        if (atIdx !== -1) {
-          const after = messageText.slice(atIdx + 1).split(/\s|\n/)[0];
-          const byName = availableAgents.find(a => a.name.toLowerCase() === after.toLowerCase());
-          const byId = availableAgents.find(a => a.id.toLowerCase() === after.toLowerCase());
-          chosenAgent = byName || byId || null;
         }
 
-        const agentId = chosenAgent?.id || 'orchestrator';
-        setActiveAgent(agentId);
+        actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
+        workflowData = orchestrationResult;
 
-        const dispatch = await sendTaskToAgent(agentId, {
-          description: messageText,
-          context: {},
-          priority: 'normal',
-          attachments: [],
-        });
-
-        responseContent = "I'm working on that for you! ";
-        if (dispatch?.task_id) {
-          responseContent += `Task accepted (ID: ${dispatch.task_id}). I'll update you here as it progresses. `;
-          actions.push('🔔 Notify me on completion');
+        // Track active workflow
+        if (orchestrationResult.workflow_id) {
+          setActiveWorkflows(prev => [...prev, {
+            id: orchestrationResult.workflow_id,
+            name: orchestrationResult.workflow_details?.name || 'Autonomous Workflow',
+            created: new Date().toISOString(),
+            status: 'running'
+          }]);
         }
-
-        if (!actions.length) {
-          actions = ['📊 View Dashboard', '🔍 Get More Details'];
-        }
+      } else {
+        responseContent = "I couldn't start an autonomous workflow right now. Please try again shortly.";
+        actions = ['🔄 Try Again', '📊 View Dashboard'];
       }
 
       const assistantMessage = {

@@ -239,3 +239,195 @@ async def get_incomplete_tasks(
         logger.error(f"Failed to get incomplete tasks: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get tasks: {str(e)}")
 
+@router.get("/system/capabilities")
+async def get_system_capabilities():
+    """
+    Returns comprehensive system capabilities including all agents and integrations.
+    This endpoint provides the "intelligence" for the orchestrator.
+    """
+    try:
+        # Get all available agents from the guild system
+        from guild.src.agents import get_all_agents
+        
+        agents = get_all_agents()
+        categories = {}
+        total_agents = len(agents)
+        
+        # Categorize agents
+        for agent in agents:
+            category = getattr(agent, 'category', 'general')
+            if category not in categories:
+                categories[category] = []
+            categories[category].append({
+                'name': agent.name,
+                'description': getattr(agent, 'description', ''),
+                'capabilities': getattr(agent, 'capabilities', []),
+                'skills': getattr(agent, 'skills', [])
+            })
+        
+        return {
+            "success": True,
+            "total_agents": total_agents,
+            "categories": categories,
+            "system_status": "operational",
+            "capabilities": {
+                "workflow_creation": True,
+                "agent_orchestration": True,
+                "integration_management": True,
+                "real_time_monitoring": True,
+                "transparency_logging": True
+            },
+            "integration_count": 40,  # Based on your 40+ platform connectors
+            "supported_workflows": [
+                "marketing_campaigns",
+                "content_creation",
+                "lead_generation", 
+                "customer_analysis",
+                "financial_reporting",
+                "business_intelligence"
+            ]
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get system capabilities: {str(e)}")
+        # Return graceful fallback
+        return {
+            "success": False,
+            "error": str(e),
+            "total_agents": 0,
+            "categories": {},
+            "system_status": "limited",
+            "capabilities": {
+                "workflow_creation": False,
+                "agent_orchestration": False,
+                "integration_management": False,
+                "real_time_monitoring": False,
+                "transparency_logging": False
+            }
+        }
+
+@router.post("/chat/process")
+async def process_chat_orchestration(
+    request: dict,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Processes chat messages through the enhanced orchestrator.
+    This is the main "intelligence" endpoint that makes the orchestrator smart.
+    """
+    try:
+        objective = request.get('objective', '')
+        user_id = request.get('user_id', current_user.id)
+        audience = request.get('audience')
+        additional_notes = request.get('additional_notes')
+        priority = request.get('priority', 'medium')
+        
+        logger.info(f"Processing chat orchestration for user {user_id}: {objective[:100]}...")
+        
+        # Prefer the enhanced autonomous workflow executor (template-based) when applicable
+        # Fallback to legacy orchestrator DAG generation if no template mapping applies
+        created_via_template = False
+        workflow_id = None
+
+        try:
+            from guild.src.core.autonomous_workflow_executor import create_workflow as aw_create_workflow
+            from guild.src.core.autonomous_workflow_executor import execute_workflow as aw_execute_workflow
+            from guild.src.core.inter_agent_communication import MessagePriority as AWPriority
+            # Simple intent-to-template mapping (extend as needed)
+            lower_obj = (objective or "").lower()
+            template_name = None
+            template_params = {}
+
+            if any(k in lower_obj for k in ["retain", "churn", "sentiment", "keep customers"]):
+                template_name = "customer_retention"
+                template_params = {"customer_id": None, "interaction_data": None}
+            elif any(k in lower_obj for k in ["onboard", "welcome", "new customer"]):
+                template_name = "customer_onboarding"
+                template_params = {"customer_id": None, "customer_data": None}
+            elif any(k in lower_obj for k in ["content", "optimize", "performance"]):
+                template_name = "content_optimization"
+                template_params = {"content_id": None}
+
+            if template_name:
+                workflow_id = await aw_create_workflow(
+                    template_name=template_name,
+                    parameters=template_params,
+                    initiated_by=str(user_id),
+                    priority=AWPriority.HIGH if priority == 'high' else (AWPriority.LOW if priority == 'low' else AWPriority.MEDIUM)
+                )
+                created_via_template = True
+                # Kick off execution asynchronously
+                import asyncio
+                asyncio.create_task(aw_execute_workflow(workflow_id))
+        except Exception as _:
+            # Silent fallback to legacy orchestrator path below
+            created_via_template = False
+
+        if created_via_template and workflow_id:
+            return {
+                "success": True,
+                "workflow_id": workflow_id,
+                "status": "running",
+                "message": f"I've created an autonomous workflow to: {objective}",
+                "next_steps": [
+                    "Open transparency to monitor steps",
+                    "Approve any high-risk steps if prompted",
+                    "Review results in dashboards"
+                ],
+                "workflow_details": {
+                    "name": "Autonomous Workflow",
+                    "autonomous_level": "enhanced",
+                    "total_agents": None,
+                    "integrations_used": None,
+                    "data_sources": []
+                }
+            }
+
+        # Legacy fallback: use basic orchestrator DAG generation
+        from guild.src.models.user_input import UserInput, Audience
+        from guild.src.core.orchestrator import Orchestrator
+        user_input = UserInput(
+            objective=objective,
+            audience=Audience(**audience) if audience else None,
+            additional_notes=additional_notes
+        )
+        orchestrator = Orchestrator(user_input)
+        workflow = await orchestrator.generate_workflow()
+
+        import uuid
+        workflow_id = str(uuid.uuid4())
+        db_workflow = models.Workflow(
+            id=workflow_id,
+            user_id=user_id,
+            status="pending_approval",
+            dag_definition=workflow.model_dump(),
+            priority=priority
+        )
+        db.add(db_workflow)
+        db.commit()
+        db.refresh(db_workflow)
+
+        return {
+            "success": True,
+            "workflow_id": workflow_id,
+            "workflow_definition": workflow.model_dump(),
+            "status": "pending_approval",
+            "message": f"I've created a workflow to: {objective}",
+            "next_steps": [
+                "Review the generated workflow",
+                "Approve to start execution",
+                "Monitor progress in real-time"
+            ],
+            "agents_involved": len(workflow.agents) if hasattr(workflow, 'agents') else 0,
+            "estimated_duration": "5-15 minutes"
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to process chat orchestration: {str(e)}")
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "I encountered an issue processing your request. Please try again or contact support."
+        }
+
