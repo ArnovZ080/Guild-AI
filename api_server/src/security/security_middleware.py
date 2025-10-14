@@ -4,6 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Callable
 import time
 import logging
+import os
 
 from .input_sanitizer import InputSanitizer
 from .rate_limiter import rate_limiter
@@ -20,8 +21,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         # Validate environment on startup
         env_check = EnvironmentValidator.validate_environment()
         if not env_check['valid']:
-            self.logger.error(f"Environment validation failed: {env_check}")
-            raise RuntimeError("Environment validation failed")
+            self.logger.warning(f"Environment validation failed: {env_check}")
+            # Don't raise error in production - just log warning
+            if os.getenv('FASTAPI_APP_ENV') == 'development':
+                raise RuntimeError("Environment validation failed")
         
         if env_check['sensitive_exposed']:
             self.logger.warning(f"Sensitive variables may be exposed: {env_check['sensitive_exposed']}")

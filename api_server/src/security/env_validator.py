@@ -28,6 +28,10 @@ class EnvironmentValidator:
         
         for var in cls.REQUIRED_VARS:
             if not os.getenv(var):
+                # Special handling for POSTGRES_PASSWORD in Cloud Run
+                if var == 'POSTGRES_PASSWORD' and os.getenv('DB_SECRET_NAME'):
+                    # If we have DB_SECRET_NAME, we can get password from Secret Manager
+                    continue
                 missing.append(var)
         
         for var in cls.SENSITIVE_VARS:

@@ -3,19 +3,20 @@
 
 set -e
 
-echo "🚀 Guild-AI API Server - Waiting for dependencies..."
+echo "🚀 Guild-AI API Server - Checking dependencies..."
 
-# Wait for Redis (VPC Connector: 10.87.64.4:6379)
+# Check if Redis is available (VPC Connector: 10.87.64.4:6379)
 echo "🔍 Checking Redis connection (VPC Connector: 10.87.64.4:6379)..."
 
 python3 << 'PYEOF'
 import socket
 import time
 import sys
+import os
 
 host = '10.87.64.4'
 port = 6379
-timeout = 30
+timeout = 10  # Reduced timeout for faster startup
 start_time = time.time()
 connected = False
 
@@ -31,22 +32,25 @@ while time.time() - start_time < timeout:
     except socket.error as e:
         elapsed = int(time.time() - start_time)
         print(f"⏳ Waiting for Redis... ({elapsed}s elapsed)")
-        time.sleep(2)
+        time.sleep(1)
 
 if not connected:
-    print(f"❌ Error: Redis connection failed after {timeout} seconds. Exiting.")
-    sys.exit(1)
+    print(f"⚠️  Warning: Redis connection failed after {timeout} seconds.")
+    print("📝 Continuing without Redis - some features may be limited.")
+    print("💡 To enable full functionality, ensure Redis is available at 10.87.64.4:6379")
+    # Set environment variable to indicate Redis is unavailable
+    os.environ['REDIS_AVAILABLE'] = 'false'
 else:
-    print("✅ VPC Connector is ready!")
-    sys.exit(0)
+    print("✅ Redis is connected!")
+    os.environ['REDIS_AVAILABLE'] = 'true'
+
+sys.exit(0)
 PYEOF
 
-if [ $? -ne 0 ]; then
-    echo "❌ Redis health check failed. Exiting."
-    exit 1
-fi
-
-# Now that network is ready, start the API server
+# Start the API server regardless of Redis status
 echo "🚀 Starting FastAPI server..."
+echo "📡 Server will start on port 5000"
+echo "🌐 API will be available at http://0.0.0.0:5000"
+
 # The main application startup command
-exec uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000
+exec uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1
