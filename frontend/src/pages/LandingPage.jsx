@@ -225,7 +225,7 @@ function LandingPage() {
                 e.target.nextSibling.style.display = 'block';
               }}
             />
-            <div style={{display: 'none', width: '250px', height: '54px', backgroundColor: '#ff6b6b', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px', fontWeight: 'bold'}}>
+            <div style={{display: 'none', width: '250px', height: '54px', backgroundColor: '#ff6b6b', borderRadius: '8px', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px', fontWeight: 'bold'}}>
               🚀 Featured on Product Hunt
             </div>
           </a>

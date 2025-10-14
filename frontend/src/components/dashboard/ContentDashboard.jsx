@@ -100,19 +100,10 @@ import AssetsTab from './tabs/AssetsTab';
 import ContentOverviewTab from './tabs/ContentOverviewTab';
 import ContentCalendarTab from './tabs/ContentCalendarTab';
 
-// Import API hooks
+// Additional API hooks not imported above
 import { 
-  useContentAnalysis, 
-  useContentCalendar, 
-  useContentPerformance, 
-  useActiveCampaigns, 
-  useEmailPerformance, 
-  useCreativeAssets,
-  useContentActions,
-  useRealtimeContentAnalysis,
+  useContentCalendar,
   useRealtimeContentPerformance,
-  useRealtimeActiveCampaigns,
-  usePlatformData,
   useInsightAnalysis,
   useActionAnalysis,
   useWorkflowExecution

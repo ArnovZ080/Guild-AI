@@ -214,7 +214,6 @@ const AgentsView = () => {
     priority: 'normal',
     notifications: true
   });
-  const [subscriptionInfo, setSubscriptionInfo] = useState(null);
   const [showFirstRunPicker, setShowFirstRunPicker] = useState(false);
   const [pickedIds, setPickedIds] = useState(new Set());
 
