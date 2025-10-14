@@ -12,11 +12,25 @@ from .. import models
 from .auth import get_current_user
 
 # Admin emails from environment variable
-ADMIN_EMAILS = set(
-    email.strip().lower() 
-    for email in os.getenv("ADMIN_EMAILS", "").split(",") 
-    if email.strip()
-)
+# Support both comma and semicolon separators to avoid gcloud parsing issues
+def parse_email_list(email_string):
+    """Parse email list supporting both comma and semicolon separators"""
+    if not email_string:
+        return set()
+    
+    # Try semicolon first (preferred for gcloud), then comma
+    if ";" in email_string:
+        emails = email_string.split(";")
+    else:
+        emails = email_string.split(",")
+    
+    return set(
+        email.strip().lower() 
+        for email in emails 
+        if email.strip()
+    )
+
+ADMIN_EMAILS = parse_email_list(os.getenv("ADMIN_EMAILS", ""))
 
 
 async def get_current_admin(

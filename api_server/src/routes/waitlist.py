@@ -18,11 +18,25 @@ from .admin_auth import get_current_admin, get_current_user_with_admin_check
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
 
 # Configuration - Beta tester emails (can be loaded from env or database)
-BETA_TESTER_EMAILS = set(
-    email.strip().lower() 
-    for email in os.getenv("BETA_TESTER_EMAILS", "").split(",") 
-    if email.strip()
-)
+# Support both comma and semicolon separators to avoid gcloud parsing issues
+def parse_email_list(email_string):
+    """Parse email list supporting both comma and semicolon separators"""
+    if not email_string:
+        return set()
+    
+    # Try semicolon first (preferred for gcloud), then comma
+    if ";" in email_string:
+        emails = email_string.split(";")
+    else:
+        emails = email_string.split(",")
+    
+    return set(
+        email.strip().lower() 
+        for email in emails 
+        if email.strip()
+    )
+
+BETA_TESTER_EMAILS = parse_email_list(os.getenv("BETA_TESTER_EMAILS", ""))
 
 # Request models
 class JoinWaitlistRequest(BaseModel):
