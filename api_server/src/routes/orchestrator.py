@@ -384,44 +384,109 @@ async def process_chat_orchestration(
                 }
             }
 
-        # Legacy fallback: use basic orchestrator DAG generation
-        from guild.src.models.user_input import UserInput, Audience
-        from guild.src.core.orchestrator import Orchestrator
-        user_input = UserInput(
-            objective=objective,
-            audience=Audience(**audience) if audience else None,
-            additional_notes=additional_notes
-        )
-        orchestrator = Orchestrator(user_input)
-        workflow = await orchestrator.generate_workflow()
+        # Smart conversation handling using Vertex AI Gemini
+        try:
+            from ..llm.gemini_provider import gemini_provider
+            from ..llm.model_router import model_router
+            
+            # Get user's business context for personalized responses
+            business_context = {}
+            onboarding = db.query(models.OnboardingData).filter(
+                models.OnboardingData.user_id == user_id
+            ).first()
+            
+            if onboarding and onboarding.raw_responses:
+                business_context = onboarding.raw_responses
+            
+            # Determine if this is a workflow request or general conversation
+            lower_objective = objective.lower()
+            workflow_keywords = [
+                'create', 'build', 'generate', 'develop', 'make', 'plan', 'strategy',
+                'campaign', 'workflow', 'process', 'automate', 'system', 'setup'
+            ]
+            
+            is_workflow_request = any(keyword in lower_objective for keyword in workflow_keywords)
+            
+            if is_workflow_request:
+                # For workflow requests, use the enhanced orchestrator
+                from guild.src.models.user_input import UserInput, Audience
+                from guild.src.core.enhanced_orchestrator import EnhancedOrchestrator
+                
+                user_input = UserInput(
+                    objective=objective,
+                    audience=Audience(**audience) if audience else None,
+                    additional_notes=additional_notes
+                )
+                orchestrator = EnhancedOrchestrator(user_input)
+                workflow = await orchestrator.generate_workflow()
 
-        import uuid
-        workflow_id = str(uuid.uuid4())
-        db_workflow = models.Workflow(
-            id=workflow_id,
-            user_id=user_id,
-            status="pending_approval",
-            dag_definition=workflow.model_dump(),
-            priority=priority
-        )
-        db.add(db_workflow)
-        db.commit()
-        db.refresh(db_workflow)
+                import uuid
+                workflow_id = str(uuid.uuid4())
+                db_workflow = models.Workflow(
+                    id=workflow_id,
+                    user_id=user_id,
+                    status="pending_approval",
+                    dag_definition=workflow.model_dump(),
+                    priority=priority
+                )
+                db.add(db_workflow)
+                db.commit()
+                db.refresh(db_workflow)
 
-        return {
-            "success": True,
-            "workflow_id": workflow_id,
-            "workflow_definition": workflow.model_dump(),
-            "status": "pending_approval",
-            "message": f"I've created a workflow to: {objective}",
-            "next_steps": [
-                "Review the generated workflow",
-                "Approve to start execution",
-                "Monitor progress in real-time"
-            ],
-            "agents_involved": len(workflow.agents) if hasattr(workflow, 'agents') else 0,
-            "estimated_duration": "5-15 minutes"
-        }
+                return {
+                    "success": True,
+                    "workflow_id": workflow_id,
+                    "workflow_definition": workflow.model_dump(),
+                    "status": "pending_approval",
+                    "message": f"I've created a workflow to: {objective}",
+                    "next_steps": [
+                        "Review the generated workflow",
+                        "Approve to start execution",
+                        "Monitor progress in real-time"
+                    ],
+                    "agents_involved": len(workflow.agents) if hasattr(workflow, 'agents') else 0,
+                    "estimated_duration": "5-15 minutes"
+                }
+            else:
+                # For general conversation, use Gemini with business context
+                smart_response = await gemini_provider.generate_with_context(
+                    prompt=objective,
+                    business_context=business_context,
+                    task_type='chat',
+                    complexity='medium',
+                    user_tier='starter'
+                )
+                
+                return {
+                    "success": True,
+                    "message": smart_response['text'],
+                    "conversation_type": "general_chat",
+                    "model_used": smart_response.get('model', 'gemini-1.5-flash'),
+                    "usage": smart_response.get('usage', {}),
+                    "workflow_details": {
+                        "name": "General Conversation",
+                        "autonomous_level": "conversational",
+                        "total_agents": 1,
+                        "integrations_used": 0,
+                        "data_sources": []
+                    }
+                }
+                
+        except Exception as e:
+            logger.error(f"Smart orchestration failed, falling back to basic response: {e}")
+            # Final fallback - basic response
+            return {
+                "success": True,
+                "message": f"I understand you're asking about: {objective}. I'm here to help! Could you provide more details about what you'd like me to help you with?",
+                "conversation_type": "fallback",
+                "workflow_details": {
+                    "name": "Basic Response",
+                    "autonomous_level": "basic",
+                    "total_agents": 0,
+                    "integrations_used": 0,
+                    "data_sources": []
+                }
+            }
         
     except Exception as e:
         logger.error(f"Failed to process chat orchestration: {str(e)}")

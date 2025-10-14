@@ -64,7 +64,7 @@ from .routes import agents_available
 from .routes import settings as settings_routes
 from .routes import notifications as notifications_routes
 from .routes import geocode as geocode_routes
-from .routes import content_ws
+from .routes import content_ws, workflow_websocket
 from .routes import profile, content
 from .routes import conversations
 from .routes import campaign_agents, asset_agents
@@ -91,8 +91,9 @@ app.include_router(agents_available.router)
 app.include_router(settings_routes.router)
 app.include_router(notifications_routes.router)
 app.include_router(geocode_routes.router)
-# WS router
+# WS routers
 app.include_router(content_ws.router)
+app.include_router(workflow_websocket.router)
 # Business profile and content intelligence routes
 app.include_router(profile.router)
 app.include_router(content.router)
