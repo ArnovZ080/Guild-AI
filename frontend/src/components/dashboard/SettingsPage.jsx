@@ -834,7 +834,14 @@ const SettingsPage = () => {
       )}
 
       <Section title="Onboarding & Business Source of Truth">
-        <div className="text-sm text-gray-500 mb-3">This section reflects your onboarding answers and remains editable.</div>
+        <div className="text-sm text-gray-500 mb-3">
+          This section reflects your onboarding answers and remains editable.
+          {sourceOfTruthLoaded ? (
+            <span className="text-green-600 ml-2">✅ Loaded from backend</span>
+          ) : (
+            <span className="text-yellow-600 ml-2">⏳ Loading from backend...</span>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Business Overview</h4>

@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
 import logging
 
-from .auth import get_current_user
+from .auth_firebase import get_current_user
 from .. import models
 from ..database import get_db
 
@@ -255,6 +255,80 @@ async def get_incomplete_tasks(
         logger.error(f"Failed to get incomplete tasks: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get tasks: {str(e)}")
 
+@router.get("/workflow/{workflow_id}/status")
+async def get_workflow_status(
+    workflow_id: str,
+    current_user: Optional[models.User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the status of a specific workflow.
+    """
+    try:
+        # Use provided user_id or current_user, or default to anonymous
+        user_id = current_user.id if current_user else "anonymous_user"
+        
+        # Try to find workflow in database
+        workflow = db.query(models.Workflow).filter(
+            models.Workflow.id == workflow_id
+        ).first()
+        
+        if not workflow:
+            # Try to get from autonomous workflow executor
+            try:
+                from guild.src.core.autonomous_workflow_executor import get_workflow_status as aw_get_status
+                aw_status = await aw_get_status(workflow_id)
+                if aw_status:
+                    return {
+                        "success": True,
+                        "workflow_id": workflow_id,
+                        "status": aw_status.get("status", "unknown"),
+                        "progress": aw_status.get("progress", 0),
+                        "current_step": aw_status.get("current_step", ""),
+                        "completed_steps": aw_status.get("completed_steps", 0),
+                        "total_steps": aw_status.get("total_steps", 0),
+                        "estimated_completion": aw_status.get("estimated_completion"),
+                        "error": aw_status.get("error")
+                    }
+            except Exception:
+                pass
+            
+            raise HTTPException(status_code=404, detail="Workflow not found")
+        
+        # Get workflow executions
+        executions = db.query(models.AgentExecution).filter(
+            models.AgentExecution.workflow_id == workflow_id
+        ).all()
+        
+        completed_count = len([e for e in executions if e.status == 'completed'])
+        total_count = len(executions) if executions else 1
+        
+        return {
+            "success": True,
+            "workflow_id": workflow_id,
+            "status": workflow.status,
+            "progress": int((completed_count / total_count) * 100) if total_count > 0 else 0,
+            "completed_steps": completed_count,
+            "total_steps": total_count,
+            "created_at": workflow.created_at.isoformat() if workflow.created_at else None,
+            "updated_at": workflow.updated_at.isoformat() if workflow.updated_at else None,
+            "executions": [
+                {
+                    "agent_name": e.agent_name,
+                    "status": e.status,
+                    "started_at": e.started_at.isoformat() if e.started_at else None,
+                    "completed_at": e.completed_at.isoformat() if e.completed_at else None
+                }
+                for e in executions
+            ]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get workflow status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get workflow status: {str(e)}")
+
 @router.get("/system/capabilities")
 async def get_system_capabilities():
     """
@@ -421,15 +495,22 @@ async def process_chat_orchestration(
                 business_context = onboarding.raw_responses
             
             # Determine if this is a workflow request or general conversation
+            # Be more intelligent about when to create workflows vs. having conversations
             lower_objective = objective.lower()
             workflow_keywords = [
                 'create', 'build', 'generate', 'develop', 'make', 'plan', 'strategy',
                 'campaign', 'workflow', 'process', 'automate', 'system', 'setup'
             ]
             
-            is_workflow_request = any(keyword in lower_objective for keyword in workflow_keywords)
+            # Only create workflows for explicit, detailed requests
+            # For vague requests like "create content", ask clarifying questions first
+            is_explicit_workflow_request = (
+                any(keyword in lower_objective for keyword in workflow_keywords) and
+                len(objective.split()) > 5 and  # More than 5 words for specificity
+                any(detail in lower_objective for detail in ['for', 'about', 'targeting', 'on', 'using', 'with'])
+            )
             
-            if is_workflow_request:
+            if is_explicit_workflow_request:
                 # For workflow requests, use the enhanced orchestrator
                 from guild.src.models.user_input import UserInput, Audience
                 from guild.src.core.enhanced_orchestrator import EnhancedOrchestrator

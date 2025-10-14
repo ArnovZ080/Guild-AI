@@ -215,12 +215,19 @@ function LandingPage() {
             className="transition-transform hover:scale-105"
           >
             <img 
-              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1026182&theme=light&t=1760435464968" 
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1026182&theme=light" 
               alt="Guild - Your company of 1 | Product Hunt" 
               style={{width: '250px', height: '54px'}} 
               width="250" 
-              height="54" 
+              height="54"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
             />
+            <div style={{display: 'none', width: '250px', height: '54px', backgroundColor: '#ff6b6b', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '14px', fontWeight: 'bold'}}>
+              🚀 Featured on Product Hunt
+            </div>
           </a>
         </div>
         

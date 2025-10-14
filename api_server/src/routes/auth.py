@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
@@ -90,7 +91,7 @@ async def create_user_profile(
     """Create a new user profile after Firebase signup"""
     try:
         # Test database connection first
-        db.execute("SELECT 1")
+        db.execute(text("SELECT 1"))
         # Use firebase_uid if provided, otherwise fall back to supabase_id for backwards compatibility
         user_id = request.firebase_uid or request.supabase_id
         

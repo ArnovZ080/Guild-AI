@@ -997,28 +997,7 @@ const AgentsView = () => {
     const showArtifactModal = false;
     const previewArtifact = null;
 
-    // When API is configured, attempt to hydrate with real workflow details
-    useEffect(() => {
-      const base = (import.meta && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) || '';
-      const wfId = wf.workflow_id || wf.id;
-      if (!base || !wfId) return;
-      let cancelled = false;
-      (async () => {
-        try {
-          const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-          const res = await fetch(`${base}/agents/workflows/${wfId}`, { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
-          if (!res.ok) return;
-          const data = await res.json();
-          if (!cancelled && data) {
-            // Merge live details, preserving our normalized structure
-            const merged = buildDisplayWorkflow({ ...(selectedWorkflow || {}), ...(data || {}) }, 0);
-            setSelectedWorkflow(merged);
-          }
-        } catch {}
-      })();
-      return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [showWorkflowDetails]);
+    // Note: Data loading is handled by the main component's useEffect hooks
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowWorkflowDetails(false)}>

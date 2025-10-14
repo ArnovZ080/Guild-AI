@@ -281,9 +281,10 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       );
 
       if (orchestrationResult?.success) {
-        responseContent = orchestrationResult.message || "✅ I've created an autonomous workflow to accomplish your goal.";
+        responseContent = orchestrationResult.message || "✅ I've processed your request.";
         
-        if (orchestrationResult.workflow_details) {
+        // Only show workflow details if an actual workflow was created
+        if (orchestrationResult.workflow_details && orchestrationResult.workflow_id) {
           const workflow = orchestrationResult.workflow_details;
           responseContent += `\n\n📋 **Autonomous Workflow Created:**\n`;
           if (workflow.total_agents != null) responseContent += `• ${workflow.total_agents} specialized agents orchestrated\n`;
@@ -292,23 +293,26 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           if (workflow.data_sources && workflow.data_sources.length > 0) {
             responseContent += `• Data Sources: ${workflow.data_sources.slice(0, 3).join(', ')}`;
           }
-        }
+          
+          // Only show workflow actions if an actual workflow was created
+          actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
+          workflowData = orchestrationResult;
 
-        actions = ['👁️ View Transparency', '📊 Monitor Progress', '⚡ View Dashboard'];
-        workflowData = orchestrationResult;
-
-        // Track active workflow
-        if (orchestrationResult.workflow_id) {
+          // Track active workflow
           setActiveWorkflows(prev => [...prev, {
             id: orchestrationResult.workflow_id,
             name: orchestrationResult.workflow_details?.name || 'Autonomous Workflow',
             created: new Date().toISOString(),
             status: 'running'
           }]);
+        } else {
+          // Regular conversation - no workflow actions
+          actions = [];
+          workflowData = null;
         }
       } else {
-        responseContent = "I couldn't start an autonomous workflow right now. Please try again shortly.";
-        actions = ['🔄 Try Again', '📊 View Dashboard'];
+        responseContent = "I couldn't process your request right now. Please try again shortly.";
+        actions = ['🔄 Try Again'];
       }
 
       const assistantMessage = {

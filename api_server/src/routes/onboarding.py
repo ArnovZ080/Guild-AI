@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 import os
 
-from .auth import get_current_user
+from .auth_firebase import get_current_user
 from .. import models
 from ..database import get_db
 
