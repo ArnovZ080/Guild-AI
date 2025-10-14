@@ -140,6 +140,13 @@ function LandingPage() {
       description: 'Every action includes reasoning that teaches business strategy. Learn while AI works.',
       color: 'from-purple-500 to-pink-500',
       benefit: 'Become a better business owner—not just a user'
+    },
+    {
+      icon: <Target className="w-6 h-6" />,
+      title: 'Complete Business Ecosystem',
+      description: '40+ platform integrations cover every business function: marketing, sales, finance, HR, and operations.',
+      color: 'from-indigo-500 to-blue-500',
+      benefit: 'One platform replaces 10+ separate tools—save $500+/month'
     }
   ]
 
@@ -199,6 +206,24 @@ function LandingPage() {
       </nav>
 
       <section className="container mx-auto px-4 py-20 text-center">
+        {/* Product Hunt Badge */}
+        <div className="mb-6 flex justify-center">
+          <a 
+            href="https://www.producthunt.com/products/guild-2?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-guild-2" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="transition-transform hover:scale-105"
+          >
+            <img 
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1026182&theme=light&t=1760435464968" 
+              alt="Guild - Your company of 1 | Product Hunt" 
+              style={{width: '250px', height: '54px'}} 
+              width="250" 
+              height="54" 
+            />
+          </a>
+        </div>
+        
         <Badge className="mb-6 bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300 border-sky-200 dark:border-sky-800">
           <Sparkles className="w-3 h-3 mr-1" />
           115+ Specialized AI Agents • 120+ Platform Integrations • Intelligent Orchestration
@@ -256,7 +281,7 @@ function LandingPage() {
             🏆 No Competitor Has These
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 dark:text-slate-100">
-            5 Features That Make Guild Unstoppable
+            6 Features That Make Guild Unstoppable
           </h2>
           <p className="text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
             While other AI platforms hope for quality, Guild guarantees it. Here's why we're years ahead.

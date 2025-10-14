@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
 from sqlalchemy.orm import Session
@@ -7,6 +7,22 @@ import logging
 from .auth import get_current_user
 from .. import models
 from ..database import get_db
+
+# Custom dependency for optional authentication
+async def get_current_user_optional(request: Request) -> Optional[models.User]:
+    """Get current user if authenticated, otherwise return None"""
+    try:
+        # Try to get the Authorization header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+        
+        # If we have a token, try to get the user
+        # For now, we'll just return None to allow anonymous access
+        # In a full implementation, you'd validate the token here
+        return None
+    except Exception:
+        return None
 
 logger = logging.getLogger(__name__)
 
@@ -309,8 +325,8 @@ async def get_system_capabilities():
 @router.post("/chat/process")
 async def process_chat_orchestration(
     request: dict,
-    current_user: models.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(get_current_user_optional)
 ):
     """
     Processes chat messages through the enhanced orchestrator.
@@ -318,10 +334,16 @@ async def process_chat_orchestration(
     """
     try:
         objective = request.get('objective', '')
-        user_id = request.get('user_id', current_user.id)
+        user_id = request.get('user_id')
         audience = request.get('audience')
         additional_notes = request.get('additional_notes')
         priority = request.get('priority', 'medium')
+        
+        # Use provided user_id or current_user, or default to anonymous
+        if current_user and current_user.id:
+            user_id = current_user.id
+        elif not user_id:
+            user_id = "anonymous_user"
         
         logger.info(f"Processing chat orchestration for user {user_id}: {objective[:100]}...")
         

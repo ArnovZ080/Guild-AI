@@ -210,6 +210,8 @@ const AgentsView = () => {
     notifications: true
   });
   const [subscriptionInfo, setSubscriptionInfo] = useState(null);
+  const [showFirstRunPicker, setShowFirstRunPicker] = useState(false);
+  const [pickedIds, setPickedIds] = useState(new Set());
 
   // Canonical capability/description overrides for known agents (shared by cards and modal)
   const capabilityOverrides = {
@@ -2153,8 +2155,6 @@ const AgentsView = () => {
     return 3;
   };
   const planLimit = getTierLimit(subscriptionInfo?.tier || 'free');
-  const [showFirstRunPicker, setShowFirstRunPicker] = useState(false);
-  const [pickedIds, setPickedIds] = useState(new Set());
 
   useEffect(() => {
     try {

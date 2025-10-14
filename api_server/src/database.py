@@ -60,10 +60,19 @@ def get_db_password_from_secret_manager():
         # Fallback to environment variable if Secret Manager fails
         return os.getenv("POSTGRES_PASSWORD", "password")
 
-# Create the SQLAlchemy engine using the forced database URL
+# Create the SQLAlchemy engine using the forced database URL with retry logic
 engine = create_engine(
     get_database_url(),
-    echo=True  # Enable SQL logging for debugging
+    echo=True,  # Enable SQL logging for debugging
+    pool_pre_ping=True,  # Verify connections before use
+    pool_recycle=3600,   # Recycle connections every hour
+    pool_timeout=30,     # Timeout for getting connection from pool
+    max_overflow=10,     # Allow 10 extra connections beyond pool_size
+    pool_size=5,         # Base number of connections to maintain
+    connect_args={
+        "connect_timeout": 10,  # Connection timeout in seconds
+        "application_name": "guild-ai-api"
+    }
 )
 
 # Create a configured "Session" class

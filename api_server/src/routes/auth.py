@@ -89,6 +89,8 @@ async def create_user_profile(
 ):
     """Create a new user profile after Firebase signup"""
     try:
+        # Test database connection first
+        db.execute("SELECT 1")
         # Use firebase_uid if provided, otherwise fall back to supabase_id for backwards compatibility
         user_id = request.firebase_uid or request.supabase_id
         
