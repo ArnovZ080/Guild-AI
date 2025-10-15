@@ -1335,21 +1335,15 @@ async def process_chat_orchestration(
                         }
                     }
            else:
-               # Handle specific greeting responses dynamically
-               if 'how is it going' in lower_objective or 'how are you' in lower_objective:
-                   response = f"Hey {user_name}! Things are going great on my end! 🚀\n\nI've been coordinating our 115+ specialized agents to help businesses like yours grow. Just finished helping a local bakery increase their online orders by 40% and a consulting firm generate 25 new leads this week!\n\nWhat's going on with your business? Any challenges you're facing or opportunities you want to explore? I'm here to help make your business unstoppable! 💪"
-               elif 'hello' in lower_objective or 'hi' in lower_objective or 'hey' in lower_objective:
-                   response = f"Hey {user_name}! Great to see you! 👋\n\nI'm your AI business partner, and I'm excited to help you grow your business. Whether you need content creation, marketing campaigns, lead generation, or strategic planning - I've got a whole team of specialized agents ready to tackle anything!\n\nWhat can I help you accomplish today?"
-               else:
-                   # Use Gemini for other general conversations
-                   smart_response = await gemini_provider.generate_with_context(
-                       prompt=objective,
-                       business_context=business_context,
-                       task_type='chat',
-                       complexity='medium',
-                       user_tier='starter'
-                   )
-                   response = smart_response['text']
+               # Use Gemini for ALL general conversations - no hardcoded responses
+               smart_response = await gemini_provider.generate_with_context(
+                   prompt=objective,
+                   business_context=business_context,
+                   task_type='chat',
+                   complexity='medium',
+                   user_tier='starter'
+               )
+               response = smart_response['text']
                
                return {
                    "success": True,
