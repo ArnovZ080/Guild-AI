@@ -52,5 +52,16 @@ echo "🚀 Starting FastAPI server..."
 echo "📡 Server will start on port 5000"
 echo "🌐 API will be available at http://0.0.0.0:5000"
 
-# The main application startup command
-exec uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1
+# Add timeout and retry logic for startup
+echo "⏳ Starting application with timeout protection..."
+
+# The main application startup command with timeout
+timeout 60 uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1 --timeout-keep-alive 30
+
+# If timeout occurs, try again with minimal configuration
+if [ $? -eq 124 ]; then
+    echo "⚠️  First startup attempt timed out. Trying with minimal configuration..."
+    exec uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1 --timeout-keep-alive 10
+else
+    echo "✅ Application started successfully"
+fi

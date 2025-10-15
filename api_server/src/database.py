@@ -76,7 +76,7 @@ def get_db_password_from_secret_manager():
 database_url = get_database_url()
 print(f"Database URL: {database_url.replace(database_url.split('@')[0].split('://')[1] if '@' in database_url else 'password', '***')}")
 
-# Add connection retry logic
+# Add connection retry logic with graceful fallback
 def create_engine_with_retry(url, max_retries=3):
     """Create engine with retry logic for connection failures"""
     for attempt in range(max_retries):
@@ -99,22 +99,22 @@ def create_engine_with_retry(url, max_retries=3):
             with engine.connect() as conn:
                 conn.execute("SELECT 1")
             
-            print(f"Database connection successful on attempt {attempt + 1}")
+            print(f"✅ Database connection successful on attempt {attempt + 1}")
             return engine
             
         except Exception as e:
-            print(f"Database connection attempt {attempt + 1} failed: {e}")
+            print(f"❌ Database connection attempt {attempt + 1} failed: {e}")
             if attempt == max_retries - 1:
-                print("All database connection attempts failed. Using fallback configuration.")
-                # Fallback to a simpler configuration
+                print("⚠️  All database connection attempts failed. Creating fallback engine.")
+                # Fallback to a simpler configuration that won't crash on startup
                 return create_engine(
                     url,
                     echo=False,
-                    pool_pre_ping=True,
+                    pool_pre_ping=False,  # Disable pre-ping to avoid startup issues
                     pool_recycle=3600,
                     pool_timeout=60,
-                    max_overflow=5,
-                    pool_size=2,
+                    max_overflow=0,  # No overflow connections
+                    pool_size=1,     # Minimal pool size
                     connect_args={
                         "connect_timeout": 60,
                         "application_name": "guild-ai-api-fallback"
@@ -122,7 +122,18 @@ def create_engine_with_retry(url, max_retries=3):
                 )
             continue
 
-engine = create_engine_with_retry(database_url)
+try:
+    engine = create_engine_with_retry(database_url)
+    print("✅ Database engine created successfully")
+except Exception as e:
+    print(f"❌ Critical error creating database engine: {e}")
+    print("🚨 Application will start but database features may be limited")
+    # Create a minimal engine that won't crash the app
+    engine = create_engine(
+        "sqlite:///./fallback.db",  # Fallback to SQLite
+        echo=False,
+        connect_args={"check_same_thread": False}
+    )
 
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

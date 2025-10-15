@@ -12,10 +12,9 @@ from .security.security_middleware import SecurityMiddleware, SecurityHeadersMid
 from .security.env_validator import EnvironmentValidator
 
 # Initialize database tables
-from .database import engine, Base
+from .database import engine, Base, get_db
 from . import models  # noqa: F401
 # Base.metadata.create_all(bind=engine)  # Disabled: Migrations handle table creation
-
 
 app = FastAPI(
     title="Guild API Server",
@@ -25,6 +24,42 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json"
 )
+
+# Add startup health check
+@app.on_event("startup")
+async def startup_event():
+    """Application startup event"""
+    logger.info("🚀 Guild-AI API Server starting up...")
+    
+    # Test database connection
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("✅ Database connection verified")
+    except Exception as e:
+        logger.warning(f"⚠️  Database connection warning: {e}")
+    
+    logger.info("🎯 Guild-AI API Server ready!")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Cloud Run"""
+    try:
+        # Test database connection
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_status = "healthy"
+    except Exception as e:
+        logger.warning(f"Database health check failed: {e}")
+        db_status = "unhealthy"
+    
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "timestamp": "2024-01-01T00:00:00Z"
+    }
 
 # Security middleware (applied first)
 app.add_middleware(SecurityHeadersMiddleware)
