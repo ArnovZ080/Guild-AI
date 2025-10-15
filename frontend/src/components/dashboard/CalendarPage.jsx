@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import calendarDataService from '../../services/calendarDataService';
+import UnifiedOrchestratorService from '../../services/UnifiedOrchestratorService';
 import TopNav from './calendar/TopNav';
 import CalendarLeftPanel from './calendar/CalendarLeftPanel';
 import CalendarRightPanel from './calendar/CalendarRightPanel';
@@ -79,6 +80,10 @@ const CalendarPage = () => {
   const [showSmartReschedule, setShowSmartReschedule] = useState(false);
   const [showTimeUseReport, setShowTimeUseReport] = useState(false);
   const [showOptimizationRecommendations, setShowOptimizationRecommendations] = useState(false);
+  
+  // Unified Orchestrator Integration
+  const [orchestratorService] = useState(() => new UnifiedOrchestratorService());
+  const [orchestratorConnected, setOrchestratorConnected] = useState(false);
   const [showScheduleBreak, setShowScheduleBreak] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [showVoiceCommands, setShowVoiceCommands] = useState(false);
@@ -87,6 +92,51 @@ const CalendarPage = () => {
   
   // PA and agent states
   const [paMessages, setPaMessages] = useState([]);
+  
+  // PA Agent with Unified Orchestrator Integration
+  const handlePAInteraction = async (message) => {
+    if (!orchestratorConnected) {
+      // Fallback to basic PA functionality
+      setPaMessages(prev => [...prev, {
+        id: Date.now(),
+        type: 'assistant',
+        message: 'I\'m having trouble connecting to the orchestrator. Please try again.',
+        timestamp: new Date()
+      }]);
+      return;
+    }
+    
+    try {
+      // Use unified orchestrator for PA interactions
+      const response = await orchestratorService.processRequest({
+        user_input: message,
+        task_type: 'calendar_assistance',
+        context: {
+          current_date: currentDate,
+          selected_date: selectedDate,
+          events: events,
+          agent_type: 'pa_agent'
+        }
+      });
+      
+      setPaMessages(prev => [...prev, {
+        id: Date.now(),
+        type: 'assistant',
+        message: response.response,
+        timestamp: new Date(),
+        orchestrator_used: true
+      }]);
+      
+    } catch (error) {
+      console.error('PA Agent orchestrator interaction failed:', error);
+      setPaMessages(prev => [...prev, {
+        id: Date.now(),
+        type: 'assistant',
+        message: 'I encountered an error. Please try rephrasing your request.',
+        timestamp: new Date()
+      }]);
+    }
+  };
   const [aiInsights, setAiInsights] = useState(null);
   const [wellbeingData, setWellbeingData] = useState(null);
   const [timeUseData, setTimeUseData] = useState(null);
@@ -102,6 +152,22 @@ const CalendarPage = () => {
     loadTimeUseAnalytics();
     loadAgentCoordination();
   }, [currentDate]);
+
+  // Initialize Unified Orchestrator
+  useEffect(() => {
+    const initializeOrchestrator = async () => {
+      try {
+        await orchestratorService.initialize();
+        setOrchestratorConnected(true);
+        console.log('Unified Orchestrator connected to Calendar Dashboard');
+      } catch (error) {
+        console.error('Failed to connect to Unified Orchestrator:', error);
+        setOrchestratorConnected(false);
+      }
+    };
+    
+    initializeOrchestrator();
+  }, [orchestratorService]);
 
   // Load events from calendarDataService
   useEffect(() => {
@@ -126,6 +192,16 @@ const CalendarPage = () => {
 
   const loadAIInsights = async () => {
     try {
+      // Try orchestrator first, fallback to direct API
+      if (orchestratorConnected) {
+        const insights = await orchestratorService.getCalendarInsights({
+          date: currentDate,
+          events: events
+        });
+        setAiInsights(insights);
+        return;
+      }
+      
       const response = await fetch('/api/calendar/insights');
       if (response.ok) {
         const data = await response.json();
@@ -507,10 +583,12 @@ const CalendarPage = () => {
         </div>
       </div>
 
-      {/* Floating Dock - PA Agent */}
+      {/* Floating Dock - PA Agent with Unified Orchestrator */}
       <FloatingDock
         messages={paMessages}
         setMessages={setPaMessages}
+        onPAInteraction={handlePAInteraction}
+        orchestratorConnected={orchestratorConnected}
         onSchedule={handleAddEvent}
         events={events}
         isOpen={showPAChat}

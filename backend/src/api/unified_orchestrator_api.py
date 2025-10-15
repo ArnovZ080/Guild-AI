@@ -826,3 +826,95 @@ async def health_check():
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
+
+@router.post("/test-agent-coordination")
+async def test_agent_coordination():
+    """Test endpoint to verify agent coordination and communication."""
+    try:
+        coordination_results = {
+            "test_timestamp": datetime.now().isoformat(),
+            "agent_coordination": {},
+            "communication_tests": {},
+            "overall_status": "success"
+        }
+        
+        # Test each business intelligence agent
+        for agent_name, agent in unified_orchestrator.business_agents.items():
+            try:
+                # Test basic agent functionality
+                test_result = await agent.run({
+                    "test_input": f"Test coordination for {agent_name}",
+                    "test_mode": True
+                })
+                
+                coordination_results["agent_coordination"][agent_name] = {
+                    "status": "success",
+                    "response_received": True,
+                    "response_length": len(str(test_result)) if test_result else 0
+                }
+                
+            except Exception as e:
+                coordination_results["agent_coordination"][agent_name] = {
+                    "status": "error",
+                    "error": str(e)
+                }
+                coordination_results["overall_status"] = "partial_failure"
+        
+        # Test inter-agent communication
+        if len(unified_orchestrator.business_agents) >= 2:
+            agent_names = list(unified_orchestrator.business_agents.keys())
+            primary_agent = agent_names[0]
+            secondary_agent = agent_names[1]
+            
+            try:
+                # Test coordination between two agents
+                coordination_result = await unified_orchestrator._coordinate_agents(
+                    [primary_agent, secondary_agent],
+                    {"test_coordination": True, "message": "Test inter-agent communication"}
+                )
+                
+                coordination_results["communication_tests"] = {
+                    "inter_agent_communication": {
+                        "status": "success",
+                        "agents_tested": [primary_agent, secondary_agent],
+                        "coordination_successful": True
+                    }
+                }
+                
+            except Exception as e:
+                coordination_results["communication_tests"] = {
+                    "inter_agent_communication": {
+                        "status": "error",
+                        "error": str(e)
+                    }
+                }
+                coordination_results["overall_status"] = "partial_failure"
+        
+        # Test orchestrator integration
+        try:
+            test_request = UnifiedOrchestratorRequest(
+                user_input="Test orchestrator agent coordination",
+                task_type=TaskType.STRATEGY,
+                complexity=Complexity.MEDIUM,
+                context={"test_mode": True}
+            )
+            
+            orchestrator_test = await unified_orchestrator.process_request(test_request)
+            
+            coordination_results["orchestrator_integration"] = {
+                "status": "success",
+                "response_generated": True,
+                "agents_involved": orchestrator_test.get("agents_involved", [])
+            }
+            
+        except Exception as e:
+            coordination_results["orchestrator_integration"] = {
+                "status": "error",
+                "error": str(e)
+            }
+            coordination_results["overall_status"] = "partial_failure"
+        
+        return coordination_results
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent coordination test failed: {str(e)}")
