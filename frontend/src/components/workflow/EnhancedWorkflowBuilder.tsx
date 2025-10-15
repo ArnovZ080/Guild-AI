@@ -2143,20 +2143,22 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                             <div>
                               <h3 className="font-semibold text-gray-800 capitalize">{type}</h3>
                               <p className="text-xs text-gray-600">{config.description}</p>
-            </div>
-          </div>
+                            </div>
+                          </div>
                           <div className="space-y-1">
                             <p className="text-xs font-medium text-gray-700">Examples:</p>
                             {config.examples.slice(0, 2).map((example, index) => (
                               <p key={index} className="text-xs text-gray-600 italic">"{example}"</p>
                             ))}
-        </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 </>
-      )}
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
