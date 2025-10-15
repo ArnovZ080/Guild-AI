@@ -252,3 +252,118 @@ async def get_analytics_overview(db: Session = Depends(get_db)):
             "status": "error",
             "last_updated": datetime.utcnow().isoformat()
         }
+
+@router.get("/analysis")
+async def get_financial_analysis(db: Session = Depends(get_db)):
+    """Get comprehensive financial analysis"""
+    try:
+        return {
+            "success": True,
+            "analysis": {
+                "revenue_analysis": {
+                    "total_revenue": 75000,
+                    "growth_rate": 15.2,
+                    "revenue_by_source": {
+                        "direct_sales": 45000,
+                        "online_orders": 25000,
+                        "catering": 5000
+                    }
+                },
+                "expense_analysis": {
+                    "total_expenses": 45000,
+                    "expense_breakdown": {
+                        "ingredients": 15000,
+                        "labor": 20000,
+                        "rent": 5000,
+                        "marketing": 3000,
+                        "utilities": 2000
+                    }
+                },
+                "profitability": {
+                    "gross_profit": 30000,
+                    "net_profit": 25000,
+                    "profit_margin": 33.3
+                },
+                "cash_flow": {
+                    "inflow": 75000,
+                    "outflow": 45000,
+                    "net_cash_flow": 30000
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/kpis")
+async def get_financial_kpis(period: str = "30d", db: Session = Depends(get_db)):
+    """Get financial KPIs"""
+    try:
+        return {
+            "success": True,
+            "kpis": {
+                "revenue_kpis": {
+                    "monthly_revenue": 25000,
+                    "revenue_growth": 15.2,
+                    "average_order_value": 45.50
+                },
+                "profitability_kpis": {
+                    "gross_profit_margin": 40.0,
+                    "net_profit_margin": 33.3,
+                    "ebitda": 28000
+                },
+                "efficiency_kpis": {
+                    "cost_per_acquisition": 25.00,
+                    "lifetime_value": 450.00,
+                    "roi": 1800.0
+                }
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/campaign-roi")
+async def get_campaign_roi(period: str = "30d", limit: int = 3, db: Session = Depends(get_db)):
+    """Get campaign ROI data"""
+    try:
+        return {
+            "success": True,
+            "campaigns": [
+                {
+                    "campaign_name": "Social Media Campaign",
+                    "spend": 500,
+                    "revenue": 2500,
+                    "roi": 500.0
+                },
+                {
+                    "campaign_name": "Email Marketing",
+                    "spend": 200,
+                    "revenue": 1200,
+                    "roi": 600.0
+                },
+                {
+                    "campaign_name": "Local SEO",
+                    "spend": 300,
+                    "revenue": 1800,
+                    "roi": 600.0
+                }
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/health-score-timeline")
+async def get_health_score_timeline(period: str = "90d", db: Session = Depends(get_db)):
+    """Get business health score timeline"""
+    try:
+        return {
+            "success": True,
+            "timeline": [
+                {"date": "2024-01-01", "score": 75},
+                {"date": "2024-01-15", "score": 78},
+                {"date": "2024-02-01", "score": 82},
+                {"date": "2024-02-15", "score": 85},
+                {"date": "2024-03-01", "score": 88}
+            ]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

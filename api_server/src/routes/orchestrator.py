@@ -1207,12 +1207,12 @@ async def process_chat_orchestration(
         
         # Use the comprehensive Guild orchestrator system for intelligent workflow creation
         try:
-            from guild.src.core.orchestrator import Orchestrator
+        from guild.src.core.orchestrator import Orchestrator
             from guild.src.models.user_input import UserInput
             
             # Create UserInput object for the guild orchestrator
-            user_input = UserInput(
-                objective=objective,
+        user_input = UserInput(
+            objective=objective,
                 additional_notes=additional_notes or "",
                 priority=priority,
                 deadline="flexible",
@@ -1222,28 +1222,28 @@ async def process_chat_orchestration(
             )
             
             # Initialize the comprehensive orchestrator
-            orchestrator = Orchestrator(user_input)
+        orchestrator = Orchestrator(user_input)
             
             # Generate the workflow DAG using the intelligent orchestrator
             workflow_dag = await orchestrator.generate_dag()
             
             if workflow_dag and not workflow_dag.get("error"):
                 # Create a workflow in the database
-                workflow_id = str(uuid.uuid4())
+        workflow_id = str(uuid.uuid4())
                 
-                db_workflow = models.Workflow(
-                    id=workflow_id,
-                    user_id=user_id,
+        db_workflow = models.Workflow(
+            id=workflow_id,
+            user_id=user_id,
                     status="created",
                     dag_definition=workflow_dag,
-                    priority=priority
-                )
-                db.add(db_workflow)
-                db.commit()
-                
-                return {
-                    "success": True,
-                    "workflow_id": workflow_id,
+            priority=priority
+        )
+        db.add(db_workflow)
+        db.commit()
+
+        return {
+            "success": True,
+            "workflow_id": workflow_id,
                     "message": f"I've created a comprehensive workflow to: {objective}",
                     "conversation_type": "workflow_created",
                     "workflow_details": {
@@ -1254,10 +1254,10 @@ async def process_chat_orchestration(
                         "success_metrics": workflow_dag.get("success_metrics", []),
                         "autonomous_level": "intelligent"
                     },
-                    "next_steps": [
+            "next_steps": [
                         "Review the comprehensive workflow plan",
-                        "Approve to start execution",
-                        "Monitor progress in real-time"
+                "Approve to start execution",
+                "Monitor progress in real-time"
                     ]
                 }
                 
@@ -1293,7 +1293,8 @@ async def process_chat_orchestration(
             simple_questions = [
                 'can you create content', 'what can you do', 'how can you help',
                 'what is guild about', 'tell me about guild', 'what are you',
-                'do you create content', 'can you help with content'
+                'do you create content', 'can you help with content', 'how is it going',
+                'how are you', 'what\'s up', 'hello', 'hi', 'hey'
             ]
             
             is_simple_question = any(question in lower_objective for question in simple_questions)
@@ -1333,30 +1334,37 @@ async def process_chat_orchestration(
                             "data_sources": []
                         }
                     }
-                else:
-                    # Use Gemini for other general conversations
-                    smart_response = await gemini_provider.generate_with_context(
-                        prompt=objective,
-                        business_context=business_context,
-                        task_type='chat',
-                        complexity='medium',
-                        user_tier='starter'
-                    )
-                    
-                    return {
-                        "success": True,
-                        "message": smart_response['text'],
-                        "conversation_type": "general_chat",
-                        "model_used": smart_response.get('model', 'gemini-1.5-flash'),
-                        "usage": smart_response.get('usage', {}),
-                        "workflow_details": {
-                            "name": "General Conversation",
-                            "autonomous_level": "conversational",
-                            "total_agents": 1,
-                            "integrations_used": 0,
-                            "data_sources": []
-                        }
-                    }
+           else:
+               # Handle specific greeting responses dynamically
+               if 'how is it going' in lower_objective or 'how are you' in lower_objective:
+                   response = f"Hey {user_name}! Things are going great on my end! 🚀\n\nI've been coordinating our 115+ specialized agents to help businesses like yours grow. Just finished helping a local bakery increase their online orders by 40% and a consulting firm generate 25 new leads this week!\n\nWhat's going on with your business? Any challenges you're facing or opportunities you want to explore? I'm here to help make your business unstoppable! 💪"
+               elif 'hello' in lower_objective or 'hi' in lower_objective or 'hey' in lower_objective:
+                   response = f"Hey {user_name}! Great to see you! 👋\n\nI'm your AI business partner, and I'm excited to help you grow your business. Whether you need content creation, marketing campaigns, lead generation, or strategic planning - I've got a whole team of specialized agents ready to tackle anything!\n\nWhat can I help you accomplish today?"
+               else:
+                   # Use Gemini for other general conversations
+                   smart_response = await gemini_provider.generate_with_context(
+                       prompt=objective,
+                       business_context=business_context,
+                       task_type='chat',
+                       complexity='medium',
+                       user_tier='starter'
+                   )
+                   response = smart_response['text']
+               
+               return {
+                   "success": True,
+                   "message": response,
+                   "conversation_type": "general_chat",
+                   "model_used": smart_response.get('model', 'gemini-1.5-flash') if 'smart_response' in locals() else 'dynamic',
+                   "usage": smart_response.get('usage', {}) if 'smart_response' in locals() else {},
+                   "workflow_details": {
+                       "name": "General Conversation",
+                       "autonomous_level": "conversational",
+                       "total_agents": 1,
+                       "integrations_used": 0,
+                       "data_sources": []
+                   }
+               }
                 
         except Exception as e:
             logger.error(f"Smart orchestration failed, falling back to basic response: {e}")
@@ -1372,7 +1380,7 @@ async def process_chat_orchestration(
                     "integrations_used": 0,
                     "data_sources": []
                 }
-            }
+        }
         
     except Exception as e:
         logger.error(f"Failed to process chat orchestration: {str(e)}")

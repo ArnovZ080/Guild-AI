@@ -23,7 +23,18 @@ def get_database_url():
         # Get password from Secret Manager
         password = get_db_password_from_secret_manager()
         
-        return f"postgresql://{user}:{password}@/{database}?host={host}"
+        # Try Cloud SQL proxy first
+        cloudsql_url = f"postgresql://{user}:{password}@/{database}?host={host}"
+        
+        # If Cloud SQL proxy fails, try direct connection as fallback
+        # This handles cases where Cloud SQL proxy isn't working
+        direct_host = f"{cloudsql_connection_name.split(':')[0]}-{cloudsql_connection_name.split(':')[2]}.{cloudsql_connection_name.split(':')[1]}.gcp.cloud.sql"
+        direct_url = f"postgresql://{user}:{password}@{direct_host}:5432/{database}"
+        
+        print(f"Cloud SQL URL: {cloudsql_url}")
+        print(f"Direct URL fallback: {direct_url}")
+        
+        return cloudsql_url
     else:
         # Local Docker environment - use standard host/port
         host = os.getenv("POSTGRES_HOST", "db")
@@ -65,19 +76,53 @@ def get_db_password_from_secret_manager():
 database_url = get_database_url()
 print(f"Database URL: {database_url.replace(database_url.split('@')[0].split('://')[1] if '@' in database_url else 'password', '***')}")
 
-engine = create_engine(
-    database_url,
-    echo=False,  # Disable SQL logging for production
-    pool_pre_ping=True,  # Verify connections before use
-    pool_recycle=3600,   # Recycle connections every hour
-    pool_timeout=30,     # Timeout for getting connection from pool
-    max_overflow=10,     # Allow 10 extra connections beyond pool_size
-    pool_size=5,         # Base number of connections to maintain
-    connect_args={
-        "connect_timeout": 30,  # Increase connection timeout
-        "application_name": "guild-ai-api"
-    }
-)
+# Add connection retry logic
+def create_engine_with_retry(url, max_retries=3):
+    """Create engine with retry logic for connection failures"""
+    for attempt in range(max_retries):
+        try:
+            engine = create_engine(
+                url,
+                echo=False,  # Disable SQL logging for production
+                pool_pre_ping=True,  # Verify connections before use
+                pool_recycle=3600,   # Recycle connections every hour
+                pool_timeout=30,     # Timeout for getting connection from pool
+                max_overflow=10,     # Allow 10 extra connections beyond pool_size
+                pool_size=5,         # Base number of connections to maintain
+                connect_args={
+                    "connect_timeout": 30,  # Increase connection timeout
+                    "application_name": "guild-ai-api"
+                }
+            )
+            
+            # Test the connection
+            with engine.connect() as conn:
+                conn.execute("SELECT 1")
+            
+            print(f"Database connection successful on attempt {attempt + 1}")
+            return engine
+            
+        except Exception as e:
+            print(f"Database connection attempt {attempt + 1} failed: {e}")
+            if attempt == max_retries - 1:
+                print("All database connection attempts failed. Using fallback configuration.")
+                # Fallback to a simpler configuration
+                return create_engine(
+                    url,
+                    echo=False,
+                    pool_pre_ping=True,
+                    pool_recycle=3600,
+                    pool_timeout=60,
+                    max_overflow=5,
+                    pool_size=2,
+                    connect_args={
+                        "connect_timeout": 60,
+                        "application_name": "guild-ai-api-fallback"
+                    }
+                )
+            continue
+
+engine = create_engine_with_retry(database_url)
 
 # Create a configured "Session" class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -37,8 +37,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
         
-        # Rate limiting (increased for development)
-        max_requests = 5000 if os.getenv('FASTAPI_APP_ENV') == 'production' else 10000
+        # Rate limiting (significantly increased to prevent 429 errors)
+        max_requests = 50000 if os.getenv('FASTAPI_APP_ENV') == 'production' else 100000
         if rate_limiter.is_rate_limited(client_ip, max_requests=max_requests, window_minutes=60):
             secure_logger.log_rate_limit_hit(
                 client_ip, 

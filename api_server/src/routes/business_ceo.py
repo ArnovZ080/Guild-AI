@@ -23,6 +23,41 @@ router = APIRouter(
     tags=["Business CEO"],
 )
 
+@router.get("/ceo-snapshot")
+async def get_ceo_snapshot(
+    current_user: Optional[models.User] = Depends(get_current_user_optional),
+    db: Session = Depends(get_db)
+):
+    """Get CEO-level business snapshot"""
+    try:
+        # Mock CEO snapshot data
+        return {
+            "success": True,
+            "snapshot": {
+                "business_health": "Good",
+                "revenue_trend": "Growing",
+                "customer_satisfaction": 8.5,
+                "operational_efficiency": 7.8,
+                "growth_metrics": {
+                    "monthly_revenue": 25000,
+                    "customer_acquisition": 150,
+                    "retention_rate": 85
+                },
+                "key_insights": [
+                    "Revenue up 15% this month",
+                    "Customer satisfaction improving",
+                    "Operational efficiency needs attention"
+                ],
+                "recommendations": [
+                    "Focus on customer retention",
+                    "Optimize operational processes",
+                    "Scale marketing efforts"
+                ]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 class BusinessOpportunity(BaseModel):
     opportunity_id: str
     title: str
