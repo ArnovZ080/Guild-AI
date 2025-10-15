@@ -23,6 +23,16 @@ router = APIRouter(
     tags=["Business CEO"],
 )
 
+async def get_current_user_optional(request: Request) -> Optional[models.User]:
+    """Get current user if authenticated, otherwise return None"""
+    try:
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return None
+        return None
+    except Exception:
+        return None
+
 @router.get("/ceo-snapshot")
 async def get_ceo_snapshot(
     current_user: Optional[models.User] = Depends(get_current_user_optional),
@@ -78,16 +88,6 @@ class ProactiveRecommendation(BaseModel):
     action_required: str
     timeline: str
     agents_to_coordinate: List[str]
-
-async def get_current_user_optional(request: Request) -> Optional[models.User]:
-    """Get current user if authenticated, otherwise return None"""
-    try:
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return None
-        return None
-    except Exception:
-        return None
 
 @router.get("/business-health-check/{user_id}")
 async def perform_business_health_check(
