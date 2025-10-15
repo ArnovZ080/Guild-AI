@@ -55,8 +55,8 @@ echo "🌐 API will be available at http://0.0.0.0:5000"
 # Add timeout and retry logic for startup
 echo "⏳ Starting application with timeout protection..."
 
-# The main application startup command with timeout
-timeout 60 uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1 --timeout-keep-alive 30
+# The main application startup command with timeout (increased to 180 seconds for database connections)
+timeout 180 uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1 --timeout-keep-alive 30
 
 # If timeout occurs, try again with minimal configuration
 if [ $? -eq 124 ]; then

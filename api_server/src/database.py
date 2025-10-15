@@ -77,7 +77,7 @@ database_url = get_database_url()
 print(f"Database URL: {database_url.replace(database_url.split('@')[0].split('://')[1] if '@' in database_url else 'password', '***')}")
 
 # Add connection retry logic with graceful fallback
-def create_engine_with_retry(url, max_retries=3):
+def create_engine_with_retry(url, max_retries=2):
     """Create engine with retry logic for connection failures"""
     for attempt in range(max_retries):
         try:
@@ -90,7 +90,7 @@ def create_engine_with_retry(url, max_retries=3):
                 max_overflow=10,     # Allow 10 extra connections beyond pool_size
                 pool_size=5,         # Base number of connections to maintain
                 connect_args={
-                    "connect_timeout": 30,  # Increase connection timeout
+                    "connect_timeout": 10,  # Reduce connection timeout for faster fallback
                     "application_name": "guild-ai-api"
                 }
             )
