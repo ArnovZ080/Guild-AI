@@ -10,7 +10,6 @@ import ReactFlow, {
   Connection,
   Edge,
   Node,
-  ReactFlowProvider,
   useReactFlow,
   Handle,
   Position,
@@ -2158,11 +2157,9 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                   </div>
                 </>
       )}
-    </div>
-          </div>
         </div>
       </div>
-    </ReactFlowProvider>
+    </div>
   );
 };
 
