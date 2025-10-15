@@ -1334,31 +1334,31 @@ async def process_chat_orchestration(
                             "data_sources": []
                         }
                     }
-           else:
-               # Use Gemini for ALL general conversations - no hardcoded responses
-               smart_response = await gemini_provider.generate_with_context(
-                   prompt=objective,
-                   business_context=business_context,
-                   task_type='chat',
-                   complexity='medium',
-                   user_tier='starter'
-               )
-               response = smart_response['text']
-               
-               return {
-                   "success": True,
-                   "message": response,
-                   "conversation_type": "general_chat",
-                   "model_used": smart_response.get('model', 'gemini-1.5-flash') if 'smart_response' in locals() else 'dynamic',
-                   "usage": smart_response.get('usage', {}) if 'smart_response' in locals() else {},
-                   "workflow_details": {
-                       "name": "General Conversation",
-                       "autonomous_level": "conversational",
-                       "total_agents": 1,
-                       "integrations_used": 0,
-                       "data_sources": []
-                   }
-               }
+                else:
+                    # Use Gemini for ALL general conversations - no hardcoded responses
+                    smart_response = await gemini_provider.generate_with_context(
+                        prompt=objective,
+                        business_context=business_context,
+                        task_type='chat',
+                        complexity='medium',
+                        user_tier='starter'
+                    )
+                    response = smart_response['text']
+                    
+                    return {
+                        "success": True,
+                        "message": response,
+                        "conversation_type": "general_chat",
+                        "model_used": smart_response.get('model', 'gemini-1.5-flash') if 'smart_response' in locals() else 'dynamic',
+                        "usage": smart_response.get('usage', {}) if 'smart_response' in locals() else {},
+                        "workflow_details": {
+                            "name": "General Conversation",
+                            "autonomous_level": "conversational",
+                            "total_agents": 1,
+                            "integrations_used": 0,
+                            "data_sources": []
+                        }
+                    }
                 
         except Exception as e:
             logger.error(f"Smart orchestration failed, falling back to basic response: {e}")
