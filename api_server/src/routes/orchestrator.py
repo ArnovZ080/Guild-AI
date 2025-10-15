@@ -1207,12 +1207,12 @@ async def process_chat_orchestration(
         
         # Use the comprehensive Guild orchestrator system for intelligent workflow creation
         try:
-        from guild.src.core.orchestrator import Orchestrator
+            from guild.src.core.orchestrator import Orchestrator
             from guild.src.models.user_input import UserInput
             
             # Create UserInput object for the guild orchestrator
-        user_input = UserInput(
-            objective=objective,
+            user_input = UserInput(
+                objective=objective,
                 additional_notes=additional_notes or "",
                 priority=priority,
                 deadline="flexible",
@@ -1222,28 +1222,28 @@ async def process_chat_orchestration(
             )
             
             # Initialize the comprehensive orchestrator
-        orchestrator = Orchestrator(user_input)
+            orchestrator = Orchestrator(user_input)
             
             # Generate the workflow DAG using the intelligent orchestrator
             workflow_dag = await orchestrator.generate_dag()
             
             if workflow_dag and not workflow_dag.get("error"):
                 # Create a workflow in the database
-        workflow_id = str(uuid.uuid4())
+                workflow_id = str(uuid.uuid4())
                 
-        db_workflow = models.Workflow(
-            id=workflow_id,
-            user_id=user_id,
+                db_workflow = models.Workflow(
+                    id=workflow_id,
+                    user_id=user_id,
                     status="created",
                     dag_definition=workflow_dag,
-            priority=priority
-        )
-        db.add(db_workflow)
-        db.commit()
+                    priority=priority
+                )
+                db.add(db_workflow)
+                db.commit()
 
-        return {
-            "success": True,
-            "workflow_id": workflow_id,
+                return {
+                    "success": True,
+                    "workflow_id": workflow_id,
                     "message": f"I've created a comprehensive workflow to: {objective}",
                     "conversation_type": "workflow_created",
                     "workflow_details": {
@@ -1254,10 +1254,10 @@ async def process_chat_orchestration(
                         "success_metrics": workflow_dag.get("success_metrics", []),
                         "autonomous_level": "intelligent"
                     },
-            "next_steps": [
+                    "next_steps": [
                         "Review the comprehensive workflow plan",
-                "Approve to start execution",
-                "Monitor progress in real-time"
+                        "Approve to start execution",
+                        "Monitor progress in real-time"
                     ]
                 }
                 
