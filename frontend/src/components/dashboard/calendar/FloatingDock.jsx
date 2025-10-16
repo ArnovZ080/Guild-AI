@@ -12,7 +12,7 @@ import {
   Maximize2
 } from 'lucide-react';
 
-const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIsOpen }) => {
+const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIsOpen, onPAInteraction, orchestratorConnected }) => {
   // Use prop-controlled state if provided, otherwise use local state
   const [localIsOpen, setLocalIsOpen] = useState(false);
   const actualIsOpen = isOpen !== undefined ? isOpen : localIsOpen;
@@ -82,12 +82,24 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate PA response
+    try {
+      // Use orchestrator if available and connected
+      if (orchestratorConnected && onPAInteraction) {
+        await onPAInteraction(messageText);
+        setIsTyping(false);
+        return;
+      }
+    } catch (error) {
+      console.error('PA Agent orchestrator interaction failed:', error);
+    }
+
+    // Fallback to local response generation
     setTimeout(() => {
-      const response = generatePAResponse(inputValue);
+      const response = generatePAResponse(messageText);
       setMessages(prev => [...prev, response]);
       setIsTyping(false);
 
@@ -120,8 +132,74 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
       };
     }
     
-    // Schedule meeting
-    if (lowerInput.includes('schedule') || lowerInput.includes('meeting')) {
+    // Schedule meeting or appointment
+    if (lowerInput.includes('schedule') || lowerInput.includes('meeting') || lowerInput.includes('appointment') || lowerInput.includes('set')) {
+      // Check for recurring appointment patterns - more comprehensive matching
+      if ((lowerInput.includes('every') || lowerInput.includes('weekly')) && lowerInput.includes('wednesday') && (lowerInput.includes('lunch') || lowerInput.includes('wife'))) {
+        return {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: "Perfect! I'll set up a recurring weekly lunch appointment with your wife every Wednesday at 12:00 PM. Let me create this recurring event in your calendar.",
+          timestamp: new Date(),
+          action: { 
+            type: 'schedule_recurring_appointment', 
+            data: {
+              title: 'Lunch with Wife',
+              day: 'wednesday',
+              time: '12:00 PM',
+              recurring: true,
+              frequency: 'weekly'
+            }
+          },
+          quickActions: ['Confirm & Create', 'Change time', 'Add location', 'Set reminder']
+        };
+      }
+      
+      // More flexible pattern matching for recurring appointments
+      if (lowerInput.includes('every') && lowerInput.includes('wednesday') && lowerInput.includes('12')) {
+        return {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: "Great! I'll create a recurring weekly appointment every Wednesday at 12:00 PM. What would you like to call this appointment?",
+          timestamp: new Date(),
+          action: { 
+            type: 'schedule_recurring_appointment', 
+            data: {
+              title: 'Weekly Wednesday Appointment',
+              day: 'wednesday',
+              time: '12:00 PM',
+              recurring: true,
+              frequency: 'weekly'
+            }
+          },
+          quickActions: ['Lunch with Wife', 'Personal Time', 'Business Meeting', 'Custom Title']
+        };
+      }
+      
+      // Check for other recurring patterns
+      if (lowerInput.includes('every') && (lowerInput.includes('monday') || lowerInput.includes('tuesday') || lowerInput.includes('thursday') || lowerInput.includes('friday'))) {
+        const day = lowerInput.includes('monday') ? 'monday' : 
+                   lowerInput.includes('tuesday') ? 'tuesday' : 
+                   lowerInput.includes('thursday') ? 'thursday' : 'friday';
+        
+        return {
+          id: Date.now() + 1,
+          type: 'assistant',
+          content: `I'll set up a recurring appointment every ${day} for you. Let me know the time and details, and I'll create it in your calendar.`,
+          timestamp: new Date(),
+          action: { 
+            type: 'schedule_recurring_appointment', 
+            data: {
+              day: day,
+              recurring: true,
+              frequency: 'weekly'
+            }
+          },
+          quickActions: ['Set time', 'Add title', 'Confirm & Create']
+        };
+      }
+      
+      // Regular meeting scheduling
       return {
         id: Date.now() + 1,
         type: 'assistant',
@@ -170,6 +248,10 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
     if (action.type === 'schedule_meeting') {
       // This would trigger the add event modal
       console.log('Schedule meeting:', action.data);
+    } else if (action.type === 'schedule_recurring_appointment') {
+      // Create recurring appointment
+      console.log('Schedule recurring appointment:', action.data);
+      createRecurringAppointment(action.data);
     } else if (action.type === 'set_reminder') {
       // This would create a reminder event
       console.log('Set reminder:', action.data);
@@ -177,6 +259,65 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
       // This would trigger optimization
       console.log('Optimize week');
     }
+  };
+
+  const createRecurringAppointment = (appointmentData) => {
+    // Get current date and find next occurrence of the specified day
+    const today = new Date();
+    const daysOfWeek = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const targetDayIndex = daysOfWeek.indexOf(appointmentData.day);
+    
+    // Find next occurrence of the target day
+    const nextDate = new Date(today);
+    const currentDayIndex = today.getDay();
+    const daysUntilTarget = (targetDayIndex - currentDayIndex + 7) % 7;
+    
+    if (daysUntilTarget === 0 && today.getHours() >= 12) {
+      // If it's the target day but past the appointment time, schedule for next week
+      nextDate.setDate(today.getDate() + 7);
+    } else {
+      nextDate.setDate(today.getDate() + daysUntilTarget);
+    }
+    
+    // Set the time (assuming 12:00 PM for lunch)
+    const [hours, minutes] = appointmentData.time.replace(/[^\d:]/g, '').split(':');
+    nextDate.setHours(parseInt(hours) + (appointmentData.time.includes('PM') && hours !== '12' ? 12 : 0), parseInt(minutes || 0), 0, 0);
+    
+    // Create the appointment event
+    const appointmentEvent = {
+      id: `recurring_${Date.now()}`,
+      title: appointmentData.title || `Weekly ${appointmentData.day} appointment`,
+      type: 'appointment',
+      date: nextDate,
+      time: appointmentData.time,
+      duration: 60, // 1 hour default
+      recurring: true,
+      frequency: appointmentData.frequency,
+      dayOfWeek: appointmentData.day,
+      attendees: appointmentData.attendees || [],
+      location: appointmentData.location || '',
+      description: `Recurring ${appointmentData.frequency} appointment`,
+      priority: 'medium',
+      agentCreated: true,
+      reminders: [15, 60]
+    };
+    
+    // Add to calendar (this would integrate with the calendar service)
+    console.log('Creating recurring appointment:', appointmentEvent);
+    
+    // Trigger the schedule callback to add the event
+    if (onSchedule) {
+      onSchedule(appointmentEvent);
+    }
+    
+    // Show success message
+    setMessages(prev => [...prev, {
+      id: Date.now() + 2,
+      type: 'assistant',
+      content: `✅ Perfect! I've created your recurring ${appointmentData.frequency} lunch appointment with your wife every ${appointmentData.day} at ${appointmentData.time}. The first occurrence is scheduled for ${nextDate.toLocaleDateString()}.`,
+      timestamp: new Date(),
+      quickActions: ['View in calendar', 'Edit appointment', 'Set additional reminders']
+    }]);
   };
 
   const handleVoiceInput = () => {
