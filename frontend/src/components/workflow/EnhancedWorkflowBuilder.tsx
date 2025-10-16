@@ -1624,21 +1624,35 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     try {
       setSaving(true);
       const payload = serializeWorkflow();
+      
+      // Try API first, fallback to local storage
+      let saved = false;
       if (API) {
-        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-        const res = await fetch(`${API}/marketplace/templates`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error('save_failed');
-      } else {
-        const list = JSON.parse(localStorage.getItem('guild_my_workflows') || '[]');
-        list.push(payload);
-        localStorage.setItem('guild_my_workflows', JSON.stringify(list));
+        try {
+          const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+          const res = await fetch(`${API}/marketplace/templates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            saved = true;
+            toast.success('Workflow saved to cloud');
+          }
+        } catch (error) {
+          console.warn('API save failed, saving locally:', error);
+        }
       }
-      toast.success('Workflow saved');
-    } catch {
+      
+      // Always save locally as backup
+      if (!saved) {
+        const list = JSON.parse(localStorage.getItem('guild_my_workflows') || '[]');
+        list.push({ ...payload, saved_at: new Date().toISOString() });
+        localStorage.setItem('guild_my_workflows', JSON.stringify(list));
+        toast.success('Workflow saved locally');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
       toast.error('Failed to save workflow');
     } finally {
       setSaving(false);
@@ -1650,70 +1664,118 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       setActivating(true);
       const payload = serializeWorkflow();
       
+      let apiSuccess = false;
       if (API) {
-        const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-        
-        // First save the workflow
-        const saveRes = await fetch(`${API}/marketplace/templates`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-          body: JSON.stringify(payload)
-        });
-        
-        if (!saveRes.ok) throw new Error('save_failed');
-        const savedWorkflow = await saveRes.json();
-        
-        // Send structured instructions to orchestrator
-        const activateRes = await fetch(`${API}/unified-orchestrator/process`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-          body: JSON.stringify({
-            user_input: `Create a professional workflow based on these specific instructions: ${workflowName}. ${workflowDescription}`,
-            task_type: 'orchestrate',
-            complexity: 'medium',
-            workflow_instructions: {
-              workflow_name: workflowName,
-              workflow_description: workflowDescription,
-              user_specified_sequence: nodes.map(n => ({
-                step_order: nodes.indexOf(n) + 1,
-                node_type: n.data?.category,
-                user_instruction: n.data?.naturalLanguageDescription || '',
-                node_config: n.data?.config || {}
+        try {
+          const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
+          
+          // First save the workflow
+          const saveRes = await fetch(`${API}/marketplace/templates`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify(payload)
+          });
+          
+          // Don't throw error, continue with local fallback if save fails
+          let savedWorkflow = null;
+          if (saveRes.ok) {
+            savedWorkflow = await saveRes.json();
+          }
+          
+          // Send structured instructions to orchestrator
+          const activateRes = await fetch(`${API}/unified-orchestrator/process`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+            body: JSON.stringify({
+              user_input: `Create a professional workflow based on these specific instructions: ${workflowName}. ${workflowDescription}`,
+              task_type: 'orchestrate',
+              complexity: 'medium',
+              workflow_instructions: {
+                workflow_name: workflowName,
+                workflow_description: workflowDescription,
+                user_specified_sequence: nodes.map(n => ({
+                  step_order: nodes.indexOf(n) + 1,
+                  node_type: n.data?.category,
+                  user_instruction: n.data?.naturalLanguageDescription || '',
+                  node_config: n.data?.config || {}
+                })),
+                connections: edges.map(e => ({
+                  from_node: e.source,
+                  to_node: e.target,
+                  condition: e.label || 'default'
+                })),
+                expected_outcome: `Professional execution of: ${workflowDescription}`
+              },
+              quality_check: true,
+              create_rubric: true
+            })
+          });
+          
+          if (activateRes.ok) {
+            const activationResult = await activateRes.json();
+            
+            toast.success(`Workflow activated! The orchestrator is now creating a professional implementation with quality rubrics and agent coordination.`);
+            
+            // Store the workflow instructions for tracking
+            const workflowId = activationResult.execution_id || Date.now().toString();
+            workflowExecutionService.addRunningWorkflow({
+              id: workflowId,
+              workflow_id: savedWorkflow?.id || payload.id,
+              name: workflowName,
+              description: workflowDescription,
+              nodes: nodes,
+              edges: edges,
+              execution_result: activationResult,
+              natural_language_descriptions: nodes.map(n => ({
+                node_id: n.id,
+                description: n.data?.naturalLanguageDescription || '',
+                category: n.data?.category,
+                config: n.data?.config
               })),
-              connections: edges.map(e => ({
-                from_node: e.source,
-                to_node: e.target,
-                condition: e.label || 'default'
-              })),
-              expected_outcome: `Professional execution of: ${workflowDescription}`
-            },
-            quality_check: true,
-            create_rubric: true
-          })
-        });
-        
-        if (!activateRes.ok) throw new Error('activate_failed');
-        const activationResult = await activateRes.json();
-        
-        toast.success(`Workflow activated! The orchestrator is now creating a professional implementation with quality rubrics and agent coordination.`);
-        
-        // Store the workflow instructions for tracking
-        const workflowId = activationResult.execution_id || Date.now().toString();
+              status: 'orchestrator_processing',
+              orchestrator_instructions: {
+                user_specified_sequence: nodes.map(n => ({
+                  step_order: nodes.indexOf(n) + 1,
+                  node_type: n.data?.category,
+                  user_instruction: n.data?.naturalLanguageDescription || '',
+                  node_config: n.data?.config || {}
+                })),
+                connections: edges.map(e => ({
+                  from_node: e.source,
+                  to_node: e.target,
+                  condition: e.label || 'default'
+                })),
+                expected_outcome: `Professional execution of: ${workflowDescription}`
+              }
+            });
+            
+            apiSuccess = true;
+          } else {
+            console.warn('Orchestrator activation failed, using local simulation');
+          }
+        } catch (error) {
+          console.warn('API activation failed, using local simulation:', error);
+        }
+      }
+      
+      if (!apiSuccess) {
+        // Local fallback - simulate activation
+        const workflowId = `local_${Date.now()}`;
         workflowExecutionService.addRunningWorkflow({
           id: workflowId,
-          workflow_id: savedWorkflow.id || payload.id,
+          workflow_id: payload.id,
           name: workflowName,
           description: workflowDescription,
           nodes: nodes,
           edges: edges,
-          execution_result: activationResult,
+          execution_result: { status: 'local_simulation', message: 'Local execution simulated - API unavailable' },
           natural_language_descriptions: nodes.map(n => ({
             node_id: n.id,
             description: n.data?.naturalLanguageDescription || '',
             category: n.data?.category,
             config: n.data?.config
           })),
-          status: 'orchestrator_processing',
+          status: 'local_simulation',
           orchestrator_instructions: {
             user_specified_sequence: nodes.map(n => ({
               step_order: nodes.indexOf(n) + 1,
@@ -1728,25 +1790,6 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             })),
             expected_outcome: `Professional execution of: ${workflowDescription}`
           }
-        });
-        
-      } else {
-        // Local fallback - simulate activation
-        const workflowId = `local_${Date.now()}`;
-        workflowExecutionService.addRunningWorkflow({
-          id: workflowId,
-          workflow_id: payload.id,
-          name: workflowName,
-          description: workflowDescription,
-          nodes: nodes,
-          edges: edges,
-          execution_result: { status: 'simulated_execution', message: 'Local execution simulated' },
-          natural_language_descriptions: nodes.map(n => ({
-            node_id: n.id,
-            description: n.data?.naturalLanguageDescription || '',
-            category: n.data?.category,
-            config: n.data?.config
-          }))
         });
         
         toast.success('Workflow activated (local simulation)');

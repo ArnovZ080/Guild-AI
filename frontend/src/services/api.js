@@ -288,6 +288,72 @@ class ApiService {
   }
 
   // Mock data methods for graceful fallback
+  getMockWorkflows() {
+    return [
+      {
+        id: 'demo_wf_1',
+        workflow_id: 'demo_wf_1',
+        name: 'Customer Onboarding Automation',
+        description: 'Automatically onboard new customers with personalized welcome sequence',
+        status: 'running',
+        type: 'autonomous',
+        progress: 75,
+        current_step: 'Sending welcome email sequence',
+        agents: ['Marketing Agent', 'Content Agent'],
+        agents_involved: ['Marketing Agent', 'Content Agent'],
+        actions: [
+          { step: 'Analyze customer profile', agent: 'Marketing Agent', status: 'completed' },
+          { step: 'Generate welcome content', agent: 'Content Agent', status: 'completed' },
+          { step: 'Send welcome email', agent: 'Marketing Agent', status: 'in-progress' }
+        ],
+        metrics: {
+          customersProcessed: 142,
+          successRate: 94
+        }
+      },
+      {
+        id: 'demo_wf_2',
+        workflow_id: 'demo_wf_2',
+        name: 'Lead Qualification Pipeline',
+        description: 'Automatically qualify and score incoming leads',
+        status: 'completed',
+        type: 'autonomous',
+        progress: 100,
+        current_step: 'Completed',
+        agents: ['Sales Agent', 'Analytics Agent'],
+        agents_involved: ['Sales Agent', 'Analytics Agent'],
+        actions: [
+          { step: 'Score lead quality', agent: 'Analytics Agent', status: 'completed' },
+          { step: 'Assign to sales rep', agent: 'Sales Agent', status: 'completed' }
+        ],
+        metrics: {
+          leadsProcessed: 89,
+          qualificationRate: 87
+        }
+      },
+      {
+        id: 'demo_wf_3',
+        workflow_id: 'demo_wf_3',
+        name: 'Content Calendar Automation',
+        description: 'Generate and schedule social media content',
+        status: 'paused',
+        type: 'autonomous',
+        progress: 45,
+        current_step: 'Creating content calendar',
+        agents: ['Content Agent', 'Social Media Agent'],
+        agents_involved: ['Content Agent', 'Social Media Agent'],
+        actions: [
+          { step: 'Research trending topics', agent: 'Content Agent', status: 'completed' },
+          { step: 'Generate content ideas', agent: 'Content Agent', status: 'in-progress' }
+        ],
+        metrics: {
+          postsScheduled: 23,
+          avgEngagement: 12
+        }
+      }
+    ];
+  }
+
   getMockAgentStatus() {
     return {
       agents: {
