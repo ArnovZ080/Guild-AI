@@ -870,20 +870,38 @@ const AgentsView = () => {
   // Load workflows with polling fallback
   useEffect(() => {
     let timer;
+    let isMounted = true;
+    
     async function loadWorkflows() {
+      if (!isMounted) return;
+      
       try {
         setWfLoading(true);
         const list = await apiService.getAllWorkflows();
-        if (Array.isArray(list)) setWorkflows(list);
+        if (Array.isArray(list) && isMounted) {
+          setWorkflows(list);
+          setWfError(null);
+        }
       } catch (e) {
-        setWfError('Failed to load workflows');
+        if (isMounted) {
+          console.warn('Failed to load workflows:', e);
+          setWfError('Failed to load workflows');
+        }
       } finally {
-        setWfLoading(false);
+        if (isMounted) {
+          setWfLoading(false);
+        }
       }
     }
+    
     loadWorkflows();
-    timer = setInterval(loadWorkflows, 10000);
-    return () => clearInterval(timer);
+    // Reduced polling frequency to prevent constant resets
+    timer = setInterval(loadWorkflows, 30000); // Changed from 10s to 30s
+    
+    return () => {
+      isMounted = false;
+      clearInterval(timer);
+    };
   }, []);
 
   // WebSocket stream for workflows with reconnect and schema unification
@@ -931,8 +949,9 @@ const AgentsView = () => {
         ws.onerror = () => {};
         ws.onclose = () => {
           if (shouldReconnect) {
+            // Increased retry delay to reduce connection attempts
             setTimeout(connect, retryMs);
-            retryMs = Math.min(retryMs * 2, 30000);
+            retryMs = Math.min(retryMs * 2, 60000); // Max 60s instead of 30s
           }
         };
       } catch {

@@ -2158,6 +2158,27 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                 </>
               )}
             </div>
+
+            {/* Main Canvas Area */}
+            <div className="flex-1 relative">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onInit={setReactFlowInstance}
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                nodeTypes={ENHANCED_NODE_TYPES}
+                fitView
+                attributionPosition="bottom-left"
+              >
+                <Controls />
+                <MiniMap />
+                <Background variant="dots" gap={12} size={1} />
+              </ReactFlow>
+            </div>
           </div>
         </div>
       </div>
