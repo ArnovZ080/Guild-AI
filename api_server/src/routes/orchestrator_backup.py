@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 import logging
 import asyncio
 import uuid
-import json
 
 from .auth_firebase import get_current_user
 from .. import models
@@ -1286,68 +1285,76 @@ async def process_chat_orchestration(
             # Determine if this is a workflow request or general conversation
             lower_objective = objective.lower()
             
-            # SIMPLIFIED: Let Gemini decide what to do instead of complex logic
-            # Remove the simple_questions blocking logic that was preventing workflows
+            # Check if this is a simple question that needs clarification first
+            simple_questions = [
+                'can you create content', 'what can you do', 'how can you help',
+                'what is guild about', 'tell me about guild', 'what are you',
+                'do you create content', 'can you help with content', 'how is it going',
+                'how are you', 'what\'s up', 'hello', 'hi', 'hey'
+            ]
             
-            # Use Gemini for ALL responses - let AI decide what to do
-            system_context = f"""You are Guild AI, a Fortune 500-level business orchestrator with access to 115+ specialized agents.
-
-User's Business Context:
-{json.dumps(business_context, indent=2) if business_context else 'No business context available yet'}
-
-Your Capabilities:
-- Coordinate 115+ specialized agents (content creators, marketers, analysts, etc.)
-- Connect to 40+ platforms (CRMs, social media, accounting, etc.)
-- Create autonomous workflows that execute complex business tasks
-- Provide strategic business mentorship
-
-Instructions:
-1. For greetings/casual chat: Be friendly, warm, and introduce your capabilities
-2. For vague requests: Ask 2-3 specific clarifying questions to understand their needs
-3. For specific requests: Acknowledge and explain what you'll do, then provide next steps
-4. Always be conversational and helpful - you're their business partner, not a robot
-
-User Request: {objective}
-
-Respond naturally and helpfully."""
-
-            smart_response = await gemini_provider.generate_with_context(
-                prompt=system_context,
-                business_context=business_context,
-                task_type='business_orchestration',
-                complexity='medium',
-                user_tier='starter'
-            )
+            is_simple_question = any(question in lower_objective for question in simple_questions)
             
-            response_text = smart_response['text']
+            # Only consider it a workflow request if it's detailed and specific
+            workflow_keywords = [
+                'create', 'build', 'generate', 'develop', 'make', 'plan', 'strategy',
+                'campaign', 'workflow', 'process', 'automate', 'system', 'setup'
+            ]
             
-            # Detect if this is asking for workflow execution
-            should_create_workflow = any(phrase in objective.lower() for phrase in [
-                'create', 'build', 'make', 'generate', 'develop', 'write',
-                'launch', 'start', 'set up', 'schedule', 'post', 'publish'
-            ])
+            # Check if this is a workflow request (contains workflow keywords AND is not a simple question)
+            has_workflow_keywords = any(keyword in lower_objective for keyword in workflow_keywords)
+            is_workflow_request = has_workflow_keywords and not is_simple_question
             
-            response_data = {
-                "success": True,
-                "message": response_text,
-                "conversation_type": "intelligent_orchestration",
-                "model_used": smart_response.get('model', 'gemini-1.5-flash'),
-                "workflow_details": {
-                    "name": "Intelligent Conversation",
-                    "autonomous_level": "conversational",
-                    "total_agents": 0,
-                    "integrations_used": 0,
-                    "data_sources": []
-                }
-            }
-            
-            # If user is asking to CREATE something specific, note that
-            if should_create_workflow:
-                response_data["workflow_details"]["autonomous_level"] = "ready_to_execute"
-                response_data["workflow_details"]["total_agents"] = 5  # Estimate
-                response_data["message"] += "\n\n💡 **Ready to execute?** Just say 'yes, go ahead' or 'start now' and I'll begin creating this for you!"
-            
-            return response_data
+            if is_workflow_request:
+                # This is a workflow request - implement intelligent conversation flow
+                return await handle_workflow_request(
+                    objective, user_id, business_context, audience, additional_notes, priority, db
+                )
+            else:
+                # For general conversation, use Gemini with business context
+                # But handle content creation questions specially
+                if 'content' in lower_objective and ('create' in lower_objective or 'help' in lower_objective):
+                    # This is a content creation question - ask clarifying questions
+                    clarifying_response = f"Hey {user_name}! Absolutely, I can help you create amazing content! 🎨\n\nTo create the perfect content for you, I'd love to know:\n\n• **What type of content?** (blog posts, social media, videos, emails, ads, etc.)\n• **Which platforms?** (LinkedIn, Instagram, TikTok, YouTube, email, etc.)\n• **How many pieces?** (single post, weekly series, monthly campaign, etc.)\n• **What's the goal?** (brand awareness, lead generation, sales, engagement, etc.)\n• **Target audience?** (same as your business customers or different?)\n\nOnce I know these details, I'll coordinate our specialized content agents to create exactly what you need! ✨"
+                    
+                    return {
+                        "success": True,
+                        "message": clarifying_response,
+                        "conversation_type": "clarification_needed",
+                        "needs_clarification": True,
+                        "workflow_details": {
+                            "name": "Content Creation Clarification",
+                            "autonomous_level": "conversational",
+                            "total_agents": 0,
+                            "integrations_used": 0,
+                            "data_sources": []
+                        }
+                    }
+                else:
+                    # Use Gemini for ALL general conversations - no hardcoded responses
+                    smart_response = await gemini_provider.generate_with_context(
+                        prompt=objective,
+                        business_context=business_context,
+                        task_type='chat',
+                        complexity='medium',
+                        user_tier='starter'
+                    )
+                    response = smart_response['text']
+                    
+                    return {
+                        "success": True,
+                        "message": response,
+                        "conversation_type": "general_chat",
+                        "model_used": smart_response.get('model', 'gemini-1.5-flash') if 'smart_response' in locals() else 'dynamic',
+                        "usage": smart_response.get('usage', {}) if 'smart_response' in locals() else {},
+                        "workflow_details": {
+                            "name": "General Conversation",
+                            "autonomous_level": "conversational",
+                            "total_agents": 1,
+                            "integrations_used": 0,
+                            "data_sources": []
+                        }
+                    }
                 
         except Exception as e:
             logger.error(f"Smart orchestration failed, falling back to basic response: {e}")
