@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import workflowExecutionService from '../../services/WorkflowExecutionService.js';
 
 // Workflow Modes
 type WorkflowMode = 'ai' | 'hybrid' | 'prebuilt';
@@ -1648,20 +1649,88 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     try {
       setActivating(true);
       const payload = serializeWorkflow();
+      
       if (API) {
         const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-        const res = await fetch(`${API}/agents/workflows/activate`, {
+        
+        // First save the workflow
+        const saveRes = await fetch(`${API}/marketplace/templates`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error('activate_failed');
+        
+        if (!saveRes.ok) throw new Error('save_failed');
+        const savedWorkflow = await saveRes.json();
+        
+        // Then activate it through the orchestrator
+        const activateRes = await fetch(`${API}/unified-orchestrator/workflow/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+          body: JSON.stringify({
+            workflow_id: savedWorkflow.id || payload.id,
+            user_input: `Execute the workflow: ${workflowName}. ${workflowDescription}`,
+            parameters: {
+              nodes: nodes,
+              edges: edges,
+              natural_language_descriptions: nodes.map(n => ({
+                node_id: n.id,
+                description: n.data?.naturalLanguageDescription || '',
+                category: n.data?.category,
+                config: n.data?.config
+              }))
+            },
+            quality_check: true
+          })
+        });
+        
+        if (!activateRes.ok) throw new Error('activate_failed');
+        const activationResult = await activateRes.json();
+        
+        toast.success(`Workflow activated! Execution ID: ${activationResult.execution_id || 'N/A'}`);
+        
+        // Store the running workflow for tracking
+        const workflowId = activationResult.execution_id || Date.now().toString();
+        workflowExecutionService.addRunningWorkflow({
+          id: workflowId,
+          workflow_id: savedWorkflow.id || payload.id,
+          name: workflowName,
+          description: workflowDescription,
+          nodes: nodes,
+          edges: edges,
+          execution_result: activationResult,
+          natural_language_descriptions: nodes.map(n => ({
+            node_id: n.id,
+            description: n.data?.naturalLanguageDescription || '',
+            category: n.data?.category,
+            config: n.data?.config
+          }))
+        });
+        
       } else {
-        // local no-op; could queue activation intent
+        // Local fallback - simulate activation
+        const workflowId = `local_${Date.now()}`;
+        workflowExecutionService.addRunningWorkflow({
+          id: workflowId,
+          workflow_id: payload.id,
+          name: workflowName,
+          description: workflowDescription,
+          nodes: nodes,
+          edges: edges,
+          execution_result: { status: 'simulated_execution', message: 'Local execution simulated' },
+          natural_language_descriptions: nodes.map(n => ({
+            node_id: n.id,
+            description: n.data?.naturalLanguageDescription || '',
+            category: n.data?.category,
+            config: n.data?.config
+          }))
+        });
+        
+        toast.success('Workflow activated (local simulation)');
       }
-      toast.success('Workflow activated');
-    } catch {
-      toast.error('Failed to activate workflow');
+    } catch (error) {
+      console.error('Activation error:', error);
+      toast.error(`Failed to activate workflow: ${error.message}`);
     } finally {
       setActivating(false);
     }
