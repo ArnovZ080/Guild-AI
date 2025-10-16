@@ -117,7 +117,7 @@ async def startup_event():
 
 # Import routes (with error handling)
 try:
-    from .routes import agents, oauth, document_processing, auth, subscription, credits
+    from .routes import agents, oauth, document_processing, auth_firebase as auth, subscription, credits
     from .routes import execution_layer, connectors, onboarding, workspace, orchestrator, quality_control, business_intelligence, waitlist
     from .routes import agents_available, analytics, health
     from .routes import business_ceo, executive_coordination
@@ -132,59 +132,63 @@ try:
     from .routes import calendar
     from .routes import calendar_oauth
     from .routes import customer_intelligence
+    from .routes import dashboard_endpoints
+    # Include routers only if imports succeeded
+    app.include_router(agents.router)
+    app.include_router(oauth.router)
+    app.include_router(document_processing.router)
+    app.include_router(auth.router)
+    app.include_router(subscription.router)
+    app.include_router(credits.router)
+    app.include_router(execution_layer.router)
+    app.include_router(connectors.router)
+    app.include_router(onboarding.router)
+    app.include_router(waitlist.router)
+    app.include_router(orchestrator.router)
+    app.include_router(quality_control.router)
+    app.include_router(business_intelligence.router)
+    app.include_router(workspace.router)
+    app.include_router(agents_available.router)
+    app.include_router(analytics.router)
+    app.include_router(health.router)
+    app.include_router(business_ceo.router)
+    app.include_router(executive_coordination.router)
+    app.include_router(settings_routes.router)
+    app.include_router(notifications_routes.router)
+    app.include_router(geocode_routes.router)
+    # WS routers
+    app.include_router(content_ws.router)
+    app.include_router(workflow_websocket.router)
+    # Business profile and content intelligence routes
+    app.include_router(profile.router)
+    app.include_router(content.router)
+    # Batch A: campaign-related agent endpoints
+    app.include_router(campaign_agents.router)
+    # Asset generation agents (image, video, editing)
+    app.include_router(asset_agents.router)
+    # Conversations aggregation endpoints
+    app.include_router(conversations.router)
+    # Customer intelligence endpoints
+    app.include_router(customer_intelligence.router)
+    # Goals router
+    from .routes import goals
+    app.include_router(goals.router)
+    # Achievements router
+    from .routes import achievements
+    app.include_router(achievements.router)
+    # Growth opportunities router
+    app.include_router(growth_opportunities.router)
+    # Calendar router
+    app.include_router(calendar.router)
+    app.include_router(calendar_oauth.router)
+    # Dashboard endpoints (social, financial, marketing)
+    app.include_router(dashboard_endpoints.router)
+    
     ROUTES_AVAILABLE = True
+    logger.info("✅ All routes imported and registered successfully")
 except Exception as e:
     logger.error(f"Route imports failed: {e}")
     ROUTES_AVAILABLE = False
-
-# Include routers
-app.include_router(agents.router)
-app.include_router(oauth.router)
-app.include_router(document_processing.router)
-app.include_router(auth.router)
-app.include_router(subscription.router)
-app.include_router(credits.router)
-app.include_router(execution_layer.router)
-app.include_router(connectors.router)
-app.include_router(onboarding.router)
-app.include_router(waitlist.router)
-app.include_router(orchestrator.router)
-app.include_router(quality_control.router)
-app.include_router(business_intelligence.router)
-app.include_router(workspace.router)
-app.include_router(agents_available.router)
-app.include_router(analytics.router)
-app.include_router(health.router)
-app.include_router(business_ceo.router)
-app.include_router(executive_coordination.router)
-app.include_router(settings_routes.router)
-app.include_router(notifications_routes.router)
-app.include_router(geocode_routes.router)
-# WS routers
-app.include_router(content_ws.router)
-app.include_router(workflow_websocket.router)
-# Business profile and content intelligence routes
-app.include_router(profile.router)
-app.include_router(content.router)
-# Batch A: campaign-related agent endpoints
-app.include_router(campaign_agents.router)
-# Asset generation agents (image, video, editing)
-app.include_router(asset_agents.router)
-# Conversations aggregation endpoints
-app.include_router(conversations.router)
-# Customer intelligence endpoints
-app.include_router(customer_intelligence.router)
-# Goals router
-from .routes import goals
-app.include_router(goals.router)
-# Achievements router
-from .routes import achievements
-app.include_router(achievements.router)
-# Growth opportunities router
-app.include_router(growth_opportunities.router)
-# Calendar router
-app.include_router(calendar.router)
-app.include_router(calendar_oauth.router)
 # Serve uploads directory for profile assets
 import os
 uploads_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "uploads"))
@@ -220,6 +224,13 @@ if os.path.exists(frontend_dist):
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
 else:
     logger.warning(f"Frontend dist directory not found: {frontend_dist}")
+    # Also check build directory as fallback
+    frontend_build = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "build"))
+    if os.path.exists(frontend_build):
+        logger.info(f"Serving frontend from build directory: {frontend_build}")
+        app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
+    else:
+        logger.warning(f"Frontend build directory not found: {frontend_build}")
     
     @app.get("/")
     async def root_fallback():

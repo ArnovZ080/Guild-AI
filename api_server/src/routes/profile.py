@@ -65,6 +65,49 @@ async def put_profile(profile: BusinessProfile):
     _PROFILE_STORE.update({k: v for k, v in profile.dict().items() if v is not None})
     return {"success": True, "data": _PROFILE_STORE}
 
+
+@router.post("/create-profile")
+async def create_profile(profile: BusinessProfile):
+    """Create a new business profile"""
+    try:
+        # Initialize profile with provided data
+        profile_data = profile.dict()
+        _PROFILE_STORE.update({k: v for k, v in profile_data.items() if v is not None})
+        
+        # Set default values if not provided
+        if "created_at" not in _PROFILE_STORE:
+            _PROFILE_STORE["created_at"] = datetime.utcnow().isoformat()
+        if "updated_at" not in _PROFILE_STORE:
+            _PROFILE_STORE["updated_at"] = datetime.utcnow().isoformat()
+            
+        return {
+            "success": True, 
+            "data": _PROFILE_STORE,
+            "message": "Profile created successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create profile: {str(e)}")
+
+
+@router.post("/save")
+async def save_profile(profile: BusinessProfile):
+    """Save/update business profile"""
+    try:
+        # Update profile with provided data
+        profile_data = profile.dict()
+        _PROFILE_STORE.update({k: v for k, v in profile_data.items() if v is not None})
+        
+        # Update timestamp
+        _PROFILE_STORE["updated_at"] = datetime.utcnow().isoformat()
+        
+        return {
+            "success": True, 
+            "data": _PROFILE_STORE,
+            "message": "Profile saved successfully"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save profile: {str(e)}")
+
 @router.post("/profile/avatar")
 async def upload_avatar(file: UploadFile = File(...)):
     try:

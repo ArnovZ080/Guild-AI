@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SidebarNav } from '../navigation/SidebarNav.jsx';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext.jsx';
-import { cn } from '../../lib/utils';
+import { cn } from '@/utils';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import { Menu, LogOut, User } from 'lucide-react';

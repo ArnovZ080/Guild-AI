@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cn } from "../../lib/utils.js"
+import { cn } from "@/utils"
 
 const Dialog = ({ children, open, onOpenChange, ...props }) => {
   // If open is false, don't render anything

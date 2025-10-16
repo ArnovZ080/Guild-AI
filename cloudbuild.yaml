@@ -107,7 +107,7 @@ steps:
         sleep 5
         
         # Create database if it doesn't exist
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'workflow_db'" | grep -q 1 ||         PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE workflow_db"
+        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'workflow_db'" | grep -q 1 || PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE workflow_db"
         
         # Add firebase_uid column if it doesn't exist
         PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"

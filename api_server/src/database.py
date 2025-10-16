@@ -86,13 +86,14 @@ def create_engine_with_retry(url, max_retries=2):
                 echo=False,  # Disable SQL logging for production
                 pool_pre_ping=True,  # Verify connections before use
                 pool_recycle=3600,   # Recycle connections every hour
-                pool_timeout=30,     # Timeout for getting connection from pool
-                max_overflow=10,     # Allow 10 extra connections beyond pool_size
-                pool_size=5,         # Base number of connections to maintain
+                pool_timeout=10,     # Reduce timeout for faster fallback
                 connect_args={
-                    "connect_timeout": 10,  # Reduce connection timeout for faster fallback
+                    "connect_timeout": 60,  # Increase connection timeout to 60 seconds
                     "application_name": "guild-ai-api"
-                }
+                },
+                max_overflow=5,      # Reduce overflow connections
+                pool_size=3,         # Reduce base connections for faster startup
+                pool_reset_on_return='commit'  # Reset connections on return
             )
             
             # Test the connection

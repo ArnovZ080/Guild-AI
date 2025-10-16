@@ -6,7 +6,7 @@ import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.j
 import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
-import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService.js';
+import UnifiedOrchestratorService from '../../services/UnifiedOrchestratorService.js';
 import WorkflowTransparencyModal from '../dashboard/modals/WorkflowTransparencyModal.jsx';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
@@ -20,6 +20,9 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [activeWorkflows, setActiveWorkflows] = useState([]);
   const [showTransparency, setShowTransparency] = useState(null);
   const [systemCapabilities, setSystemCapabilities] = useState(null);
+  
+  // Initialize Unified Orchestrator Service
+  const [orchestratorService] = useState(() => new UnifiedOrchestratorService());
   
   const [messages, setMessages] = useState(() => {
     if (hasCompletedOnboarding && onboardingData) {
@@ -274,14 +277,18 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       let actions = [];
       let workflowData = null;
 
-      const orchestrationResult = await enhancedOrchestratorService.processChatOrchestration(
-        messageText,
-        userId,
-        { priority: 'medium' }
-      );
+      const orchestrationResult = await orchestratorService.processRequest({
+        user_input: messageText,
+        task_type: 'chat',
+        complexity: 'medium',
+        context: {
+          user_id: userId,
+          priority: 'medium'
+        }
+      });
 
       if (orchestrationResult?.success) {
-        responseContent = orchestrationResult.message || "✅ I've processed your request.";
+        responseContent = orchestrationResult.response || "✅ I've processed your request.";
         
         // Handle different conversation types
         if (orchestrationResult.conversation_type === 'clarification_needed') {
@@ -352,10 +359,23 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       setMessages(prev => [...prev, assistantMessage]);
 
     } catch (err) {
+      console.error('Orchestrator error:', err);
+      
+      // Provide intelligent fallback responses for common greetings
+      let fallbackContent = "";
+      if (messageText.toLowerCase().includes('hello') || 
+          messageText.toLowerCase().includes('hey') || 
+          messageText.toLowerCase().includes('hi') ||
+          messageText.toLowerCase().includes('how are you')) {
+        fallbackContent = "Hello! I'm doing great, thank you for asking! I'm your AI business orchestrator, ready to help you with any business tasks. I can coordinate our specialized agents to handle content creation, business growth strategies, financial analysis, and much more. What would you like to work on today?";
+      } else {
+        fallbackContent = `I apologize, but I encountered an issue connecting to our orchestrator: ${err.message}\n\nLet me try a different approach. Can you provide a bit more detail about what you'd like to accomplish?`;
+      }
+      
       const errorMessage = {
         id: (Date.now() + 2).toString(),
         type: 'assistant',
-        content: `I apologize, but I encountered an issue: ${err.message}\n\nLet me try a different approach. Can you provide a bit more detail about what you'd like to accomplish?`,
+        content: fallbackContent,
         timestamp: new Date(),
         actions: ['🔄 Try Again', '📞 Get Help'],
         agentId: 'support'

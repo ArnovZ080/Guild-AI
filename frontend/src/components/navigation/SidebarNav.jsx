@@ -16,7 +16,7 @@ import {
   Brain
 } from 'lucide-react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
-import { cn } from '../../lib/utils';
+import { cn } from '@/utils';
 import { loadConversations } from '../../services/conversationsStore.js';
 import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
 
