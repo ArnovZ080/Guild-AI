@@ -196,11 +196,15 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   
   // Auto-archive conversation when component unmounts (user navigates away)
   useEffect(() => {
+    let hasArchived = false;
+    
     return () => {
       // Only archive if there are meaningful messages (more than just the welcome message)
-      if (messages && messages.length > 1) {
+      // and we haven't already archived this conversation
+      if (!hasArchived && messages && messages.length > 1) {
         const hasUserMessages = messages.some(m => m.type === 'user');
         if (hasUserMessages) {
+          hasArchived = true;
           archiveThread(messages);
         }
       }
