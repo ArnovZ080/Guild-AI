@@ -533,7 +533,7 @@ Would you like me to help you work through any of these specific areas?`;
       // Approve and execute workflow
       if (message.workflowData?.workflow_id) {
         try {
-          const response = await enhancedOrchestratorService.approveWorkflow(message.workflowData.workflow_id);
+          const response = await orchestratorService.approveWorkflow(message.workflowData.workflow_id);
           if (response.success) {
             // Add success message
             const successMessage = {
@@ -584,7 +584,7 @@ Would you like me to help you work through any of these specific areas?`;
   // Load system capabilities on mount
   useEffect(() => {
     const loadCapabilities = async () => {
-      const result = await enhancedOrchestratorService.getSystemCapabilities();
+      const result = await orchestratorService.getSystemCapabilities();
       if (result.success) {
         setSystemCapabilities(result);
       }
@@ -865,7 +865,7 @@ Would you like me to help you work through any of these specific areas?`;
             workflowId={showTransparency}
             workflowData={{}}  // Would be loaded from API
             onRefreshWorkflow={async (wfId) => {
-              const status = await enhancedOrchestratorService.getWorkflowStatus(wfId);
+              const status = await orchestratorService.getWorkflowStatus(wfId);
               return status;
             }}
           />

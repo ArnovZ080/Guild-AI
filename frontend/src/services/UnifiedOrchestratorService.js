@@ -6,7 +6,7 @@
 
 class UnifiedOrchestratorService {
   constructor() {
-    this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     this.apiPrefix = '/api/unified-orchestrator';
     this.requestTimeout = 5000; // 5 seconds for fast responses
     this.complexRequestTimeout = 30000; // 30 seconds for complex orchestration
