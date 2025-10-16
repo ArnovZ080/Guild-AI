@@ -377,7 +377,8 @@ const DocumentsView = () => {
     }
     if (selectedDocument) {
       poll();
-      timerId = setInterval(poll, 3000);
+      // Polling disabled to prevent page resets
+      // timerId = setInterval(poll, 3000);
     }
     return () => { if (timerId) clearInterval(timerId); };
   }, [selectedDocument]);

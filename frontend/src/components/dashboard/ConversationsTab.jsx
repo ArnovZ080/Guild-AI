@@ -38,14 +38,14 @@ const ConversationsTab = () => {
     fetchConversations();
   }, []);
 
-  // optional auto-refresh every 30s for near real-time updates
+  // Polling disabled to prevent page resets
   const refreshTimer = useRef(null);
   useEffect(() => {
     // clear any previous
     if (refreshTimer.current) clearInterval(refreshTimer.current);
-    refreshTimer.current = setInterval(() => {
-      fetchConversations();
-    }, 30000);
+    // refreshTimer.current = setInterval(() => {
+    //   fetchConversations();
+    // }, 30000);
     return () => {
       if (refreshTimer.current) clearInterval(refreshTimer.current);
     };

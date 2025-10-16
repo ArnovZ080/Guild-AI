@@ -46,9 +46,10 @@ const WorkflowTransparencyModal = ({
   useEffect(() => {
     let interval;
     if (realTimeUpdates && workflowId) {
-      interval = setInterval(() => {
-        onRefreshWorkflow?.(workflowId);
-      }, 2000);
+      // Polling disabled to prevent page resets
+      // interval = setInterval(() => {
+      //   onRefreshWorkflow?.(workflowId);
+      // }, 2000);
     }
     return () => clearInterval(interval);
   }, [realTimeUpdates, workflowId, onRefreshWorkflow]);

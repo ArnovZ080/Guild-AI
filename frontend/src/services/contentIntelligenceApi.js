@@ -1675,9 +1675,9 @@ export const useActiveCampaigns = () => {
 
   useEffect(() => {
     fetchCampaigns();
-    // Refresh every 5 minutes for campaign data
-    const interval = setInterval(fetchCampaigns, 300000);
-    return () => clearInterval(interval);
+    // Polling disabled to prevent page resets
+    // const interval = setInterval(fetchCampaigns, 300000);
+    // return () => clearInterval(interval);
   }, [fetchCampaigns]);
 
   return { campaigns, loading, error, refetch: fetchCampaigns };

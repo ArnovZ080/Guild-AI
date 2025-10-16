@@ -51,9 +51,9 @@ export const useAgentStatus = () => {
 
   useEffect(() => {
     fetchAgentStatus();
-    // Refresh agent status every 30 seconds
-    const interval = setInterval(fetchAgentStatus, 30000);
-    return () => clearInterval(interval);
+    // Polling disabled to prevent page resets
+    // const interval = setInterval(fetchAgentStatus, 30000);
+    // return () => clearInterval(interval);
   }, [fetchAgentStatus]);
 
   return { agents, loading, error, refetch: fetchAgentStatus };

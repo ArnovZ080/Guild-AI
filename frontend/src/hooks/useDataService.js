@@ -87,12 +87,12 @@ export const useRealtimeData = (dataType, initialData = null) => {
       setData(newData);
     });
 
-    // Set up periodic refresh (fallback for when WebSocket is not available)
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    // Polling disabled to prevent page resets
+    // const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
 
     return () => {
       unsubscribe();
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, [dataType, fetchData]);
 

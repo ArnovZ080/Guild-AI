@@ -538,9 +538,9 @@ export const useCustomerAnalysis = () => {
 
   useEffect(() => {
     fetchAnalysis();
-    // Refresh every 20 minutes for customer data
-    const interval = setInterval(fetchAnalysis, 1200000);
-    return () => clearInterval(interval);
+    // Polling disabled to prevent page resets
+    // const interval = setInterval(fetchAnalysis, 1200000);
+    // return () => clearInterval(interval);
   }, [fetchAnalysis]);
 
   return { 
