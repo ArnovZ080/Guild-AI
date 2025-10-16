@@ -53,10 +53,11 @@ const WorkflowStatusPage = () => {
     };
 
     fetchData(); // Initial fetch
-    const intervalRef = React.useRef();
-    intervalRef.current = setInterval(fetchData, 5000); // Poll every 5 seconds
+    // Polling disabled to prevent page resets
+    // const intervalRef = React.useRef();
+    // intervalRef.current = setInterval(fetchData, 5000); // Poll every 5 seconds
 
-    return () => clearInterval(intervalRef.current);
+    // return () => clearInterval(intervalRef.current);
   }, [workflowId]);
 
   if (loading) {

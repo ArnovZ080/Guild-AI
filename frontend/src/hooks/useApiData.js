@@ -82,9 +82,9 @@ export const useWorkflows = () => {
 
   useEffect(() => {
     fetchWorkflows();
-    // Refresh workflows every 60 seconds
-    const interval = setInterval(fetchWorkflows, 60000);
-    return () => clearInterval(interval);
+    // Polling removed to prevent page resets during workflow building
+    // const interval = setInterval(fetchWorkflows, 60000);
+    // return () => clearInterval(interval);
   }, [fetchWorkflows]);
 
   return { workflows, loading, error, refetch: fetchWorkflows };

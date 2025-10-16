@@ -195,8 +195,9 @@ const MarketingCampaignCreator = ({ apiBaseUrl, onCreated, initialObjective = ''
 
     useEffect(() => {
         if (view === 'monitoring') {
-            const interval = setInterval(pollWorkflowStatus, 3000); // Poll every 3 seconds
-            return () => clearInterval(interval);
+            // Polling disabled to prevent page resets
+            // const interval = setInterval(pollWorkflowStatus, 3000); // Poll every 3 seconds
+            // return () => clearInterval(interval);
         }
     }, [view, pollWorkflowStatus]);
 
