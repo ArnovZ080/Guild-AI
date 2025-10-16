@@ -234,6 +234,99 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
       };
     }
     
+    // Confirmation responses
+    if (lowerInput.includes('confirm') && lowerInput.includes('create')) {
+      return {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: "Excellent! I've confirmed and created your appointment. The recurring lunch appointment with your wife every Wednesday at 12:00 PM is now active in your calendar.",
+        timestamp: new Date(),
+        action: { 
+          type: 'confirm_appointment_creation',
+          data: {
+            title: 'Lunch with Wife',
+            day: 'wednesday',
+            time: '12:00 PM',
+            recurring: true,
+            frequency: 'weekly'
+          }
+        },
+        quickActions: ['View in calendar', 'Set reminder', 'Add location', 'Edit appointment']
+      };
+    }
+    
+    // Quick action responses
+    if (lowerInput.includes('change time')) {
+      return {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: "What time would you prefer for your weekly Wednesday lunch with your wife? Just let me know the new time and I'll update the appointment.",
+        timestamp: new Date(),
+        quickActions: ['12:30 PM', '1:00 PM', '11:30 AM', 'Custom time']
+      };
+    }
+    
+    if (lowerInput.includes('add location')) {
+      return {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: "Where would you like to have your weekly Wednesday lunch with your wife? I can add a location to the appointment.",
+        timestamp: new Date(),
+        quickActions: ['Home', 'Restaurant', 'Office', 'Custom location']
+      };
+    }
+    
+    if (lowerInput.includes('set reminder')) {
+      return {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: "I'll add a reminder for your weekly Wednesday lunch with your wife. How much notice would you like before each appointment?",
+        timestamp: new Date(),
+        quickActions: ['15 minutes before', '1 hour before', '1 day before', 'Custom reminder']
+      };
+    }
+    
+    // Time selection responses
+    if (lowerInput.includes('12:30') || lowerInput.includes('12:30 pm')) {
+      return {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: "Perfect! I've updated your weekly Wednesday lunch with your wife to 12:30 PM. The appointment has been modified in your calendar.",
+        timestamp: new Date(),
+        action: { 
+          type: 'update_appointment_time',
+          data: {
+            title: 'Lunch with Wife',
+            day: 'wednesday',
+            time: '12:30 PM',
+            recurring: true,
+            frequency: 'weekly'
+          }
+        },
+        quickActions: ['Confirm change', 'View in calendar', 'Set reminder']
+      };
+    }
+    
+    if (lowerInput.includes('1:00') || lowerInput.includes('1:00 pm')) {
+      return {
+        id: Date.now() + 1,
+        type: 'assistant',
+        content: "Great choice! I've updated your weekly Wednesday lunch with your wife to 1:00 PM. The appointment has been modified in your calendar.",
+        timestamp: new Date(),
+        action: { 
+          type: 'update_appointment_time',
+          data: {
+            title: 'Lunch with Wife',
+            day: 'wednesday',
+            time: '1:00 PM',
+            recurring: true,
+            frequency: 'weekly'
+          }
+        },
+        quickActions: ['Confirm change', 'View in calendar', 'Set reminder']
+      };
+    }
+    
     // Default
     return {
       id: Date.now() + 1,
@@ -251,6 +344,14 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
     } else if (action.type === 'schedule_recurring_appointment') {
       // Create recurring appointment
       console.log('Schedule recurring appointment:', action.data);
+      createRecurringAppointment(action.data);
+    } else if (action.type === 'confirm_appointment_creation') {
+      // Confirm and finalize appointment creation
+      console.log('Confirm appointment creation:', action.data);
+      createRecurringAppointment(action.data);
+    } else if (action.type === 'update_appointment_time') {
+      // Update appointment time
+      console.log('Update appointment time:', action.data);
       createRecurringAppointment(action.data);
     } else if (action.type === 'set_reminder') {
       // This would create a reminder event
@@ -336,6 +437,79 @@ const FloatingDock = ({ messages, setMessages, onSchedule, events, isOpen, setIs
   };
 
   const handleQuickAction = (action) => {
+    // Handle specific quick actions that should trigger immediate responses
+    if (action === 'Confirm & Create') {
+      // Send a confirmation message
+      const confirmMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: 'Confirm & Create',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, confirmMessage]);
+      
+      // Generate immediate response
+      setTimeout(() => {
+        const response = generatePAResponse('confirm & create');
+        setMessages(prev => [...prev, response]);
+        
+        // Execute the action if it exists
+        if (response.action) {
+          executeAction(response.action);
+        }
+      }, 500);
+      return;
+    }
+    
+    if (action === 'Change time') {
+      const changeTimeMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: 'Change time',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, changeTimeMessage]);
+      
+      setTimeout(() => {
+        const response = generatePAResponse('change time');
+        setMessages(prev => [...prev, response]);
+      }, 500);
+      return;
+    }
+    
+    if (action === 'Add location') {
+      const addLocationMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: 'Add location',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, addLocationMessage]);
+      
+      setTimeout(() => {
+        const response = generatePAResponse('add location');
+        setMessages(prev => [...prev, response]);
+      }, 500);
+      return;
+    }
+    
+    if (action === 'Set reminder') {
+      const setReminderMessage = {
+        id: Date.now(),
+        type: 'user',
+        content: 'Set reminder',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, setReminderMessage]);
+      
+      setTimeout(() => {
+        const response = generatePAResponse('set reminder');
+        setMessages(prev => [...prev, response]);
+      }, 500);
+      return;
+    }
+    
+    // For other actions, use the default behavior
     setInputValue(action);
     handleSend();
   };
