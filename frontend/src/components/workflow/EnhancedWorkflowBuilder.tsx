@@ -2170,7 +2170,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
                 onInit={setReactFlowInstance}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
-                nodeTypes={ENHANCED_NODE_TYPES}
+                nodeTypes={nodeTypes}
                 fitView
                 attributionPosition="bottom-left"
               >

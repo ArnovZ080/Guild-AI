@@ -867,9 +867,8 @@ const AgentsView = () => {
     }
   }, [activeTab, workflows]);
 
-  // Load workflows with polling fallback
+  // Load workflows once without polling
   useEffect(() => {
-    let timer;
     let isMounted = true;
     
     async function loadWorkflows() {
@@ -895,76 +894,17 @@ const AgentsView = () => {
     }
     
     loadWorkflows();
-    // Reduced polling frequency to prevent constant resets
-    timer = setInterval(loadWorkflows, 30000); // Changed from 10s to 30s
     
     return () => {
       isMounted = false;
-      clearInterval(timer);
     };
   }, []);
 
   // WebSocket stream for workflows with reconnect and schema unification
-  useEffect(() => {
-    const apiUrl = (import.meta && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)) || '';
-    if (!apiUrl) return;
-    const makeWsUrl = (base) => {
-      try {
-        const u = new URL(base);
-        const proto = u.protocol === 'https:' ? 'wss:' : 'ws:';
-        return `${proto}//${u.host}/agents/workflows/stream`;
-      } catch {
-        return '';
-      }
-    };
-    const wsUrl = makeWsUrl(apiUrl);
-    if (!wsUrl) return;
-
-    let ws;
-    let shouldReconnect = true;
-    let retryMs = 2000;
-
-    const unify = (payload) => {
-      if (Array.isArray(payload)) return payload;
-      if (payload && Array.isArray(payload.workflows)) return payload.workflows;
-      return [];
-    };
-
-    const connect = () => {
-      try {
-        ws = new WebSocket(wsUrl);
-        ws.onopen = () => { retryMs = 2000; };
-        ws.onmessage = (ev) => {
-          try {
-            const data = JSON.parse(ev.data);
-            const list = unify(data);
-            if (Array.isArray(list) && list.length >= 0) {
-              setWorkflows(list);
-              setWfError(null);
-            }
-          } catch {
-            // ignore malformed frames
-          }
-        };
-        ws.onerror = () => {};
-        ws.onclose = () => {
-          if (shouldReconnect) {
-            // Increased retry delay to reduce connection attempts
-            setTimeout(connect, retryMs);
-            retryMs = Math.min(retryMs * 2, 60000); // Max 60s instead of 30s
-          }
-        };
-      } catch {
-        // ignore
-      }
-    };
-    connect();
-
-    return () => {
-      shouldReconnect = false;
-      try { ws && ws.close(); } catch {}
-    };
-  }, []);
+  // WebSocket stream disabled to prevent continuous polling
+  // useEffect(() => {
+  //   // WebSocket polling removed to prevent page resets
+  // }, []);
 
   // Workflow helpers (match previous rich cards)
   const getWfStatusStyle = (status) => {
