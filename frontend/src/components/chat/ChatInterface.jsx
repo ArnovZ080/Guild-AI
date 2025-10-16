@@ -586,7 +586,7 @@ Would you like me to help you work through any of these specific areas?`;
   // Load system capabilities on mount
   useEffect(() => {
     const loadCapabilities = async () => {
-      const result = await orchestratorService.getSystemCapabilities();
+      const result = await orchestratorService.getStatus();
       if (result.success) {
         setSystemCapabilities(result);
       }

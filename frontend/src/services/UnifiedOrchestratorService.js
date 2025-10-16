@@ -7,7 +7,7 @@
 class UnifiedOrchestratorService {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    this.apiPrefix = '/api/unified-orchestrator';
+    this.apiPrefix = '/api/orchestrator';
     this.requestTimeout = 5000; // 5 seconds for fast responses
     this.complexRequestTimeout = 30000; // 30 seconds for complex orchestration
   }
@@ -125,7 +125,7 @@ class UnifiedOrchestratorService {
         this.requestTimeout = this.complexRequestTimeout; // 30 seconds for complex requests
       }
       
-      const response = await this.makeRequest('/process', {
+      const response = await this.makeRequest('/chat/process', {
         method: 'POST',
         body: JSON.stringify(request)
       });
