@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'guild.chat.conversations.v1';
+const CURRENT_CONVERSATION_KEY = 'guild.chat.current_conversation.v1';
 
 export function loadConversations() {
   try {
@@ -17,6 +18,32 @@ export function saveConversations(conversations) {
   } catch {}
 }
 
+// Current conversation persistence
+export function saveCurrentConversation(messages) {
+  try {
+    if (messages && messages.length > 0) {
+      localStorage.setItem(CURRENT_CONVERSATION_KEY, JSON.stringify(messages));
+    }
+  } catch {}
+}
+
+export function loadCurrentConversation() {
+  try {
+    const raw = localStorage.getItem(CURRENT_CONVERSATION_KEY);
+    if (!raw) return [];
+    const messages = JSON.parse(raw);
+    return Array.isArray(messages) ? messages : [];
+  } catch {
+    return [];
+  }
+}
+
+export function clearCurrentConversation() {
+  try {
+    localStorage.removeItem(CURRENT_CONVERSATION_KEY);
+  } catch {}
+}
+
 export function archiveThread(messages) {
   if (!messages || messages.length === 0) return null;
   const firstUser = messages.find(m => m.type === 'user');
@@ -32,6 +59,10 @@ export function archiveThread(messages) {
   const existing = loadConversations();
   const updated = [item, ...existing].slice(0, 100);
   saveConversations(updated);
+  
+  // Clear current conversation after archiving
+  clearCurrentConversation();
+  
   return item;
 }
 

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, MessageSquare, BarChart, Settings, User, Bot, Sparkles, ArrowRight, Clock, CheckCircle2, Zap, Activity, Eye } from 'lucide-react';
 // Removed celebrations to avoid circular deps and runtime init issues
 import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.js';
-import { loadConversations, saveConversations, archiveThread, loadThread } from '../../services/conversationsStore.js';
+import { loadConversations, saveConversations, archiveThread, loadThread, saveCurrentConversation, loadCurrentConversation, clearCurrentConversation } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 import UnifiedOrchestratorService from '../../services/UnifiedOrchestratorService.js';
@@ -25,6 +25,13 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [orchestratorService] = useState(() => new UnifiedOrchestratorService());
   
   const [messages, setMessages] = useState(() => {
+    // First, try to load current conversation from localStorage
+    const currentMessages = loadCurrentConversation();
+    if (currentMessages && currentMessages.length > 0) {
+      return currentMessages;
+    }
+    
+    // If no current conversation, initialize with onboarding-based welcome message
     if (hasCompletedOnboarding && onboardingData) {
       const data = JSON.parse(onboardingData);
       const buildSuggestions = () => {
@@ -103,6 +110,13 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [chatHistory, setChatHistory] = useState(() => loadConversations());
   // persist history when it changes (moved below declaration to avoid TDZ)
   useEffect(() => { saveConversations(chatHistory); }, [chatHistory]);
+  
+  // Persist current messages to localStorage whenever they change
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      saveCurrentConversation(messages);
+    }
+  }, [messages]);
 
   // Listen to onboarding updates (follow-up completion) and refresh first assistant message suggestions
   useEffect(() => {
@@ -149,7 +163,21 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         const archived = archiveThread(messages);
         if (archived) setChatHistory(prev => [archived, ...prev]);
       }
-      setMessages([messages[0]]);
+      // Start with just the welcome message and clear current conversation
+      const welcomeMessage = messages.find(m => m.type === 'assistant') || {
+        id: '1',
+        type: 'assistant',
+        content: `👋 Hello! I'm your AI business assistant. What would you like to work on today?`,
+        timestamp: new Date(),
+        suggestions: [
+          "Create content for my social media",
+          "Help me with my marketing strategy", 
+          "Analyze my business performance",
+          "Plan my next 30 days"
+        ]
+      };
+      setMessages([welcomeMessage]);
+      clearCurrentConversation();
     };
     const loadConvHandler = (ev) => {
       const id = ev?.detail?.id;
@@ -159,8 +187,25 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     };
     window.addEventListener('guild:newConversation', newConvHandler);
     window.addEventListener('guild:loadConversation', loadConvHandler);
-    return () => window.removeEventListener('guild:onboardingUpdated', handler);
+    return () => {
+      window.removeEventListener('guild:onboardingUpdated', handler);
+      window.removeEventListener('guild:newConversation', newConvHandler);
+      window.removeEventListener('guild:loadConversation', loadConvHandler);
+    };
   }, []);
+  
+  // Auto-archive conversation when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      // Only archive if there are meaningful messages (more than just the welcome message)
+      if (messages && messages.length > 1) {
+        const hasUserMessages = messages.some(m => m.type === 'user');
+        if (hasUserMessages) {
+          archiveThread(messages);
+        }
+      }
+    };
+  }, [messages]);
   
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
