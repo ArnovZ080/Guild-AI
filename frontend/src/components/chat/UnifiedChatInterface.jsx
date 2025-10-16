@@ -31,7 +31,7 @@ import {
 
 // Import services
 import { unifiedOrchestratorService } from '../../services/UnifiedOrchestratorService';
-import { enhancedOrchestratorService } from '../../services/EnhancedOrchestratorService';
+import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService';
 
 const UnifiedChatInterface = ({ 
   className = "",
