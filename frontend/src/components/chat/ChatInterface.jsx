@@ -372,12 +372,68 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         fallbackContent = "Hello! I'm doing great, thank you for asking! I'm your AI business orchestrator, ready to help you with any business tasks. I can coordinate our specialized agents to handle content creation, business growth strategies, financial analysis, and much more. What would you like to work on today?";
       } else if (lowerMessage.includes('customer') && lowerMessage.includes('avatar')) {
         fallbackContent = "I'd love to help you work on your customer avatar! While I'm having some technical difficulties with the full orchestrator, I can still assist you with customer avatar development. A customer avatar is a detailed profile of your ideal customer that includes demographics, psychographics, pain points, goals, and behaviors. Would you like me to guide you through creating one, or do you have specific questions about customer avatars?";
+      } else if (lowerMessage.includes('guide me') || lowerMessage.includes('guide you')) {
+        fallbackContent = `I'd be happy to guide you through creating a customer avatar! Here's a step-by-step approach:
+
+**Step 1: Demographics**
+- Age range, gender, location
+- Income level, education, occupation
+- Family status, lifestyle
+
+**Step 2: Psychographics** 
+- Values, interests, hobbies
+- Personality traits, lifestyle choices
+- Media consumption habits
+
+**Step 3: Pain Points**
+- What problems do they face?
+- What keeps them up at night?
+- What frustrates them most?
+
+**Step 4: Goals & Motivations**
+- What are they trying to achieve?
+- What motivates their decisions?
+- What success looks like to them
+
+**Step 5: Behavior Patterns**
+- How do they research solutions?
+- Where do they spend time online?
+- What influences their purchasing decisions?
+
+Would you like me to help you work through any of these specific areas?`;
       } else if (lowerMessage.includes('marketing') || lowerMessage.includes('strategy')) {
         fallbackContent = "I can definitely help with marketing and strategy! While I'm experiencing some connectivity issues, I can provide guidance on marketing strategies, content creation, and business growth. What specific aspect of marketing would you like to focus on?";
       } else if (lowerMessage.includes('content') || lowerMessage.includes('create')) {
         fallbackContent = "Content creation is one of my specialties! I can help you with blog posts, social media content, email campaigns, and more. What type of content are you looking to create?";
+      } else if (lowerMessage.includes('business plan') || lowerMessage.includes('business strategy')) {
+        fallbackContent = "I'd love to help you with your business plan and strategy! While I'm experiencing some connectivity issues, I can guide you through key areas like market analysis, competitive positioning, financial projections, and growth strategies. What specific aspect of business planning would you like to focus on?";
+      } else if (lowerMessage.includes('marketing plan') || lowerMessage.includes('marketing strategy')) {
+        fallbackContent = "Marketing strategy is crucial for business success! I can help you develop a comprehensive marketing plan covering target audience identification, channel selection, budget allocation, and campaign execution. What's your current marketing challenge or goal?";
+      } else if (lowerMessage.includes('sales') || lowerMessage.includes('selling')) {
+        fallbackContent = "Sales strategy is essential for business growth! I can help you with sales processes, lead generation, conversion optimization, and customer relationship management. What specific sales challenge are you facing?";
+      } else if (lowerMessage.includes('financial') || lowerMessage.includes('budget') || lowerMessage.includes('revenue')) {
+        fallbackContent = "Financial planning is critical for business success! I can help you with budgeting, revenue projections, cost analysis, and financial forecasting. What financial aspect would you like to focus on?";
+      } else if (lowerMessage.includes('social media') || lowerMessage.includes('instagram') || lowerMessage.includes('facebook')) {
+        fallbackContent = "Social media marketing is a powerful tool for business growth! I can help you develop a social media strategy, create engaging content, and optimize your presence across platforms. Which social media platforms are you focusing on?";
+      } else if (lowerMessage.includes('email') || lowerMessage.includes('newsletter')) {
+        fallbackContent = "Email marketing is one of the most effective marketing channels! I can help you with email strategy, list building, segmentation, and creating compelling email campaigns. What's your email marketing goal?";
       } else {
         fallbackContent = `I'm experiencing some technical difficulties with our orchestrator: ${err.message}\n\nHowever, I can still help you! Could you provide more details about what you'd like to accomplish? I can assist with business strategy, content creation, marketing, and more.`;
+      }
+      
+      // Add appropriate quick actions based on the response
+      let quickActions = ['🔄 Try Again', '📞 Get Help'];
+      
+      if (lowerMessage.includes('customer') && lowerMessage.includes('avatar')) {
+        quickActions = ['📝 Start Creating Avatar', '📊 Demographics Help', '🎯 Pain Points Guide', '🔄 Try Again'];
+      } else if (lowerMessage.includes('guide me') || lowerMessage.includes('guide you')) {
+        quickActions = ['👤 Demographics', '🧠 Psychographics', '😰 Pain Points', '🎯 Goals & Motivations'];
+      } else if (lowerMessage.includes('marketing') || lowerMessage.includes('strategy')) {
+        quickActions = ['📈 Marketing Plan', '🎯 Target Audience', '💰 Budget Planning', '🔄 Try Again'];
+      } else if (lowerMessage.includes('business plan')) {
+        quickActions = ['📋 Business Plan Template', '📊 Market Analysis', '💰 Financial Projections', '🔄 Try Again'];
+      } else if (lowerMessage.includes('social media')) {
+        quickActions = ['📱 Platform Strategy', '📝 Content Calendar', '📊 Analytics Guide', '🔄 Try Again'];
       }
       
       const errorMessage = {
@@ -385,7 +441,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         type: 'assistant',
         content: fallbackContent,
         timestamp: new Date(),
-        actions: ['🔄 Try Again', '📞 Get Help'],
+        actions: quickActions,
         agentId: 'support'
       };
       setMessages(prev => [...prev, errorMessage]);

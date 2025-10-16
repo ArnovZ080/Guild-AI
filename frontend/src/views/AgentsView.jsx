@@ -1731,9 +1731,9 @@ const AgentsView = () => {
     };
     const suggested = suggestedIntegrationsByCategory[selectedAgent.category] || ['Gmail', 'Slack'];
 
-    // Overrides for purpose and core capabilities keyed by canonical agent id/name
-    const capabilityOverrides = {
-      'Accountability Coach Agent': {
+    // Overrides for purpose and core capabilities keyed by canonical agent id/name - REMOVED (using global definition)
+    const agentOverrides = {
+      'Habit Coach Agent': {
         purpose: 'Keeps the founder on track with habit design and follow-through; best for daily check-ins and momentum.',
         capabilities: [
           'Daily/weekly check-ins and progress summaries',
