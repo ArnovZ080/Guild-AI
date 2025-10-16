@@ -8,7 +8,35 @@ class UnifiedOrchestratorService {
   constructor() {
     this.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
     this.apiPrefix = '/api/unified-orchestrator';
-    this.requestTimeout = 30000; // 30 seconds for complex orchestration
+    this.requestTimeout = 5000; // 5 seconds for fast responses
+    this.complexRequestTimeout = 30000; // 30 seconds for complex orchestration
+  }
+
+  /**
+   * Check if request is simple (should use fast timeout)
+   */
+  isSimpleRequest(userInput) {
+    const simplePatterns = [
+      'hello', 'hi', 'hey', 'how are you', 'good morning', 'good afternoon', 
+      'good evening', 'what\'s up', 'how\'s it going', 'thanks', 'thank you',
+      'bye', 'goodbye', 'see you later', 'have a good day'
+    ];
+    
+    const messageLower = userInput.toLowerCase().trim();
+    
+    // Check if it's a simple greeting or common phrase
+    for (const pattern of simplePatterns) {
+      if (messageLower.includes(pattern)) {
+        return true;
+      }
+    }
+    
+    // Check if it's very short (less than 20 characters)
+    if (userInput.trim().length < 20) {
+      return true;
+    }
+    
+    return false;
   }
 
   /**
@@ -81,10 +109,24 @@ class UnifiedOrchestratorService {
    */
   async processRequest(request) {
     try {
+      // Use appropriate timeout based on request complexity
+      const isSimple = this.isSimpleRequest(request.user_input || '');
+      const originalTimeout = this.requestTimeout;
+      
+      if (isSimple) {
+        this.requestTimeout = 5000; // 5 seconds for simple requests
+      } else {
+        this.requestTimeout = this.complexRequestTimeout; // 30 seconds for complex requests
+      }
+      
       const response = await this.makeRequest('/process', {
         method: 'POST',
         body: JSON.stringify(request)
       });
+      
+      // Restore original timeout
+      this.requestTimeout = originalTimeout;
+      
       return response;
     } catch (error) {
       console.error('Unified Orchestrator request failed:', error);
