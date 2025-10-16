@@ -361,15 +361,23 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
     } catch (err) {
       console.error('Orchestrator error:', err);
       
-      // Provide intelligent fallback responses for common greetings
+      // Provide intelligent fallback responses based on the request
       let fallbackContent = "";
-      if (messageText.toLowerCase().includes('hello') || 
-          messageText.toLowerCase().includes('hey') || 
-          messageText.toLowerCase().includes('hi') ||
-          messageText.toLowerCase().includes('how are you')) {
+      const lowerMessage = messageText.toLowerCase();
+      
+      if (lowerMessage.includes('hello') || 
+          lowerMessage.includes('hey') || 
+          lowerMessage.includes('hi') ||
+          lowerMessage.includes('how are you')) {
         fallbackContent = "Hello! I'm doing great, thank you for asking! I'm your AI business orchestrator, ready to help you with any business tasks. I can coordinate our specialized agents to handle content creation, business growth strategies, financial analysis, and much more. What would you like to work on today?";
+      } else if (lowerMessage.includes('customer') && lowerMessage.includes('avatar')) {
+        fallbackContent = "I'd love to help you work on your customer avatar! While I'm having some technical difficulties with the full orchestrator, I can still assist you with customer avatar development. A customer avatar is a detailed profile of your ideal customer that includes demographics, psychographics, pain points, goals, and behaviors. Would you like me to guide you through creating one, or do you have specific questions about customer avatars?";
+      } else if (lowerMessage.includes('marketing') || lowerMessage.includes('strategy')) {
+        fallbackContent = "I can definitely help with marketing and strategy! While I'm experiencing some connectivity issues, I can provide guidance on marketing strategies, content creation, and business growth. What specific aspect of marketing would you like to focus on?";
+      } else if (lowerMessage.includes('content') || lowerMessage.includes('create')) {
+        fallbackContent = "Content creation is one of my specialties! I can help you with blog posts, social media content, email campaigns, and more. What type of content are you looking to create?";
       } else {
-        fallbackContent = `I apologize, but I encountered an issue connecting to our orchestrator: ${err.message}\n\nLet me try a different approach. Can you provide a bit more detail about what you'd like to accomplish?`;
+        fallbackContent = `I'm experiencing some technical difficulties with our orchestrator: ${err.message}\n\nHowever, I can still help you! Could you provide more details about what you'd like to accomplish? I can assist with business strategy, content creation, marketing, and more.`;
       }
       
       const errorMessage = {

@@ -23,6 +23,162 @@ import { getSubscriptionInfo, getPlans } from '../services/subscriptionService.j
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
+// Helper functions - moved outside main component for accessibility
+const getTypeIcon = (type) => {
+  const icons = {
+    strategy: Brain,
+    creation: FileText,
+    analysis: BarChart,
+    automation: Zap,
+    quality: Shield,
+    management: Settings,
+    support: Users,
+    conversion: Target,
+    assistance: Heart,
+    development: Briefcase,
+    security: Shield,
+    infrastructure: Globe,
+    email: Mail,
+    seo: TrendingUp,
+    advertising: Megaphone,
+    social: Users,
+    prediction: TrendingUp,
+    intelligence: Brain,
+    chat: MessageSquare,
+    voice: Phone,
+    translation: Globe,
+    compliance: Shield,
+    research: Lightbulb,
+    processing: Database
+  };
+  return icons[type] || Brain;
+};
+
+const getCategoryStyle = (category) => {
+  const styles = {
+    executive: 'bg-purple-100 text-purple-800 border-purple-200',
+    content: 'bg-blue-100 text-blue-800 border-blue-200',
+    research: 'bg-green-100 text-green-800 border-green-200',
+    financial: 'bg-white text-gray-800 border-gray-200',
+    creative: 'bg-pink-100 text-pink-800 border-pink-200',
+    automation: 'bg-orange-100 text-orange-800 border-orange-200',
+    evaluation: 'bg-red-100 text-red-800 border-red-200',
+    orchestration: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    customer: 'bg-teal-100 text-teal-800 border-teal-200',
+    sales: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    support: 'bg-cyan-100 text-cyan-800 border-cyan-200',
+    business: 'bg-violet-100 text-violet-800 border-violet-200',
+    technical: 'bg-gray-100 text-gray-800 border-gray-200',
+    marketing: 'bg-rose-100 text-rose-800 border-rose-200',
+    analytics: 'bg-sky-100 text-sky-800 border-sky-200',
+    communication: 'bg-lime-100 text-lime-800 border-lime-200',
+    hr: 'bg-amber-100 text-amber-800 border-amber-200',
+    legal: 'bg-stone-100 text-stone-800 border-stone-200',
+    procurement: 'bg-zinc-100 text-zinc-800 border-zinc-200',
+    innovation: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
+    product: 'bg-slate-100 text-slate-800 border-slate-200',
+    intelligence: 'bg-neutral-100 text-neutral-800 border-neutral-200',
+    sustainability: 'bg-green-100 text-green-800 border-green-200'
+  };
+  return styles[category] || 'bg-gray-100 text-gray-800 border-gray-200';
+};
+
+const getStatusStyle = (status) => {
+  const styles = {
+    active: 'bg-green-100 text-green-800',
+    inactive: 'bg-gray-100 text-gray-800',
+    maintenance: 'bg-yellow-100 text-yellow-800',
+    error: 'bg-red-100 text-red-800'
+  };
+  return styles[status] || 'bg-gray-100 text-gray-800';
+};
+
+// Canonical capability/description overrides for known agents (shared by cards and modal)
+const capabilityOverrides = {
+  'Accountability Coach Agent': {
+    purpose: 'Keeps the founder on track with habit design and follow-through; best for daily check-ins and momentum.',
+    capabilities: [
+      'Daily/weekly check-ins',
+      'Nudge scheduling',
+      'Habit loop micro-tasks'
+    ]
+  },
+  'Accounting Agent': {
+    purpose: 'Produces formal financial reports and reconciliations for bookkeeping and CFO workflows.',
+    capabilities: [
+      'P&L and balance sheet',
+      'Reconcile & flag anomalies',
+      'Export XLS/PDF reports'
+    ]
+  },
+  'Ad Performance Optimizer Agent': {
+    purpose: 'Analyzes ad performance and optimizes campaigns for better ROI.',
+    capabilities: [
+      'Performance analysis',
+      'Bid optimization',
+      'Audience refinement'
+    ]
+  },
+  'Analytics Agent': {
+    purpose: 'Tracks and analyzes business metrics and performance data.',
+    capabilities: [
+      'Data visualization',
+      'Performance tracking',
+      'Insight generation'
+    ]
+  },
+  'Bookkeeping Agent': {
+    purpose: 'Handles day-to-day transaction recording and categorization.',
+    capabilities: [
+      'Transaction categorization',
+      'Receipt processing',
+      'Bank reconciliation'
+    ]
+  },
+  'Business Intelligence Agent': {
+    purpose: 'Provides strategic insights and business recommendations.',
+    capabilities: [
+      'Strategic analysis',
+      'Market research',
+      'Growth recommendations'
+    ]
+  },
+  'Content Intelligence Agent': {
+    purpose: 'Measures content performance and prescribes improvements.',
+    capabilities: [
+      'Content KPIs',
+      'Opportunity surfacing',
+      'Cadence recommendations'
+    ]
+  },
+  'Content Strategist Agent': {
+    purpose: 'Develops comprehensive content strategies and calendars.',
+    capabilities: [
+      'Content planning',
+      'Audience analysis',
+      'Distribution strategy'
+    ]
+  },
+  'Customer Intelligence Agent': {
+    purpose: 'Analyzes customer behavior and provides actionable insights.',
+    capabilities: [
+      'Customer segmentation',
+      'Behavior analysis',
+      'Retention strategies'
+    ]
+  },
+  'Financial Intelligence Agent': {
+    purpose: 'Provides financial analysis and forecasting capabilities.',
+    capabilities: [
+      'Financial forecasting',
+      'Cash flow analysis',
+      'Investment recommendations'
+    ]
+  }
+};
+
+const getOverrideForAgent = (name) => capabilityOverrides[name] || null;
+
 // Move AgentCard component outside main component to avoid hook order issues
 const AgentCard = ({ agent, entitled=false, source='local', rawAgent=null, onSelect, onAssign, onChat, onHire, triggerCelebration }) => {
   const TypeIcon = getTypeIcon(agent.type);
@@ -598,7 +754,6 @@ const AgentsView = () => {
     }
   };
 
-  const getOverrideForAgent = (name) => capabilityOverrides[name] || null;
   const { triggerCelebration } = useCelebrations();
 
   // Rich demo workflows used as a visual fallback in the Agent Theater
@@ -1482,77 +1637,6 @@ const AgentsView = () => {
   });
   const hireableAgentsSorted = hireableAgents.slice().sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 
-  // Get category styling
-  const getCategoryStyle = (category) => {
-    const styles = {
-      executive: 'bg-purple-100 text-purple-800 border-purple-200',
-      content: 'bg-blue-100 text-blue-800 border-blue-200',
-      research: 'bg-green-100 text-green-800 border-green-200',
-      financial: 'bg-white text-gray-800 border-gray-200',
-      creative: 'bg-pink-100 text-pink-800 border-pink-200',
-      automation: 'bg-orange-100 text-orange-800 border-orange-200',
-      evaluation: 'bg-red-100 text-red-800 border-red-200',
-      orchestration: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-      customer: 'bg-teal-100 text-teal-800 border-teal-200',
-      sales: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      support: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-      business: 'bg-violet-100 text-violet-800 border-violet-200',
-      technical: 'bg-gray-100 text-gray-800 border-gray-200',
-      marketing: 'bg-rose-100 text-rose-800 border-rose-200',
-      analytics: 'bg-sky-100 text-sky-800 border-sky-200',
-      communication: 'bg-lime-100 text-lime-800 border-lime-200',
-      hr: 'bg-amber-100 text-amber-800 border-amber-200',
-      legal: 'bg-stone-100 text-stone-800 border-stone-200',
-      procurement: 'bg-zinc-100 text-zinc-800 border-zinc-200',
-      innovation: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
-      product: 'bg-slate-100 text-slate-800 border-slate-200',
-      intelligence: 'bg-neutral-100 text-neutral-800 border-neutral-200',
-      sustainability: 'bg-green-100 text-green-800 border-green-200'
-    };
-    return styles[category] || 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  // Get type icon
-  const getTypeIcon = (type) => {
-    const icons = {
-      strategy: Brain,
-      creation: FileText,
-      analysis: BarChart,
-      automation: Zap,
-      quality: Shield,
-      management: Settings,
-      support: Users,
-      conversion: Target,
-      assistance: Heart,
-      development: Briefcase,
-      security: Shield,
-      infrastructure: Globe,
-      email: Mail,
-      seo: TrendingUp,
-      advertising: Megaphone,
-      social: Users,
-      prediction: TrendingUp,
-      intelligence: Brain,
-      chat: MessageSquare,
-      voice: Phone,
-      translation: Globe,
-      compliance: Shield,
-      research: Lightbulb,
-      processing: Database
-    };
-    return icons[type] || Brain;
-  };
-
-  // Get status styling
-  const getStatusStyle = (status) => {
-    const styles = {
-      active: 'bg-green-100 text-green-800',
-      inactive: 'bg-gray-100 text-gray-800',
-      maintenance: 'bg-yellow-100 text-yellow-800',
-      error: 'bg-red-100 text-red-800'
-    };
-    return styles[status] || 'bg-gray-100 text-gray-800';
-  };
 
   // Agent Theater card (distinct visual with quick actions)
   const TheaterAgentCard = ({ agent }) => {

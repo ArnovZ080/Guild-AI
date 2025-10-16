@@ -85,6 +85,12 @@ class UnifiedOrchestratorService {
     } catch (error) {
       if (error.name === 'AbortError') {
         throw new Error('Request timeout. Please try again.');
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        throw new Error('Unable to connect to the orchestrator. Please check your connection and try again.');
+      } else if (error.message.includes('404')) {
+        throw new Error('Orchestrator endpoint not found. The service may be temporarily unavailable.');
+      } else if (error.message.includes('500')) {
+        throw new Error('Internal server error. Please try again in a moment.');
       }
       throw error;
     }

@@ -188,6 +188,8 @@ try:
     logger.info("✅ All routes imported and registered successfully")
 except Exception as e:
     logger.error(f"Route imports failed: {e}")
+    import traceback
+    logger.error(f"Import traceback: {traceback.format_exc()}")
     ROUTES_AVAILABLE = False
 # Serve uploads directory for profile assets
 import os

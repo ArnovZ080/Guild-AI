@@ -43,8 +43,15 @@ except ImportError as e:
 
 # Import Vertex AI components
 try:
-    from api_server.src.llm.model_router import model_router
-    from api_server.src.llm.gemini_provider import gemini_provider
+    import sys
+    import os
+    # Add api_server to path if not already there
+    api_server_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'api_server')
+    if api_server_path not in sys.path:
+        sys.path.append(api_server_path)
+    
+    from src.llm.model_router import model_router
+    from src.llm.gemini_provider import gemini_provider
     VERTEX_AI_AVAILABLE = True
 except ImportError as e:
     logging.warning(f"Vertex AI components not available: {e}")
@@ -723,7 +730,21 @@ async def process_unified_request(
     - Quality assurance
     - Cost optimization
     """
-    return await unified_orchestrator.process_request(request, current_user.id, db)
+    try:
+        return await unified_orchestrator.process_request(request, current_user.id, db)
+    except Exception as e:
+        logging.error(f"Unified orchestrator process request failed: {e}")
+        # Return a fallback response instead of crashing
+        return UnifiedOrchestratorResponse(
+            success=False,
+            response=f"I'm experiencing some technical difficulties. Let me try a simpler approach. {request.user_input} - Could you provide more details about what you'd like to accomplish?",
+            task_type=request.task_type,
+            complexity=request.complexity,
+            agents_involved=[],
+            execution_time=0.1,
+            confidence_score=0.5,
+            timestamp=datetime.now()
+        )
 
 @router.post("/workflow/execute", response_model=WorkflowExecutionResponse)
 async def execute_workflow(
@@ -926,12 +947,52 @@ async def health_check():
             "orchestrator_available": ORCHESTRATOR_AVAILABLE,
             "business_agents_available": BUSINESS_AGENTS_AVAILABLE,
             "vertex_ai_enabled": unified_orchestrator.vertex_ai_enabled,
+            "orchestrators_loaded": list(unified_orchestrator.orchestrators.keys()) if unified_orchestrator.orchestrators else [],
+            "business_agents_loaded": list(unified_orchestrator.business_agents.keys()) if unified_orchestrator.business_agents else [],
             "timestamp": datetime.now().isoformat()
         }
         
     except Exception as e:
         return {
             "status": "unhealthy",
+            "error": str(e),
+            "orchestrator_available": ORCHESTRATOR_AVAILABLE,
+            "business_agents_available": BUSINESS_AGENTS_AVAILABLE,
+            "vertex_ai_available": VERTEX_AI_AVAILABLE,
+            "timestamp": datetime.now().isoformat()
+        }
+
+@router.get("/test")
+async def test_orchestrator():
+    """Simple test endpoint to verify orchestrator is working."""
+    try:
+        # Test simple chat without authentication
+        test_request = UnifiedOrchestratorRequest(
+            user_input="Hello, how are you?",
+            task_type=TaskType.CHAT,
+            complexity=Complexity.LOW
+        )
+        
+        # Create a mock user and db for testing
+        class MockUser:
+            id = "test_user"
+        
+        class MockDB:
+            pass
+        
+        result = await unified_orchestrator.process_request(test_request, MockUser().id, MockDB())
+        
+        return {
+            "status": "success",
+            "test_response": result.response,
+            "success": result.success,
+            "execution_time": result.execution_time,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        return {
+            "status": "error",
             "error": str(e),
             "timestamp": datetime.now().isoformat()
         }
