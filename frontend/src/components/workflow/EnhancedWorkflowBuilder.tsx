@@ -1663,33 +1663,41 @@ const EnhancedWorkflowBuilder: React.FC = () => {
         if (!saveRes.ok) throw new Error('save_failed');
         const savedWorkflow = await saveRes.json();
         
-        // Then activate it through the orchestrator
-        const activateRes = await fetch(`${API}/unified-orchestrator/workflow/execute`, {
+        // Send structured instructions to orchestrator
+        const activateRes = await fetch(`${API}/unified-orchestrator/process`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
           body: JSON.stringify({
-            workflow_id: savedWorkflow.id || payload.id,
-            user_input: `Execute the workflow: ${workflowName}. ${workflowDescription}`,
-            parameters: {
-              nodes: nodes,
-              edges: edges,
-              natural_language_descriptions: nodes.map(n => ({
-                node_id: n.id,
-                description: n.data?.naturalLanguageDescription || '',
-                category: n.data?.category,
-                config: n.data?.config
-              }))
+            user_input: `Create a professional workflow based on these specific instructions: ${workflowName}. ${workflowDescription}`,
+            task_type: 'orchestrate',
+            complexity: 'medium',
+            workflow_instructions: {
+              workflow_name: workflowName,
+              workflow_description: workflowDescription,
+              user_specified_sequence: nodes.map(n => ({
+                step_order: nodes.indexOf(n) + 1,
+                node_type: n.data?.category,
+                user_instruction: n.data?.naturalLanguageDescription || '',
+                node_config: n.data?.config || {}
+              })),
+              connections: edges.map(e => ({
+                from_node: e.source,
+                to_node: e.target,
+                condition: e.label || 'default'
+              })),
+              expected_outcome: `Professional execution of: ${workflowDescription}`
             },
-            quality_check: true
+            quality_check: true,
+            create_rubric: true
           })
         });
         
         if (!activateRes.ok) throw new Error('activate_failed');
         const activationResult = await activateRes.json();
         
-        toast.success(`Workflow activated! Execution ID: ${activationResult.execution_id || 'N/A'}`);
+        toast.success(`Workflow instructions sent to orchestrator! The orchestrator will now create a professional implementation with quality rubrics and agent coordination.`);
         
-        // Store the running workflow for tracking
+        // Store the workflow instructions for tracking
         const workflowId = activationResult.execution_id || Date.now().toString();
         workflowExecutionService.addRunningWorkflow({
           id: workflowId,
@@ -1704,7 +1712,22 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             description: n.data?.naturalLanguageDescription || '',
             category: n.data?.category,
             config: n.data?.config
-          }))
+          })),
+          status: 'orchestrator_processing',
+          orchestrator_instructions: {
+            user_specified_sequence: nodes.map(n => ({
+              step_order: nodes.indexOf(n) + 1,
+              node_type: n.data?.category,
+              user_instruction: n.data?.naturalLanguageDescription || '',
+              node_config: n.data?.config || {}
+            })),
+            connections: edges.map(e => ({
+              from_node: e.source,
+              to_node: e.target,
+              condition: e.label || 'default'
+            })),
+            expected_outcome: `Professional execution of: ${workflowDescription}`
+          }
         });
         
       } else {
@@ -1726,7 +1749,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
           }))
         });
         
-        toast.success('Workflow activated (local simulation)');
+        toast.success('Workflow instructions prepared for orchestrator (local simulation)');
       }
     } catch (error) {
       console.error('Activation error:', error);
@@ -1747,7 +1770,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={saveWorkflow} className="px-3 py-2 border rounded bg-white hover:bg-gray-50 text-sm" disabled={saving}>{saving ? 'Saving…' : 'Save workflow'}</button>
-            <button onClick={activateWorkflow} className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm" disabled={activating}>{activating ? 'Activating…' : 'Activate'}</button>
+            <button onClick={activateWorkflow} className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm" disabled={activating}>{activating ? 'Sending to Orchestrator…' : 'Send to Orchestrator'}</button>
             <label className="text-sm text-gray-600">Name</label>
             <input type="text" className="p-2 border rounded-md text-gray-700 focus:ring-indigo-500 focus:border-indigo-500" value={workflowName} onChange={(e) => setWorkflowName(e.target.value)} placeholder="Workflow Name" />
           </div>
