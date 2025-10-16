@@ -10,7 +10,7 @@ import os
 from .. import models
 from ..database import get_db
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(prefix="/api/auth", tags=["authentication"])
 security = HTTPBearer()
 
 # Supabase configuration

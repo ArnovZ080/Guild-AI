@@ -47,7 +47,7 @@ def get_available_connectors():
     return ["facebook", "instagram", "linkedin", "gmail", "whatsapp", "messenger"]
 
 router = APIRouter(
-    prefix="/execution-layer",
+    prefix="/api/execution-layer",
     tags=["Execution Layer"],
 )
 

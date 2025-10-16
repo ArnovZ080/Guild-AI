@@ -18,7 +18,7 @@ from ..tasks import run_workflow_task
 from guild.src.core.orchestrator import Orchestrator
 
 router = APIRouter(
-    prefix="/workflows",
+    prefix="/api/workflows",
     tags=["Workflows"],
 )
 

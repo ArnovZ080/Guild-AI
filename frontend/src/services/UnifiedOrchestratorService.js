@@ -125,7 +125,7 @@ class UnifiedOrchestratorService {
         this.requestTimeout = this.complexRequestTimeout; // 30 seconds for complex requests
       }
       
-      const response = await this.makeRequest('/chat/process', {
+      const response = await this.makeRequest('/process', {
         method: 'POST',
         body: JSON.stringify(request)
       });

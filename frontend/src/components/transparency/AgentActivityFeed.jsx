@@ -28,6 +28,7 @@ import {
   Minimize2
 } from 'lucide-react';
 import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService.js';
+import workflowExecutionService from '../../services/WorkflowExecutionService.js';
 
 const AgentActivityFeed = ({ userId, isCompact = false, maxEvents = 20 }) => {
   const [events, setEvents] = useState([]);
@@ -43,6 +44,21 @@ const AgentActivityFeed = ({ userId, isCompact = false, maxEvents = 20 }) => {
   useEffect(() => {
     loadActivity();
   }, [userId]);
+
+  // Listen for workflow execution changes
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'guild_running_workflows' || e.key === 'guild_completed_workflows') {
+        loadActivity();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -93,10 +109,43 @@ const AgentActivityFeed = ({ userId, isCompact = false, maxEvents = 20 }) => {
 
   const loadActivity = async () => {
     setIsLoading(true);
+    
+    // Load orchestrator activity
     const result = await enhancedOrchestratorService.getRecentActivity(userId, maxEvents);
-    if (result.success) {
-      setEvents(result.events || []);
-    }
+    const orchestratorEvents = result.success ? (result.events || []) : [];
+    
+    // Load workflow execution events from WorkflowExecutionService
+    const runningWorkflows = workflowExecutionService.getRunningWorkflows();
+    const completedWorkflows = workflowExecutionService.getCompletedWorkflows();
+    
+    // Convert workflow executions to activity events
+    const workflowEvents = [...runningWorkflows, ...completedWorkflows].map(workflow => ({
+      id: `workflow-${workflow.id}`,
+      event_type: workflow.status === 'completed' ? 'workflow_completed' : 'workflow_running',
+      timestamp: workflow.started_at,
+      workflow_id: workflow.id,
+      workflow_name: workflow.name,
+      agent_id: 'orchestrator',
+      agent_name: 'Unified Orchestrator',
+      data: {
+        workflow_description: workflow.description,
+        orchestrator_instructions: workflow.orchestrator_instructions,
+        execution_result: workflow.execution_result,
+        natural_language_descriptions: workflow.natural_language_descriptions,
+        progress: workflow.progress,
+        current_step: workflow.current_step,
+        isFromBuilder: workflow.isFromBuilder || true
+      },
+      status: workflow.status,
+      importance: 'high'
+    }));
+    
+    // Combine and sort all events
+    const allEvents = [...orchestratorEvents, ...workflowEvents]
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, maxEvents);
+    
+    setEvents(allEvents);
     setIsLoading(false);
   };
 

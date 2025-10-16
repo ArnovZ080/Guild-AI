@@ -11,7 +11,7 @@ from .subscription import get_current_exchange_rate, calculate_zar_price, make_p
 from .. import models
 from ..database import get_db
 
-router = APIRouter(prefix="/credits", tags=["credits"])
+router = APIRouter(prefix="/api/credits", tags=["credits"])
 
 # Credit package configuration (more expensive than subscription credits)
 CREDIT_PACKAGES = {

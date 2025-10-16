@@ -11,7 +11,7 @@ import json
 import uuid
 
 router = APIRouter(
-    prefix="/workspace",
+    prefix="/api/workspace",
     tags=["Workspace"],
 )
 

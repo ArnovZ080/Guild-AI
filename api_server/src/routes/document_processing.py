@@ -12,7 +12,7 @@ import uuid
 from pathlib import Path
 
 router = APIRouter(
-    prefix="/documents",
+    prefix="/api/documents",
     tags=["Document Processing"],
 )
 

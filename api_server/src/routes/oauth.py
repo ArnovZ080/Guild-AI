@@ -20,7 +20,7 @@ google_drive_connector = None
 dropbox_connector = None
 
 router = APIRouter(
-    prefix="/oauth",
+    prefix="/api/oauth",
     tags=["OAuth"],
 )
 

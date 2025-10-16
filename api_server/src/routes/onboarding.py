@@ -13,7 +13,7 @@ from ..database import get_db
 # from guild.src.models.user_input import UserInput
 
 router = APIRouter(
-    prefix="/onboarding",
+    prefix="/api/onboarding",
     tags=["Onboarding"],
 )
 

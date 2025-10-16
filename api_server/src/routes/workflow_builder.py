@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../..', 'guild'))
 
 from guild.src.core.workflow_builder import VisualWorkflowBuilder
 
-router = APIRouter(prefix="/workflow-builder", tags=["workflow-builder"])
+router = APIRouter(prefix="/api/workflow-builder", tags=["workflow-builder"])
 
 # Initialize workflow builder (in production, this should be a singleton)
 workflow_builder = VisualWorkflowBuilder()

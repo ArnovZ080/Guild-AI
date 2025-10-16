@@ -11,7 +11,7 @@ import time
 from ..database import get_db
 
 router = APIRouter(
-    prefix="/health",
+    prefix="/api/health",
     tags=["Health Checks"],
 )
 

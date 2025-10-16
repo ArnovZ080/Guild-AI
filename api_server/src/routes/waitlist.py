@@ -15,7 +15,7 @@ from .. import models
 from .auth import get_current_user
 from .admin_auth import get_current_admin, get_current_user_with_admin_check
 
-router = APIRouter(prefix="/waitlist", tags=["waitlist"])
+router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
 
 # Configuration - Beta tester emails (can be loaded from env or database)
 # Support both comma and semicolon separators to avoid gcloud parsing issues
@@ -176,19 +176,30 @@ async def check_beta_access(
 # Admin endpoints (require authentication)
 
 @router.get("/is-admin")
-async def check_admin_status():
+async def check_admin_status(
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     """
     Check if current user is an admin
     Returns admin status for conditional UI rendering
-    Temporary implementation that works without database access
     """
-    # For now, return True for testing - in production this should check the actual user
-    # TODO: Implement proper authentication and database-based admin check
-    return {
-        "is_admin": True,  # Temporary: always return true for testing
-        "admin_role": "owner",
-        "email": "arnovzyl080@gmail.com"
-    }
+    try:
+        # Use the existing admin authentication logic
+        current_user, is_admin = await get_current_user_with_admin_check(current_user, db)
+        
+        return {
+            "is_admin": is_admin,
+            "admin_role": current_user.admin_role if is_admin else None,
+            "email": current_user.email
+        }
+    except Exception as e:
+        # If there's any error (like authentication failure), return not admin
+        return {
+            "is_admin": False,
+            "admin_role": None,
+            "email": None
+        }
 
 
 @router.get("/list")

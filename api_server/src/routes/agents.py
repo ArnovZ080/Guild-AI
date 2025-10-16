@@ -39,7 +39,7 @@ except Exception:
 from pydantic import BaseModel
 
 router = APIRouter(
-    prefix="/agents",
+    prefix="/api/agents",
     tags=["Agents"],
 )
 

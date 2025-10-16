@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, RefreshCw } from 'lucide-react';
 import { DataRoomCard } from './DataRoomCard'; // Assuming this component exists and is styled
 
-const API_BASE_URL = '/api'; // Using a relative URL, assuming proxy is set up in vite.config.js
+const API_BASE_URL = '/api'; // Standardized API prefix
 
 export function DataRoomManager() {
   const [dataRooms, setDataRooms] = useState([]);

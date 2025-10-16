@@ -19,6 +19,7 @@ import AgentActivityFeed from '../components/transparency/AgentActivityFeed.jsx'
 import apiService from '../services/api.js';
 import { useSettings } from '../contexts/SettingsContext.jsx';
 import { getSubscriptionInfo, getPlans } from '../services/subscriptionService.js';
+import workflowExecutionService from '../services/WorkflowExecutionService.js';
 
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -876,9 +877,34 @@ const AgentsView = () => {
       
       try {
         setWfLoading(true);
-        const list = await apiService.getAllWorkflows();
-        if (Array.isArray(list) && isMounted) {
-          setWorkflows(list);
+        const apiWorkflows = await apiService.getAllWorkflows();
+        
+        // Get running workflows from WorkflowExecutionService
+        const runningWorkflows = workflowExecutionService.getRunningWorkflows();
+        
+        // Convert running workflows to display format
+        const displayRunningWorkflows = runningWorkflows.map(runningWf => ({
+          workflow_id: runningWf.id,
+          id: runningWf.id,
+          name: runningWf.name || 'Running Workflow',
+          description: runningWf.description || 'Workflow created from Workflow Builder',
+          status: runningWf.status || 'running',
+          type: 'user-created',
+          progress: runningWf.progress || 0,
+          current_step: runningWf.current_step || 'Processing instructions',
+          agents: runningWf.agents || [],
+          started_at: runningWf.started_at,
+          orchestrator_instructions: runningWf.orchestrator_instructions,
+          execution_result: runningWf.execution_result,
+          natural_language_descriptions: runningWf.natural_language_descriptions,
+          isFromBuilder: true // Flag to identify workflow builder workflows
+        }));
+        
+        // Combine API workflows with running workflows
+        const allWorkflows = Array.isArray(apiWorkflows) ? [...apiWorkflows, ...displayRunningWorkflows] : displayRunningWorkflows;
+        
+        if (isMounted) {
+          setWorkflows(allWorkflows);
           setWfError(null);
         }
       } catch (e) {
@@ -895,8 +921,18 @@ const AgentsView = () => {
     
     loadWorkflows();
     
+    // Also reload when running workflows change (for real-time updates)
+    const handleStorageChange = () => {
+      if (isMounted) {
+        loadWorkflows();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
     return () => {
       isMounted = false;
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
@@ -1206,9 +1242,15 @@ const AgentsView = () => {
         </button>
         <button
           className="px-3 py-1.5 text-sm bg-indigo-100 text-indigo-800 rounded hover:bg-indigo-200"
-          onClick={(e) => { e.stopPropagation(); setSelectedWorkflow(workflow); }}
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            setSelectedWorkflow(workflow);
+            if (workflow.isFromBuilder) {
+              toast.success('Showing workflow builder workflow in theater');
+            }
+          }}
         >
-          View in Theater
+          Show in Theater
         </button>
       </div>
     </motion.div>

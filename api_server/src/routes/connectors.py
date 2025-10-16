@@ -29,7 +29,7 @@ def get_connector_categories():
     }
 
 router = APIRouter(
-    prefix="/connectors",
+    prefix="/api/connectors",
     tags=["Platform Connectors"],
 )
 

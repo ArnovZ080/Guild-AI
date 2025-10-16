@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from uuid import uuid4
 
-router = APIRouter(prefix="/marketplace", tags=["marketplace"])
+router = APIRouter(prefix="/api/marketplace", tags=["marketplace"])
 
 # In-memory store as a safe fallback; replace with DB session when available
 TEMPLATES: Dict[str, Dict[str, Any]] = {}

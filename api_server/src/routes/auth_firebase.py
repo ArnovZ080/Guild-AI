@@ -11,7 +11,7 @@ from firebase_admin import auth as firebase_auth, credentials
 from .. import models
 from ..database import get_db
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(prefix="/api/auth", tags=["authentication"])
 security = HTTPBearer()
 
 # Initialize Firebase Admin SDK

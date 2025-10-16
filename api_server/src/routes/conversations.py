@@ -4,7 +4,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 
-router = APIRouter(prefix="/conversations", tags=["Conversations"])
+router = APIRouter(prefix="/api/conversations", tags=["Conversations"])
 
 
 class ConversationFilter(BaseModel):
