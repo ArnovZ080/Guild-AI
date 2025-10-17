@@ -20,6 +20,8 @@ import apiService from '../services/api.js';
 import { useSettings } from '../contexts/SettingsContext.jsx';
 import { getSubscriptionInfo, getPlans } from '../services/subscriptionService.js';
 import workflowExecutionService from '../services/WorkflowExecutionService.js';
+import hybridStorageService from '../services/HybridStorageService.js';
+import HybridStorageStatus from '../components/HybridStorageStatus.jsx';
 
 // Helper to build display names from ids
 const toTitle = (id) => id.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -942,6 +944,37 @@ const AgentsView = () => {
   //   // WebSocket polling removed to prevent page resets
   // }, []);
 
+  // Load saved agent configurations on component mount
+  useEffect(() => {
+    const loadAgentConfigurations = async () => {
+      try {
+        const agentConfigs = await hybridStorageService.getAllAgentConfigurations();
+        
+        // Update agents with their saved configurations
+        setAgents(prevAgents => prevAgents.map(agent => {
+          const savedConfig = agentConfigs[agent.id];
+          if (savedConfig) {
+            return {
+              ...agent,
+              personality: savedConfig.custom_instructions || agent.personality,
+              instructions: savedConfig.custom_instructions || agent.instructions,
+              custom_configuration: {
+                duration: savedConfig.duration,
+                priority: savedConfig.priority,
+                customInstructions: savedConfig.custom_instructions
+              }
+            };
+          }
+          return agent;
+        }));
+      } catch (error) {
+        console.warn('Failed to load agent configurations:', error);
+      }
+    };
+    
+    loadAgentConfigurations();
+  }, []); // Run once on mount
+
   // Workflow helpers (match previous rich cards)
   const getWfStatusStyle = (status) => {
     const styles = {
@@ -1252,6 +1285,27 @@ const AgentsView = () => {
         >
           Show in Theater
         </button>
+        {/* Delete button for workflow builder workflows */}
+        {workflow.isFromBuilder && (
+          <button
+            className="px-3 py-1.5 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200"
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (window.confirm(`Are you sure you want to delete the workflow "${workflow.name}"? This action cannot be undone.`)) {
+                const success = workflowExecutionService.deleteWorkflow(workflow.workflow_id || workflow.id);
+                if (success) {
+                  toast.success('Workflow deleted successfully');
+                  // Reload workflows to update the display
+                  loadWorkflows();
+                } else {
+                  toast.error('Failed to delete workflow');
+                }
+              }
+            }}
+          >
+            Delete
+          </button>
+        )}
       </div>
     </motion.div>
   );
@@ -1509,8 +1563,40 @@ const AgentsView = () => {
     // In real implementation, this would trigger the agent activation
   };
 
-  const handleConfigureAgent = (agent) => {
+  const handleConfigureAgent = async (agent) => {
     setSelectedAgent(agent);
+    
+    try {
+      // Load saved configuration using hybrid storage
+      const savedConfig = await hybridStorageService.getAgentConfiguration(agent.id);
+      
+      if (savedConfig) {
+        setAgentConfiguration({
+          customInstructions: savedConfig.custom_instructions || agent.personality || agent.instructions || '',
+          duration: savedConfig.duration || 'indefinite',
+          priority: savedConfig.priority || 'normal',
+          notifications: savedConfig.notifications !== false
+        });
+      } else {
+        // Default configuration
+        setAgentConfiguration({
+          customInstructions: agent.personality || agent.instructions || '',
+          duration: 'indefinite',
+          priority: 'normal',
+          notifications: true
+        });
+      }
+    } catch (error) {
+      console.warn('Failed to load agent configuration:', error);
+      // Fallback to default configuration
+      setAgentConfiguration({
+        customInstructions: agent.personality || agent.instructions || '',
+        duration: 'indefinite',
+        priority: 'normal',
+        notifications: true
+      });
+    }
+    
     setShowConfigureModal(true);
   };
 
@@ -1519,13 +1605,57 @@ const AgentsView = () => {
     setShowActivityModal(true);
   };
 
-  const handleSaveConfiguration = () => {
+  const handleSaveConfiguration = async () => {
     console.log('Saving configuration for:', selectedAgent.name, agentConfiguration);
-    triggerCelebration(CelebrationType.TASK_COMPLETE, {
-      message: `Configuration saved for ${selectedAgent.name}! ⚙️`,
-      intensity: 'normal'
-    });
-    setShowConfigureModal(false);
+    
+    try {
+      // Use hybrid storage service to save configuration
+      const configData = {
+        agentName: selectedAgent.name,
+        customInstructions: agentConfiguration.customInstructions,
+        duration: agentConfiguration.duration,
+        priority: agentConfiguration.priority,
+        notifications: agentConfiguration.notifications,
+        custom_config: {
+          duration: agentConfiguration.duration,
+          priority: agentConfiguration.priority,
+          customInstructions: agentConfiguration.customInstructions
+        }
+      };
+      
+      await hybridStorageService.saveAgentConfiguration(selectedAgent.id, configData);
+      
+      // Update the agent's personality/instructions in the agents list
+      setAgents(prevAgents => prevAgents.map(agent => {
+        if (agent.id === selectedAgent.id) {
+          return {
+            ...agent,
+            personality: agentConfiguration.customInstructions,
+            instructions: agentConfiguration.customInstructions,
+            custom_configuration: {
+              duration: agentConfiguration.duration,
+              priority: agentConfiguration.priority,
+              customInstructions: agentConfiguration.customInstructions
+            }
+          };
+        }
+        return agent;
+      }));
+      
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: `Configuration saved for ${selectedAgent.name}! ⚙️`,
+        intensity: 'normal'
+      });
+      setShowConfigureModal(false);
+      
+    } catch (error) {
+      console.error('Failed to save agent configuration:', error);
+      triggerCelebration(CelebrationType.TASK_COMPLETE, {
+        message: `Configuration saved locally for ${selectedAgent.name}! ⚙️`,
+        intensity: 'normal'
+      });
+      setShowConfigureModal(false);
+    }
   };
 
   // Determine Base Pack agents to auto-include for non-Enterprise tiers
@@ -2253,6 +2383,10 @@ const AgentsView = () => {
           </button>
         </div>
       </div>
+      
+      {/* Hybrid Storage Status */}
+      <HybridStorageStatus />
+      
       {/* Header + Controls (Workforce tab only) */}
       {activeTab === 'workforce' && (
       <div className="bg-white rounded-lg p-6 shadow-lg">

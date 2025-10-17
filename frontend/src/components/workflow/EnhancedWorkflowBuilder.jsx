@@ -54,6 +54,7 @@ import {
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import workflowExecutionService from '../../services/WorkflowExecutionService.js';
+import hybridStorageService from '../../services/HybridStorageService.js';
 
 // Workflow Modes
 type WorkflowMode = 'ai' | 'hybrid' | 'prebuilt';
@@ -1672,32 +1673,23 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       setSaving(true);
       const payload = serializeWorkflow();
       
-      // Try API first, fallback to local storage
-      let saved = false;
-      if (API) {
-        try {
-          const token = localStorage.getItem('auth_token') || localStorage.getItem('jwt');
-          const res = await fetch(`${API}/marketplace/templates`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            saved = true;
-            toast.success('Workflow saved to cloud');
-          }
-        } catch (error) {
-          console.warn('API save failed, saving locally:', error);
-        }
-      }
+      // Generate a unique workflow ID if not exists
+      const workflowId = payload.id || `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Always save locally as backup
-      if (!saved) {
-        const list = JSON.parse(localStorage.getItem('guild_my_workflows') || '[]');
-        list.push({ ...payload, saved_at: new Date().toISOString() });
-        localStorage.setItem('guild_my_workflows', JSON.stringify(list));
-        toast.success('Workflow saved locally');
-      }
+      // Prepare workflow template data
+      const templateData = {
+        name: workflowName || payload.name || 'Untitled Workflow',
+        description: payload.description || 'User-created workflow',
+        workflow_data: payload,
+        is_public: false,
+        tags: ['user-created', 'workflow-builder']
+      };
+      
+      // Use hybrid storage service to save workflow template
+      await hybridStorageService.saveWorkflowTemplate(workflowId, templateData);
+      
+      toast.success('Workflow saved successfully!');
+      
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Failed to save workflow');

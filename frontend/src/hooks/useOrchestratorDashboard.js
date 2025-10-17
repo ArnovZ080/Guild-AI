@@ -72,22 +72,23 @@ export const useOrchestratorDashboard = (dashboardType, userId) => {
   useEffect(() => {
     if (activeWorkflows.length === 0) return;
 
-    const interval = setInterval(async () => {
-      const updatedWorkflows = await Promise.all(
-        activeWorkflows.map(async (workflow) => {
-          const status = await getWorkflowStatus(workflow.id);
-          return {
-            ...workflow,
-            status: status.status || workflow.status,
-            progress: status.progress
-          };
-        })
-      );
+    // Polling disabled to prevent page resets
+    // const interval = setInterval(async () => {
+    //   const updatedWorkflows = await Promise.all(
+    //     activeWorkflows.map(async (workflow) => {
+    //       const status = await getWorkflowStatus(workflow.id);
+    //       return {
+    //         ...workflow,
+    //         status: status.status || workflow.status,
+    //         progress: status.progress
+    //       };
+    //     })
+    //   );
 
-      setActiveWorkflows(updatedWorkflows);
-    }, 3000);
+    //   setActiveWorkflows(updatedWorkflows);
+    // }, 3000);
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, [activeWorkflows, getWorkflowStatus]);
 
   return {

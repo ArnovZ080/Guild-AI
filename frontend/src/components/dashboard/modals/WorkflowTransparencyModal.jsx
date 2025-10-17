@@ -110,10 +110,13 @@ const WorkflowTransparencyModal = ({
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'steps', label: 'Steps', icon: Target },
-    { id: 'transparency', label: 'Transparency Log', icon: Eye },
-    { id: 'performance', label: 'Performance', icon: TrendingUp },
-    { id: 'approvals', label: 'Approvals', icon: Shield }
+    { id: 'metadata', label: 'Metadata', icon: Info },
+    { id: 'flow', label: 'Flow', icon: Target },
+    { id: 'tasks', label: 'Tasks', icon: Activity },
+    { id: 'content', label: 'Content', icon: MessageSquare },
+    { id: 'costs', label: 'Costs', icon: TrendingUp },
+    { id: 'evaluator', label: 'Evaluator', icon: Shield },
+    { id: 'audit', label: 'Audit', icon: Eye }
   ];
 
   return (
@@ -631,7 +634,290 @@ const WorkflowTransparencyModal = ({
                   </div>
                 </motion.div>
               )}
+
+              {/* Metadata Tab */}
+              {activeTab === 'metadata' && (
+                <motion.div
+                  key="metadata"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Workflow Metadata</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Workflow ID</p>
+                        <p className="font-mono text-sm text-gray-900">{workflowData?.workflow_id}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Version</p>
+                        <p className="text-sm text-gray-900">{workflowData?.version || '1.0.0'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Created At</p>
+                        <p className="text-sm text-gray-900">{formatTimestamp(workflowData?.created_at)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Last Modified</p>
+                        <p className="text-sm text-gray-900">{formatTimestamp(workflowData?.updated_at)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Initiated By</p>
+                        <p className="text-sm text-gray-900">{workflowData?.initiated_by || 'System'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Priority</p>
+                        <p className="text-sm text-gray-900">{workflowData?.priority || 'Normal'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Flow Tab */}
+              {activeTab === 'flow' && (
+                <motion.div
+                  key="flow"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Workflow Flow</h3>
+                    <div className="space-y-4">
+                      {workflowData?.steps?.map((step, index) => (
+                        <div key={index} className="flex items-center space-x-4 p-4 bg-white rounded-lg border">
+                          <div className="flex-shrink-0">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
+                              step.status === 'completed' ? 'bg-green-500' :
+                              step.status === 'running' ? 'bg-blue-500' :
+                              step.status === 'pending' ? 'bg-yellow-500' :
+                              'bg-gray-500'
+                            }`}>
+                              {index + 1}
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{step.name}</h4>
+                            <p className="text-sm text-gray-600">{step.agent_name}</p>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              step.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              step.status === 'running' ? 'bg-blue-100 text-blue-800' :
+                              step.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {step.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Tasks Tab */}
+              {activeTab === 'tasks' && (
+                <motion.div
+                  key="tasks"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Task Details</h3>
+                    <div className="space-y-4">
+                      {workflowData?.steps?.map((step, index) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">{step.name}</h4>
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              step.status === 'completed' ? 'bg-green-100 text-green-800' :
+                              step.status === 'running' ? 'bg-blue-100 text-blue-800' :
+                              step.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {step.status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">Agent: {step.agent_name}</p>
+                          {step.description && (
+                            <p className="text-sm text-gray-700">{step.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Content Tab */}
+              {activeTab === 'content' && (
+                <motion.div
+                  key="content"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Generated Content</h3>
+                    <div className="space-y-4">
+                      {workflowData?.content?.map((content, index) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border">
+                          <h4 className="font-medium text-gray-900 mb-2">{content.title}</h4>
+                          <p className="text-sm text-gray-700 mb-2">{content.description}</p>
+                          <div className="text-xs text-gray-500">
+                            Type: {content.type} | Created: {formatTimestamp(content.created_at)}
+                          </div>
+                        </div>
+                      )) || (
+                        <div className="text-center text-gray-500 py-8">
+                          No content generated yet
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Costs Tab */}
+              {activeTab === 'costs' && (
+                <motion.div
+                  key="costs"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Cost Analysis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white p-4 rounded-lg border">
+                        <h4 className="font-medium text-gray-900 mb-2">Agent Costs</h4>
+                        <p className="text-2xl font-bold text-blue-600">
+                          ${workflowData?.costs?.agent_costs || 0}
+                        </p>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg border">
+                        <h4 className="font-medium text-gray-900 mb-2">API Costs</h4>
+                        <p className="text-2xl font-bold text-green-600">
+                          ${workflowData?.costs?.api_costs || 0}
+                        </p>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg border">
+                        <h4 className="font-medium text-gray-900 mb-2">Total Cost</h4>
+                        <p className="text-2xl font-bold text-purple-600">
+                          ${(workflowData?.costs?.agent_costs || 0) + (workflowData?.costs?.api_costs || 0)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Evaluator Tab */}
+              {activeTab === 'evaluator' && (
+                <motion.div
+                  key="evaluator"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Judge Evaluation</h3>
+                    <div className="space-y-4">
+                      <div className="bg-white p-4 rounded-lg border">
+                        <h4 className="font-medium text-gray-900 mb-2">Overall Score</h4>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-3xl font-bold text-yellow-600">
+                            {workflowData?.judge_score ? `${(workflowData.judge_score * 100).toFixed(1)}%` : 'N/A'}
+                          </div>
+                          <div className="flex-1">
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
+                                style={{ width: `${(workflowData?.judge_score || 0) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {workflowData?.evaluations?.map((evaluation, index) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border">
+                          <h4 className="font-medium text-gray-900 mb-2">{evaluation.criteria}</h4>
+                          <p className="text-sm text-gray-700 mb-2">{evaluation.comment}</p>
+                          <div className="text-sm text-gray-600">Score: {evaluation.score}/10</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Audit Tab */}
+              {activeTab === 'audit' && (
+                <motion.div
+                  key="audit"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="bg-gray-50 p-6 rounded-lg">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Audit Trail</h3>
+                    <div className="space-y-3">
+                      {workflowData?.audit_log?.map((log, index) => (
+                        <div key={index} className="bg-white p-4 rounded-lg border">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium text-gray-900">{log.action}</span>
+                            <span className="text-xs text-gray-500">{formatTimestamp(log.timestamp)}</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{log.description}</p>
+                          <div className="text-xs text-gray-500 mt-1">User: {log.user}</div>
+                        </div>
+                      )) || (
+                        <div className="text-center text-gray-500 py-8">
+                          No audit entries available
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
             </AnimatePresence>
+          </div>
+
+          {/* Footer with Delete Button */}
+          <div className="border-t border-gray-200 p-6 bg-gray-50">
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm(`Are you sure you want to delete the workflow "${workflowData?.workflow_name || workflowData?.workflow_id}"? This action cannot be undone.`)) {
+                    // Call delete function if provided, otherwise just close
+                    onClose();
+                    // TODO: Implement actual delete functionality
+                    console.log('Delete workflow:', workflowData?.workflow_id);
+                  }
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              >
+                Delete Workflow
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>

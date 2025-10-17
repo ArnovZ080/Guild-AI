@@ -375,11 +375,79 @@ const AgentActivityFeed = ({ userId, isCompact = false, maxEvents = 20 }) => {
                         <div className="space-y-3">
                           {event.data && Object.keys(event.data).length > 0 && (
                             <div>
-                              <h5 className="text-xs font-semibold text-gray-700 mb-2">Event Data:</h5>
+                              <h5 className="text-xs font-semibold text-gray-700 mb-2">Details:</h5>
                               <div className="bg-gray-50 rounded p-3 max-h-48 overflow-auto">
-                                <pre className="text-xs text-gray-800">
-                                  {JSON.stringify(event.data, null, 2)}
-                                </pre>
+                                <div className="text-xs text-gray-800 space-y-2">
+                                  {event.data.action && (
+                                    <div>
+                                      <span className="font-medium">Action:</span> {event.data.action}
+                                    </div>
+                                  )}
+                                  {event.data.description && (
+                                    <div>
+                                      <span className="font-medium">Description:</span> {event.data.description}
+                                    </div>
+                                  )}
+                                  {event.data.workflow_description && (
+                                    <div>
+                                      <span className="font-medium">Workflow:</span> {event.data.workflow_description}
+                                    </div>
+                                  )}
+                                  {event.data.current_step && (
+                                    <div>
+                                      <span className="font-medium">Current Step:</span> {event.data.current_step}
+                                    </div>
+                                  )}
+                                  {event.data.progress !== undefined && (
+                                    <div>
+                                      <span className="font-medium">Progress:</span> {event.data.progress}%
+                                    </div>
+                                  )}
+                                  {event.data.metrics && (
+                                    <div>
+                                      <span className="font-medium">Metrics:</span>
+                                      <ul className="ml-4 mt-1">
+                                        {Object.entries(event.data.metrics).map(([key, value]) => (
+                                          <li key={key} className="capitalize">
+                                            {key.replace(/_/g, ' ')}: {value}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {event.data.results && (
+                                    <div>
+                                      <span className="font-medium">Results:</span>
+                                      <ul className="ml-4 mt-1">
+                                        {Object.entries(event.data.results).map(([key, value]) => (
+                                          <li key={key} className="capitalize">
+                                            {key.replace(/_/g, ' ')}: {value}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {event.data.natural_language_descriptions && Array.isArray(event.data.natural_language_descriptions) && (
+                                    <div>
+                                      <span className="font-medium">Workflow Steps:</span>
+                                      <ul className="ml-4 mt-1">
+                                        {event.data.natural_language_descriptions.map((step, idx) => (
+                                          <li key={idx}>
+                                            {idx + 1}. {step.description || step.node_id}
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  {event.data.orchestrator_instructions && (
+                                    <div>
+                                      <span className="font-medium">Instructions:</span>
+                                      <div className="ml-4 mt-1 text-gray-600">
+                                        {event.data.orchestrator_instructions.expected_outcome}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           )}

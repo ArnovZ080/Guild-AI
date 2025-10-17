@@ -374,10 +374,10 @@ const achievementTracker = new AchievementTracker();
 
 // Auto-connect to backend if available
 if (typeof window !== 'undefined') {
-  // Try to sync analytics periodically (every 5 minutes)
-  setInterval(() => {
-    achievementTracker.syncAnalytics();
-  }, 5 * 60 * 1000);
+  // Polling disabled to prevent page resets
+  // setInterval(() => {
+  //   achievementTracker.syncAnalytics();
+  // }, 5 * 60 * 1000);
 }
 
 export default achievementTracker;

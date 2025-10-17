@@ -183,6 +183,9 @@ try:
     app.include_router(calendar_oauth.router)
     # Dashboard endpoints (social, financial, marketing)
     app.include_router(dashboard_endpoints.router)
+    # User configuration endpoints
+    from .routes import user_config
+    app.include_router(user_config.router)
     
     ROUTES_AVAILABLE = True
     logger.info("✅ All routes imported and registered successfully")

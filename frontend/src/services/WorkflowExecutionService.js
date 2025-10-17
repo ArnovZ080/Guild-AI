@@ -195,6 +195,29 @@ class WorkflowExecutionService {
   }
 
   /**
+   * Delete a specific workflow
+   * @param {string} workflowId - Workflow ID to delete
+   */
+  deleteWorkflow(workflowId) {
+    try {
+      // Remove from running workflows
+      const running = this.getRunningWorkflows();
+      const filteredRunning = running.filter(w => w.id !== workflowId);
+      localStorage.setItem(this.runningWorkflowsKey, JSON.stringify(filteredRunning));
+      
+      // Remove from completed workflows
+      const completed = this.getCompletedWorkflows();
+      const filteredCompleted = completed.filter(w => w.id !== workflowId);
+      localStorage.setItem(this.completedWorkflowsKey, JSON.stringify(filteredCompleted));
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+      return false;
+    }
+  }
+
+  /**
    * Clear all workflow data (for testing/reset)
    */
   clearAll() {
