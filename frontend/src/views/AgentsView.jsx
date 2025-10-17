@@ -457,7 +457,7 @@ const getAgentActivityData = (agent) => {
 };
 
 const AgentsView = () => {
-  const { agents, loading } = useAgentStatus();
+  const { agents, setAgents, loading } = useAgentStatus();
   const { settings } = useSettings();
   const userId = settings?.profile?.id || 'user_' + Math.random().toString(36).substr(2, 9);
   
