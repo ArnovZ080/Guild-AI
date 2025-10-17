@@ -56,7 +56,7 @@ export const useAgentStatus = () => {
     // return () => clearInterval(interval);
   }, [fetchAgentStatus]);
 
-  return { agents, loading, error, refetch: fetchAgentStatus };
+  return { agents, setAgents, loading, error, refetch: fetchAgentStatus };
 };
 
 // Hook for managing workflows

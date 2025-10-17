@@ -324,6 +324,12 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       let actions = [];
       let workflowData = null;
 
+      console.log('Sending request to orchestrator:', {
+        objective: messageText,
+        user_id: userId,
+        task_type: 'chat'
+      });
+
       const orchestrationResult = await orchestratorService.processRequest({
         objective: messageText,
         user_id: userId,
@@ -334,6 +340,8 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           priority: 'medium'
         }
       });
+
+      console.log('Orchestrator response:', orchestrationResult);
 
       if (orchestrationResult?.success) {
         responseContent = orchestrationResult.message || orchestrationResult.response || "✅ I've processed your request.";
@@ -408,6 +416,11 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
 
     } catch (err) {
       console.error('Orchestrator error:', err);
+      console.error('Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      });
       
       // Provide intelligent fallback responses based on the request
       let fallbackContent = "";
@@ -587,9 +600,14 @@ Would you like me to help you work through any of these specific areas?`;
   // Load system capabilities on mount
   useEffect(() => {
     const loadCapabilities = async () => {
-      const result = await orchestratorService.getStatus();
-      if (result.success) {
-        setSystemCapabilities(result);
+      try {
+        const result = await orchestratorService.getStatus();
+        if (result.success) {
+          setSystemCapabilities(result);
+        }
+      } catch (error) {
+        console.log('Status endpoint not available, continuing without system capabilities');
+        // Don't set capabilities if endpoint doesn't exist - this is not critical
       }
     };
     loadCapabilities();

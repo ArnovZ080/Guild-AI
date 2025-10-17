@@ -8,8 +8,8 @@ class UnifiedOrchestratorService {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     this.apiPrefix = '/api/orchestrator';
-    this.requestTimeout = 5000; // 5 seconds for fast responses
-    this.complexRequestTimeout = 30000; // 30 seconds for complex orchestration
+    this.requestTimeout = 15000; // 15 seconds for orchestrator responses
+    this.complexRequestTimeout = 45000; // 45 seconds for complex orchestration
   }
 
   /**
@@ -116,13 +116,13 @@ class UnifiedOrchestratorService {
   async processRequest(request) {
     try {
       // Use appropriate timeout based on request complexity
-      const isSimple = this.isSimpleRequest(request.user_input || '');
+      const isSimple = this.isSimpleRequest(request.objective || '');
       const originalTimeout = this.requestTimeout;
       
       if (isSimple) {
-        this.requestTimeout = 5000; // 5 seconds for simple requests
+        this.requestTimeout = 10000; // 10 seconds for simple requests
       } else {
-        this.requestTimeout = this.complexRequestTimeout; // 30 seconds for complex requests
+        this.requestTimeout = this.complexRequestTimeout; // 45 seconds for complex requests
       }
       
       const response = await this.makeRequest('/chat/process', {
