@@ -951,22 +951,29 @@ const AgentsView = () => {
         const agentConfigs = await hybridStorageService.getAllAgentConfigurations();
         
         // Update agents with their saved configurations
-        setAgents(prevAgents => prevAgents.map(agent => {
-          const savedConfig = agentConfigs[agent.id];
-          if (savedConfig) {
-            return {
-              ...agent,
-              personality: savedConfig.custom_instructions || agent.personality,
-              instructions: savedConfig.custom_instructions || agent.instructions,
-              custom_configuration: {
-                duration: savedConfig.duration,
-                priority: savedConfig.priority,
-                customInstructions: savedConfig.custom_instructions
-              }
-            };
+        setAgents(prevAgents => {
+          // Handle null or undefined prevAgents
+          if (!prevAgents || !Array.isArray(prevAgents)) {
+            return prevAgents; // Return as-is if invalid
           }
-          return agent;
-        }));
+          
+          return prevAgents.map(agent => {
+            const savedConfig = agentConfigs[agent.id];
+            if (savedConfig) {
+              return {
+                ...agent,
+                personality: savedConfig.custom_instructions || agent.personality,
+                instructions: savedConfig.custom_instructions || agent.instructions,
+                custom_configuration: {
+                  duration: savedConfig.duration,
+                  priority: savedConfig.priority,
+                  customInstructions: savedConfig.custom_instructions
+                }
+              };
+            }
+            return agent;
+          });
+        });
       } catch (error) {
         console.warn('Failed to load agent configurations:', error);
       }
@@ -1626,21 +1633,28 @@ const AgentsView = () => {
       await hybridStorageService.saveAgentConfiguration(selectedAgent.id, configData);
       
       // Update the agent's personality/instructions in the agents list
-      setAgents(prevAgents => prevAgents.map(agent => {
-        if (agent.id === selectedAgent.id) {
-          return {
-            ...agent,
-            personality: agentConfiguration.customInstructions,
-            instructions: agentConfiguration.customInstructions,
-            custom_configuration: {
-              duration: agentConfiguration.duration,
-              priority: agentConfiguration.priority,
-              customInstructions: agentConfiguration.customInstructions
-            }
-          };
+      setAgents(prevAgents => {
+        // Handle null or undefined prevAgents
+        if (!prevAgents || !Array.isArray(prevAgents)) {
+          return prevAgents; // Return as-is if invalid
         }
-        return agent;
-      }));
+        
+        return prevAgents.map(agent => {
+          if (agent.id === selectedAgent.id) {
+            return {
+              ...agent,
+              personality: agentConfiguration.customInstructions,
+              instructions: agentConfiguration.customInstructions,
+              custom_configuration: {
+                duration: agentConfiguration.duration,
+                priority: agentConfiguration.priority,
+                customInstructions: agentConfiguration.customInstructions
+              }
+            };
+          }
+          return agent;
+        });
+      });
       
       triggerCelebration(CelebrationType.TASK_COMPLETE, {
         message: `Configuration saved for ${selectedAgent.name}! ⚙️`,

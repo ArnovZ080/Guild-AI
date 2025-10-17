@@ -59,7 +59,7 @@ class HybridStorageService {
     if (this.isOnline) {
       try {
         const response = await apiService.post('/user-config/agent-configs', configData);
-        if (response.success) {
+        if (response && response.success) {
           console.log('Agent configuration saved to backend:', agentId);
           // Update localStorage with server timestamp
           configData.synced_at = new Date().toISOString();
@@ -89,7 +89,8 @@ class HybridStorageService {
     if (this.isOnline && !localConfig) {
       try {
         const response = await apiService.get(`/user-config/agent-configs/${agentId}`);
-        if (response.success && response.data) {
+        // Handle null response (API error fallback)
+        if (response && response.success && response.data) {
           // Save to localStorage for future use
           this.saveToLocalStorage('agent_configurations', agentId, response.data);
           return response.data;
@@ -113,7 +114,8 @@ class HybridStorageService {
     if (this.isOnline) {
       try {
         const response = await apiService.get('/user-config/agent-configs');
-        if (response.success && response.data) {
+        // Handle null response (API error fallback)
+        if (response && response.success && response.data) {
           // Merge local and server data (server takes precedence for conflicts)
           const mergedConfigs = this.mergeConfigurations(localConfigs, response.data);
           
@@ -151,7 +153,7 @@ class HybridStorageService {
     if (this.isOnline) {
       try {
         const response = await apiService.post('/user-config/workflow-templates', template);
-        if (response.success) {
+        if (response && response.success) {
           console.log('Workflow template saved to backend:', workflowId);
           template.synced_at = new Date().toISOString();
           this.saveToLocalStorage('workflow_templates', workflowId, template);
@@ -176,7 +178,7 @@ class HybridStorageService {
     if (this.isOnline) {
       try {
         const response = await apiService.get('/user-config/workflow-templates');
-        if (response.success && response.data) {
+        if (response && response.success && response.data) {
           const mergedTemplates = this.mergeConfigurations(localTemplates, response.data);
           this.saveAllToLocalStorage('workflow_templates', mergedTemplates);
           return mergedTemplates;
@@ -200,7 +202,7 @@ class HybridStorageService {
     if (this.isOnline) {
       try {
         const response = await apiService.delete(`/user-config/agent-configs/${agentId}`);
-        if (response.success) {
+        if (response && response.success) {
           console.log('Agent configuration deleted from backend:', agentId);
         }
       } catch (error) {
@@ -222,7 +224,7 @@ class HybridStorageService {
     if (this.isOnline) {
       try {
         const response = await apiService.delete(`/user-config/workflow-templates/${workflowId}`);
-        if (response.success) {
+        if (response && response.success) {
           console.log('Workflow template deleted from backend:', workflowId);
         }
       } catch (error) {
