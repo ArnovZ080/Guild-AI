@@ -99,7 +99,7 @@ const SettingsPage = () => {
     const checkAdminStatus = async () => {
       try {
         const API_URL = import.meta.env.VITE_API_URL || '';
-        const response = await fetch(`${API_URL}/waitlist/is-admin`, {
+        const response = await fetch(`${API_URL}/api/waitlist/is-admin`, {
           headers: {
             'Authorization': `Bearer ${await window.firebaseAuth?.currentUser?.getIdToken()}`
           }
@@ -131,7 +131,7 @@ const SettingsPage = () => {
           return;
         }
         
-        const response = await fetch(`${API_URL}/onboarding/data`, {
+        const response = await fetch(`${API_URL}/api/onboarding/data`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
