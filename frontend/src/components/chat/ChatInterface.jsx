@@ -341,9 +341,11 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
         }
       });
 
-      console.log('Orchestrator response:', orchestrationResult);
+      console.log('Orchestrator response:', JSON.stringify(orchestrationResult, null, 2));
+      console.log('Response keys:', orchestrationResult ? Object.keys(orchestrationResult) : 'No response');
 
       if (orchestrationResult?.success) {
+        console.log('Success response detected');
         responseContent = orchestrationResult.message || orchestrationResult.response || "✅ I've processed your request.";
         
         // Handle different conversation types
@@ -398,6 +400,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
           workflowData = null;
         }
       } else {
+        console.log('No success response detected, success value:', orchestrationResult?.success);
         responseContent = "I couldn't process your request right now. Please try again shortly.";
         actions = ['🔄 Try Again'];
       }
