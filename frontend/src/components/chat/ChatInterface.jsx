@@ -325,7 +325,8 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       let workflowData = null;
 
       const orchestrationResult = await orchestratorService.processRequest({
-        user_input: messageText,
+        objective: messageText,
+        user_id: userId,
         task_type: 'chat',
         complexity: 'medium',
         context: {
@@ -335,7 +336,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
       });
 
       if (orchestrationResult?.success) {
-        responseContent = orchestrationResult.response || "✅ I've processed your request.";
+        responseContent = orchestrationResult.message || orchestrationResult.response || "✅ I've processed your request.";
         
         // Handle different conversation types
         if (orchestrationResult.conversation_type === 'clarification_needed') {
