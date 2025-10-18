@@ -1267,6 +1267,9 @@ async def process_chat_orchestration(
             from ..llm.gemini_provider import gemini_provider
             from ..llm.model_router import model_router
             
+            logger.info(f"Gemini provider imported successfully, initialized: {gemini_provider.initialized}")
+            logger.info(f"Project ID: {gemini_provider.project_id}, Location: {gemini_provider.location}")
+            
             # Get user's business context for personalized responses
             business_context = {}
             user_name = "there"  # Default greeting
@@ -1312,6 +1315,7 @@ User Request: {objective}
 Respond naturally and helpfully."""
 
             try:
+                logger.info(f"Attempting Gemini API call with prompt length: {len(system_context)}")
                 smart_response = await gemini_provider.generate_with_context(
                     prompt=system_context,
                     business_context=business_context,
@@ -1320,6 +1324,7 @@ Respond naturally and helpfully."""
                     user_tier='starter'
                 )
                 
+                logger.info(f"Gemini API call successful, response: {smart_response.get('text', '')[:100]}...")
                 response_text = smart_response['text']
             except Exception as gemini_error:
                 logger.error(f"Gemini provider failed: {gemini_error}")

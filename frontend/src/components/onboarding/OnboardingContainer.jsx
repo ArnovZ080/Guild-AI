@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import BusinessQuestions from './BusinessQuestions';
 import AudienceQuestions from './AudienceQuestions';
@@ -9,15 +9,17 @@ import PreferencesStep from './PreferencesStep';
 import IntegrationsStep from './IntegrationsStep';
 import ScreenRecordingStep from './ScreenRecordingStep';
 import SummaryStep from './SummaryStep';
-import CapabilitiesStep from './CapabilitiesStep';
-import CompletionScreen from './CompletionScreen';
 import WelcomeStep from './WelcomeStep';
+import OnboardingComplete from './OnboardingComplete';
 
 const OnboardingContainer = ({ onComplete }) => {
   const [currentStep, setCurrentStep] = useState('welcome');
   const [answers, setAnswers] = useState({});
   const [unknowns, setUnknowns] = useState([]); // track questions answered as unknown
   const [showScreenRecording, setShowScreenRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+  const [showCompletion, setShowCompletion] = useState(false);
 
   const updateAnswers = (newData) => {
     // merge answers
@@ -49,6 +51,7 @@ const OnboardingContainer = ({ onComplete }) => {
 
   const persistProfile = async (data) => {
     try {
+      setIsLoading(true);
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       
       // Get Firebase token
@@ -57,11 +60,12 @@ const OnboardingContainer = ({ onComplete }) => {
       
       if (!token) {
         console.warn('No auth token available, skipping source of truth save');
+        setIsLoading(false);
         return;
       }
       
       // Save to source of truth endpoint
-      const response = await fetch(`${API_URL}/onboarding/save`, {
+      const response = await fetch(`${API_URL}/api/onboarding/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -79,12 +83,20 @@ const OnboardingContainer = ({ onComplete }) => {
         console.log(`Completion: ${result.completion_percentage}%`);
         console.log(`Needs follow-up: ${result.needs_follow_up}`);
         console.log(`Incomplete fields: ${result.incomplete_fields?.join(', ') || 'none'}`);
+        
+        setCompletionData(result);
+        return result;
       } else {
-        console.error('Failed to save source of truth:', await response.text());
+        const errorText = await response.text();
+        console.error('Failed to save source of truth:', errorText);
+        throw new Error(`Failed to save: ${errorText}`);
       }
       
     } catch (e) {
       console.error('Failed to persist onboarding data:', e);
+      throw e;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -151,15 +163,22 @@ const OnboardingContainer = ({ onComplete }) => {
     summary: (
       <SummaryStep
         answers={answers}
-        onNext={() => setCurrentStep('capabilities')}
-      />
-    ),
-    capabilities: (
-      <CapabilitiesStep
-        answers={answers}
-        onNext={async () => {
-          await persistProfile(answers);
-          onComplete({ ...answers, unknowns });
+        onNext={async (editedAnswers) => {
+          const finalAnswers = editedAnswers || answers;
+          try {
+            const result = await persistProfile(finalAnswers);
+            setCompletionData(result);
+            setShowCompletion(true);
+          } catch (error) {
+            console.error('Failed to complete onboarding:', error);
+            // Still complete onboarding even if save fails
+            setCompletionData({
+              completion_percentage: 0,
+              needs_follow_up: true,
+              incomplete_fields: unknowns
+            });
+            setShowCompletion(true);
+          }
         }}
       />
     ),
@@ -168,6 +187,15 @@ const OnboardingContainer = ({ onComplete }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
       <div className="max-w-4xl mx-auto">
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="text-gray-700">Saving your business profile...</span>
+            </div>
+          </div>
+        )}
+        
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}

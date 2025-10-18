@@ -1,181 +1,186 @@
 import React, { useState, useEffect } from 'react';
-import { AlertCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { AlertCircle, CheckCircle, ArrowRight, HelpCircle, Sparkles } from 'lucide-react';
 
-const IncompleteOnboardingWidget = () => {
+const IncompleteOnboardingWidget = ({ user }) => {
   const [incompleteData, setIncompleteData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeHelp, setActiveHelp] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isInitiating, setIsInitiating] = useState(false);
 
   useEffect(() => {
-    fetchIncompleteFields();
+    fetchIncompleteData();
   }, []);
 
-  const fetchIncompleteFields = async () => {
+  const fetchIncompleteData = async () => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const { auth } = await import('../../config/firebase');
-      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+      const { auth } = await import('../../config/firebase.js');
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken();
       
-      if (!token) return;
-      
-      const response = await fetch(`${API_URL}/onboarding/incomplete`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/onboarding/incomplete`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setIncompleteData(data);
       }
     } catch (error) {
-      console.error('Failed to fetch incomplete fields:', error);
+      console.error('Failed to fetch incomplete onboarding data:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const handleHelpComplete = async (fieldId) => {
+  const handleCompleteField = async (fieldId) => {
     try {
-      setActiveHelp(fieldId);
+      setIsInitiating(true);
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-      const { auth } = await import('../../config/firebase');
-      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+      const { auth } = await import('../../config/firebase.js');
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken();
       
-      if (!token) return;
-      
-      // Trigger orchestrator to help complete this field
-      const response = await fetch(`${API_URL}/orchestrator/complete-field`, {
+      const response = await fetch(`${API_URL}/api/orchestrator/complete-field`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ field_id: fieldId })
       });
-      
+
       if (response.ok) {
         const result = await response.json();
-        console.log('Orchestrator initiated:', result);
-        // Show success message or redirect to chat
-        alert(`Great! I'll help you develop your ${fieldId.replace(/_/g, ' ')}. Check the chat for my questions!`);
+        // Show success message and refresh data
+        alert(`Great! I'll help you complete your ${fieldId.replace('_', ' ')}. ${result.initial_prompt}`);
+        fetchIncompleteData(); // Refresh the data
+      } else {
+        console.error('Failed to initiate field completion:', await response.text());
       }
     } catch (error) {
-      console.error('Failed to initiate help:', error);
-      alert('Something went wrong. Please try again.');
+      console.error('Error initiating field completion:', error);
     } finally {
-      setActiveHelp(null);
+      setIsInitiating(false);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-4">
+      <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!incompleteData?.needs_follow_up || incompleteData?.incomplete_fields?.length === 0) {
-    return (
-      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg shadow p-6">
-        <div className="flex items-start gap-3">
-          <CheckCircle className="w-6 h-6 text-green-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-1">Business Profile Complete! 🎉</h3>
-            <p className="text-sm text-gray-600">
-              Your business information is {incompleteData?.completion_percentage || 100}% complete.
-              All agents now have the context they need to help you effectively.
-            </p>
+          <div className="h-4 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="space-y-2">
+            <div className="h-3 bg-gray-200 rounded"></div>
+            <div className="h-3 bg-gray-200 rounded w-5/6"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  const fieldLabels = {
-    business_type: 'Business Type',
-    business_description: 'Business Description',
-    target_audience: 'Target Audience',
-    customer_avatar: 'Customer Avatar (Ideal Client Profile)',
-    audience_problems: 'Audience Pain Points',
-    brand_voice_tone: 'Brand Voice & Tone',
-    brand_colors: 'Brand Colors',
-    logo_status: 'Logo Development',
-    brand_story: 'Brand Story',
-    brand_differentiation: 'What Makes You Unique',
-    pricing_status: 'Pricing Strategy',
-    marketing_budget: 'Marketing Budget',
-    priority_3months: '3-Month Priorities',
-    data_storage_preference: 'Data Storage Preference'
+  if (!incompleteData || !incompleteData.needs_follow_up || incompleteData.completion_percentage === 100) {
+    return null; // Don't show widget if complete
+  }
+
+  const priorityFields = incompleteData.incomplete_fields?.slice(0, 5) || [];
+  const fieldDisplayNames = {
+    'business_type': 'Business Type',
+    'target_audience': 'Target Audience', 
+    'customer_avatar': 'Customer Avatar',
+    'audience_problems': 'Audience Problems',
+    'brand_voice_tone': 'Brand Voice',
+    'brand_colors': 'Brand Colors',
+    'logo_status': 'Logo Status',
+    'brand_story': 'Brand Story',
+    'brand_differentiation': 'Brand Differentiation',
+    'pricing_status': 'Pricing Strategy',
+    'marketing_budget': 'Marketing Budget',
+    'priority_3months': '3-Month Priorities'
   };
 
   return (
-    <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg shadow p-6">
-      <div className="flex items-start gap-3 mb-4">
-        <AlertCircle className="w-6 h-6 text-amber-600 mt-0.5 flex-shrink-0" />
-        <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">
-            Let's Complete Your Business Profile
-          </h3>
-          <p className="text-sm text-gray-600 mb-3">
-            Your profile is {incompleteData.completion_percentage}% complete. 
-            I can help you develop the missing pieces so all agents have complete context.
-          </p>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg shadow-lg p-6 mb-6"
+    >
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0">
+          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+            <AlertCircle className="w-6 h-6 text-blue-600" />
+          </div>
         </div>
-      </div>
-
-      <div className="space-y-2">
-        {incompleteData.incomplete_fields.slice(0, 5).map((fieldId) => (
-          <div 
-            key={fieldId}
-            className="flex items-center justify-between bg-white rounded-lg p-3 border border-amber-200"
-          >
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-900">
-                {fieldLabels[fieldId] || fieldId.replace(/_/g, ' ')}
-              </div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                Incomplete or needs clarification
+        
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Complete Your Business Profile
+            </h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">
+                {incompleteData.completion_percentage}% complete
+              </span>
+              <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-600 transition-all duration-500"
+                  style={{ width: `${incompleteData.completion_percentage}%` }}
+                />
               </div>
             </div>
-            <button
-              onClick={() => handleHelpComplete(fieldId)}
-              disabled={activeHelp === fieldId}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {activeHelp === fieldId ? (
-                <>
-                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Starting...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3 h-3" />
-                  Help me complete
-                </>
-              )}
-            </button>
           </div>
-        ))}
-      </div>
-
-      {incompleteData.incomplete_fields.length > 5 && (
-        <div className="mt-3 text-xs text-gray-500 text-center">
-          + {incompleteData.incomplete_fields.length - 5} more fields to complete
+          
+          <p className="text-gray-600 mb-4">
+            Your business profile is {incompleteData.completion_percentage}% complete. 
+            Complete these details to help your AI agents work more effectively for you.
+          </p>
+          
+          {priorityFields.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-700">Complete these areas:</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {priorityFields.map((fieldId, index) => (
+                  <motion.button
+                    key={fieldId}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => handleCompleteField(fieldId)}
+                    disabled={isInitiating}
+                    className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 group"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <HelpCircle className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-blue-900">
+                        {fieldDisplayNames[fieldId] || fieldId.replace('_', ' ')}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Sparkles className="w-4 h-4 text-blue-600" />
+                      <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600" />
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+              
+              <div className="mt-4 p-3 bg-blue-100 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>How it works:</strong> Click any item above and I'll guide you through 
+                  completing it with targeted questions and research. Your AI agents will then 
+                  have complete context to work more effectively for you.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-
-      <div className="mt-4 pt-4 border-t border-amber-200">
-        <p className="text-xs text-gray-600">
-          💡 <strong>Tip:</strong> Complete fields help agents create better, more personalized content
-          and strategies tailored specifically to your business.
-        </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
 export default IncompleteOnboardingWidget;
-
