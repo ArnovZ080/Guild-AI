@@ -1591,6 +1591,11 @@ const AgentsView = () => {
       
       {/* Footer with Delete Button for workflow builder workflows */}
       {wf.isFromBuilder && (
+        <div style={{backgroundColor: 'yellow', padding: '10px', margin: '10px'}}>
+          DEBUG: This workflow is from builder (isFromBuilder: {wf.isFromBuilder})
+        </div>
+      )}
+      {wf.isFromBuilder && (
         <div className="border-t border-gray-200 p-6 bg-gray-50">
           <div className="flex justify-end space-x-3">
             <button

@@ -1222,6 +1222,7 @@ const EnhancedWorkflowBuilder: React.FC = () => {
   useEffect(() => {
     const handleBeforeUnload = (event) => {
       // Auto-save the current workflow state
+      console.log('DEBUG: Auto-save triggered - nodes:', nodes.length, 'edges:', edges.length);
       if (nodes.length > 0 || edges.length > 0) {
         try {
           const payload = {
