@@ -9,6 +9,8 @@ import PreferencesStep from './PreferencesStep';
 import IntegrationsStep from './IntegrationsStep';
 import ScreenRecordingStep from './ScreenRecordingStep';
 import SummaryStep from './SummaryStep';
+import CapabilitiesStep from './CapabilitiesStep';
+import CompletionScreen from './CompletionScreen';
 import WelcomeStep from './WelcomeStep';
 import OnboardingComplete from './OnboardingComplete';
 
@@ -183,6 +185,25 @@ const OnboardingContainer = ({ onComplete }) => {
       />
     ),
   };
+
+  const handleEnterDashboard = () => {
+    onComplete({ 
+      ...answers, 
+      unknowns, 
+      completionData,
+      needsFollowUp: completionData?.needs_follow_up || false,
+      completionPercentage: completionData?.completion_percentage || 0
+    });
+  };
+
+  if (showCompletion) {
+    return (
+      <OnboardingComplete 
+        completionData={completionData}
+        onEnterDashboard={handleEnterDashboard}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">

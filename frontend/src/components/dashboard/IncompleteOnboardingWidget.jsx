@@ -15,7 +15,7 @@ const IncompleteOnboardingWidget = ({ user }) => {
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const { auth } = await import('../../config/firebase.js');
-      const token = auth?.currentUser ? await auth.currentUser.getIdToken();
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
       
       if (!token) {
         setIsLoading(false);
@@ -44,7 +44,7 @@ const IncompleteOnboardingWidget = ({ user }) => {
       setIsInitiating(true);
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
       const { auth } = await import('../../config/firebase.js');
-      const token = auth?.currentUser ? await auth.currentUser.getIdToken();
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
       
       const response = await fetch(`${API_URL}/api/orchestrator/complete-field`, {
         method: 'POST',
