@@ -1264,8 +1264,15 @@ async def process_chat_orchestration(
 
         # Intelligent Orchestrator with proper workflow management
         try:
-            from ..llm.gemini_provider import gemini_provider
-            from ..llm.model_router import model_router
+            logger.info("Starting intelligent orchestrator processing")
+            
+            try:
+                from ..llm.gemini_provider import gemini_provider
+                from ..llm.model_router import model_router
+                logger.info("✅ Successfully imported Gemini provider and model router")
+            except Exception as import_error:
+                logger.error(f"❌ Failed to import Gemini provider: {import_error}")
+                raise Exception(f"Gemini provider import failed: {import_error}")
             
             logger.info(f"Gemini provider imported successfully, initialized: {gemini_provider.initialized}")
             logger.info(f"Project ID: {gemini_provider.project_id}, Location: {gemini_provider.location}")
@@ -1274,17 +1281,22 @@ async def process_chat_orchestration(
             business_context = {}
             user_name = "there"  # Default greeting
             
-            onboarding = db.query(models.OnboardingData).filter(
-                models.OnboardingData.user_id == user_id
-            ).first()
-            
-            if onboarding and onboarding.raw_responses:
-                business_context = onboarding.raw_responses
-                # Extract user's first name if available
-                if isinstance(business_context, dict):
-                    user_name = business_context.get('first_name', business_context.get('name', 'there'))
-                    # Ensure we have the user's name in the context for personalization
-                    business_context['user_name'] = user_name
+            try:
+                onboarding = db.query(models.OnboardingData).filter(
+                    models.OnboardingData.user_id == user_id
+                ).first()
+                
+                if onboarding and onboarding.raw_responses:
+                    business_context = onboarding.raw_responses
+                    # Extract user's first name if available
+                    if isinstance(business_context, dict):
+                        user_name = business_context.get('first_name', business_context.get('name', 'there'))
+                        # Ensure we have the user's name in the context for personalization
+                        business_context['user_name'] = user_name
+                logger.info(f"✅ Business context retrieved for user: {user_name}")
+            except Exception as context_error:
+                logger.error(f"❌ Failed to retrieve business context: {context_error}")
+                # Continue with empty context
             
             # Determine if this is a workflow request or general conversation
             lower_objective = objective.lower()
@@ -1315,6 +1327,11 @@ User Request: {objective}
 Respond naturally and helpfully."""
 
             try:
+                # Test if gemini_provider is actually working
+                if not gemini_provider.initialized:
+                    logger.error("Gemini provider not initialized, using intelligent fallback")
+                    raise Exception("Gemini provider not initialized")
+                
                 logger.info(f"Attempting Gemini API call with prompt length: {len(system_context)}")
                 smart_response = await gemini_provider.generate_with_context(
                     prompt=system_context,
