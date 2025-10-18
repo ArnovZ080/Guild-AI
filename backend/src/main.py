@@ -81,8 +81,7 @@ app.add_middleware(
 # Include API routes
 app.include_router(agents_router)
 app.include_router(onboarding_router)
-app.include_router(orchestrator_router)
-# Enhanced Orchestrator with full agent and integration awareness
+# Enhanced Orchestrator with full agent and integration awareness (PRIMARY)
 app.include_router(enhanced_orchestrator_router)
 # Unified Orchestrator - Fortune 500 Level Business Intelligence
 app.include_router(unified_orchestrator_router)
