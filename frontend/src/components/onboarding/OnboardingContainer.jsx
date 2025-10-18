@@ -184,6 +184,22 @@ const OnboardingContainer = ({ onComplete }) => {
         }}
       />
     ),
+    // Disabled steps - kept for testing purposes
+    capabilities: (
+      <CapabilitiesStep
+        answers={answers}
+        onNext={async () => {
+          const result = await persistProfile(answers);
+          onComplete({ ...answers, unknowns });
+        }}
+      />
+    ),
+    completion: (
+      <CompletionScreen
+        answers={answers}
+        onFinish={() => onComplete({ ...answers, unknowns })}
+      />
+    ),
   };
 
   const handleEnterDashboard = () => {
