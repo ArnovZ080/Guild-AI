@@ -307,6 +307,43 @@ class OnboardingFollowUpService {
       task: 'complete_field'
     };
   }
+
+  /**
+   * Process onboarding completion data and generate follow-up questions
+   */
+  processOnboardingCompletion(data) {
+    try {
+      const incompleteFields = data.unknowns || [];
+      const followUpQuestions = [];
+      
+      // Generate follow-up questions for incomplete fields
+      for (const field of incompleteFields) {
+        const question = this.getFollowUpQuestion(field);
+        const action = this.getFollowUpAction(field);
+        
+        followUpQuestions.push({
+          field,
+          question,
+          action
+        });
+      }
+      
+      return {
+        success: true,
+        followUpQuestions,
+        completionData: data.completionData,
+        needsFollowUp: followUpQuestions.length > 0
+      };
+    } catch (error) {
+      console.error('Error processing onboarding completion:', error);
+      return {
+        success: false,
+        followUpQuestions: [],
+        completionData: null,
+        needsFollowUp: false
+      };
+    }
+  }
 }
 
 export default new OnboardingFollowUpService();
