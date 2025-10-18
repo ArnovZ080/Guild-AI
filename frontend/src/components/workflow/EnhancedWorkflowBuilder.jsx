@@ -1218,6 +1218,108 @@ const EnhancedWorkflowBuilder: React.FC = () => {
     setNodes((nds) => nds.map((n) => n.data?.category === 'agent' ? { ...n, data: { ...n.data, availableAgents } } : n));
   }, [availableAgents, setNodes]);
 
+  // Auto-save workflow when component unmounts or user navigates away
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      // Auto-save the current workflow state
+      if (nodes.length > 0 || edges.length > 0) {
+        try {
+          const payload = {
+            name: workflowName,
+            description: workflowDescription,
+            nodes: nodes,
+            edges: edges,
+            mode: workflowMode
+          };
+          
+          // Save to localStorage as draft
+          localStorage.setItem('guild_workflow_draft', JSON.stringify({
+            ...payload,
+            lastSaved: new Date().toISOString(),
+            isDraft: true
+          }));
+        } catch (error) {
+          console.warn('Failed to auto-save workflow draft:', error);
+        }
+      }
+    };
+
+    const handleUnload = () => {
+      // Also save on unload
+      if (nodes.length > 0 || edges.length > 0) {
+        try {
+          const payload = {
+            name: workflowName,
+            description: workflowDescription,
+            nodes: nodes,
+            edges: edges,
+            mode: workflowMode
+          };
+          
+          localStorage.setItem('guild_workflow_draft', JSON.stringify({
+            ...payload,
+            lastSaved: new Date().toISOString(),
+            isDraft: true
+          }));
+        } catch (error) {
+          console.warn('Failed to auto-save workflow draft:', error);
+        }
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('unload', handleUnload);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('unload', handleUnload);
+      
+      // Also save on component unmount
+      if (nodes.length > 0 || edges.length > 0) {
+        try {
+          const payload = {
+            name: workflowName,
+            description: workflowDescription,
+            nodes: nodes,
+            edges: edges,
+            mode: workflowMode
+          };
+          
+          localStorage.setItem('guild_workflow_draft', JSON.stringify({
+            ...payload,
+            lastSaved: new Date().toISOString(),
+            isDraft: true
+          }));
+        } catch (error) {
+          console.warn('Failed to auto-save workflow draft:', error);
+        }
+      }
+    };
+  }, [nodes, edges, workflowName, workflowDescription, workflowMode]);
+
+  // Load draft workflow when component mounts
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem('guild_workflow_draft');
+      if (draft) {
+        const parsedDraft = JSON.parse(draft);
+        if (parsedDraft.isDraft && (parsedDraft.nodes?.length > 0 || parsedDraft.edges?.length > 0)) {
+          // Ask user if they want to restore the draft
+          if (window.confirm('You have an unsaved workflow draft. Would you like to restore it?')) {
+            setWorkflowName(parsedDraft.name || 'My Enhanced Workflow');
+            setWorkflowDescription(parsedDraft.description || '');
+            setWorkflowMode(parsedDraft.mode || 'ai');
+            setNodes(parsedDraft.nodes || initialNodes);
+            setEdges(parsedDraft.edges || []);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to load workflow draft:', error);
+    }
+  }, []); // Run once on mount
+
   // Compute contextual suggestions for Hybrid mode NL configuration
   const computeContextualSuggestions = useCallback((category: string, nodesCtx: Node[], wfName: string, wfDesc: string) => {
     const titles: string[] = [wfName, wfDesc].filter(Boolean);
@@ -1687,6 +1789,9 @@ const EnhancedWorkflowBuilder: React.FC = () => {
       
       // Use hybrid storage service to save workflow template
       await hybridStorageService.saveWorkflowTemplate(workflowId, templateData);
+      
+      // Clear the draft since workflow is now saved
+      localStorage.removeItem('guild_workflow_draft');
       
       toast.success('Workflow saved successfully!');
       

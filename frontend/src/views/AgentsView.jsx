@@ -902,8 +902,29 @@ const AgentsView = () => {
           isFromBuilder: true // Flag to identify workflow builder workflows
         }));
         
-        // Combine API workflows with running workflows
-        const allWorkflows = Array.isArray(apiWorkflows) ? [...apiWorkflows, ...displayRunningWorkflows] : displayRunningWorkflows;
+        // Combine API workflows with running workflows, avoiding duplicates
+        const existingWorkflowIds = new Set();
+        const combinedWorkflows = [];
+        
+        // Add API workflows first
+        if (Array.isArray(apiWorkflows)) {
+          apiWorkflows.forEach(wf => {
+            if (wf.id || wf.workflow_id) {
+              existingWorkflowIds.add(wf.id || wf.workflow_id);
+              combinedWorkflows.push(wf);
+            }
+          });
+        }
+        
+        // Add running workflows that aren't already in the list
+        displayRunningWorkflows.forEach(wf => {
+          if (!existingWorkflowIds.has(wf.id)) {
+            existingWorkflowIds.add(wf.id);
+            combinedWorkflows.push(wf);
+          }
+        });
+        
+        const allWorkflows = combinedWorkflows;
         
         if (isMounted) {
           setWorkflows(allWorkflows);

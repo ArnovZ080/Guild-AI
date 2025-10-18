@@ -540,9 +540,13 @@ class EnhancedOrchestratorService {
     // Implementation would use WebSocket connection
     // For now, polling fallback
     const interval = setInterval(async () => {
-      const activity = await this.getRecentActivity(userId, 10);
-      if (activity.success && activity.events.length > 0) {
-        onActivity(activity.events);
+      try {
+        const activity = await this.getRecentActivity(userId, 10);
+        if (activity && activity.success && activity.events && activity.events.length > 0) {
+          onActivity(activity.events);
+        }
+      } catch (error) {
+        console.warn('Error in subscribeToAgentActivity:', error);
       }
     }, 3000);
     
