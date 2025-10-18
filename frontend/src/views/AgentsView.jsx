@@ -18,6 +18,7 @@ import { AgentActivityTheater } from '../components/theater/AgentActivityTheater
 import AgentActivityFeed from '../components/transparency/AgentActivityFeed.jsx';
 import apiService from '../services/api.js';
 import { useSettings } from '../contexts/SettingsContext.jsx';
+import { toast } from 'react-toastify';
 import { getSubscriptionInfo, getPlans } from '../services/subscriptionService.js';
 import workflowExecutionService from '../services/WorkflowExecutionService.js';
 import hybridStorageService from '../services/HybridStorageService.js';
@@ -1587,6 +1588,39 @@ const AgentsView = () => {
           </div>
         </div>
       )}
+      
+      {/* Footer with Delete Button for workflow builder workflows */}
+      {wf.isFromBuilder && (
+        <div className="border-t border-gray-200 p-6 bg-gray-50">
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setShowWorkflowDetails(false)}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={() => {
+                if (window.confirm(`Are you sure you want to delete the workflow "${wf.name}"? This action cannot be undone.`)) {
+                  const success = workflowExecutionService.deleteWorkflow(wf.workflow_id || wf.id);
+                  if (success) {
+                    toast.success('Workflow deleted successfully');
+                    setShowWorkflowDetails(false);
+                    // Reload workflows to update the display
+                    loadWorkflows();
+                  } else {
+                    toast.error('Failed to delete workflow');
+                  }
+                }
+              }}
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              Delete Workflow
+            </button>
+          </div>
+        </div>
+      )}
+      
       </div>
     );
   };
