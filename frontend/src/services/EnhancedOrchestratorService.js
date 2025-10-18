@@ -291,10 +291,13 @@ class EnhancedOrchestratorService {
     try {
       const response = await apiService.get(`${ORCHESTRATOR_BASE}/activity/recent/${userId}?limit=${limit}`);
       
-      return {
-        success: true,
-        ...response.data
-      };
+      // Handle null response (API error fallback)
+      if (response && response.data) {
+        return {
+          success: true,
+          ...response.data
+        };
+      }
     } catch (error) {
       console.warn('Failed to get recent activity from API, using mock data:', error);
       

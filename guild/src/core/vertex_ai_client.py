@@ -160,10 +160,16 @@ class VertexAIClient:
             "max_output_tokens": max_tokens,
         }
         
-        # Gemini uses generate_content
-        response = self.model.generate_content(
-            prompt,
-            generation_config=generation_config
+        # Gemini uses generate_content (synchronous API)
+        # Run in executor to avoid blocking
+        import asyncio
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None,
+            lambda: self.model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
         )
         
         return response.text

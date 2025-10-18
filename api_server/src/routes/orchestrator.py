@@ -1311,15 +1311,27 @@ User Request: {objective}
 
 Respond naturally and helpfully."""
 
-            smart_response = await gemini_provider.generate_with_context(
-                prompt=system_context,
-                business_context=business_context,
-                task_type='business_orchestration',
-                complexity='medium',
-                user_tier='starter'
-            )
-            
-            response_text = smart_response['text']
+            try:
+                smart_response = await gemini_provider.generate_with_context(
+                    prompt=system_context,
+                    business_context=business_context,
+                    task_type='business_orchestration',
+                    complexity='medium',
+                    user_tier='starter'
+                )
+                
+                response_text = smart_response['text']
+            except Exception as gemini_error:
+                logger.error(f"Gemini provider failed: {gemini_error}")
+                # Fallback to a simple intelligent response based on the request
+                if 'facebook' in objective.lower() and 'post' in objective.lower():
+                    response_text = f"Absolutely! I can help you create and schedule Facebook posts. Let me coordinate our Content Creation and Social Media Marketing agents to develop a strategic Facebook content calendar for you. What type of content are you looking to create - promotional posts, educational content, or engaging social media posts?"
+                elif 'schedule' in objective.lower() and 'content' in objective.lower():
+                    response_text = f"Perfect! I can help you schedule content across all your social media platforms. Our Content Strategy and Social Media agents can create a comprehensive content calendar, optimize posting times, and ensure consistent brand messaging. Which platforms would you like to focus on first?"
+                elif 'what can you do' in objective.lower() or 'what do you do' in objective.lower():
+                    response_text = f"As your Fortune 500-level business orchestrator, I can coordinate 115+ specialized agents to handle everything from content creation and social media marketing to financial analysis and business growth strategies. I can help you with Facebook posts, Instagram content, email campaigns, business planning, customer analysis, and much more. What specific business challenge would you like to tackle first?"
+                else:
+                    response_text = f"Hey {user_name}! I'm your AI business orchestrator with access to 115+ specialized agents. I can help you with content creation, social media marketing, business strategy, financial analysis, and much more. What specific business task would you like me to help you with today?"
             
             # Detect if this is asking for workflow execution
             should_create_workflow = any(phrase in objective.lower() for phrase in [

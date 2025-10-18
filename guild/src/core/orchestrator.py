@@ -99,11 +99,33 @@ class Orchestrator:
     
     def __init__(self, user_input: UserInput):
         self.user_input = user_input
-        # Use configured provider from environment, fallback to ollama
+        # Use configured provider from environment, prefer vertex_ai for production
         import os
-        provider = os.getenv("LLM_PROVIDER", "ollama")
-        model = os.getenv("OLLAMA_MODEL", "tinyllama")
-        self.llm_client = LlmClient(Llm(provider=provider, model=model))
+        provider = os.getenv("LLM_PROVIDER", "vertex_ai")  # Default to vertex_ai
+        
+        # Set model based on provider
+        if provider == "vertex_ai":
+            model = os.getenv("VERTEX_AI_MODEL", "gemini-1.5-flash")
+        elif provider == "ollama":
+            model = os.getenv("OLLAMA_MODEL", "tinyllama")
+        else:
+            model = "default"
+        
+        logger.info(f"Initializing Orchestrator with provider={provider}, model={model}")
+        
+        try:
+            self.llm_client = LlmClient(Llm(provider=provider, model=model))
+            logger.info("Orchestrator LLM client initialized successfully")
+        except Exception as e:
+            logger.error(f"Failed to initialize LLM client with {provider}: {e}")
+            # Fallback to ollama if vertex_ai fails
+            if provider == "vertex_ai":
+                logger.warning("Falling back to ollama provider")
+                provider = "ollama"
+                model = os.getenv("OLLAMA_MODEL", "tinyllama")
+                self.llm_client = LlmClient(Llm(provider=provider, model=model))
+            else:
+                raise
         
         # Available agents for orchestration
         self.available_agents = list(AGENT_REGISTRY.keys())

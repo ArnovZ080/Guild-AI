@@ -932,9 +932,19 @@ const AgentsView = () => {
     
     window.addEventListener('storage', handleStorageChange);
     
+    // Also listen for custom workflow activation events
+    const handleWorkflowActivated = () => {
+      if (isMounted) {
+        loadWorkflows();
+      }
+    };
+    
+    window.addEventListener('workflowActivated', handleWorkflowActivated);
+    
     return () => {
       isMounted = false;
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('workflowActivated', handleWorkflowActivated);
     };
   }, []);
 

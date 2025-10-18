@@ -19,13 +19,18 @@ class GeminiProvider:
     def __init__(self):
         self.project_id = os.getenv('GOOGLE_CLOUD_PROJECT', 'guild-ai-080')
         self.location = os.getenv('VERTEX_AI_LOCATION', 'us-central1')
+        self.initialized = False
         
         # Initialize Vertex AI
         try:
             vertexai.init(project=self.project_id, location=self.location)
-            logger.info(f"Vertex AI initialized: {self.project_id} in {self.location}")
+            self.initialized = True
+            logger.info(f"✅ Vertex AI initialized successfully: {self.project_id} in {self.location}")
         except Exception as e:
-            logger.error(f"Failed to initialize Vertex AI: {e}")
+            logger.error(f"❌ Failed to initialize Vertex AI: {e}")
+            logger.error(f"Make sure GOOGLE_CLOUD_PROJECT is set and credentials are configured")
+            logger.error(f"Current project_id: {self.project_id}, location: {self.location}")
+            # Don't raise - allow graceful degradation
         
         # Default safety settings (permissive for business use)
         self.safety_settings = [
@@ -70,6 +75,17 @@ class GeminiProvider:
         Returns:
             Dictionary with text, usage, and metadata
         """
+        # Check if Vertex AI is initialized
+        if not self.initialized:
+            error_msg = f"Vertex AI not initialized. Project: {self.project_id}, Location: {self.location}"
+            logger.error(error_msg)
+            return {
+                'text': '',
+                'error': error_msg,
+                'model': model_name,
+                'finish_reason': 'initialization_error'
+            }
+        
         try:
             # Create generation config
             generation_config = GenerationConfig(
@@ -226,6 +242,17 @@ class GeminiProvider:
         Returns:
             Response dictionary
         """
+        # Check if Vertex AI is initialized
+        if not self.initialized:
+            error_msg = f"Vertex AI not initialized. Project: {self.project_id}, Location: {self.location}"
+            logger.error(error_msg)
+            return {
+                'text': '',
+                'error': error_msg,
+                'model': model_name,
+                'finish_reason': 'initialization_error'
+            }
+        
         try:
             # Convert messages to Gemini format
             model_kwargs = {

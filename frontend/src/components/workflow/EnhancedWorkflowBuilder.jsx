@@ -1788,6 +1788,11 @@ const EnhancedWorkflowBuilder: React.FC = () => {
               }
             });
             
+            // Dispatch custom event to notify other components
+            window.dispatchEvent(new CustomEvent('workflowActivated', { 
+              detail: { workflowId, workflowName } 
+            }));
+            
             apiSuccess = true;
           } else {
             console.warn('Orchestrator activation failed, using local simulation');
@@ -1830,6 +1835,11 @@ const EnhancedWorkflowBuilder: React.FC = () => {
             expected_outcome: `Professional execution of: ${workflowDescription}`
           }
         });
+        
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new CustomEvent('workflowActivated', { 
+          detail: { workflowId, workflowName } 
+        }));
         
         toast.success('Workflow activated (local simulation)');
       }
