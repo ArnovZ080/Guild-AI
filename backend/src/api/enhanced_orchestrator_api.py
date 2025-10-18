@@ -447,71 +447,179 @@ async def process_chat_orchestration(
     background_tasks: BackgroundTasks
 ) -> Dict[str, Any]:
     """
-    Process chat message and create autonomous workflow.
-    This is the primary interface for chat-driven autonomous operation.
+    Intelligent chat processing that decides between conversation and workflow creation.
     
-    Example: User says "Increase my revenue by 50%" 
-    → Enhanced orchestrator creates multi-agent workflow
-    → Executes autonomously with full transparency
+    This endpoint intelligently determines:
+    1. If user is asking questions → Provide intelligent conversation
+    2. If user wants something created/executed → Create autonomous workflow
+    
+    Examples:
+    - "What is a customer avatar?" → Intelligent conversation
+    - "Create a customer avatar" → Autonomous workflow
+    - "How are you?" → Friendly conversation
+    - "Schedule facebook posts" → Workflow creation
     """
     try:
-        # Create user input
-        user_input = UserInput(
-            objective=request.objective,
-            audience=request.audience,
-            additional_notes=request.additional_notes
-        )
+        objective = request.objective.lower()
         
-        # Create enhanced workflow
-        orchestrator = EnhancedOrchestrator(user_input, request.user_id)
-        workflow = await orchestrator.generate_workflow()
+        # Determine if this is a workflow request or conversation
+        workflow_keywords = [
+            'create', 'build', 'make', 'generate', 'develop', 'write',
+            'launch', 'start', 'set up', 'schedule', 'post', 'publish',
+            'send', 'deploy', 'implement', 'execute', 'run', 'do',
+            'organize', 'plan', 'design', 'optimize', 'improve', 'fix'
+        ]
         
-        # Get integration context
-        integrations_summary = get_connected_integrations_summary(request.user_id)
+        question_keywords = [
+            'what', 'how', 'why', 'when', 'where', 'who', 'which',
+            'explain', 'tell me', 'describe', 'define', 'help me understand'
+        ]
         
-        # Create workflow response for chat interface
-        response = {
-            "status": "success",
-            "response_type": "autonomous_workflow_created",
-            "workflow_id": f"workflow_{uuid.uuid4()}",
-            "message": f"✅ I've created an autonomous workflow with {len(workflow.tasks)} specialized agents to accomplish your goal.",
-            "workflow_details": {
-                "name": "Autonomous Business Operation",
-                "total_agents": len(workflow.tasks),
-                "estimated_duration": "Calculating...",
-                "autonomous_level": "full",
-                "tasks": [
-                    {
-                        "task_id": task.task_id,
-                        "agent_name": task.agent,
-                        "description": task.description,
-                        "estimated_duration": task.estimated_duration
+        greeting_keywords = [
+            'hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening',
+            'how are you', 'what\'s up', 'how\'s it going'
+        ]
+        
+        # Check if this is a greeting or casual conversation
+        is_greeting = any(keyword in objective for keyword in greeting_keywords)
+        is_question = any(keyword in objective for keyword in question_keywords)
+        is_workflow_request = any(keyword in objective for keyword in workflow_keywords)
+        
+        # Use Gemini for intelligent conversation when it's questions or greetings
+        if is_greeting or is_question or not is_workflow_request:
+            try:
+                from ..llm.gemini_provider import gemini_provider
+                
+                # Create intelligent conversation prompt
+                system_prompt = f"""You are Guild AI, a Fortune 500-level business orchestrator with access to 115+ specialized agents.
+
+Your Capabilities:
+- Coordinate 115+ specialized agents (content creators, marketers, analysts, etc.)
+- Connect to 40+ platforms (CRMs, social media, accounting, etc.)
+- Create autonomous workflows that execute complex business tasks
+- Provide strategic business mentorship and advice
+
+User Request: {request.objective}
+
+Instructions:
+- For greetings: Be friendly, warm, and introduce your capabilities
+- For questions: Provide detailed, helpful answers with business expertise
+- For general conversation: Be conversational and helpful
+- Always mention your ability to create workflows when relevant
+- Be the intelligent business partner they need
+
+Respond naturally and helpfully."""
+
+                if gemini_provider.initialized:
+                    smart_response = await gemini_provider.generate_with_context(
+                        prompt=system_prompt,
+                        business_context={},
+                        task_type='business_conversation',
+                        complexity='medium',
+                        user_tier='starter'
+                    )
+                    
+                    response_text = smart_response.get('text', 'I\'m here to help with your business needs!')
+                else:
+                    # Fallback to intelligent responses based on request type
+                    if is_greeting:
+                        response_text = "Hello! I'm Guild AI, your Fortune 500-level business orchestrator. I can coordinate 115+ specialized agents to handle everything from content creation to business growth strategies. How can I help you today?"
+                    elif 'customer' in objective and 'avatar' in objective:
+                        response_text = "A customer avatar is a detailed profile of your ideal customer that includes demographics, psychographics, pain points, goals, and behaviors. It helps you understand who you're marketing to and create more targeted content. Would you like me to help you create one?"
+                    elif 'facebook' in objective and 'post' in objective:
+                        response_text = "Facebook posts are a powerful way to engage with your audience! I can help you create strategic Facebook content, schedule posts, and optimize your social media presence. Would you like me to create a Facebook content strategy for you?"
+                    else:
+                        response_text = "I'm here to help with your business needs! I can provide strategic advice, create workflows, or coordinate our specialized agents to accomplish your goals. What would you like to work on?"
+                
+                return {
+                    "success": True,
+                    "message": response_text,
+                    "conversation_type": "intelligent_conversation",
+                    "model_used": "gemini-1.5-flash" if gemini_provider.initialized else "fallback",
+                    "workflow_details": {
+                        "name": "Business Conversation",
+                        "autonomous_level": "conversational",
+                        "total_agents": 0,
+                        "integrations_used": 0,
+                        "data_sources": []
                     }
-                    for task in workflow.tasks
-                ],
-                "integrations_used": integrations_summary.get("total_connected", 0),
-                "data_sources": integrations_summary.get("data_sources", [])[:5]
-            },
-            "transparency": {
-                "full_transparency_available": True,
-                "view_link": f"/workflows/{uuid.uuid4()}/transparency",
-                "real_time_updates": True
-            },
-            "next_actions": [
-                {
-                    "action": "monitor_progress",
-                    "description": "Monitor workflow progress in real-time",
-                    "link": "/workflows/active"
-                },
-                {
-                    "action": "view_transparency",
-                    "description": "View detailed transparency log",
-                    "link": "/transparency"
                 }
-            ]
-        }
+                
+            except Exception as e:
+                # Fallback conversation response
+                return {
+                    "success": True,
+                    "message": "I'm Guild AI, your business orchestrator. I can help with strategic advice, create workflows, or coordinate our 115+ specialized agents. What would you like to work on?",
+                    "conversation_type": "fallback_conversation",
+                    "model_used": "fallback",
+                    "workflow_details": {
+                        "name": "Fallback Conversation",
+                        "autonomous_level": "basic",
+                        "total_agents": 0,
+                        "integrations_used": 0,
+                        "data_sources": []
+                    }
+                }
         
-        return response
+        # Create autonomous workflow for action requests
+        else:
+            # Create user input
+            user_input = UserInput(
+                objective=request.objective,
+                audience=request.audience,
+                additional_notes=request.additional_notes
+            )
+            
+            # Create enhanced workflow
+            orchestrator = EnhancedOrchestrator(user_input, request.user_id)
+            workflow = await orchestrator.generate_workflow()
+            
+            # Get integration context
+            integrations_summary = get_connected_integrations_summary(request.user_id)
+            
+            # Create workflow response for chat interface
+            response = {
+                "status": "success",
+                "response_type": "autonomous_workflow_created",
+                "workflow_id": f"workflow_{uuid.uuid4()}",
+                "message": f"✅ I've created an autonomous workflow with {len(workflow.tasks)} specialized agents to accomplish your goal.",
+                "workflow_details": {
+                    "name": "Autonomous Business Operation",
+                    "total_agents": len(workflow.tasks),
+                    "estimated_duration": "Calculating...",
+                    "autonomous_level": "full",
+                    "tasks": [
+                        {
+                            "task_id": task.task_id,
+                            "agent_name": task.agent,
+                            "description": task.description,
+                            "estimated_duration": task.estimated_duration
+                        }
+                        for task in workflow.tasks
+                    ],
+                    "integrations_used": integrations_summary.get("total_connected", 0),
+                    "data_sources": integrations_summary.get("data_sources", [])[:5]
+                },
+                "transparency": {
+                    "full_transparency_available": True,
+                    "view_link": f"/workflows/{uuid.uuid4()}/transparency",
+                    "real_time_updates": True
+                },
+                "next_actions": [
+                    {
+                        "action": "monitor_progress",
+                        "description": "Monitor workflow progress in real-time",
+                        "link": "/workflows/active"
+                    },
+                    {
+                        "action": "view_transparency",
+                        "description": "View detailed transparency log",
+                        "link": "/transparency"
+                    }
+                ]
+            }
+            
+            return response
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat orchestration failed: {str(e)}")
