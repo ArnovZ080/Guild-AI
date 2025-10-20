@@ -190,8 +190,9 @@ Now respond as the Chief Executive Orchestrator with strategic business insight,
         confirmation_phrases = ['yes', 'go ahead', 'start', 'do it', 'proceed', 'execute', 'yes,', 'start now']
         is_confirmation = any(phrase in lower_objective for phrase in confirmation_phrases)
         
-        # If user is confirming OR explicitly requesting execution, ACTUALLY EXECUTE with the EnhancedOrchestrator
-        if is_confirmation or (should_create_workflow and len(objective.split()) > 3):
+        # AUTO-EXECUTE for actionable requests (don't wait for confirmation!)
+        # Execute if: confirmation OR actionable request (create/generate/build/make)
+        if is_confirmation or should_create_workflow:
             try:
                 logger.info(f"🚀 EXECUTING WORKFLOW for: {objective}")
                 
@@ -257,10 +258,10 @@ Now respond as the Chief Executive Orchestrator with strategic business insight,
                     }
                 }
         
-        # If not a workflow request, just respond conversationally
-        response_data = {
+        # If not a workflow request, just respond conversationally with Gemini's smart response
+        return {
             "success": True,
-            "message": response_text,
+            "message": response_text,  # Return Gemini's actual response (not hardcoded nonsense)
             "conversation_type": "intelligent_orchestration",
             "model_used": smart_response.get('model', 'gemini-1.5-flash'),
             "workflow_details": {
@@ -271,14 +272,6 @@ Now respond as the Chief Executive Orchestrator with strategic business insight,
                 "data_sources": []
             }
         }
-        
-        # If user is asking to CREATE something specific, note that execution is ready
-        if should_create_workflow:
-            response_data["workflow_details"]["autonomous_level"] = "ready_to_execute"
-            response_data["workflow_details"]["total_agents"] = 5  # Estimate
-            response_data["message"] += "\n\n💡 **Ready to execute?** Just say 'yes, go ahead' or 'start now' and I'll begin creating this for you!"
-        
-        return response_data
         
     except Exception as e:
         logger.error(f"Failed to process chat: {str(e)}")

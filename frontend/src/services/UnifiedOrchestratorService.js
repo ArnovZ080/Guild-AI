@@ -8,8 +8,8 @@ class UnifiedOrchestratorService {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     this.apiPrefix = '/api/orchestrator';
-    this.requestTimeout = 15000; // 15 seconds for orchestrator responses
-    this.complexRequestTimeout = 45000; // 45 seconds for complex orchestration
+    this.requestTimeout = 30000; // 30 seconds (increased for Cloud Run cold starts)
+    this.complexRequestTimeout = 60000; // 60 seconds for complex orchestration with workflow execution
   }
 
   /**
