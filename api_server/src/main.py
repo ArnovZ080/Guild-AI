@@ -1,7 +1,7 @@
 from fastapi import FastAPI  # type: ignore[reportMissingImports]
 from fastapi.staticfiles import StaticFiles  # type: ignore[reportMissingImports]
 from fastapi.middleware.cors import CORSMiddleware  # type: ignore[reportMissingImports]
-from fastapi.responses import HTMLResponse  # type: ignore[reportMissingImports]
+from fastapi.responses import HTMLResponse, FileResponse  # type: ignore[reportMissingImports]
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 import os
 import logging
@@ -224,24 +224,37 @@ async def api_health():
 # Serve frontend static files (must be last!)
 # This catches all routes not matched by API endpoints
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+
+# IMPORTANT: Register catch-all route BEFORE mounting static files
+# This allows us to intercept SPA routes and serve index.html
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_spa_catchall(full_path: str):
+    """
+    Catch-all route for SPA - serves index.html for any non-API route.
+    This MUST be registered before app.mount() to work properly.
+    """
+    # Let API routes pass through (they're already registered above)
+    if full_path.startswith('api/') or full_path.startswith('docs') or full_path.startswith('redoc') or full_path.startswith('openapi'):
+        return {"detail": "Not Found"}
+    
+    # For all other routes, try to serve from static files first
+    static_file_path = os.path.join(frontend_dist, full_path)
+    if os.path.isfile(static_file_path):
+        # Serve the static file (CSS, JS, images, etc.)
+        return FileResponse(static_file_path)
+    
+    # If not a static file, serve index.html for SPA routing
+    index_path = os.path.join(frontend_dist, "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, 'r') as f:
+            return HTMLResponse(content=f.read())
+    
+    return {"detail": "Frontend not found"}
+
 if os.path.exists(frontend_dist):
     logger.info(f"Serving frontend from: {frontend_dist}")
-    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
-    
-    # Catch-all route for SPA - serves index.html for any non-API route
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str):
-        """Serve index.html for any path to support SPA routing (hard refresh)"""
-        # Don't override API routes
-        if full_path.startswith('api/') or full_path.startswith('docs') or full_path.startswith('redoc'):
-            return {"detail": "Not Found"}
-        
-        index_path = os.path.join(frontend_dist, "index.html")
-        if os.path.exists(index_path):
-            with open(index_path, 'r') as f:
-                return HTMLResponse(content=f.read())
-        
-        return {"detail": "Frontend not found"}
+    # Note: StaticFiles mount is kept for assets in subdirectories
+    # But our catch-all route above will handle SPA routing
 else:
     logger.warning(f"Frontend dist directory not found: {frontend_dist}")
     # Also check build directory as fallback
