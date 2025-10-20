@@ -257,14 +257,17 @@ async def custom_404_handler(request, exc):
 frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
 if os.path.exists(frontend_dist):
     logger.info(f"Serving frontend from: {frontend_dist}")
-    app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+    # NOTE: Do NOT use html=True - it breaks API POST requests!
+    # The 404 exception handler will serve index.html for SPA routing
+    app.mount("/", StaticFiles(directory=frontend_dist), name="frontend")
 else:
     logger.warning(f"Frontend dist directory not found: {frontend_dist}")
     # Also check build directory as fallback
     frontend_build = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "build"))
     if os.path.exists(frontend_build):
         logger.info(f"Serving frontend from build directory: {frontend_build}")
-        app.mount("/", StaticFiles(directory=frontend_build, html=True), name="frontend")
+        # NOTE: Do NOT use html=True - it breaks API POST requests!
+        app.mount("/", StaticFiles(directory=frontend_build), name="frontend")
     else:
         logger.warning(f"Frontend build directory not found: {frontend_build}")
     
