@@ -118,7 +118,7 @@ async def startup_event():
 # Import routes (with error handling)
 try:
     from .routes import agents, oauth, document_processing, auth_firebase as auth, subscription, credits
-    from .routes import execution_layer, connectors, onboarding, workspace, orchestrator, quality_control, business_intelligence, waitlist
+    from .routes import execution_layer, connectors, onboarding, workspace, orchestrator_fixed as orchestrator, quality_control, business_intelligence, waitlist
     from .routes import agents_available, analytics, health
     from .routes import business_ceo, executive_coordination
     from .routes import settings as settings_routes
@@ -227,6 +227,21 @@ frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 if os.path.exists(frontend_dist):
     logger.info(f"Serving frontend from: {frontend_dist}")
     app.mount("/", StaticFiles(directory=frontend_dist, html=True), name="frontend")
+    
+    # Catch-all route for SPA - serves index.html for any non-API route
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve index.html for any path to support SPA routing (hard refresh)"""
+        # Don't override API routes
+        if full_path.startswith('api/') or full_path.startswith('docs') or full_path.startswith('redoc'):
+            return {"detail": "Not Found"}
+        
+        index_path = os.path.join(frontend_dist, "index.html")
+        if os.path.exists(index_path):
+            with open(index_path, 'r') as f:
+                return HTMLResponse(content=f.read())
+        
+        return {"detail": "Frontend not found"}
 else:
     logger.warning(f"Frontend dist directory not found: {frontend_dist}")
     # Also check build directory as fallback

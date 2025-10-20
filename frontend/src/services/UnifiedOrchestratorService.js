@@ -4,6 +4,8 @@
  * Integrates with Vertex AI, Business Intelligence Agents, and all dashboards.
  */
 
+import authService from './authService';
+
 class UnifiedOrchestratorService {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -44,19 +46,16 @@ class UnifiedOrchestratorService {
    */
   async makeRequest(endpoint, options = {}) {
     const url = `${this.baseURL}${this.apiPrefix}${endpoint}`;
-    const token = localStorage.getItem('authToken');
+    const token = await authService.getToken();  // Get Firebase token
     
     const defaultOptions = {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })  // Add if exists
       },
       ...options
     };
-
-    if (token) {
-      defaultOptions.headers.Authorization = `Bearer ${token}`;
-    }
 
     try {
       const controller = new AbortController();
