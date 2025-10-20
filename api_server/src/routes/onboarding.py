@@ -1,13 +1,47 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel
 from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 from datetime import datetime
 import os
+import logging
 
 from .auth_firebase import get_current_user
 from .. import models
 from ..database import get_db
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+# Optional authentication dependency (returns None instead of raising error)
+async def get_current_user_optional(request: Request, db: Session = Depends(get_db)):
+    """Get current user, but return None if not authenticated instead of raising error"""
+    try:
+        # Import Firebase auth
+        import firebase_admin.auth as auth
+        
+        # Try Firebase auth first
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            # Verify Firebase token
+            decoded_token = auth.verify_id_token(token)
+            firebase_uid = decoded_token['uid']
+            user_email = decoded_token.get('email')
+            
+            # Get or create user in database
+            user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()
+            if not user and user_email:
+                user = models.User(firebase_uid=firebase_uid, email=user_email, name=decoded_token.get('name'))
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            
+            return user
+    except Exception as e:
+        logger.warning(f"Optional auth failed: {e}")
+    
+    return None
 
 # from guild.src.agents.onboarding_agent import OnboardingAgent
 # from guild.src.models.user_input import UserInput
@@ -95,31 +129,46 @@ class SaveOnboardingDataRequest(BaseModel):
 @router.post("/save")
 async def save_onboarding_data(
     request: SaveOnboardingDataRequest,
-    current_user: models.User = Depends(get_current_user),
+    current_user: models.User = Depends(get_current_user_optional),  # Use optional auth
     db: Session = Depends(get_db)
 ):
     """Save onboarding responses as source of truth for all agent operations"""
     try:
+        logger.info(f"📝 Saving onboarding data... User: {current_user.id if current_user else 'anonymous'}")
+        
         # Ensure user exists
         if not current_user:
+            logger.error("❌ No authenticated user found for onboarding save")
             raise HTTPException(status_code=401, detail="User not authenticated")
         
         if not current_user.id:
+            logger.error("❌ User has no ID")
             raise HTTPException(status_code=400, detail="User ID not found")
+        
+        logger.info(f"✅ User authenticated: {current_user.id}")
         
         # Check if user exists in database
         user = db.query(models.User).filter(models.User.id == current_user.id).first()
         if not user:
+            logger.error(f"❌ User {current_user.id} not found in database")
             raise HTTPException(status_code=404, detail="User not found in database")
         
+        logger.info(f"✅ User found in database: {user.email if hasattr(user, 'email') else user.id}")
+        
+        # Get or create onboarding data
         onboarding = db.query(models.OnboardingData).filter(
             models.OnboardingData.user_id == current_user.id
         ).first()
         
         if not onboarding:
-            onboarding = models.OnboardingData(user_id=current_user.id, raw_responses=request.responses)
+            logger.info(f"📝 Creating new onboarding record for user {current_user.id}")
+            onboarding = models.OnboardingData(
+                user_id=current_user.id, 
+                raw_responses=request.responses
+            )
             db.add(onboarding)
         else:
+            logger.info(f"📝 Updating existing onboarding record for user {current_user.id}")
             onboarding.raw_responses = request.responses
         
         # Map to structured fields
@@ -159,12 +208,25 @@ async def save_onboarding_data(
         if onboarding.completion_percentage == 100:
             onboarding.completed_at = datetime.utcnow()
         
+        logger.info(f"💾 Committing to database...")
         db.commit()
-        return {"message": "Source of truth saved", "completion_percentage": onboarding.completion_percentage}
+        db.refresh(onboarding)
         
+        logger.info(f"✅ Onboarding data saved successfully! Completion: {onboarding.completion_percentage}%")
+        
+        return {
+            "success": True,
+            "message": "Source of truth saved",
+            "completion_percentage": onboarding.completion_percentage,
+            "needs_follow_up": onboarding.needs_follow_up
+        }
+        
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"❌ Error saving onboarding data: {str(e)}", exc_info=True)
         db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to save onboarding data: {str(e)}")
 
 @router.get("/data")
 async def get_source_of_truth(

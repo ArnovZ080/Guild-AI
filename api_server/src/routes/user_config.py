@@ -10,10 +10,14 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+import logging
 
 from ..database import get_db
 from ..models import User
 from .auth import get_current_user
+
+# Initialize logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/user-config", tags=["user-config"])
 
@@ -340,6 +344,15 @@ async def sync_from_local_storage(
 ):
     """Sync data from localStorage to the backend."""
     try:
+        logger.info(f"🔄 Syncing data for user: {current_user.id if current_user else 'anonymous'}")
+        
+        if not current_user:
+            logger.error("❌ No authenticated user for sync")
+            return {
+                "success": False,
+                "message": "User not authenticated"
+            }
+        
         user_settings = await get_or_create_user_settings(current_user.id, db)
         
         # Merge local data with server data (server takes precedence for conflicts)
@@ -384,6 +397,8 @@ async def sync_from_local_storage(
         user_settings["updated_at"] = datetime.utcnow().isoformat()
         await save_user_settings(current_user.id, user_settings, db)
         
+        logger.info(f"✅ Data synced successfully for user {current_user.id}")
+        
         return {
             "success": True,
             "message": "Data synced successfully",
@@ -391,7 +406,11 @@ async def sync_from_local_storage(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to sync data: {str(e)}")
+        logger.error(f"❌ Failed to sync data: {str(e)}", exc_info=True)
+        return {
+            "success": False,
+            "message": f"Sync failed: {str(e)}"
+        }
 
 
 # Helper functions
