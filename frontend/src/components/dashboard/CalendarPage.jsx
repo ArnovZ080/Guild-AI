@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import calendarDataService from '../../services/calendarDataService';
-import UnifiedOrchestratorService from '../../services/UnifiedOrchestratorService';
+import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService';
 import TopNav from './calendar/TopNav';
 import CalendarLeftPanel from './calendar/CalendarLeftPanel';
 import CalendarRightPanel from './calendar/CalendarRightPanel';
@@ -82,7 +82,7 @@ const CalendarPage = () => {
   const [showOptimizationRecommendations, setShowOptimizationRecommendations] = useState(false);
   
   // Unified Orchestrator Integration
-  const [orchestratorService] = useState(() => new UnifiedOrchestratorService());
+  const orchestratorService = enhancedOrchestratorService;
   const [orchestratorConnected, setOrchestratorConnected] = useState(false);
   const [showScheduleBreak, setShowScheduleBreak] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);

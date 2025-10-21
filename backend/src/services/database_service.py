@@ -14,6 +14,7 @@ import uuid
 from ..models.database import (
     Base, User, OnboardingData, FollowUpSession, 
     FollowUpQuestion, OrchestratorAction, UserSession,
+    Workflow, WorkflowRun,
     get_database_url
 )
 
@@ -30,6 +31,15 @@ class DatabaseService:
     def get_session(self) -> Session:
         """Get database session"""
         return self.SessionLocal()
+
+    async def execute_raw(self, sql: str) -> None:
+        """Execute a lightweight raw SQL statement (health checks, etc)."""
+        try:
+            with self.engine.connect() as conn:
+                conn.execute(text(sql))
+        except SQLAlchemyError as e:
+            logger.error(f"execute_raw failed: {e}")
+            raise
     
     async def create_tables(self):
         """Create all database tables"""
@@ -472,6 +482,95 @@ class DatabaseService:
             
         except SQLAlchemyError as e:
             logger.error(f"Error getting user analytics: {e}")
+            raise
+        finally:
+            session.close()
+
+    # ---------------------------------------------------------------------
+    # Workflow Drafts / Runs
+    # ---------------------------------------------------------------------
+
+    async def save_workflow(self, user_id: str, name: str, description: str, definition: Dict[str, Any], status: str = "draft") -> Workflow:
+        """Create a new workflow draft."""
+        session = self.get_session()
+        try:
+            wf = Workflow(
+                user_id=user_id,
+                name=name,
+                description=description,
+                definition=definition,
+                status=status
+            )
+            session.add(wf)
+            session.commit()
+            session.refresh(wf)
+            logger.info(f"Saved workflow draft {wf.id} for user {user_id}")
+            return wf
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error saving workflow: {e}")
+            raise
+        finally:
+            session.close()
+
+    async def update_workflow(self, workflow_id: str, **fields) -> Workflow:
+        """Update an existing workflow by id."""
+        session = self.get_session()
+        try:
+            wf = session.query(Workflow).filter(Workflow.id == workflow_id).first()
+            if not wf:
+                raise ValueError("workflow_not_found")
+            for k, v in fields.items():
+                if hasattr(wf, k):
+                    setattr(wf, k, v)
+            wf.updated_at = datetime.utcnow()
+            session.commit()
+            session.refresh(wf)
+            return wf
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error updating workflow: {e}")
+            raise
+        finally:
+            session.close()
+
+    async def get_user_workflows(self, user_id: str) -> List[Workflow]:
+        """List workflows for a user."""
+        session = self.get_session()
+        try:
+            return session.query(Workflow).filter(Workflow.user_id == user_id).order_by(Workflow.updated_at.desc()).all()
+        except SQLAlchemyError as e:
+            logger.error(f"Error listing user workflows: {e}")
+            raise
+        finally:
+            session.close()
+
+    async def get_workflow_by_id(self, workflow_id: str) -> Optional[Workflow]:
+        session = self.get_session()
+        try:
+            return session.query(Workflow).filter(Workflow.id == workflow_id).first()
+        except SQLAlchemyError as e:
+            logger.error(f"Error fetching workflow: {e}")
+            raise
+        finally:
+            session.close()
+
+    async def log_workflow_run(self, workflow_id: str, orchestrator_workflow_id: str, status: str = "running", metrics: Dict[str, Any] = None) -> WorkflowRun:
+        session = self.get_session()
+        try:
+            run = WorkflowRun(
+                workflow_id=workflow_id,
+                orchestrator_workflow_id=orchestrator_workflow_id,
+                status=status,
+                metrics=metrics or {}
+            )
+            session.add(run)
+            session.commit()
+            session.refresh(run)
+            return run
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error logging workflow run: {e}")
             raise
         finally:
             session.close()

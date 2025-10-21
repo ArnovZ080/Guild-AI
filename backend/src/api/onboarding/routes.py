@@ -18,6 +18,21 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/onboarding", tags=["onboarding"])
 
+# ---------------------------------------------------------------------------
+# Health check – verifies database connectivity for onboarding tables
+# ---------------------------------------------------------------------------
+
+@router.get("/health")
+async def onboarding_health_check():
+    """Basic health check to confirm the onboarding subsystem can reach the DB."""
+    try:
+        # a lightweight query – dialect-agnostic
+        await db_service.execute_raw("SELECT 1")
+        return {"status": "healthy"}
+    except Exception as e:
+        logger.error(f"Onboarding health check failed: {e}")
+        raise HTTPException(status_code=500, detail="database_unreachable")
+
 # Pydantic models for request/response
 class OnboardingDataRequest(BaseModel):
     email: EmailStr = Field(..., description="User email address")

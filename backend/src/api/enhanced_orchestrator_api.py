@@ -94,11 +94,24 @@ async def create_autonomous_workflow(
     4. Returns workflow with transparency logging
     """
     try:
-        # Create user input
+        # Fetch onboarding business context if available
+        business_context = {}
+        try:
+            import httpx, os
+            api_base = os.getenv("INTERNAL_API_BASE", "http://localhost:8000")
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                r = await client.get(f"{api_base}/api/onboarding/data/{request.user_id}")
+                if r.status_code == 200:
+                    business_context = r.json()
+        except Exception as e:
+            # Non-fatal – continue without context
+            print(f"Could not load onboarding context: {e}")
+
         user_input = UserInput(
             objective=request.objective,
             audience=request.audience,
-            additional_notes=request.additional_notes
+            additional_notes=request.additional_notes,
+            business_context=business_context
         )
         
         # Create enhanced workflow
@@ -439,6 +452,24 @@ async def orchestrator_health_check() -> Dict[str, Any]:
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
+
+
+# ---------------------------------------------------------------------------
+# Legacy alias endpoints (backward compatibility)
+# These simply proxy to the canonical handlers above so that any lingering
+# front-end or third-party code calling the old paths continues to work.
+# ---------------------------------------------------------------------------
+
+@router.get("/status")
+async def orchestrator_status_alias() -> Dict[str, Any]:
+    """Alias for /health kept for backward compatibility."""
+    return await orchestrator_health_check()
+
+
+@router.get("/performance-metrics")
+async def performance_metrics_alias() -> Dict[str, Any]:
+    """Alias for /performance/metrics kept for backward compatibility."""
+    return await get_performance_metrics()
 
 
 @router.post("/chat/process")

@@ -6,7 +6,7 @@ import { listAvailableAgents, sendTaskToAgent } from '../../services/agentsApi.j
 import { loadConversations, saveConversations, archiveThread, loadThread, saveCurrentConversation, loadCurrentConversation, clearCurrentConversation } from '../../services/conversationsStore.js';
 import { AgentAvatar } from '../agents/AgentAvatars';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
-import UnifiedOrchestratorService from '../../services/UnifiedOrchestratorService.js';
+import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService.js';
 import WorkflowTransparencyModal from '../dashboard/modals/WorkflowTransparencyModal.jsx';
 
 const ChatInterface = ({ onNavigateToDashboard }) => {
@@ -22,7 +22,7 @@ const ChatInterface = ({ onNavigateToDashboard }) => {
   const [systemCapabilities, setSystemCapabilities] = useState(null);
   
   // Initialize Unified Orchestrator Service
-  const [orchestratorService] = useState(() => new UnifiedOrchestratorService());
+  const [orchestratorService] = useState(() => enhancedOrchestratorService);
   
   const [messages, setMessages] = useState(() => {
     // First, try to load current conversation from localStorage

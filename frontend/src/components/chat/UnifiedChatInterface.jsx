@@ -30,7 +30,6 @@ import {
 } from 'lucide-react';
 
 // Import services
-import { unifiedOrchestratorService } from '../../services/UnifiedOrchestratorService';
 import enhancedOrchestratorService from '../../services/EnhancedOrchestratorService';
 
 const UnifiedChatInterface = ({ 
@@ -86,7 +85,7 @@ const UnifiedChatInterface = ({
   const initializeOrchestrator = async () => {
     try {
       setOrchestratorStatus('initializing');
-      const status = await unifiedOrchestratorService.getStatus();
+      const status = await enhancedOrchestratorService.getSystemHealth();
       
       if (status.status === 'healthy') {
         setOrchestratorStatus('operational');
@@ -111,7 +110,7 @@ const UnifiedChatInterface = ({
   // Load agent capabilities
   const loadAgentCapabilities = async () => {
     try {
-      const capabilities = await unifiedOrchestratorService.getCapabilities();
+      const capabilities = await enhancedOrchestratorService.getAgentCapabilities();
       setAgentCapabilities(prev => ({ ...prev, ...capabilities }));
     } catch (error) {
       console.error('Failed to load agent capabilities:', error);
@@ -206,7 +205,7 @@ const UnifiedChatInterface = ({
       };
 
       // Send request to unified orchestrator
-      const response = await unifiedOrchestratorService.processRequest(request);
+      const response = await enhancedOrchestratorService.processChatOrchestration(inputValue, userId);
 
       // Handle response
       if (response.success) {

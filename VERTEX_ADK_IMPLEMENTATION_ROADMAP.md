@@ -4,12 +4,11 @@ Based on [Google's Agent Development Kit (ADK) samples](https://github.com/googl
 
 ---
 
-## Phase 1: Foundation (Week 1) ✅ Priority
+## Phase 1: Foundation  ✅ Priority
 
 ### **1.1 RAG Enhancement with Vertex AI Data Store**
 **Reference:** [bit.ly/rag-adk](https://bit.ly/rag-adk)  
 **Status:** Already have MarkItDown ✅  
-**Effort:** 4 hours
 
 ```python
 # api_server/src/rag/vertex_datastore.py
@@ -91,7 +90,6 @@ class VertexRAGEnhancement:
 ---
 
 ### **1.2 Model Router Implementation**
-**Effort:** 2 hours
 
 ```python
 # api_server/src/llm/model_router.py
@@ -130,11 +128,10 @@ class SmartModelRouter:
 
 ---
 
-## Phase 2: Financial Intelligence (Week 2)
+## Phase 2: Financial Intelligence 
 
 ### **2.1 Financial Advisor Agent Adaptation**
 **Reference:** [bit.ly/financial-advisor-adk](https://bit.ly/financial-advisor-adk)  
-**Effort:** 6 hours
 
 ```python
 # guild/src/agents/enhanced_accounting_agent.py
@@ -179,11 +176,10 @@ Format as a professional financial report."""
 
 ---
 
-## Phase 3: Marketing Enhancement (Week 3)
+## Phase 3: Marketing Enhancement 
 
 ### **3.1 Marketing Agency Agent Adaptation**
 **Reference:** [bit.ly/marketing-agency-adk](https://bit.ly/marketing-agency-adk)  
-**Effort:** 8 hours
 
 ```python
 # guild/src/agents/enhanced_marketing_agent.py
@@ -233,11 +229,10 @@ Create a {campaign_type} campaign strategy including:
 
 ---
 
-## Phase 4: Quality Control (Week 4)
+## Phase 4: Quality Control 
 
 ### **4.1 LLM Auditor Implementation**
 **Reference:** [bit.ly/llm-auditor](https://bit.ly/llm-auditor)  
-**Effort:** 4 hours
 
 ```python
 # guild/src/agents/llm_auditor_agent.py
@@ -287,7 +282,6 @@ Score 0-1 for brand alignment and explain."""
 
 ### **4.2 Image Scoring Agent**
 **Reference:** bitly.cx/UkgFy  
-**Effort:** 3 hours
 
 ```python
 # guild/src/agents/image_scoring_agent.py
@@ -324,11 +318,10 @@ Provide scores and recommendations."""
 
 ---
 
-## Phase 5: SEO & Brand Optimization (Week 5)
+## Phase 5: SEO & Brand Optimization 
 
 ### **5.1 Brand Search Optimization**
 **Reference:** [bit.ly/brand-search-optimization](https://bit.ly/brand-search-optimization)  
-**Effort:** 5 hours
 
 ```python
 # guild/src/agents/seo_brand_optimizer.py
@@ -380,28 +373,27 @@ Use current SEO best practices (search the web for latest trends)."""
 
 | Feature | ADK Source | Effort | Impact | Priority | Cost |
 |---------|-----------|--------|--------|----------|------|
-| **Model Router** | Custom | 2h | High | 🔴 P0 | $0 |
-| **Vertex RAG** | [RAG ADK](https://bit.ly/rag-adk) | 4h | High | 🔴 P0 | $0.50/1K |
-| **LLM Auditor** | [LLM Auditor](https://bit.ly/llm-auditor) | 4h | High | 🟡 P1 | $0 (Flash) |
-| **Image Scoring** | bitly.cx/UkgFy | 3h | Medium | 🟡 P1 | $0 (Flash Vision) |
-| **Financial Agent** | [Financial ADK](https://bit.ly/financial-advisor-adk) | 6h | Medium | 🟢 P2 | $1.25/1M (Pro) |
-| **Marketing Agent** | [Marketing ADK](https://bit.ly/marketing-agency-adk) | 8h | High | 🟢 P2 | $0 (Flash) |
-| **SEO Optimizer** | [Brand Search](https://bit.ly/brand-search-optimization) | 5h | Medium | 🟢 P2 | $0 (Flash+Search) |
+| **Model Router** | Custom |  | High | 🔴 P0 | $0 |
+| **Vertex RAG** | [RAG ADK](https://bit.ly/rag-adk) |  | High | 🔴 P0 | $0.50/1K |
+| **LLM Auditor** | [LLM Auditor](https://bit.ly/llm-auditor) | | High | 🟡 P1 | $0 (Flash) |
+| **Image Scoring** | bitly.cx/UkgFy |  | Medium | 🟡 P1 | $0 (Flash Vision) |
+| **Financial Agent** | [Financial ADK](https://bit.ly/financial-advisor-adk) |  | Medium | 🟢 P2 | $1.25/1M (Pro) |
+| **Marketing Agent** | [Marketing ADK](https://bit.ly/marketing-agency-adk) |  | High | 🟢 P2 | $0 (Flash) |
+| **SEO Optimizer** | [Brand Search](https://bit.ly/brand-search-optimization) |  | Medium | 🟢 P2 | $0 (Flash+Search) |
 
-**Total Implementation Time:** ~32 hours (~1 week of focused work)  
 **Total Monthly Cost (100 users):** ~$125/month
 
 ---
 
 ## Quick Start After Onboarding Fix
 
-### Step 1: Enable APIs (5 minutes)
+### Step 1: Enable APIs 
 ```bash
 gcloud services enable discoveryengine.googleapis.com
 gcloud services enable aiplatform.googleapis.com
 ```
 
-### Step 2: Create Data Store (10 minutes)
+### Step 2: Create Data Store 
 ```bash
 gcloud alpha discovery-engine data-stores create guild-business-documents \
   --location=global \
@@ -409,17 +401,17 @@ gcloud alpha discovery-engine data-stores create guild-business-documents \
   --industry-vertical=GENERIC
 ```
 
-### Step 3: Implement Model Router (2 hours)
+### Step 3: Implement Model Router 
 - Create `api_server/src/llm/model_router.py`
 - Update orchestrator to use router
 - Test with free tier limits
 
-### Step 4: Integrate Vertex RAG (4 hours)
+### Step 4: Integrate Vertex RAG 
 - Connect MarkItDown → Vertex Data Store
 - Update ingestion pipeline
 - Test search with citations
 
-### Step 5: Add Quality Control (4 hours)
+### Step 5: Add Quality Control 
 - Implement LLM Auditor
 - Add Image Scoring
 - Create approval workflow

@@ -5,7 +5,7 @@ SQLAlchemy models for onboarding data, follow-up tracking, and user management
 
 from sqlalchemy import Column, String, DateTime, Text, JSON, Boolean, Integer, ForeignKey, Index
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import uuid
@@ -205,6 +205,44 @@ class UserSession(Base):
         Index('idx_session_user_type', 'user_id', 'session_type'),
         Index('idx_session_status_activity', 'status', 'last_activity_at'),
     )
+
+# ---------------------------------------------------------------------------
+# Workflow Draft / Run Models (support for drag-and-drop builder + orchestrator)
+# ---------------------------------------------------------------------------
+
+class Workflow(Base):
+    """Persisted workflow definition (draft or active)."""
+    __tablename__ = "workflows"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+    description = Column(Text)
+    definition = Column(JSONB, nullable=False)  # full node / edge graph
+    status = Column(String, default="draft")
+    marketplace_visibility = Column(Boolean, default=False)
+    rental_price_credits = Column(Integer, default=0)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    activated_at = Column(DateTime)
+    completed_at = Column(DateTime)
+
+
+class WorkflowRun(Base):
+    """Each execution of a stored workflow."""
+    __tablename__ = "workflow_runs"
+
+    run_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    workflow_id = Column(String, ForeignKey("workflows.id"), nullable=False)
+    orchestrator_workflow_id = Column(String)
+    status = Column(String, default="running")
+    metrics = Column(JSONB)
+
+    started_at = Column(DateTime, default=datetime.utcnow)
+    finished_at = Column(DateTime)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 # Database configuration
 DATABASE_URL = "postgresql://guild_user:guild_password@localhost:5432/guild_ai"

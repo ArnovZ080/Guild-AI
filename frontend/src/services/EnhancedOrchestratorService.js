@@ -552,6 +552,36 @@ class EnhancedOrchestratorService {
     
     return () => clearInterval(interval);
   }
+
+  /**
+   * Wait until orchestrator backend returns healthy status or timeout
+   */
+  async waitUntilHealthy(maxWaitMs = 90000, intervalMs = 3000) {
+    const start = Date.now();
+    while (Date.now() - start < maxWaitMs) {
+      try {
+        const status = await this.makeRequest('/health');
+        if (status?.status === 'healthy') return true;
+      } catch (_) {
+        /* swallow and retry */
+      }
+      await new Promise(res => setTimeout(res, intervalMs));
+    }
+    throw new Error('Orchestrator did not become healthy in time');
+  }
+
+  async initialize() {
+    try {
+      // new handshake wait
+      await this.waitUntilHealthy();
+      const response = await this.makeRequest('/health');
+      console.log('Unified Orchestrator initialized:', response);
+      return response;
+    } catch (error) {
+      console.error('Failed to initialize Unified Orchestrator:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

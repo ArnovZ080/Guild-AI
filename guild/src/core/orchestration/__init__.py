@@ -12,6 +12,7 @@ from .enhanced_orchestrator import (
     EnhancedOrchestrator, WorkflowStatus, AgentStatus, AgentCapability, WorkflowContext,
     enhanced_orchestrator, register_agent_capability, create_enhanced_workflow, execute_enhanced_workflow
 )
+from ..enhanced_orchestrator import EnhancedOrchestrator  # re-export for backward compatibility
 
 __all__ = [
     'EnhancedOrchestrator', 'WorkflowStatus', 'AgentStatus', 'AgentCapability', 'WorkflowContext',

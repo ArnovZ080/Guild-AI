@@ -16,6 +16,7 @@ from .api.onboarding.routes import router as onboarding_router
 # from .api.orchestrator.routes import router as orchestrator_router  # Removed - using enhanced orchestrator instead
 from .api.enhanced_orchestrator_api import router as enhanced_orchestrator_router
 from .api.unified_orchestrator_api import router as unified_orchestrator_router
+from .api.workflows.routes import router as workflows_router
 from .api.subscription_api import router as subscription_router
 from .api.integrations.health import router as integrations_health_router
 from .api.analytics.token_usage import router as token_usage_router
@@ -85,6 +86,8 @@ app.include_router(onboarding_router)
 app.include_router(enhanced_orchestrator_router)
 # Unified Orchestrator - Fortune 500 Level Business Intelligence
 app.include_router(unified_orchestrator_router)
+# Workflows (builder drafts + activation)
+app.include_router(workflows_router)
 # Subscription and agent hiring system
 app.include_router(subscription_router)
 # Integration health monitoring API
