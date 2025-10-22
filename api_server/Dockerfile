@@ -40,8 +40,49 @@ ENV DISPLAY=:99
 # Copy all project files into the container
 COPY . .
 
-# Copy and setup entrypoint script
-RUN chmod +x /app/api_server/entrypoint.sh
+# List contents to debug build context
+RUN echo "Build context contents:" && ls -la /app
+
+# Check if api_server directory exists and list its contents
+RUN echo "Checking api_server directory:" && \
+    if [ -d "./api_server" ]; then \
+        echo "✅ api_server directory found"; \
+        ls -la ./api_server; \
+    else \
+        echo "❌ api_server directory not found"; \
+        echo "📁 Root directory contents:"; \
+        ls -la /app; \
+        echo "📁 Looking for entrypoint.sh in subdirectories:"; \
+        find /app -name "entrypoint.sh" -type f 2>/dev/null || echo "No entrypoint.sh found"; \
+        exit 1; \
+    fi
+
+# Create entrypoint script if it doesn't exist (fallback)
+RUN if [ ! -f ./api_server/entrypoint.sh ]; then \
+        echo "Creating fallback entrypoint script..."; \
+        mkdir -p ./api_server; \
+        echo '#!/bin/bash' > ./api_server/entrypoint.sh; \
+        echo '# Fallback entrypoint script' >> ./api_server/entrypoint.sh; \
+        echo 'echo "🚀 Guild-AI API Server - Starting..."' >> ./api_server/entrypoint.sh; \
+        echo 'echo "📡 Server will start on port 5000"' >> ./api_server/entrypoint.sh; \
+        echo 'echo "🌐 API will be available at http://0.0.0.0:5000"' >> ./api_server/entrypoint.sh; \
+        echo 'exec uvicorn api_server.src.main:app --host 0.0.0.0 --port 5000 --workers 1 --timeout-keep-alive 30' >> ./api_server/entrypoint.sh; \
+        chmod +x ./api_server/entrypoint.sh; \
+        echo "✅ Fallback entrypoint created"; \
+    fi
+
+# Verify and set executable bit on entrypoint
+RUN if [ -f ./api_server/entrypoint.sh ]; then \
+        chmod +x ./api_server/entrypoint.sh && \
+        echo "✅ Entrypoint found and made executable"; \
+    else \
+        echo "❌ Entrypoint not found at ./api_server/entrypoint.sh"; \
+        echo "📁 Contents of api_server directory:"; \
+        ls -la ./api_server; \
+        echo "📁 Looking for entrypoint.sh in subdirectories:"; \
+        find /app -name "entrypoint.sh" -type f 2>/dev/null || echo "No entrypoint.sh found"; \
+        exit 1; \
+    fi
 
 # Install Python dependencies from the api_server directory
 RUN pip install --no-cache-dir -r ./api_server/requirements.txt
@@ -58,4 +99,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
 # Use entrypoint script to wait for dependencies
-ENTRYPOINT ["/app/api_server/entrypoint.sh"]
+ENTRYPOINT ["./api_server/entrypoint.sh"]
