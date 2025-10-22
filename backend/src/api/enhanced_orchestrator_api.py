@@ -432,8 +432,20 @@ async def orchestrator_health_check() -> Dict[str, Any]:
     Returns system status, available agents, connected integrations.
     """
     try:
+        import os
         capabilities = get_all_agent_capabilities()
         performance_metrics = workflow_executor.get_performance_metrics()
+
+        # LLM / Gemini status
+        llm_provider = os.getenv("LLM_PROVIDER", "unknown")
+        vertex_model = os.getenv("VERTEX_AI_MODEL", "unknown")
+        vertex_location = os.getenv("VERTEX_AI_LOCATION", "unknown")
+        gemini_ready = False
+        try:
+            from ..llm.gemini_provider import gemini_provider
+            gemini_ready = bool(getattr(gemini_provider, 'initialized', False))
+        except Exception:
+            gemini_ready = False
         
         return {
             "status": "healthy",
@@ -447,6 +459,12 @@ async def orchestrator_health_check() -> Dict[str, Any]:
                 "creative_agents": len(get_agents_by_category("Creative"))
             },
             "performance": performance_metrics,
+            "llm": {
+                "provider": llm_provider,
+                "gemini_initialized": gemini_ready,
+                "model": vertex_model,
+                "location": vertex_location
+            },
             "timestamp": datetime.now().isoformat()
         }
         

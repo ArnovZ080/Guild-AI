@@ -489,6 +489,14 @@ class EnhancedOrchestratorService {
     }
   }
 
+  // Backward-compatibility wrapper used by ChatInterface and Calendar
+  async processRequest(request) {
+    const message = request?.objective || '';
+    const userId = request?.user_id || request?.userId || 'anonymous_user';
+    const context = request?.context || {};
+    return this.processChatOrchestration(message, userId, context);
+  }
+
   /**
    * Get performance metrics for monitoring
    * @returns {Promise<Object>} Performance metrics

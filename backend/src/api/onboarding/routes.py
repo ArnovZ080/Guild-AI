@@ -3,7 +3,7 @@ Onboarding API Routes
 FastAPI endpoints for onboarding data storage and follow-up management
 """
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.responses import JSONResponse
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field, EmailStr
@@ -79,41 +79,60 @@ class UserAnalyticsResponse(BaseModel):
 
 @router.post("/save", response_model=OnboardingDataResponse)
 async def save_onboarding_data(
-    onboarding_data: OnboardingDataRequest,
+    request: Request,
     background_tasks: BackgroundTasks
 ):
-    """Save onboarding questionnaire responses"""
+    """Compatibility handler: accepts new schema or legacy {responses,incomplete_fields}."""
     try:
-        # Check if user exists, create if not
-        user = await db_service.get_user_by_email(onboarding_data.email)
+        payload = await request.json()
+
+        # NEW schema path
+        if isinstance(payload, dict) and ('email' in payload or 'business_answers' in payload):
+            onboarding = OnboardingDataRequest(**payload)
+            email = onboarding.email
+            name = onboarding.name
+            data_to_save = {
+                'business_answers': onboarding.business_answers,
+                'audience_answers': onboarding.audience_answers,
+                'brand_answers': onboarding.brand_answers,
+                'financial_answers': onboarding.financial_answers,
+                'goals_answers': onboarding.goals_answers,
+                'preferences_answers': onboarding.preferences_answers,
+                'integrations_answers': onboarding.integrations_answers,
+                'psychological_profile': onboarding.psychological_profile
+            }
+        else:
+            # LEGACY shape: { responses: {...}, incomplete_fields: [...] }
+            responses = payload.get('responses', {}) if isinstance(payload, dict) else {}
+            email = responses.get('email') or f"anon_{uuid.uuid4().hex[:8]}@local"
+            name = responses.get('name')
+            # Store all answers under business_answers to preserve data without loss
+            data_to_save = {
+                'business_answers': responses,
+                'audience_answers': {},
+                'brand_answers': {},
+                'financial_answers': {},
+                'goals_answers': {},
+                'preferences_answers': {},
+                'integrations_answers': {},
+                'psychological_profile': {}
+            }
+
+        # Ensure user exists
+        user = await db_service.get_user_by_email(email)
         if not user:
-            user = await db_service.create_user(
-                email=onboarding_data.email,
-                name=onboarding_data.name
-            )
-        
-        # Prepare onboarding data
-        data_to_save = {
-            'business_answers': onboarding_data.business_answers,
-            'audience_answers': onboarding_data.audience_answers,
-            'brand_answers': onboarding_data.brand_answers,
-            'financial_answers': onboarding_data.financial_answers,
-            'goals_answers': onboarding_data.goals_answers,
-            'preferences_answers': onboarding_data.preferences_answers,
-            'integrations_answers': onboarding_data.integrations_answers,
-            'psychological_profile': onboarding_data.psychological_profile
-        }
-        
+            user = await db_service.create_user(email=email, name=name)
+
         # Analyze for follow-up opportunities
         follow_up_analysis = analyze_onboarding_for_followups(data_to_save)
         data_to_save.update({
             'has_pending_followups': follow_up_analysis['has_pending_followups'],
             'followup_count': follow_up_analysis['followup_count']
         })
-        
+
         # Save onboarding data
         saved_data = await db_service.save_onboarding_data(str(user.id), data_to_save)
-        
+
         # Create follow-up session if needed
         if follow_up_analysis['has_pending_followups']:
             background_tasks.add_task(
@@ -121,7 +140,7 @@ async def save_onboarding_data(
                 str(user.id),
                 follow_up_analysis['follow_up_questions']
             )
-        
+
         return OnboardingDataResponse(
             user_id=str(user.id),
             onboarding_id=str(saved_data.id),
@@ -130,7 +149,7 @@ async def save_onboarding_data(
             followup_count=follow_up_analysis['followup_count'],
             message="Onboarding data saved successfully"
         )
-        
+
     except Exception as e:
         logger.error(f"Error saving onboarding data: {e}")
         raise HTTPException(status_code=500, detail=str(e))

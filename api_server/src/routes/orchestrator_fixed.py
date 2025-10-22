@@ -289,16 +289,44 @@ Now respond as the Chief Executive Orchestrator with strategic business insight,
 @router.get("/health")
 async def orchestrator_health_check():
     """Health check for orchestrator system"""
-    return {
-        "status": "healthy",
-        "service": "orchestrator",
-        "version": "2.0",
-        "capabilities": {
-            "chat_processing": True,
-            "workflow_creation": True,
-            "agent_coordination": True
+    try:
+        import os
+        llm_provider = os.getenv("LLM_PROVIDER", "unknown")
+        vertex_model = os.getenv("VERTEX_AI_MODEL", "unknown")
+        vertex_location = os.getenv("VERTEX_AI_LOCATION", "unknown")
+        gemini_ready = False
+        try:
+            from ..llm.gemini_provider import gemini_provider
+            gemini_ready = bool(getattr(gemini_provider, 'initialized', False))
+        except Exception:
+            gemini_ready = False
+        return {
+            "status": "healthy",
+            "service": "orchestrator",
+            "version": "2.0",
+            "capabilities": {
+                "chat_processing": True,
+                "workflow_creation": True,
+                "agent_coordination": True
+            },
+            "llm": {
+                "provider": llm_provider,
+                "gemini_initialized": gemini_ready,
+                "model": vertex_model,
+                "location": vertex_location
+            }
         }
-    }
+    except Exception:
+        return {
+            "status": "healthy",
+            "service": "orchestrator",
+            "version": "2.0",
+            "capabilities": {
+                "chat_processing": True,
+                "workflow_creation": True,
+                "agent_coordination": True
+            }
+        }
 
 @router.get("/system/capabilities")
 async def get_system_capabilities():
