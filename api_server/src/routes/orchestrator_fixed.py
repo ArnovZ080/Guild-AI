@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import models
+from .. import models
 
 # Custom dependency for optional authentication
 async def get_current_user_optional(request) -> Optional[models.User]:
