@@ -42,19 +42,28 @@ app = FastAPI(
 async def startup_event():
     """Application startup event"""
     logger.info("🚀 Guild-AI API Server starting up...")
-    
-    # Test database connection only if available
-    if DATABASE_AVAILABLE and engine:
-        try:
-            from sqlalchemy import text
-            with engine.connect() as conn:
-                conn.execute(text("SELECT 1"))
-            logger.info("✅ Database connection verified")
-        except Exception as e:
-            logger.warning(f"⚠️  Database connection warning: {e}")
+
+    # Optionally skip DB connectivity test on startup to avoid Cloud Run timeouts
+    skip_db_check = os.getenv("SKIP_STARTUP_DB_CHECK", "true").lower() == "true"
+
+    if skip_db_check:
+        if DATABASE_AVAILABLE and engine:
+            logger.info("⏭️  Skipping database health check on startup (SKIP_STARTUP_DB_CHECK=true)")
+        else:
+            logger.warning("⚠️  Database not available - running in limited mode")
     else:
-        logger.warning("⚠️  Database not available - running in limited mode")
-    
+        # Test database connection only if available
+        if DATABASE_AVAILABLE and engine:
+            try:
+                from sqlalchemy import text
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                logger.info("✅ Database connection verified")
+            except Exception as e:
+                logger.warning(f"⚠️  Database connection warning: {e}")
+        else:
+            logger.warning("⚠️  Database not available - running in limited mode")
+
     logger.info("🎯 Guild-AI API Server ready!")
 
 @app.get("/health")
