@@ -66,6 +66,14 @@ async def startup_event():
 
     logger.info("🎯 Guild-AI API Server ready!")
 
+# Ensure orchestrator health routes are always available even if other routes fail
+try:
+    from .routes import orchestrator_fixed as orchestrator
+    app.include_router(orchestrator.router)
+    logger.info("✅ Orchestrator routes registered (standalone)")
+except Exception as e:
+    logger.error(f"Orchestrator route import failed: {e}")
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint for Cloud Run"""
@@ -124,7 +132,7 @@ async def startup_event():
     print("Server ready to handle agent interactions!")
 
 
-# Import routes (with error handling)
+# Import remaining routes (with error handling)
 try:
     from .routes import agents, oauth, document_processing, auth_firebase as auth, subscription, credits
     from .routes import execution_layer, connectors, onboarding, workspace, orchestrator_fixed as orchestrator, quality_control, business_intelligence, waitlist
