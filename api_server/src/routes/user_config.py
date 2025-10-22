@@ -13,8 +13,8 @@ from datetime import datetime
 import logging
 
 from ..database import get_db
-from ..models import User
-from .auth import get_current_user
+from ..models import User, UserSettings
+from .auth_firebase import get_current_user
 
 # Initialize logger
 logger = logging.getLogger(__name__)
@@ -70,18 +70,18 @@ async def save_agent_configuration(
         user_settings = await get_or_create_user_settings(current_user.id, db)
         
         # Update agent configurations
-        agent_configs = user_settings.get("agent_configurations", {})
+        agent_configs = user_settings.settings_data.get("agent_configurations", {})
         agent_configs[config.agent_id] = {
             **config.model_dump(),
             "saved_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        user_settings["agent_configurations"] = agent_configs
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
+        user_settings.settings_data["agent_configurations"] = agent_configs
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
         
         # Save to database (using existing settings endpoint structure)
-        await save_user_settings(current_user.id, user_settings, db)
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         return {
             "success": True,
@@ -102,7 +102,7 @@ async def save_bulk_agent_configurations(
     """Save multiple agent configurations at once."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        agent_configs = user_settings.get("agent_configurations", {})
+        agent_configs = user_settings.settings_data.get("agent_configurations", {})
         
         saved_count = 0
         for config in request.configurations:
@@ -113,10 +113,10 @@ async def save_bulk_agent_configurations(
             }
             saved_count += 1
         
-        user_settings["agent_configurations"] = agent_configs
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
+        user_settings.settings_data["agent_configurations"] = agent_configs
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
         
-        await save_user_settings(current_user.id, user_settings, db)
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         return {
             "success": True,
@@ -136,7 +136,7 @@ async def get_agent_configurations(
     """Get all agent configurations for the user."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        agent_configs = user_settings.get("agent_configurations", {})
+        agent_configs = user_settings.settings_data.get("agent_configurations", {})
         
         return {
             "success": True,
@@ -157,7 +157,7 @@ async def get_agent_configuration(
     """Get a specific agent configuration."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        agent_configs = user_settings.get("agent_configurations", {})
+        agent_configs = user_settings.settings_data.get("agent_configurations", {})
         
         if agent_id not in agent_configs:
             raise HTTPException(status_code=404, detail="Agent configuration not found")
@@ -182,16 +182,16 @@ async def delete_agent_configuration(
     """Delete an agent configuration."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        agent_configs = user_settings.get("agent_configurations", {})
+        agent_configs = user_settings.settings_data.get("agent_configurations", {})
         
         if agent_id not in agent_configs:
             raise HTTPException(status_code=404, detail="Agent configuration not found")
         
         del agent_configs[agent_id]
-        user_settings["agent_configurations"] = agent_configs
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
+        user_settings.settings_data["agent_configurations"] = agent_configs
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
         
-        await save_user_settings(current_user.id, user_settings, db)
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         return {
             "success": True,
@@ -215,17 +215,17 @@ async def save_workflow_template(
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
         
-        workflow_templates = user_settings.get("workflow_templates", {})
+        workflow_templates = user_settings.settings_data.get("workflow_templates", {})
         workflow_templates[template.workflow_id] = {
             **template.model_dump(),
             "saved_at": datetime.utcnow().isoformat(),
             "updated_at": datetime.utcnow().isoformat()
         }
         
-        user_settings["workflow_templates"] = workflow_templates
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
+        user_settings.settings_data["workflow_templates"] = workflow_templates
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
         
-        await save_user_settings(current_user.id, user_settings, db)
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         return {
             "success": True,
@@ -245,7 +245,7 @@ async def get_workflow_templates(
     """Get all workflow templates for the user."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        workflow_templates = user_settings.get("workflow_templates", {})
+        workflow_templates = user_settings.settings_data.get("workflow_templates", {})
         
         return {
             "success": True,
@@ -266,16 +266,16 @@ async def delete_workflow_template(
     """Delete a workflow template."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        workflow_templates = user_settings.get("workflow_templates", {})
+        workflow_templates = user_settings.settings_data.get("workflow_templates", {})
         
         if workflow_id not in workflow_templates:
             raise HTTPException(status_code=404, detail="Workflow template not found")
         
         del workflow_templates[workflow_id]
-        user_settings["workflow_templates"] = workflow_templates
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
+        user_settings.settings_data["workflow_templates"] = workflow_templates
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
         
-        await save_user_settings(current_user.id, user_settings, db)
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         return {
             "success": True,
@@ -299,13 +299,13 @@ async def save_user_preferences(
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
         
-        user_settings["preferences"] = {
+        user_settings.settings_data["preferences"] = {
             **preferences.model_dump(),
             "updated_at": datetime.utcnow().isoformat()
         }
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
         
-        await save_user_settings(current_user.id, user_settings, db)
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         return {
             "success": True,
@@ -324,7 +324,7 @@ async def get_user_preferences(
     """Get user preferences."""
     try:
         user_settings = await get_or_create_user_settings(current_user.id, db)
-        preferences = user_settings.get("preferences", {})
+        preferences = user_settings.settings_data.get("preferences", {})
         
         return {
             "success": True,
@@ -348,16 +348,13 @@ async def sync_from_local_storage(
         
         if not current_user:
             logger.error("❌ No authenticated user for sync")
-            return {
-                "success": False,
-                "message": "User not authenticated"
-            }
+            raise HTTPException(status_code=401, detail="User not authenticated")
         
         user_settings = await get_or_create_user_settings(current_user.id, db)
         
         # Merge local data with server data (server takes precedence for conflicts)
         if "agent_configurations" in local_data:
-            server_configs = user_settings.get("agent_configurations", {})
+            server_configs = user_settings.settings_data.get("agent_configurations", {})
             local_configs = local_data["agent_configurations"]
             
             # Only update if server doesn't have the config or local is newer
@@ -373,11 +370,11 @@ async def sync_from_local_storage(
                         "synced_at": datetime.utcnow().isoformat()
                     }
             
-            user_settings["agent_configurations"] = server_configs
+            user_settings.settings_data["agent_configurations"] = server_configs
         
         # Similar logic for workflow templates
         if "workflow_templates" in local_data:
-            server_templates = user_settings.get("workflow_templates", {})
+            server_templates = user_settings.settings_data.get("workflow_templates", {})
             local_templates = local_data["workflow_templates"]
             
             for workflow_id, local_template in local_templates.items():
@@ -392,10 +389,10 @@ async def sync_from_local_storage(
                         "synced_at": datetime.utcnow().isoformat()
                     }
             
-            user_settings["workflow_templates"] = server_templates
+            user_settings.settings_data["workflow_templates"] = server_templates
         
-        user_settings["updated_at"] = datetime.utcnow().isoformat()
-        await save_user_settings(current_user.id, user_settings, db)
+        user_settings.settings_data["updated_at"] = datetime.utcnow().isoformat()
+        await save_user_settings(current_user.id, user_settings.settings_data, db)
         
         logger.info(f"✅ Data synced successfully for user {current_user.id}")
         
@@ -407,34 +404,26 @@ async def sync_from_local_storage(
         
     except Exception as e:
         logger.error(f"❌ Failed to sync data: {str(e)}", exc_info=True)
-        return {
-            "success": False,
-            "message": f"Sync failed: {str(e)}"
-        }
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
 
 
 # Helper functions
-async def get_or_create_user_settings(user_id: str, db: Session) -> Dict[str, Any]:
+async def get_or_create_user_settings(user_id: str, db: Session) -> UserSettings:
     """Get or create user settings from the database."""
-    # This uses the existing settings infrastructure
-    # In a real implementation, you might want to create a dedicated UserSettings table
-    from .settings import _SETTINGS_STORE
+    user_settings = db.query(UserSettings).filter(UserSettings.user_id == user_id).first()
     
-    if user_id not in _SETTINGS_STORE:
-        _SETTINGS_STORE[user_id] = {
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat()
-        }
-    
-    return _SETTINGS_STORE[user_id]
+    if not user_settings:
+        user_settings = UserSettings(user_id=user_id)
+        db.add(user_settings)
+        db.commit()
+        db.refresh(user_settings)
+
+    return user_settings
 
 
 async def save_user_settings(user_id: str, settings: Dict[str, Any], db: Session):
     """Save user settings to the database."""
-    # This uses the existing settings infrastructure
-    # In a real implementation, you might want to create a dedicated UserSettings table
-    from .settings import _SETTINGS_STORE
-    
-    _SETTINGS_STORE[user_id] = settings
-    # Note: In production, you'd want to persist this to the database
-    # For now, this uses the in-memory store from the existing settings endpoint
+    user_settings = await get_or_create_user_settings(user_id, db)
+    user_settings.settings_data = settings
+    user_settings.updated_at = datetime.utcnow()
+    db.commit()

@@ -29,6 +29,17 @@ async def get_current_user_optional(request: Request) -> Optional[models.User]:
 
 logger = logging.getLogger(__name__)
 
+# Safely import and initialize the Gemini provider
+try:
+    from ..llm.gemini_provider import gemini_provider
+    GEMINI_AVAILABLE = gemini_provider.initialized
+    if not GEMINI_AVAILABLE:
+        logger.warning("Gemini provider not initialized. Orchestrator will have limited functionality.")
+except ImportError as e:
+    logger.error(f"Failed to import Gemini provider: {e}")
+    gemini_provider = None
+    GEMINI_AVAILABLE = False
+
 router = APIRouter(
     prefix="/api/orchestrator",
     tags=["Orchestrator"],
@@ -1406,4 +1417,3 @@ Respond naturally and helpfully."""
             "error": str(e),
             "message": "I encountered an issue processing your request. Please try again or contact support."
         }
-

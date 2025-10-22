@@ -427,3 +427,31 @@ class CreditTransaction(Base):
     
     # Relationships
     user = relationship("User", back_populates="credit_transactions")
+
+
+class UserSettings(Base):
+    """Model for storing user-specific settings in a structured way"""
+    __tablename__ = 'user_settings'
+
+    id = Column(String(50), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey('users.id'), nullable=False, unique=True, index=True)
+
+    # JSON blob to store various settings; provides flexibility
+    settings_data = Column(JSON, default=lambda: {
+        "agent_configurations": {},
+        "workflow_templates": {},
+        "preferences": {},
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
+    })
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationship to User
+    user = relationship("User", back_populates="settings")
+
+
+# Add relationship to User model
+User.settings = relationship("UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan")
