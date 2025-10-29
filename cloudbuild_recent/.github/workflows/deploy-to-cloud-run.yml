@@ -1,0 +1,97 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  PROJECT_ID: guild-ai-080
+  REGION: us-central1
+  SERVICE_NAME: guild-ai-api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      id-token: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      - name: Get Secrets from Secret Manager
+        id: secrets
+        run: |
+          DB_PASSWORD=$(gcloud secrets versions access latest --secret=db-root-password --project=${{ env.PROJECT_ID }})
+          echo "::add-mask::$DB_PASSWORD"
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_OUTPUT
+          
+          # Get Firebase config from secrets
+          FIREBASE_API_KEY=$(gcloud secrets versions access latest --secret=firebase-api-key --project=${{ env.PROJECT_ID }} 2>/dev/null || echo "")
+          FIREBASE_AUTH_DOMAIN=$(gcloud secrets versions access latest --secret=firebase-auth-domain --project=${{ env.PROJECT_ID }} 2>/dev/null || echo "guild-ai-080.firebaseapp.com")
+          FIREBASE_PROJECT_ID=$(gcloud secrets versions access latest --secret=firebase-project-id --project=${{ env.PROJECT_ID }} 2>/dev/null || echo "guild-ai-080")
+          FIREBASE_STORAGE_BUCKET=$(gcloud secrets versions access latest --secret=firebase-storage-bucket --project=${{ env.PROJECT_ID }} 2>/dev/null || echo "guild-ai-080.firebasestorage.app")
+          FIREBASE_MESSAGING_SENDER_ID=$(gcloud secrets versions access latest --secret=firebase-messaging-sender-id --project=${{ env.PROJECT_ID }} 2>/dev/null || echo "")
+          FIREBASE_APP_ID=$(gcloud secrets versions access latest --secret=firebase-app-id --project=${{ env.PROJECT_ID }} 2>/dev/null || echo "")
+          
+          echo "::add-mask::$FIREBASE_API_KEY"
+          echo "FIREBASE_API_KEY=$FIREBASE_API_KEY" >> $GITHUB_OUTPUT
+          echo "FIREBASE_AUTH_DOMAIN=$FIREBASE_AUTH_DOMAIN" >> $GITHUB_OUTPUT
+          echo "FIREBASE_PROJECT_ID=$FIREBASE_PROJECT_ID" >> $GITHUB_OUTPUT
+          echo "FIREBASE_STORAGE_BUCKET=$FIREBASE_STORAGE_BUCKET" >> $GITHUB_OUTPUT
+          echo "FIREBASE_MESSAGING_SENDER_ID=$FIREBASE_MESSAGING_SENDER_ID" >> $GITHUB_OUTPUT
+          echo "FIREBASE_APP_ID=$FIREBASE_APP_ID" >> $GITHUB_OUTPUT
+      
+      - name: Build and Deploy to Cloud Run
+        run: |
+          # Submit build and get build ID
+          BUILD_ID=$(gcloud builds submit --config=cloudbuild.yaml . \
+            --substitutions=_DB_PASSWORD="${{ steps.secrets.outputs.DB_PASSWORD }}",_FIREBASE_API_KEY="${{ steps.secrets.outputs.FIREBASE_API_KEY }}",_FIREBASE_AUTH_DOMAIN="${{ steps.secrets.outputs.FIREBASE_AUTH_DOMAIN }}",_FIREBASE_PROJECT_ID="${{ steps.secrets.outputs.FIREBASE_PROJECT_ID }}",_FIREBASE_STORAGE_BUCKET="${{ steps.secrets.outputs.FIREBASE_STORAGE_BUCKET }}",_FIREBASE_MESSAGING_SENDER_ID="${{ steps.secrets.outputs.FIREBASE_MESSAGING_SENDER_ID }}",_FIREBASE_APP_ID="${{ steps.secrets.outputs.FIREBASE_APP_ID }}" \
+            --project=${{ env.PROJECT_ID }} \
+            --format="value(id)" 2>&1 | grep -oP '[a-f0-9-]{36}' | head -1)
+          
+          echo "Build ID: $BUILD_ID"
+          echo "View logs: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=${{ env.PROJECT_ID }}"
+          
+          # Wait for build to complete
+          echo "Waiting for build to complete..."
+          for i in {1..60}; do
+            STATUS=$(gcloud builds describe $BUILD_ID --project=${{ env.PROJECT_ID }} --format="value(status)" 2>/dev/null || echo "UNKNOWN")
+            echo "Build status: $STATUS (check $i/60)"
+            
+            if [ "$STATUS" = "SUCCESS" ]; then
+              echo "✅ Build completed successfully!"
+              exit 0
+            elif [ "$STATUS" = "FAILURE" ] || [ "$STATUS" = "TIMEOUT" ] || [ "$STATUS" = "CANCELLED" ]; then
+              echo "❌ Build failed with status: $STATUS"
+              echo "View logs: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=${{ env.PROJECT_ID }}"
+              exit 1
+            fi
+            
+            sleep 30
+          done
+          
+          echo "⏱️ Build timeout after 30 minutes"
+          echo "View logs: https://console.cloud.google.com/cloud-build/builds/$BUILD_ID?project=${{ env.PROJECT_ID }}"
+          exit 1
+      
+      - name: Show Service URL
+        if: success()
+        run: |
+          echo "🚀 Deployment complete!"
+          echo "Service URL: https://${SERVICE_NAME}-881782424.${REGION}.run.app"
+          echo "API Docs: https://${SERVICE_NAME}-881782424.${REGION}.run.app/docs"
+

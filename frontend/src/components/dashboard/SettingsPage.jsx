@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useSettings } from '../../contexts/SettingsContext.jsx';
 import { useAuth } from '../../contexts/AuthContext.jsx';
 import BetaAccessManager from '../admin/BetaAccessManager.jsx';
+import KnowledgeLibraryManager from '../admin/KnowledgeLibraryManager.jsx';
+import apiService from '../../services/api.js';
 
 const Section = ({ title, children }) => {
   const [open, setOpen] = useState(false);
@@ -98,18 +100,9 @@ const SettingsPage = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || '';
-        const response = await fetch(`${API_URL}/api/waitlist/is-admin`, {
-          headers: {
-            'Authorization': `Bearer ${await window.firebaseAuth?.currentUser?.getIdToken()}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setIsAdmin(data.is_admin);
-        }
-      } catch (err) {
-        console.log('Admin check failed, user is not admin');
+        const data = await apiService.get('/waitlist/is-admin');
+        setIsAdmin(!!data?.is_admin);
+      } catch {
         setIsAdmin(false);
       }
     };
@@ -120,77 +113,57 @@ const SettingsPage = () => {
   useEffect(() => {
     const loadSourceOfTruth = async () => {
       try {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-        
-        // Get Firebase token
-        const { auth } = await import('../../config/firebase.js');
-        const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
-        
-        if (!token) {
-          console.warn('No auth token available for source of truth load');
-          return;
-        }
-        
-        const response = await fetch(`${API_URL}/api/onboarding/data`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
+        const data = await apiService.get('/onboarding/data');
+        if (data?.exists) {
           
-          if (data.exists) {
-            // Map backend data to settings state
-            updateSettings({
-              onboarding: {
-                // Business
-                business_type: data.data.business.type,
-                business_description: data.data.business.description,
-                industry: data.data.business.industry,
-                
-                // Audience
-                targetAudience: data.data.audience.target,
-                customer_avatar: data.data.audience.avatar,
-                audience_problems: data.data.audience.problems,
-                audience_size: data.data.audience.size,
-                
-                // Brand
-                brand_voice: data.data.brand.voice_tone,
-                brand_personality: data.data.brand.personality,
-                brand_colors: data.data.brand.colors,
-                logo_status: data.data.brand.logo_status,
-                brand_values: data.data.brand.values,
-                brand_story: data.data.brand.story,
-                brand_differentiation: data.data.brand.differentiation,
-                brand_consistency: data.data.brand.consistency,
-                
-                // Financial
-                pricing_status: data.data.financial.pricing_status,
-                pricing_model: data.data.financial.pricing_model,
-                marketing_budget: data.data.financial.marketing_budget,
-                revenue_goals: data.data.financial.revenue_goals,
-                
-                // Goals
-                priority_3months: data.data.goals.priority_3months,
-                key_metrics: data.data.goals.key_metrics,
-                success_definition: data.data.goals.success_definition,
-                
-                // Preferences
-                communication_style: data.data.preferences.communication_style,
-                data_storage: data.data.preferences.data_storage,
-                security_preference: data.data.preferences.security,
-                
-                // Completion tracking
-                completion_percentage: data.completion_percentage,
-                needs_follow_up: data.needs_follow_up,
-                incomplete_fields: data.incomplete_fields || []
-              }
-            });
-            
-            setSourceOfTruthLoaded(true);
-            console.log('✅ Source of truth loaded:', data.completion_percentage + '% complete');
-          }
+          // Map backend data to settings state
+          updateSettings({
+            onboarding: {
+              // Business
+              business_type: data.data.business.type,
+              business_description: data.data.business.description,
+              industry: data.data.business.industry,
+              
+              // Audience
+              targetAudience: data.data.audience.target,
+              customer_avatar: data.data.audience.avatar,
+              audience_problems: data.data.audience.problems,
+              audience_size: data.data.audience.size,
+              
+              // Brand
+              brand_voice: data.data.brand.voice_tone,
+              brand_personality: data.data.brand.personality,
+              brand_colors: data.data.brand.colors,
+              logo_status: data.data.brand.logo_status,
+              brand_values: data.data.brand.values,
+              brand_story: data.data.brand.story,
+              brand_differentiation: data.data.brand.differentiation,
+              brand_consistency: data.data.brand.consistency,
+              
+              // Financial
+              pricing_status: data.data.financial.pricing_status,
+              pricing_model: data.data.financial.pricing_model,
+              marketing_budget: data.data.financial.marketing_budget,
+              revenue_goals: data.data.financial.revenue_goals,
+              
+              // Goals
+              priority_3months: data.data.goals.priority_3months,
+              key_metrics: data.data.goals.key_metrics,
+              success_definition: data.data.goals.success_definition,
+              
+              // Preferences
+              communication_style: data.data.preferences.communication_style,
+              data_storage: data.data.preferences.data_storage,
+              security_preference: data.data.preferences.security,
+              
+              // Completion tracking
+              completion_percentage: data.completion_percentage,
+              needs_follow_up: data.needs_follow_up,
+              incomplete_fields: data.incomplete_fields || []
+            }
+          });
+          setSourceOfTruthLoaded(true);
+          console.log('✅ Source of truth loaded:', data.completion_percentage + '% complete');
         }
       } catch (error) {
         console.error('Failed to load source of truth:', error);
@@ -206,8 +179,7 @@ const SettingsPage = () => {
     const fetchPlans = async () => {
       setPlansLoading(true);
       try {
-        const res = await fetch('/subscription/plans');
-        const data = await res.json();
+        const data = await apiService.get('/subscription/plans');
         setPlans(Array.isArray(data?.plans) ? data.plans : []);
       } catch {
         setPlans([]);
@@ -218,11 +190,8 @@ const SettingsPage = () => {
     const fetchInfo = async () => {
       setSubLoading(true);
       try {
-        const res = await fetch('/subscription/info');
-        if (res.ok) {
-          const data = await res.json();
-          setSubscriptionInfo(data);
-        }
+        const data = await apiService.get('/subscription/info');
+        if (data) setSubscriptionInfo(data);
       } catch {
         setSubscriptionInfo(null);
       } finally {
@@ -231,11 +200,8 @@ const SettingsPage = () => {
     };
     const fetchAgents = async () => {
       try {
-        const res = await fetch('/agents/available');
-        if (res.ok) {
-          const data = await res.json();
-          setAgentsAvailable(Array.isArray(data) ? data : (Array.isArray(data?.agents) ? data.agents : []));
-        }
+        const data = await apiService.get('/agents/available');
+        setAgentsAvailable(Array.isArray(data) ? data : (Array.isArray(data?.agents) ? data.agents : []));
       } catch {
         // graceful fallback
         setAgentsAvailable([]);
@@ -243,22 +209,16 @@ const SettingsPage = () => {
     };
     const fetchInvoices = async () => {
       try {
-        const res = await fetch('/subscription/invoices');
-        if (res.ok) {
-          const data = await res.json();
-          setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
-        }
+        const data = await apiService.get('/subscription/invoices');
+        setInvoices(Array.isArray(data?.invoices) ? data.invoices : []);
       } catch { setInvoices([]); }
     };
     const fetchPaymentMethods = async () => {
       try {
-        const res = await fetch('/subscription/payment-methods');
-        if (res.ok) {
-          const data = await res.json();
-          const methods = Array.isArray(data?.methods) ? data.methods : [];
-          if (methods.length && !methods.some(m => m.default)) methods[0].default = true;
-          setPaymentMethods(methods);
-        }
+        const data = await apiService.get('/subscription/payment-methods');
+        const methods = Array.isArray(data?.methods) ? data.methods : [];
+        if (methods.length && !methods.some(m => m.default)) methods[0].default = true;
+        setPaymentMethods(methods);
       } catch { setPaymentMethods([]); }
     };
     fetchPlans();
@@ -273,12 +233,8 @@ const SettingsPage = () => {
       (async () => {
         try {
           setStatusMsg('Verifying payment...');
-          const res = await fetch('/subscription/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reference }),
-          });
-          if (res.ok) {
+          const res = await apiService.post('/subscription/verify', { reference });
+          if (res && res.success !== false) {
             setStatusMsg('Subscription activated.');
             await fetchInfo();
           } else {
@@ -830,6 +786,16 @@ const SettingsPage = () => {
             Manage waiting list and grant beta access to users
           </div>
           <BetaAccessManager />
+        </Section>
+      )}
+
+      {/* Knowledge Library Management - Admin Only */}
+      {isAdmin && (
+        <Section title="Knowledge Library Management">
+          <div className="text-sm text-gray-500 mb-4">
+            Manage the agent knowledge base and training materials
+          </div>
+          <KnowledgeLibraryManager />
         </Section>
       )}
 

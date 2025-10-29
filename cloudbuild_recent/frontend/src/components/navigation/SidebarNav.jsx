@@ -1,0 +1,456 @@
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Home, 
+  BarChart, 
+  Users, 
+  Settings, 
+  Zap, 
+  Target, 
+  TrendingUp,
+  MessageSquare,
+  Calendar,
+  FileText,
+  Sparkles,
+  Brain
+} from 'lucide-react';
+import { useSettings } from '../../contexts/SettingsContext.jsx';
+import { cn } from '@/utils';
+import { loadConversations } from '../../services/conversationsStore.js';
+import { useAdaptiveMode } from '../../contexts/AdaptiveModeContext';
+
+const navigationItems = [
+  {
+    id: 'chat',
+    label: 'AI Assistant',
+    icon: MessageSquare,
+    category: 'primary',
+    description: 'Chat with your AI business assistant'
+  },
+  {
+    id: 'dashboard',
+    label: 'Business Dashboard',
+    icon: Home,
+    category: 'primary',
+    description: 'Unified overview with tabs'
+  },
+  {
+    id: 'agents',
+    label: 'Agent Dashboard',
+    icon: Brain,
+    category: 'primary',
+    description: 'Manage your AI agents'
+  },
+  // Other dashboards now live as tabs inside Business Dashboard
+  {
+    id: 'goals',
+    label: 'Goals',
+    icon: Target,
+    category: 'secondary',
+    description: 'Track objectives'
+  },
+  { id: 'growth', label: 'Growth', icon: TrendingUp, category: 'secondary', description: 'Expansion opportunities' },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    icon: Calendar,
+    category: 'utility',
+    description: 'Schedule & deadlines'
+  },
+  {
+    id: 'documents',
+    label: 'Documents',
+    icon: FileText,
+    category: 'utility',
+    description: 'Files & resources'
+  },
+  {
+    id: 'achievements',
+    label: 'Achievements',
+    icon: Sparkles,
+    category: 'utility',
+    description: 'Your progress story'
+  },
+  // Connectors will be accessible within Settings
+  {
+    id: 'connectors',
+    label: 'Connectors',
+    icon: Zap,
+    category: 'utility',
+    description: 'External integrations'
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: Settings,
+    category: 'utility',
+    description: 'Preferences & configuration'
+  }
+];
+
+export const SidebarNav = ({ expanded, onExpandedChange, activeItem, onItemSelect }) => {
+  const { settings } = useSettings();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { currentMode } = useAdaptiveMode();
+  const [hoveredItem, setHoveredItem] = useState(null);
+  const [userPatterns, setUserPatterns] = useState({});
+  const [recentConversations, setRecentConversations] = useState([]);
+
+  // Simulate learning user patterns
+  useEffect(() => {
+    const patterns = {
+      morning: ['dashboard', 'goals', 'calendar'],
+      active: ['workflows', 'agents', 'analytics'],
+      evening: ['achievements', 'analytics', 'growth']
+    };
+    setUserPatterns(patterns);
+  }, []);
+
+  // Load recent conversations for chat sidebar section
+  useEffect(() => {
+    try {
+      setRecentConversations(loadConversations());
+    } catch {}
+  }, [location.pathname]);
+
+  // Only highlight the active item per user request
+
+  const handleItemClick = (item) => {
+    onItemSelect?.(item);
+    // Track usage for pattern learning
+    console.log(`Navigation: ${item.id} selected in ${currentMode} mode`);
+  };
+
+  const sidebarVariants = {
+    collapsed: {
+      width: 64,
+      transition: { duration: 0.3, ease: "easeInOut" }
+    },
+    expanded: {
+      width: 256,
+      transition: { duration: 0.3, ease: "easeInOut" }
+    }
+  };
+
+  const itemVariants = {
+    collapsed: {
+      justifyContent: "flex-start",
+      paddingLeft: "12px",
+      paddingRight: "12px",
+      paddingTop: "12px",
+      paddingBottom: "12px",
+    },
+    expanded: {
+      justifyContent: "flex-start",
+      paddingLeft: "12px",
+      paddingRight: "16px",
+      paddingTop: "12px",
+      paddingBottom: "12px",
+    }
+  };
+
+  const getItemClasses = (item) => {
+    const isActive = activeItem === item.id;
+    const isHovered = hoveredItem === item.id;
+    return cn(
+      "relative flex items-center w-full rounded-lg transition-all duration-200 group cursor-pointer px-3 py-2",
+      "hover:bg-white/10 dark:hover:bg-slate-700/50",
+      isActive && "bg-white/20 dark:bg-slate-700/70 shadow-lg",
+      isHovered && "scale-105"
+    );
+  };
+
+  const getIconClasses = (item) => {
+    const isActive = activeItem === item.id;
+    return cn(
+      "transition-all duration-200",
+      expanded ? "w-5 h-5" : "w-6 h-6 mx-auto",
+      "flex-shrink-0",
+      isActive ? "text-blue-400" : "text-slate-600 dark:text-slate-300",
+      "group-hover:text-blue-400 group-hover:scale-110"
+    );
+  };
+
+  return (
+    <motion.div
+      className="fixed left-0 top-0 h-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-r border-gray-200 dark:border-gray-700 z-50 shadow-xl"
+      variants={sidebarVariants}
+      animate={expanded ? "expanded" : "collapsed"}
+      onHoverStart={() => !expanded && onExpandedChange(true)}
+      onHoverEnd={() => expanded && onExpandedChange(false)}
+    >
+      <div className="flex flex-col h-full">
+        {/* Logo/Brand Area */}
+        <motion.div 
+          className="p-4 border-b border-gray-200 dark:border-gray-700"
+          layout
+        >
+          <motion.div
+            className="flex items-center gap-3"
+            layout
+          >
+            {settings?.profile?.brand?.logoUrl ? (
+              <img src={settings.profile.brand.logoUrl} alt="Logo" className="w-8 h-8 rounded-lg object-cover border" />
+            ) : (
+              <img 
+                src="/guild-logo.png" 
+                alt="Guild AI Logo" 
+                className="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-gray-200"
+              />
+            )}
+            <AnimatePresence>
+              {expanded && (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <h2 className="font-bold text-lg text-slate-800 dark:text-slate-200">
+                    {settings?.profile?.brand?.businessName || 'Guild AI'}
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {settings?.profile?.firstName ? `${settings.profile.firstName}'s workspace` : 'Your AI Workforce'}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        </motion.div>
+
+        {/* Chat-specific section */}
+        {location.pathname === '/chat' && (
+          <div className="px-2 py-3 border-b border-gray-200 dark:border-gray-700 bg-slate-50 dark:bg-slate-800/40">
+            {/* New Conversation */}
+            {expanded && (
+              <div className="mb-3">
+                <button
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.dispatchEvent) {
+                      window.dispatchEvent(new CustomEvent('guild:newConversation'));
+                    }
+                  }}
+                  className={cn(
+                    'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
+                    'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700'
+                  )}
+                >
+                  New Conversation
+                </button>
+              </div>
+            )}
+            {/* Recent Conversations */}
+            {expanded && (
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 px-1">Recent Conversations</div>
+                <div className="max-h-48 overflow-y-auto pr-1">
+                  {recentConversations.map((chat) => (
+                    <button
+                      key={chat.id}
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.dispatchEvent) {
+                          window.dispatchEvent(new CustomEvent('guild:loadConversation', { detail: { id: chat.id } }));
+                        }
+                        if (location.pathname !== '/chat') navigate('/chat');
+                      }}
+                      className="w-full text-left p-2 rounded-md hover:bg-gray-100 dark:hover:bg-slate-700"
+                    >
+                      <div className="text-sm text-slate-800 dark:text-slate-100 truncate">{chat.title}</div>
+                      <div className="text-xs text-slate-500 truncate">{chat.preview}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Navigation Items */}
+        <div className="flex-1 overflow-y-auto py-4">
+          <div className="space-y-1 px-2">
+            {/* Primary Navigation */}
+            <div className="mb-6">
+              {expanded && (
+                <motion.p 
+                  className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  Dashboards
+                </motion.p>
+              )}
+              {navigationItems
+                .filter(item => item.category === 'primary')
+                .map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    className={getItemClasses(item)}
+                    variants={itemVariants}
+                    animate={expanded ? "expanded" : "collapsed"}
+                    onHoverStart={() => setHoveredItem(item.id)}
+                    onHoverEnd={() => setHoveredItem(null)}
+                    onClick={() => handleItemClick(item)}
+                    whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <item.icon className={getIconClasses(item)} />
+                    <AnimatePresence>
+                      {expanded && (
+                        <motion.div
+                          className="ml-3 flex-1"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2, delay: index * 0.02 }}
+                        >
+                          <div className="font-medium text-slate-700 dark:text-slate-200">
+                            {item.label}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                            {item.description}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    {/* Only the active item is highlighted; no extra indicators */}
+                  </motion.div>
+                ))}
+            </div>
+
+            {/* Workspace Navigation (replaces Tools, includes previous secondary + desired utility items) */}
+            <div className="mb-2">
+              {expanded && (
+                <motion.p 
+                  className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-3 mb-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  Workspace
+                </motion.p>
+              )}
+              {[
+                'calendar',
+                'growth',
+                'achievements',
+                'goals',
+                'documents',
+                'connectors',
+              ]
+                .map((id) => navigationItems.find(n => n.id === id))
+                .filter(Boolean)
+                .map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    className={getItemClasses(item)}
+                    variants={itemVariants}
+                    animate={expanded ? "expanded" : "collapsed"}
+                    onHoverStart={() => setHoveredItem(item.id)}
+                    onHoverEnd={() => setHoveredItem(null)}
+                    onClick={() => handleItemClick(item)}
+                    whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <item.icon className={getIconClasses(item)} />
+                    <AnimatePresence>
+                      {expanded && (
+                        <motion.div
+                          className="ml-3 flex-1"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2, delay: index * 0.02 }}
+                        >
+                          <div className="font-medium text-slate-700 dark:text-slate-200">
+                            {item.label}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                            {item.description}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+            </div>
+
+            {/* Divider and Settings */}
+            <div className="px-2">
+              <div className="h-px bg-gray-200 dark:bg-gray-700 my-3" />
+              {(() => {
+                const item = navigationItems.find(n => n.id === 'settings');
+                if (!item) return null;
+                return (
+                  <motion.div
+                    key={item.id}
+                    className={getItemClasses(item)}
+                    variants={itemVariants}
+                    animate={expanded ? "expanded" : "collapsed"}
+                    onHoverStart={() => setHoveredItem(item.id)}
+                    onHoverEnd={() => setHoveredItem(null)}
+                    onClick={() => handleItemClick(item)}
+                    whileHover={{ x: 2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <item.icon className={getIconClasses(item)} />
+                    <AnimatePresence>
+                      {expanded && (
+                        <motion.div
+                          className="ml-3 flex-1"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -10 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <div className="font-medium text-slate-700 dark:text-slate-200">
+                            {item.label}
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">
+                            {item.description}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+
+        {/* Mode Indicator */}
+        <motion.div 
+          className="p-4 border-t border-gray-200 dark:border-gray-700"
+          layout
+        >
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="text-center"
+              >
+                <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                  Current Mode
+                </div>
+                <div className={cn(
+                  "text-sm font-medium capitalize",
+                  currentMode === 'morning' && "text-blue-600 dark:text-blue-400",
+                  currentMode === 'active' && "text-emerald-600 dark:text-emerald-400",
+                  currentMode === 'evening' && "text-amber-600 dark:text-amber-400"
+                )}>
+                  {currentMode}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};

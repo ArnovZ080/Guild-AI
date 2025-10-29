@@ -14,12 +14,16 @@ import logging
 
 from ..database import get_db
 from ..models import User
-from .auth import get_current_user
+from .auth_firebase import get_current_user
 
 # Initialize logger
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/user-config", tags=["user-config"])
+router = APIRouter(tags=["user-config"])
+
+@router.get("/health/ping")
+async def user_config_health_ping():
+  return {"status": "ok"}
 
 
 # Pydantic models for API requests/responses

@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const idToken = await firebaseUser.getIdToken();
       
-      const response = await fetch(`${API_URL}/auth/profile`, {
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${idToken}`
         }
@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const idToken = await firebaseUser.getIdToken();
       
-      await fetch(`${API_URL}/auth/update-login`, {
+      await fetch(`${API_URL}/api/auth/update-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,0 +1,31 @@
+runtime: nodejs20
+
+# Environment variables for Google App Engine
+env_variables:
+  VITE_API_URL: "https://guild-ai-api-881782424.us-central1.run.app"
+  VITE_API_BASE_URL: "https://guild-ai-api-881782424.us-central1.run.app"
+  VITE_ORCHESTRATOR_BASE_URL: "https://guild-ai-api-881782424.us-central1.run.app/api/orchestrator"
+
+# Build settings
+# npm_config_production: true
+
+# Instance settings
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+
+# Health check
+readiness_check:
+  path: "/"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+
+liveness_check:
+  path: "/"
+  check_interval_sec: 30
+  timeout_sec: 4
+  failure_threshold: 4
+  success_threshold: 2
+

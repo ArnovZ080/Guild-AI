@@ -13,22 +13,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from .. import models
-
-# Custom dependency for optional authentication
-async def get_current_user_optional(request) -> Optional[models.User]:
-    """Get current user if authenticated, otherwise return None"""
-    try:
-        # Try to get the Authorization header
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return None
-        
-        # If we have a token, try to get the user
-        # For now, we'll just return None to allow anonymous access
-        # In a full implementation, you'd validate the token here
-        return None
-    except Exception:
-        return None
+from .auth_firebase import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(
@@ -40,7 +25,7 @@ router = APIRouter(
 async def process_chat_orchestration(
     request: dict,
     db: Session = Depends(get_db),
-    current_user: Optional[models.User] = Depends(get_current_user_optional)
+    current_user: models.User = Depends(get_current_user)
 ):
     """
     SIMPLIFIED: Processes ALL messages through intelligent orchestration.

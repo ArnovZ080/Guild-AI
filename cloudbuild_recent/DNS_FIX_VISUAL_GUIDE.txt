@@ -1,0 +1,219 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    🚨 URGENT DNS FIX FOR GUILDOF1.COM                        ║
+║                      SSL Certificate Issue Resolution                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           THE PROBLEM                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Your DNS has MIXED records pointing to TWO different servers:
+
+   Browser tries guildof1.com
+            ↓
+     DNS returns (randomly):
+            ↓
+    ┌───────┴───────┐
+    ↓               ↓
+Google Cloud    AWS Old Server
+(VALID SSL)    (INVALID SSL)
+    ↓               ↓
+    ✅              ❌ HSTS BLOCKS THIS!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      CURRENT DNS RECORDS (WRONG)                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+A Records for guildof1.com:
+├─ 216.239.32.21    ✅ Google Cloud Run (CORRECT)
+├─ 216.239.34.21    ✅ Google Cloud Run (CORRECT)
+├─ 216.239.36.21    ✅ Google Cloud Run (CORRECT)
+├─ 216.239.38.21    ✅ Google Cloud Run (CORRECT)
+└─ 75.2.60.5        ❌ AWS Global Accelerator (OLD SERVER - DELETE THIS!)
+                       ↑
+                       └─── THIS IS CAUSING THE SSL ERROR!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                      CORRECT DNS RECORDS (GOAL)                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+A Records for guildof1.com:
+├─ 216.239.32.21    ✅ Google Cloud Run
+├─ 216.239.34.21    ✅ Google Cloud Run
+├─ 216.239.36.21    ✅ Google Cloud Run
+└─ 216.239.38.21    ✅ Google Cloud Run
+
+AAAA Records (IPv6) for guildof1.com:
+├─ 2001:4860:4802:32::15    ✅ Google Cloud Run
+├─ 2001:4860:4802:34::15    ✅ Google Cloud Run
+├─ 2001:4860:4802:36::15    ✅ Google Cloud Run
+└─ 2001:4860:4802:38::15    ✅ Google Cloud Run
+
+═════════════════════════════════════════════════════════════════════════════════
+
+                        🔧 HOW TO FIX THIS NOW
+
+Step 1: Find Your DNS Provider
+───────────────────────────────
+
+Run this command to see who manages your DNS:
+   $ dig guildof1.com NS
+
+Or check where you bought the domain (GoDaddy, Namecheap, Cloudflare, etc.)
+
+Step 2: Log Into DNS Management
+────────────────────────────────
+
+Common locations:
+• GoDaddy:      My Products → guildof1.com → DNS Management
+• Namecheap:    Domain List → guildof1.com → Advanced DNS
+• Cloudflare:   Dashboard → guildof1.com → DNS
+• Google:       Domains → guildof1.com → DNS
+
+Step 3: DELETE the Old A Record
+────────────────────────────────
+
+Find this record and DELETE it:
+
+   ┌────────────────────────────────────────┐
+   │ Type: A                                │
+   │ Name: @ (or guildof1.com or blank)     │
+   │ Value: 75.2.60.5                       │
+   │                                        │
+   │        [DELETE] ← Click this!          │
+   └────────────────────────────────────────┘
+
+Step 4: VERIFY Cloud Run Records Exist
+───────────────────────────────────────
+
+Make sure you have these 4 A records (add if missing):
+
+   ┌────────────────────────────────────────┐
+   │ Type: A                                │
+   │ Name: @ (or guildof1.com or blank)     │
+   │ Value: 216.239.32.21                   │
+   │ TTL: 3600 (or Auto)                    │
+   └────────────────────────────────────────┘
+
+   ┌────────────────────────────────────────┐
+   │ Type: A                                │
+   │ Name: @ (or guildof1.com or blank)     │
+   │ Value: 216.239.34.21                   │
+   │ TTL: 3600 (or Auto)                    │
+   └────────────────────────────────────────┘
+
+   ┌────────────────────────────────────────┐
+   │ Type: A                                │
+   │ Name: @ (or guildof1.com or blank)     │
+   │ Value: 216.239.36.21                   │
+   │ TTL: 3600 (or Auto)                    │
+   └────────────────────────────────────────┘
+
+   ┌────────────────────────────────────────┐
+   │ Type: A                                │
+   │ Name: @ (or guildof1.com or blank)     │
+   │ Value: 216.239.38.21                   │
+   │ TTL: 3600 (or Auto)                    │
+   └────────────────────────────────────────┘
+
+Step 5: ADD AAAA Records (IPv6)
+────────────────────────────────
+
+Add these 4 AAAA records (if not already there):
+
+   ┌────────────────────────────────────────┐
+   │ Type: AAAA                             │
+   │ Name: @ (or guildof1.com or blank)     │
+   │ Value: 2001:4860:4802:32::15           │
+   │ TTL: 3600 (or Auto)                    │
+   └────────────────────────────────────────┘
+
+   (Repeat for other 3 IPs: ...34::15, ...36::15, ...38::15)
+
+Step 6: SAVE Changes
+────────────────────
+
+Click "Save" or "Apply" in your DNS provider dashboard
+
+Step 7: WAIT for DNS Propagation
+─────────────────────────────────
+
+Timeline:
+• 0-5 min:   Changes save at provider
+• 5-15 min:  DNS propagates globally
+• 15-30 min: All users see new DNS
+
+═════════════════════════════════════════════════════════════════════════════════
+
+                    ⏱️ AFTER DNS IS FIXED (15 min wait)
+
+Test DNS is Fixed:
+──────────────────
+$ dig guildof1.com A +short
+
+Should show ONLY (no 75.2.60.5):
+   216.239.36.21
+   216.239.32.21
+   216.239.34.21
+   216.239.38.21
+
+Clear Chrome HSTS Cache:
+────────────────────────
+1. Navigate to: chrome://net-internals/#hsts
+2. Under "Delete domain security policies"
+3. Enter: guildof1.com
+4. Click "Delete"
+5. Close and reopen Chrome
+
+Or Use Incognito Mode:
+──────────────────────
+Cmd+Shift+N (Mac) or Ctrl+Shift+N (Windows)
+Then go to: https://guildof1.com
+
+Test Site Works:
+────────────────
+https://guildof1.com
+   ↓
+✅ Green padlock
+✅ Valid SSL certificate
+✅ No security warnings
+✅ Site loads perfectly!
+
+═════════════════════════════════════════════════════════════════════════════════
+
+                  🚀 MEANWHILE: USE THIS URL NOW
+
+Your Cloud Run deployment is WORKING with valid SSL:
+
+   https://guild-ai-api-7addhhtmoa-uc.a.run.app
+
+This URL works RIGHT NOW! ✅
+
+Use this until DNS is fixed (15-30 minutes)
+
+═════════════════════════════════════════════════════════════════════════════════
+
+                           📋 QUICK CHECKLIST
+
+[ ] Log into DNS provider (GoDaddy/Namecheap/Cloudflare/etc.)
+[ ] Find DNS management for guildof1.com
+[ ] DELETE A record: 75.2.60.5
+[ ] VERIFY 4 A records: 216.239.x.x (add if missing)
+[ ] ADD 4 AAAA records: 2001:4860:4802:x::15 (if missing)
+[ ] SAVE changes
+[ ] WAIT 15 minutes
+[ ] CLEAR Chrome HSTS: chrome://net-internals/#hsts
+[ ] TEST in Incognito: https://guildof1.com
+[ ] CELEBRATE! 🎉
+
+═════════════════════════════════════════════════════════════════════════════════
+
+                             🎯 SUMMARY
+
+Problem:     Old AWS server IP (75.2.60.5) has invalid SSL
+Cause:       Mixed DNS records point to both old and new servers
+Fix:         Delete old IP, keep only Google Cloud Run IPs
+Time:        15-30 minutes after DNS change
+Result:      HTTPS works perfectly! ✅
+
+═════════════════════════════════════════════════════════════════════════════════

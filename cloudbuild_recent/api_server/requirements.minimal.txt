@@ -1,0 +1,18 @@
+# Essential production dependencies only
+fastapi==0.120.0
+uvicorn==0.38.0
+sqlalchemy==2.0.44
+psycopg2-binary==2.9.11
+alembic==1.17.0
+pydantic==2.12.3
+python-dotenv==1.1.1
+google-cloud-aiplatform==1.71.1
+vertexai==1.71.1
+firebase-admin==6.9.0
+redis==7.0.0
+celery==5.5.3
+requests==2.32.5
+python-multipart==0.0.20
+python-jose==3.5.0
+passlib==1.7.4
+bcrypt==5.0.0

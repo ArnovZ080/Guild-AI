@@ -1,0 +1,49 @@
+[project]
+name = "guild"
+version = "0.1.0"
+description = "The core logic and AI workforce for the Guild application."
+authors = [{ name = "Guild Development Team" }]
+requires-python = ">=3.11"
+dependencies = [
+    "typer[all]",
+    "pydantic",
+    "pydantic-settings",
+    "requests",
+    "beautifulsoup4",
+    "qdrant-client",
+    "sentence-transformers",
+    "ollama",
+    "playwright",
+    "langchain",
+    "langchain-community",
+    "pypdf",
+    "n8n",
+    "hubspot-api-client",
+    "pyautogui",
+    "pillow",
+    "opencv-python",
+    "easyocr",
+    "numpy",
+    # MarkItDown for handling non-LLM-ready document formats
+    "markitdown[pdf,docx,pptx,xlsx,audio-transcription,youtube-transcription]",
+    # Advanced web scraping and data processing
+    "scrapy",
+    "beautifulsoup4",
+    "pandas",
+    "openpyxl",
+    "phonenumbers",
+    "email-validator",
+    "faker",
+    # Image and video processing
+    "diffusers",
+    "transformers",
+    "moviepy",
+    "soundfile",
+    # "omni-parser",  # Placeholder for OmniParser library
+]
+
+[project.scripts]
+guild = "guild.src.cli.main:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]

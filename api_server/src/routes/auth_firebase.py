@@ -11,17 +11,37 @@ from firebase_admin import auth as firebase_auth, credentials
 from .. import models
 from ..database import get_db
 
-router = APIRouter(prefix="/api/auth", tags=["authentication"])
+router = APIRouter(tags=["authentication"])
+
+@router.get("/health/ping")
+async def auth_health_ping():
+    return {"status": "ok"}
 security = HTTPBearer()
 
-# Initialize Firebase Admin SDK
+# Initialize Firebase Admin SDK with robust env-based selection
 try:
-    # Try to initialize Firebase
-    # In production, use Google Cloud service account
-    # In development, use service account key file
     if not firebase_admin._apps:
-        cred = credentials.ApplicationDefault() if os.getenv("GOOGLE_CLOUD_PROJECT") else \
-               credentials.Certificate(os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH", "firebase-service-account.json"))
+        cred = None
+        # Preferred: service account JSON path or inline JSON via FIREBASE_CONFIG_JSON
+        sa_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+        sa_inline = os.getenv("FIREBASE_CONFIG_JSON")
+        if sa_path and os.path.exists(sa_path):
+            cred = credentials.Certificate(sa_path)
+        elif sa_inline:
+            import json, tempfile
+            fd, temp_path = tempfile.mkstemp(prefix="firebase-sa-", suffix=".json")
+            with os.fdopen(fd, 'w') as f:
+                f.write(sa_inline)
+            cred = credentials.Certificate(temp_path)
+        elif os.getenv("GOOGLE_CLOUD_PROJECT"):
+            cred = credentials.ApplicationDefault()
+        else:
+            # last-resort local file name if present
+            default_path = "firebase-service-account.json"
+            if os.path.exists(default_path):
+                cred = credentials.Certificate(default_path)
+        if not cred:
+            raise RuntimeError("No Firebase credentials available. Set FIREBASE_SERVICE_ACCOUNT_PATH or FIREBASE_CONFIG_JSON, or use Application Default.")
         firebase_admin.initialize_app(cred)
     print("Firebase Admin SDK initialized successfully")
 except Exception as e:

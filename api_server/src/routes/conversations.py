@@ -1,8 +1,13 @@
-from fastapi import APIRouter, HTTPException, Query, Path
+from fastapi import APIRouter, HTTPException, Query, Path, Depends
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 from datetime import datetime
+from sqlalchemy.orm import Session
 
+from ..database import get_db
+from .. import models
+from ..services.conversation_service import ConversationService
+from .auth_firebase import get_current_user
 
 router = APIRouter(prefix="/api/conversations", tags=["Conversations"])
 
@@ -104,42 +109,155 @@ def _mock_conversations() -> List[Dict[str, Any]]:
 
 
 @router.post("")
-async def list_conversations(filters: ConversationFilter):
+async def list_conversations(
+    filters: ConversationFilter,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get user's conversations with filtering"""
     try:
-        conversations = _mock_conversations()
-        # Basic filtering
-        if filters.type and filters.type != "all":
-            conversations = [c for c in conversations if c.get("type") == filters.type]
+        conversation_service = ConversationService(db)
+        conversations = conversation_service.get_user_conversations(current_user.id)
+        
+        # Convert to frontend format
+        conversation_list = []
+        for conv in conversations:
+            summary = conversation_service.get_conversation_summary(conv.id, current_user.id)
+            conversation_list.append({
+                "id": conv.id,
+                "title": conv.title,
+                "status": conv.status,
+                "created_at": conv.created_at.isoformat(),
+                "updated_at": conv.updated_at.isoformat(),
+                "message_count": summary.get("message_count", 0),
+                "last_message": summary.get("last_message", ""),
+                "last_activity": summary.get("last_message_time", conv.updated_at.isoformat())
+            })
+        
+        # Apply filters
         if filters.status and filters.status != "all":
-            conversations = [c for c in conversations if c.get("status") == filters.status]
-        if filters.agent and filters.agent != "all":
-            conversations = [c for c in conversations if c.get("agentType") == filters.agent]
-        if filters.priority and filters.priority != "all":
-            conversations = [c for c in conversations if c.get("priority") == filters.priority]
+            conversation_list = [c for c in conversation_list if c.get("status") == filters.status]
+        
         if filters.search:
-            s = filters.search.lower()
-            def matches(c):
-                subject = (c.get("subject") or "").lower()
-                last = (c.get("lastMessage") or "").lower()
-                names = " ".join([(p.get("name") or "") for p in c.get("participants", [])]).lower()
-                return s in subject or s in last or s in names
-            conversations = [c for c in conversations if matches(c)]
+            search_lower = filters.search.lower()
+            conversation_list = [c for c in conversation_list 
+                               if search_lower in c.get("title", "").lower() or 
+                                  search_lower in c.get("last_message", "").lower()]
 
-        return {"conversations": conversations}
+        return {"conversations": conversation_list}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{conversation_id}")
-async def get_conversation(conversation_id: str):
+async def get_conversation(
+    conversation_id: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get a specific conversation with messages"""
     try:
-        conversations = _mock_conversations()
-        conv = next((c for c in conversations if c.get("id") == conversation_id), None)
-        if not conv:
+        conversation_service = ConversationService(db)
+        conversation = conversation_service.get_conversation(conversation_id, current_user.id)
+        
+        if not conversation:
             raise HTTPException(status_code=404, detail="Conversation not found")
-        return {"conversation": conv}
+        
+        messages = conversation_service.get_conversation_messages(conversation_id, current_user.id)
+        
+        return {
+            "conversation": {
+                "id": conversation.id,
+                "title": conversation.title,
+                "status": conversation.status,
+                "created_at": conversation.created_at.isoformat(),
+                "updated_at": conversation.updated_at.isoformat(),
+                "messages": [
+                    {
+                        "id": msg.id,
+                        "type": msg.message_type,
+                        "content": msg.content,
+                        "timestamp": msg.timestamp.isoformat()
+                    }
+                    for msg in messages
+                ]
+            }
+        }
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/create")
+async def create_conversation(
+    title: Optional[str] = None,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Create a new conversation"""
+    try:
+        conversation_service = ConversationService(db)
+        conversation = conversation_service.create_conversation(current_user.id, title)
+        
+        return {
+            "success": True,
+            "conversation": {
+                "id": conversation.id,
+                "title": conversation.title,
+                "status": conversation.status,
+                "created_at": conversation.created_at.isoformat()
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{conversation_id}/messages")
+async def add_message(
+    conversation_id: str,
+    message_type: str,
+    content: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Add a message to a conversation"""
+    try:
+        conversation_service = ConversationService(db)
+        message = conversation_service.add_message(conversation_id, current_user.id, message_type, content)
+        
+        return {
+            "success": True,
+            "message": {
+                "id": message.id,
+                "type": message.message_type,
+                "content": message.content,
+                "timestamp": message.timestamp.isoformat()
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{conversation_id}/messages")
+async def get_messages(
+    conversation_id: str,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Get messages for a conversation"""
+    try:
+        conversation_service = ConversationService(db)
+        messages = conversation_service.get_conversation_messages(conversation_id, current_user.id)
+        
+        return {
+            "messages": [
+                {
+                    "id": msg.id,
+                    "type": msg.message_type,
+                    "content": msg.content,
+                    "timestamp": msg.timestamp.isoformat()
+                }
+                for msg in messages
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

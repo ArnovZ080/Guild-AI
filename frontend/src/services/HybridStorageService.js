@@ -32,9 +32,12 @@ class HybridStorageService {
    * Initialize sync on service startup
    */
   async initializeSync() {
-    if (this.isOnline) {
-      await this.syncPendingData();
-    }
+    if (!this.isOnline) return;
+    // Wait for auth token to be available before first sync
+    try {
+      const tokenReady = await this.waitForAuthToken(5000);
+      if (tokenReady) await this.syncPendingData();
+    } catch {}
   }
 
   /**
@@ -246,6 +249,9 @@ class HybridStorageService {
     this.syncInProgress = true;
 
     try {
+      // Ensure token exists; if not, retry once after small delay
+      const tokenReady = await this.waitForAuthToken(3000);
+      if (!tokenReady) throw new Error('Auth token not ready');
       // Get all local data
       const localData = {
         agent_configurations: this.getAllFromLocalStorage('agent_configurations'),
@@ -263,6 +269,21 @@ class HybridStorageService {
     } finally {
       this.syncInProgress = false;
     }
+  }
+
+  async waitForAuthToken(timeoutMs = 5000) {
+    const started = Date.now();
+    while (Date.now() - started < timeoutMs) {
+      try {
+        const { auth } = await import('../config/firebase');
+        if (auth?.currentUser) {
+          const t = await auth.currentUser.getIdToken();
+          if (t) return true;
+        }
+      } catch {}
+      await new Promise(r => setTimeout(r, 200));
+    }
+    return false;
   }
 
   /**

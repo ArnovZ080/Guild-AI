@@ -1,0 +1,3389 @@
+{
+  "agents": [
+    {
+      "id": "strategic_sounding_board_agent",
+      "name": "Strategic Sounding Board",
+      "type": "Business Operations",
+      "description": "Strategic Sounding Board Agent for Guild-AI",
+      "capabilities": [
+        "Strategic decision analysis",
+        "Assumption challenging",
+        "Alternative perspective generation",
+        "Risk-benefit assessment",
+        "Implementation feasibility analysis",
+        "Strategic framework application",
+        "Executive decision support",
+        "Market and competitive analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "supplier_research_agent",
+      "name": "Supplier Research",
+      "type": "Research & Data",
+      "description": "Supplier Research Agent for Guild-AI",
+      "capabilities": [
+        "Discovery & profiling",
+        "Certification checks",
+        "Lead-time/MOQ analysis",
+        "Weighted scoring",
+        "Risk mitigation"
+      ],
+      "status": "available",
+      "icon": "🔍"
+    },
+    {
+      "id": "seo_agent",
+      "name": "Seo",
+      "type": "Business Operations",
+      "description": "Search engine optimization, content strategy, and organic traffic growth.",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "paid_ads_agent",
+      "name": "Paid Ads",
+      "type": "Business Operations",
+      "description": "Paid Ads Agent - Manages paid advertising campaigns across platforms",
+      "capabilities": [
+        "Multi-platform campaign management",
+        "Audience targeting and segmentation",
+        "Ad creative development and optimization",
+        "Budget allocation and management",
+        "A/B testing and performance optimization",
+        "Campaign analytics and reporting",
+        "Conversion tracking and attribution",
+        "Platform-specific best practices"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "brand_strategist_agent",
+      "name": "Brand Strategist",
+      "type": "Business Operations",
+      "description": "Brand Strategist Agent for Guild-AI",
+      "capabilities": [
+        "Brand identity and personality development",
+        "Visual brand consistency management",
+        "Tone and voice standardization",
+        "Brand positioning and differentiation",
+        "Brand architecture and hierarchy",
+        "Brand equity building and protection",
+        "Cross-channel brand consistency",
+        "Brand evolution and growth strategy"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "contract_analyzer_agent",
+      "name": "Contract Analyzer",
+      "type": "Business Operations",
+      "description": "Contract Analyzer Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "investor_relations_agent",
+      "name": "Investor Relations",
+      "type": "Financial & Business",
+      "description": "Investor Relations Agent for Guild-AI",
+      "capabilities": [
+        "Investor relationship management",
+        "Funding update preparation",
+        "Pitch deck creation",
+        "Due diligence support",
+        "Fundraising strategy and execution",
+        "Capital market analysis",
+        "Regulatory compliance",
+        "Investor education and engagement"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "content_strategist",
+      "name": "Content Strategist",
+      "type": "Content Creation",
+      "description": "Comprehensive content strategy, calendar development, and multi-platform content planning.",
+      "capabilities": [
+        "Strategic content planning and calendar development",
+        "Audience analysis and market intelligence",
+        "Multi-platform content strategy",
+        "Content performance optimization",
+        "Brand voice and messaging alignment",
+        "Competitive content analysis",
+        "Content workflow management",
+        "ROI and performance tracking"
+      ],
+      "status": "available",
+      "icon": "📝"
+    },
+    {
+      "id": "product_manager_agent",
+      "name": "Product Manager",
+      "type": "Business Operations",
+      "description": "Product Manager Agent for Guild-AI",
+      "capabilities": [
+        "Product roadmap planning",
+        "Feature prioritization",
+        "Customer feedback analysis",
+        "Product strategy development",
+        "Market research and analysis",
+        "Product-market fit optimization",
+        "Release management"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "tax_advisor_agent",
+      "name": "Tax Advisor",
+      "type": "Business Operations",
+      "description": "Tax Advisor Agent for Guild-AI",
+      "capabilities": [
+        "Financial analysis",
+        "Budget planning",
+        "Expense tracking"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "motivation_coach_agent",
+      "name": "Motivation Coach",
+      "type": "Human & Psychological",
+      "description": "Motivation Coach Agent for Guild-AI",
+      "capabilities": [
+        "Tiny-habits",
+        "Motivational interviewing",
+        "Streaks & cues",
+        "Check-ins & accountability",
+        "Celebration & reward"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "partnerships_agent",
+      "name": "Partnerships",
+      "type": "Business Operations",
+      "description": "Partnerships Agent for Guild-AI",
+      "capabilities": [
+        "Partnership opportunity identification",
+        "Strategic partnership evaluation",
+        "Partnership deal structuring",
+        "Alliance relationship management",
+        "Partnership performance optimization",
+        "Business development strategy",
+        "Joint venture management",
+        "Channel partnership development"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "okr_goal_tracking_agent",
+      "name": "Okr Goal Tracking",
+      "type": "Business Operations",
+      "description": "OKR/Goal Tracking Agent for Guild-AI",
+      "capabilities": [
+        "OKR methodology and implementation",
+        "Goal setting and progress tracking",
+        "Performance metrics and analytics",
+        "Strategic alignment and business focus",
+        "Accountability systems and reminders",
+        "Milestone planning and achievement",
+        "Reporting and visualization",
+        "Adaptive goal management"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "proposal_writer_agent",
+      "name": "Proposal Writer",
+      "type": "Content Creation",
+      "description": "Proposal Writer Agent for Guild-AI",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "📝"
+    },
+    {
+      "id": "affiliate_partnerships_agent",
+      "name": "Affiliate Partnerships",
+      "type": "Business Operations",
+      "description": "Affiliate & Partnerships Agent for Guild-AI",
+      "capabilities": [
+        "Affiliate program development and management",
+        "Partner identification and recruitment",
+        "Commission structure optimization",
+        "Partnership agreement creation",
+        "Performance tracking and analysis",
+        "Partner relationship management",
+        "Promotional resource development",
+        "Compliance and quality control"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "outsourcing_agent",
+      "name": "Outsourcing",
+      "type": "Business Operations",
+      "description": "Generates comprehensive outsourcing strategy using advanced prompting strategies.",
+      "capabilities": [
+        "Task analysis and outsourcing assessment",
+        "Freelancer sourcing and platform management",
+        "Job posting creation and optimization",
+        "Freelancer evaluation and selection",
+        "Project management and communication",
+        "Quality assurance and delivery management",
+        "Payment processing and contract management",
+        "Vendor relationship management"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "agent_evaluator",
+      "name": "Agent Evaluator",
+      "type": "Evaluator League",
+      "description": "Performance monitoring, optimization recommendations, and system health analysis.",
+      "capabilities": [
+        "Agent performance analysis",
+        "Quality assessment and evaluation",
+        "System optimization recommendations",
+        "Performance monitoring and alerting",
+        "User satisfaction analysis",
+        "A/B testing and experimentation"
+      ],
+      "status": "available",
+      "icon": "⚖️"
+    },
+    {
+      "id": "sales_funnel_agent",
+      "name": "Sales Funnel",
+      "type": "Business Operations",
+      "description": "Sales process optimization, funnel analysis, and conversion rate improvement.",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "pr_outreach_agent",
+      "name": "Pr Outreach",
+      "type": "Business Operations",
+      "description": "PR Outreach Agent for Guild-AI",
+      "capabilities": [
+        "Press release writing and distribution",
+        "Media contact identification and management",
+        "Pitch development and outreach",
+        "Backlink strategy and execution",
+        "Crisis communication management",
+        "Brand messaging and narrative development",
+        "Media monitoring and coverage analysis",
+        "Relationship building and management"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "knowledge_updater",
+      "name": "Knowledge Updater",
+      "type": "Meta-Agents",
+      "description": "Continuous learning, knowledge management, and information integration.",
+      "capabilities": [
+        "Knowledge gap analysis",
+        "Information source evaluation",
+        "Knowledge synthesis and integration",
+        "Learning system optimization",
+        "Information freshness management",
+        "Continuous learning protocols"
+      ],
+      "status": "available",
+      "icon": "🔧"
+    },
+    {
+      "id": "content_repurposer_agent",
+      "name": "Content Repurposer",
+      "type": "Content Creation",
+      "description": "Content Repurposer Agent for Guild-AI",
+      "capabilities": [
+        "Content format transformation",
+        "Platform-specific adaptation",
+        "Audience segmentation and targeting",
+        "Engagement optimization",
+        "Content performance analysis",
+        "Multi-channel distribution strategy",
+        "Brand consistency maintenance",
+        "Content lifecycle management"
+      ],
+      "status": "available",
+      "icon": "📝"
+    },
+    {
+      "id": "automation_bridge_agent",
+      "name": "Automation Bridge",
+      "type": "Automation",
+      "description": "Automation Bridge Agent for Guild-AI",
+      "capabilities": [
+        "Connector mapping",
+        "Data flow design",
+        "Error handling",
+        "Idempotency",
+        "Monitoring & alerting"
+      ],
+      "status": "available",
+      "icon": "🤖"
+    },
+    {
+      "id": "judge_agent",
+      "name": "Judge",
+      "type": "Evaluator League",
+      "description": "Quality assessment, evaluation rubrics, and performance scoring for deliverables.",
+      "capabilities": [
+        "Quality rubric generation",
+        "Deliverable evaluation",
+        "Revision cycle management",
+        "Multi-dimensional assessment",
+        "Brand compliance verification",
+        "Audience alignment validation"
+      ],
+      "status": "available",
+      "icon": "⚖️"
+    },
+    {
+      "id": "learning_agent",
+      "name": "Learning",
+      "type": "Human & Psychological",
+      "description": "Learning Agent for Guild-AI",
+      "capabilities": [
+        "Skill gap analysis",
+        "Learning path design",
+        "Resource curation",
+        "Progress tracking",
+        "Adaptive learning",
+        "Competency assessment"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "outbound_sales_agent",
+      "name": "Outbound Sales",
+      "type": "Business Operations",
+      "description": "Proactive sales outreach, lead generation, and conversion optimization.",
+      "capabilities": [
+        "Lead research and data scraping",
+        "Personalized outreach message creation",
+        "Multi-channel campaign management",
+        "Lead qualification and scoring",
+        "Sales pipeline management"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "copywriter",
+      "name": "Copywriter",
+      "type": "Content Creation",
+      "description": "Generates comprehensive copywriting strategy using advanced prompting strategies.",
+      "capabilities": [
+        "Persuasive copywriting and conversion optimization",
+        "Audience analysis and persona development",
+        "Brand voice and tone development",
+        "Multi-channel copy strategy",
+        "A/B testing and performance optimization",
+        "Emotional psychology and behavioral triggers",
+        "SEO-optimized content creation",
+        "Call-to-action optimization"
+      ],
+      "status": "available",
+      "icon": "📝"
+    },
+    {
+      "id": "business_strategist_agent",
+      "name": "Business Strategist",
+      "type": "Executive Layer",
+      "description": "Strategic planning, market analysis, and long-term business development.",
+      "capabilities": [
+        "Strategic planning",
+        "Market analysis",
+        "Business model optimization",
+        "Competitive intelligence",
+        "SWOT analysis",
+        "Strategic decision making",
+        "Performance measurement"
+      ],
+      "status": "available",
+      "icon": "👑"
+    },
+    {
+      "id": "icp_evolution_agent",
+      "name": "Icp Evolution",
+      "type": "Business Operations",
+      "description": "ICP (Ideal Customer Profile) Evolution Agent for Guild-AI",
+      "capabilities": [
+        "ICP modeling",
+        "Hypothesis loops",
+        "Signal weighting",
+        "Playbook design",
+        "Versioning & governance"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "competitive_intelligence_agent",
+      "name": "Competitive Intelligence",
+      "type": "Business Operations",
+      "description": "Competitive Intelligence Agent for Guild-AI",
+      "capabilities": [
+        "Competitor profiling",
+        "Feature parity analysis",
+        "Pricing & packaging comparison",
+        "Differentiation mapping",
+        "Sales battlecards",
+        "Counter-move strategy"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "unified_automation_agent",
+      "name": "Unified Automation",
+      "type": "Automation",
+      "description": "Visual and web automation, cross-platform task automation.",
+      "capabilities": [
+        "Visual automation (PyAutoGUI + OpenCV)",
+        "Web automation (Selenium WebDriver)",
+        "Cross-platform automation",
+        "Workflow automation and orchestration",
+        "Computer vision and image recognition",
+        "Browser automation and web scraping",
+        "Desktop application automation",
+        "Automation script generation and testing"
+      ],
+      "status": "available",
+      "icon": "🤖"
+    },
+    {
+      "id": "influencer_outreach_agent",
+      "name": "Influencer Outreach",
+      "type": "Business Operations",
+      "description": "Influencer Outreach Agent for Guild-AI",
+      "capabilities": [
+        "Influencer identification and research",
+        "Audience alignment analysis",
+        "Engagement and authenticity assessment",
+        "Outreach strategy development",
+        "Relationship building and management",
+        "Collaboration planning and execution",
+        "Performance tracking and analysis",
+        "ROI optimization and reporting"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "business_strategist",
+      "name": "Business Strategist",
+      "type": "Executive Layer",
+      "description": "Generates comprehensive business strategy using advanced prompting strategies.",
+      "capabilities": [
+        "Strategic business planning and analysis",
+        "Market opportunity assessment and analysis",
+        "Competitive intelligence and positioning",
+        "Business model development and optimization",
+        "Growth strategy and scaling planning",
+        "Risk assessment and mitigation planning",
+        "Financial planning and resource allocation",
+        "Strategic decision making and recommendations"
+      ],
+      "status": "available",
+      "icon": "👑"
+    },
+    {
+      "id": "skill_development_agent",
+      "name": "Skill Development",
+      "type": "Business Operations",
+      "description": "Generates comprehensive skill development strategy using advanced prompting strategies.",
+      "capabilities": [
+        "Skill gap analysis and assessment",
+        "Personalized learning plan development",
+        "Learning resource curation and recommendation",
+        "Industry insight and trend analysis",
+        "Practical application project design",
+        "Learning progress tracking and optimization",
+        "Business-aligned skill development",
+        "Micro-learning and just-in-time training"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "trend_spotter_agent",
+      "name": "Trend Spotter",
+      "type": "Business Operations",
+      "description": "Trend Spotter Agent for Guild-AI",
+      "capabilities": [
+        "Weak-signal detection",
+        "Cross-source triangulation",
+        "Theme clustering",
+        "Opportunity mapping",
+        "Risk scanning",
+        "Indicator framework design"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "sop_agent",
+      "name": "Sop",
+      "type": "Business Operations",
+      "description": "SOP (Standard Operating Procedure) Agent for Guild-AI",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "wellness_agent",
+      "name": "Wellness",
+      "type": "Human & Psychological",
+      "description": "Holistic wellness coaching, stress management, and work-life balance optimization.",
+      "capabilities": [
+        "Stress assessment and management",
+        "Work-life balance optimization",
+        "Energy management coaching",
+        "Mental health awareness",
+        "Burnout prevention",
+        "Wellness routine design"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "risk_management_agent",
+      "name": "Risk Management",
+      "type": "Business Operations",
+      "description": "Risk Management Agent for Guild-AI",
+      "capabilities": [
+        "Legal and regulatory compliance risk assessment",
+        "Operational and process risk identification",
+        "Financial and market risk analysis",
+        "Strategic and business model risk evaluation",
+        "Cybersecurity and data protection risk management",
+        "Reputational and brand risk monitoring",
+        "Supply chain and vendor risk assessment",
+        "Human capital and talent risk mitigation"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "enhanced_campaign_agent",
+      "name": "Enhanced Campaign",
+      "type": "Campaign & Marketing",
+      "description": "Advanced campaign management, direct API access, and autonomous optimization.",
+      "capabilities": [
+        "Meta Business Suite integration",
+        "Facebook & Instagram advertising",
+        "WhatsApp Business campaigns",
+        "Campaign analytics & optimization",
+        "Creative asset management",
+        "Audience targeting & segmentation",
+        "Budget optimization",
+        "Performance monitoring"
+      ],
+      "status": "available",
+      "icon": "🚀"
+    },
+    {
+      "id": "hr_agent",
+      "name": "Hr",
+      "type": "Business Operations",
+      "description": "Human resources management, talent acquisition, and employee development.",
+      "capabilities": [
+        "Recruitment strategy development",
+        "Job description creation",
+        "Interview planning and execution",
+        "Onboarding program design",
+        "Performance management",
+        "Employee relations",
+        "Talent acquisition"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "investor_update_agent",
+      "name": "Investor Update",
+      "type": "Financial & Business",
+      "description": "Investor Update Agent for Guild-AI",
+      "capabilities": [
+        "Financial analysis",
+        "Budget planning",
+        "Expense tracking"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "community_connector_agent",
+      "name": "Community Connector",
+      "type": "Human & Psychological",
+      "description": "Community Connector Agent for Guild-AI",
+      "capabilities": [
+        "Network analysis and mapping",
+        "Community building strategy",
+        "Networking opportunity identification",
+        "Relationship management",
+        "Event planning and coordination",
+        "Cross-community collaboration"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "scenario_planner_agent",
+      "name": "Scenario Planner",
+      "type": "Business Operations",
+      "description": "from guild.src.core.llm_client import LlmClient",
+      "capabilities": [
+        "Strategic foresight and scenario development",
+        "Financial modeling and projection",
+        "Risk assessment and mitigation planning",
+        "Resource allocation optimization",
+        "Sensitivity analysis and stress testing",
+        "Decision tree and contingency planning",
+        "Business model simulation",
+        "Market condition modeling"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "expense_optimizer_agent",
+      "name": "Expense Optimizer",
+      "type": "Financial & Business",
+      "description": "Expense Optimizer Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "celebration_narrator_agent",
+      "name": "Celebration Narrator",
+      "type": "Human & Psychological",
+      "description": "Celebration Narrator Agent for Guild-AI",
+      "capabilities": [
+        "Achievement recognition and validation",
+        "Milestone celebration design",
+        "Team motivation and morale building",
+        "Progress amplification",
+        "Recognition system design",
+        "Celebration storytelling"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "ad_performance_optimizer_agent",
+      "name": "Ad Performance Optimizer",
+      "type": "Business Operations",
+      "description": "Ad Performance Optimizer Agent for Guild-AI",
+      "capabilities": [
+        "Campaign performance analysis",
+        "Cross-platform optimization",
+        "Budget allocation strategy",
+        "Audience targeting refinement",
+        "Creative performance assessment",
+        "Bid strategy optimization",
+        "A/B testing framework development",
+        "ROI and ROAS maximization"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "hiring_hr_agent",
+      "name": "Hiring Hr",
+      "type": "Business Operations",
+      "description": "Hiring HR Agent for Guild-AI",
+      "capabilities": [
+        "Job description creation and optimization",
+        "CV screening and candidate evaluation",
+        "Interview planning and coordination",
+        "Onboarding plan development",
+        "HR compliance and policy management",
+        "Talent acquisition strategy",
+        "Performance management and development",
+        "Employee relations and retention"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "customer_success_agent",
+      "name": "Customer Success",
+      "type": "Business Operations",
+      "description": "Customer Success Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "video_editor_agent",
+      "name": "Video Editor",
+      "type": "Creative & Media",
+      "description": "Video creation, editing, and multimedia content production.",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🎨"
+    },
+    {
+      "id": "localization_agent",
+      "name": "Localization",
+      "type": "Business Operations",
+      "description": "Localization Agent for Guild-AI",
+      "capabilities": [
+        "Cultural adaptation and sensitivity",
+        "Language translation and localization",
+        "Market-specific content optimization",
+        "Regional compliance and regulations",
+        "Visual and design localization",
+        "Messaging effectiveness across cultures",
+        "Local SEO and digital presence",
+        "Cross-cultural user experience"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "accountability_coach_agent",
+      "name": "Accountability Coach",
+      "type": "Human & Psychological",
+      "description": "Accountability Coach Agent for Guild-AI",
+      "capabilities": [
+        "Personalized goal setting",
+        "Progress tracking and monitoring",
+        "Motivational coaching sessions",
+        "Accountability system implementation",
+        "Focus re-alignment support",
+        "Habit formation guidance",
+        "Crisis support and intervention",
+        "Performance analytics and insights"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "community_manager_agent",
+      "name": "Community Manager",
+      "type": "Human & Psychological",
+      "description": "Community Manager Agent for Guild-AI",
+      "capabilities": [
+        "Community engagement and relationship building",
+        "Social media content creation and management",
+        "Crisis communication and reputation management",
+        "Brand voice development and consistency",
+        "Audience growth and retention strategies",
+        "Platform-specific optimization",
+        "Sentiment analysis and community insights",
+        "Influencer relations and user-generated content"
+      ],
+      "status": "available",
+      "icon": "🧠"
+    },
+    {
+      "id": "crm_automation_agent",
+      "name": "Crm Automation",
+      "type": "Automation",
+      "description": "Customer relationship management automation and workflow optimization.",
+      "capabilities": [
+        "CRM platform integration",
+        "Automated workflow creation",
+        "Lead data processing and enrichment",
+        "Email marketing automation",
+        "Data synchronization",
+        "Lead scoring and segmentation",
+        "Performance tracking and optimization",
+        "Customer journey automation"
+      ],
+      "status": "available",
+      "icon": "🤖"
+    },
+    {
+      "id": "enhanced_prompts",
+      "name": "Enhanced Prompts",
+      "type": "Business Operations",
+      "description": "Enhanced Agent Prompts for Guild-AI",
+      "capabilities": [
+        "Financial analysis",
+        "Budget planning",
+        "Expense tracking"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "feedback_collector_agent",
+      "name": "Feedback Collector",
+      "type": "Business Operations",
+      "description": "Feedback Collector Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "enhanced_marketing_agent",
+      "name": "Enhanced Marketing",
+      "type": "Campaign & Marketing",
+      "description": "Enhanced Marketing Agent - Handles marketing campaigns with image generation capabilities",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🚀"
+    },
+    {
+      "id": "multi_channel_inbox_agent",
+      "name": "Multi Channel Inbox",
+      "type": "Business Operations",
+      "description": "Multi-Channel Inbox Agent for Guild-AI",
+      "capabilities": [
+        "Priority detection",
+        "Rule-based routing",
+        "Auto-replies",
+        "Assignments",
+        "Batching"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "voice_agent",
+      "name": "Voice",
+      "type": "Creative & Media",
+      "description": "Text-to-speech, speech-to-text, and voice interaction capabilities.",
+      "capabilities": [
+        "Text-to-speech generation",
+        "Speech-to-text transcription",
+        "Audio quality enhancement",
+        "Voice communication optimization",
+        "Accessibility and inclusive design",
+        "Multi-language audio processing"
+      ],
+      "status": "available",
+      "icon": "🎨"
+    },
+    {
+      "id": "customer_support_agent",
+      "name": "Customer Support",
+      "type": "Business Operations",
+      "description": "Customer service automation, issue resolution, and relationship management.",
+      "capabilities": [
+        "Ticket management",
+        "FAQ responses",
+        "Issue escalation",
+        "Customer satisfaction tracking",
+        "Customer communication",
+        "Problem resolution",
+        "Knowledge base management"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "wellbeing_agent",
+      "name": "Wellbeing",
+      "type": "Business Operations",
+      "description": "Well-being & Workload Optimization Agent - Monitors and optimizes team well-being and workload distribution.",
+      "capabilities": [
+        "Team wellbeing monitoring and assessment",
+        "Workload distribution optimization",
+        "Burnout prevention and risk management",
+        "Work-life balance promotion",
+        "Productivity metrics and analytics",
+        "Stress management and mental health support",
+        "Team performance optimization",
+        "Organizational health and culture"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "meeting_notes_agent",
+      "name": "Meeting Notes",
+      "type": "Business Operations",
+      "description": "Meeting Notes Agent for Guild-AI",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "research_scraper_agent",
+      "name": "Research Scraper",
+      "type": "Research & Data",
+      "description": "Research & Scraper Agent for Guild-AI",
+      "capabilities": [
+        "Web research and data collection",
+        "Market intelligence gathering",
+        "Competitive analysis",
+        "Data validation and cleaning",
+        "Trend analysis and forecasting",
+        "Source verification and fact-checking"
+      ],
+      "status": "available",
+      "icon": "🔍"
+    },
+    {
+      "id": "onboarding_agent",
+      "name": "Onboarding",
+      "type": "Business Operations",
+      "description": "Generates comprehensive onboarding strategy using advanced prompting strategies.",
+      "capabilities": [
+        "User onboarding and setup",
+        "Business foundation establishment",
+        "Brand voice and tone setup",
+        "System configuration and integration",
+        "User education and training",
+        "Progress tracking and validation",
+        "Personalization and customization",
+        "Support and guidance systems"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "accounting_agent",
+      "name": "Accounting",
+      "type": "Financial & Business",
+      "description": "Comprehensive financial data processing, reporting, and analysis for business intelligence and compliance.",
+      "capabilities": [
+        "Financial data processing and validation",
+        "Accounting report generation",
+        "Financial health analysis",
+        "Budget planning and variance analysis",
+        "Compliance and regulatory reporting",
+        "Business intelligence and insights"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "board_advisor_agent",
+      "name": "Board Advisor",
+      "type": "Executive Layer",
+      "description": "Board Advisor Agent for Guild-AI",
+      "capabilities": [
+        "Corporate governance and board dynamics",
+        "Strategic decision analysis",
+        "Financial oversight and planning",
+        "Marketing strategy and brand positioning",
+        "Product development and roadmapping",
+        "Risk management and compliance",
+        "Executive leadership coaching",
+        "Stakeholder management"
+      ],
+      "status": "available",
+      "icon": "👑"
+    },
+    {
+      "id": "knowledge_management_agent",
+      "name": "Knowledge Management",
+      "type": "Business Operations",
+      "description": "Knowledge Management Agent for Guild-AI",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "design_qa_agent",
+      "name": "Design Qa",
+      "type": "Creative & Media",
+      "description": "Design QA Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🎨"
+    },
+    {
+      "id": "vision_enhanced_training_agent",
+      "name": "Vision Enhanced Training",
+      "type": "Business Operations",
+      "description": "Vision-Enhanced Training Agent for Guild AI",
+      "capabilities": [
+        "Visual SOP creation and documentation",
+        "Computer vision and image recognition",
+        "Demonstration learning and recording",
+        "Visual workflow automation",
+        "Screenshot analysis and processing",
+        "Visual feedback and analysis",
+        "Training video creation",
+        "Visual learning systems"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "training_agent",
+      "name": "Training",
+      "type": "Business Operations",
+      "description": "Training material creation, skill development, and knowledge transfer.",
+      "capabilities": [
+        "Training program design and development",
+        "Standard Operating Procedure (SOP) creation and maintenance",
+        "Micro-learning and just-in-time training",
+        "Knowledge management and documentation",
+        "Instructional design and learning theory",
+        "Process documentation and workflow design",
+        "Training delivery and assessment",
+        "Continuous learning and improvement"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "market_trends_agent",
+      "name": "Market Trends",
+      "type": "Business Operations",
+      "description": "Market Trends Agent for Guild-AI",
+      "capabilities": [
+        "Indicator synthesis",
+        "Trend quantification",
+        "Segmentation & geo analysis",
+        "Forecast framing",
+        "Actionable recommendations"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "desktop_automation_agent",
+      "name": "Desktop Automation",
+      "type": "Automation",
+      "description": "Desktop Automation Agent for Guild-AI",
+      "capabilities": [
+        "Visual targeting",
+        "Stable automation primitives",
+        "Retry/backoff",
+        "Idempotent steps",
+        "Safety & monitoring"
+      ],
+      "status": "available",
+      "icon": "🤖"
+    },
+    {
+      "id": "telephony_voice_agent",
+      "name": "Telephony Voice",
+      "type": "Creative & Media",
+      "description": "Telephony/Voice Calls Agent - Manages voice communications and telephony operations",
+      "capabilities": [
+        "Voice call management and automation",
+        "Telephony integration and provider management",
+        "Speech-to-text processing and transcription",
+        "Text-to-speech generation and voice synthesis",
+        "Call analytics and performance monitoring",
+        "Voice message automation and scheduling",
+        "Call routing and customer service",
+        "Compliance and regulatory management"
+      ],
+      "status": "available",
+      "icon": "🎨"
+    },
+    {
+      "id": "well_being_agent",
+      "name": "Well Being",
+      "type": "Business Operations",
+      "description": "Generates comprehensive wellbeing strategy using advanced prompting strategies.",
+      "capabilities": [
+        "Workload analysis and optimization",
+        "Burnout prevention and risk assessment",
+        "Time management and productivity coaching",
+        "Work-life balance optimization",
+        "Stress management and mental health support",
+        "Behavioral nudges and habit formation",
+        "Scheduling optimization and calendar management",
+        "Performance monitoring and analytics"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "scraper_agent",
+      "name": "Scraper",
+      "type": "Research & Data",
+      "description": "Advanced Scraper Agent for Guild-AI",
+      "capabilities": [
+        "Ethical data collection and lead prospecting",
+        "Public source intelligence gathering",
+        "ICP-based lead filtering and validation",
+        "Data quality assessment and enhancement",
+        "Compliance and privacy protection",
+        "Multi-source data integration",
+        "Structured data export and delivery"
+      ],
+      "status": "available",
+      "icon": "🔍"
+    },
+    {
+      "id": "image_generation_agent",
+      "name": "Image Generation",
+      "type": "Creative & Media",
+      "description": "AI-powered image creation, visual content generation, and creative asset production.",
+      "capabilities": [
+        "AI-powered image generation",
+        "Brand-consistent visual design",
+        "Marketing material development",
+        "Social media visual optimization",
+        "Product mockup creation",
+        "Infographic generation"
+      ],
+      "status": "available",
+      "icon": "🎨"
+    },
+    {
+      "id": "chief_of_staff_agent",
+      "name": "Chief Of Staff",
+      "type": "Executive Layer",
+      "description": "Executive support, strategic coordination, and high-level task prioritization.",
+      "capabilities": [
+        "Executive coordination",
+        "Strategic planning",
+        "Task prioritization",
+        "Resource allocation",
+        "Cross-functional management",
+        "Workflow optimization",
+        "Stakeholder management",
+        "Performance monitoring"
+      ],
+      "status": "available",
+      "icon": "👑"
+    },
+    {
+      "id": "research_agent",
+      "name": "Research",
+      "type": "Research & Data",
+      "description": "Advanced web research, data gathering, and market intelligence for informed decision-making.",
+      "capabilities": [
+        "Information gathering",
+        "Web research",
+        "Data analysis",
+        "Source validation",
+        "Market research",
+        "Competitive analysis",
+        "Knowledge synthesis"
+      ],
+      "status": "available",
+      "icon": "🔍"
+    },
+    {
+      "id": "pricing_intelligence_agent",
+      "name": "Pricing Intelligence",
+      "type": "Financial & Business",
+      "description": "Dynamic pricing strategy, competitive analysis, and pricing optimization.",
+      "capabilities": [
+        "Competitor benchmarking",
+        "WTP synthesis",
+        "Elasticity modeling",
+        "Packaging design",
+        "Experiment rollout"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "pricing_agent",
+      "name": "Pricing",
+      "type": "Financial & Business",
+      "description": "Pricing Agent for Guild-AI",
+      "capabilities": [
+        "Pricing strategy development and optimization",
+        "Competitive pricing analysis and benchmarking",
+        "Value-based pricing and customer value assessment",
+        "A/B testing and pricing experiments",
+        "Dynamic pricing and revenue optimization",
+        "Price psychology and behavioral economics",
+        "Market positioning and pricing models",
+        "Revenue forecasting and pricing analytics"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "storage_agent",
+      "name": "Storage",
+      "type": "Business Operations",
+      "description": "Storage Agent - Manages local and cloud data storage for sensitive business information",
+      "capabilities": [
+        "Financial analysis",
+        "Budget planning",
+        "Expense tracking"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "orchestration_tuner",
+      "name": "Orchestration Tuner",
+      "type": "Meta-Agents",
+      "description": "Workflow optimization, efficiency tuning, and system performance enhancement.",
+      "capabilities": [
+        "Workflow orchestration optimization",
+        "Agent coordination pattern analysis",
+        "Multi-agent system performance tuning",
+        "Resource allocation and load balancing",
+        "Parallel execution optimization",
+        "System bottleneck identification"
+      ],
+      "status": "available",
+      "icon": "🔧"
+    },
+    {
+      "id": "crm_agent",
+      "name": "Crm",
+      "type": "Business Operations",
+      "description": "Customer relationship management, lead tracking, and sales pipeline optimization.",
+      "capabilities": [
+        "CRM platform selection and setup",
+        "Marketing automation workflow design",
+        "Lead scoring and qualification",
+        "Customer segmentation and targeting",
+        "Sales pipeline management",
+        "Customer lifecycle optimization"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "security_agent",
+      "name": "Security",
+      "type": "Meta-Agents",
+      "description": "System security monitoring, threat detection, and access control management.",
+      "capabilities": [
+        "Security risk assessment",
+        "Threat analysis and modeling",
+        "Vulnerability identification",
+        "Security control evaluation",
+        "Incident response planning",
+        "Compliance management"
+      ],
+      "status": "available",
+      "icon": "🔧"
+    },
+    {
+      "id": "wellbeing_workload_agent",
+      "name": "Wellbeing Workload",
+      "type": "Business Operations",
+      "description": "Well-being & Workload Optimization Agent - Monitors workload and prevents burnout",
+      "capabilities": [
+        "Workload analysis and utilization tracking",
+        "Burnout prevention and risk assessment",
+        "Time management and productivity optimization",
+        "Work-life balance and scheduling",
+        "Stress management and mental health support",
+        "Behavioral nudges and habit formation",
+        "Performance monitoring and analytics",
+        "Sustainable productivity coaching"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "strategy_agent",
+      "name": "Strategy",
+      "type": "Executive Layer",
+      "description": "Strategy Agent for Guild-AI",
+      "capabilities": [
+        "Strategic planning",
+        "Market analysis",
+        "Competitive intelligence",
+        "Risk assessment",
+        "Implementation planning",
+        "Performance measurement",
+        "Business development"
+      ],
+      "status": "available",
+      "icon": "👑"
+    },
+    {
+      "id": "marketing_agent",
+      "name": "Marketing",
+      "type": "Campaign & Marketing",
+      "description": "Strategic marketing campaign development, brand positioning, and multi-channel marketing optimization.",
+      "capabilities": [
+        "Marketing strategy development",
+        "Campaign planning and execution",
+        "Brand positioning and messaging",
+        "Multi-channel marketing",
+        "Performance optimization",
+        "Customer acquisition",
+        "Marketing analytics"
+      ],
+      "status": "available",
+      "icon": "🚀"
+    },
+    {
+      "id": "ux_ui_tester_agent",
+      "name": "Ux Ui Tester",
+      "type": "Business Operations",
+      "description": "UX/UI Tester Agent for Guild-AI",
+      "capabilities": [
+        "Usability testing and analysis",
+        "Design consistency evaluation",
+        "Accessibility compliance assessment",
+        "User experience optimization",
+        "Design system recommendations",
+        "Performance and usability metrics",
+        "User journey analysis",
+        "Interface testing and validation"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "upsell_cross_sell_agent",
+      "name": "Upsell Cross Sell",
+      "type": "Business Operations",
+      "description": "Upsell/Cross-sell Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "scalability_agent",
+      "name": "Scalability",
+      "type": "Meta-Agents",
+      "description": "Performance monitoring, capacity planning, and scaling optimization.",
+      "capabilities": [
+        "Performance analysis and optimization",
+        "Bottleneck identification and resolution",
+        "Scalability architecture design",
+        "Capacity planning and forecasting",
+        "Cost optimization for scale",
+        "Performance monitoring and alerting"
+      ],
+      "status": "available",
+      "icon": "🔧"
+    },
+    {
+      "id": "copywriter_agent",
+      "name": "Copywriter",
+      "type": "Content Creation",
+      "description": "Copywriter Agent for Guild-AI",
+      "capabilities": [
+        "Persuasive copywriting",
+        "Content creation",
+        "Brand messaging",
+        "A/B testing",
+        "Conversion optimization",
+        "Multi-channel adaptation",
+        "Audience psychology"
+      ],
+      "status": "available",
+      "icon": "📝"
+    },
+    {
+      "id": "bookkeeping_agent",
+      "name": "Bookkeeping",
+      "type": "Financial & Business",
+      "description": "git branch",
+      "capabilities": [
+        "Transaction processing and categorization",
+        "Account reconciliation and matching",
+        "Financial report generation",
+        "Expense analysis and tracking",
+        "Compliance and audit support",
+        "Data validation and error detection",
+        "Financial automation and workflow",
+        "Cash flow management and forecasting"
+      ],
+      "status": "available",
+      "icon": "💰"
+    },
+    {
+      "id": "data_hygiene_agent",
+      "name": "Data Hygiene",
+      "type": "Research & Data",
+      "description": "Data Hygiene Agent for Guild-AI",
+      "capabilities": [
+        "Deduplication",
+        "Validation & normalization",
+        "Enrichment",
+        "Audit logging"
+      ],
+      "status": "available",
+      "icon": "🔍"
+    },
+    {
+      "id": "visual_agent",
+      "name": "Visual",
+      "type": "Automation",
+      "description": "Visual Agent for Guild AI",
+      "capabilities": [
+        "GUI interaction and automation",
+        "Visual learning and demonstration recording",
+        "Workflow automation and execution",
+        "Screenshot analysis and processing",
+        "UI element detection and interaction",
+        "Computer vision and image recognition",
+        "Visual feedback and analysis",
+        "Cross-platform visual automation"
+      ],
+      "status": "available",
+      "icon": "🤖"
+    },
+    {
+      "id": "calendar_harmony_agent",
+      "name": "Calendar Harmony",
+      "type": "Business Operations",
+      "description": "Calendar Harmony Agent for Guild-AI",
+      "capabilities": [
+        "Time-blocking",
+        "Conflict resolution",
+        "Meeting batching",
+        "Priority-aware scheduling",
+        "Timezone coordination"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "event_marketing_agent",
+      "name": "Event Marketing",
+      "type": "Campaign & Marketing",
+      "description": "Event Marketing Agent for Guild-AI",
+      "capabilities": [
+        "Event strategy and objective setting",
+        "Event format selection and design",
+        "Content development and speaker management",
+        "Promotional campaign planning",
+        "Platform integration and technical setup",
+        "Attendee experience optimization",
+        "Event analytics and performance measurement",
+        "Post-event engagement and follow-up"
+      ],
+      "status": "available",
+      "icon": "🚀"
+    },
+    {
+      "id": "vendor_management_agent",
+      "name": "Vendor Management",
+      "type": "Business Operations",
+      "description": "Vendor Management Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "lead_personalization_agent",
+      "name": "Lead Personalization",
+      "type": "Research & Data",
+      "description": "Sales psychology-based outreach, personalized messaging, and conversion optimization.",
+      "capabilities": [
+        "Sales psychology application",
+        "Lead data analysis",
+        "Multi-channel message personalization",
+        "Conversion rate optimization",
+        "Behavioral psychology insights",
+        "A/B testing and optimization"
+      ],
+      "status": "available",
+      "icon": "🔍"
+    },
+    {
+      "id": "voice_persona_agent",
+      "name": "Voice Persona",
+      "type": "Creative & Media",
+      "description": "Voice Persona Agent for Guild-AI",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🎨"
+    },
+    {
+      "id": "grant_funding_agent",
+      "name": "Grant Funding",
+      "type": "Business Operations",
+      "description": "Grant/Funding Agent for Guild-AI",
+      "capabilities": [
+        "Grant research and identification",
+        "Accelerator program matching",
+        "Eligibility assessment and optimization",
+        "Application strategy development",
+        "Funding calendar management",
+        "Proposal development guidance",
+        "Alternative funding source identification",
+        "Grant compliance and reporting"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "automation_agent",
+      "name": "Automation",
+      "type": "Automation",
+      "description": "Process automation, workflow optimization, and intelligent task delegation.",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🤖"
+    },
+    {
+      "id": "compliance_agent",
+      "name": "Compliance",
+      "type": "Business Operations",
+      "description": "Compliance Agent for Guild-AI",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "project_manager_agent",
+      "name": "Project Manager",
+      "type": "Business Operations",
+      "description": "Project planning, execution tracking, and resource management.",
+      "capabilities": [
+        "Data analysis",
+        "Market research",
+        "Trend analysis"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "churn_predictor_agent",
+      "name": "Churn Predictor",
+      "type": "Business Operations",
+      "description": "Churn Predictor Agent for Guild-AI",
+      "capabilities": [
+        "Churn prediction modeling",
+        "Customer behavior analysis",
+        "Risk scoring",
+        "Retention recommendations",
+        "Customer health scoring",
+        "Intervention planning",
+        "Predictive analytics",
+        "Lifetime value optimization"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "connector_agent",
+      "name": "Connector",
+      "type": "Business Operations",
+      "description": "Connector Agent - Manages integrations with external services and APIs",
+      "capabilities": [
+        "Content strategy",
+        "Creative writing",
+        "Brand messaging"
+      ],
+      "status": "available",
+      "icon": "🏢"
+    },
+    {
+      "id": "orchestrator_agent",
+      "name": "Orchestrator",
+      "type": "Orchestration & Management",
+      "description": "Multi-agent coordination, workflow orchestration, and intelligent task distribution.",
+      "capabilities": [
+        "Workflow orchestration",
+        "Task coordination",
+        "Agent management",
+        "Resource allocation",
+        "Multi-agent coordination",
+        "Execution monitoring",
+        "Performance optimization"
+      ],
+      "status": "available",
+      "icon": "🎯"
+    }
+  ],
+  "categories": [
+    "Business Operations",
+    "Research & Data",
+    "Financial & Business",
+    "Content Creation",
+    "Human & Psychological",
+    "Evaluator League",
+    "Meta-Agents",
+    "Automation",
+    "Executive Layer",
+    "Campaign & Marketing",
+    "Creative & Media",
+    "Orchestration & Management"
+  ],
+  "total_agents": 104,
+  "agents_by_type": {
+    "Business Operations": [
+      {
+        "id": "strategic_sounding_board_agent",
+        "name": "Strategic Sounding Board",
+        "type": "Business Operations",
+        "description": "Strategic Sounding Board Agent for Guild-AI",
+        "capabilities": [
+          "Strategic decision analysis",
+          "Assumption challenging",
+          "Alternative perspective generation",
+          "Risk-benefit assessment",
+          "Implementation feasibility analysis",
+          "Strategic framework application",
+          "Executive decision support",
+          "Market and competitive analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "seo_agent",
+        "name": "Seo",
+        "type": "Business Operations",
+        "description": "Search engine optimization, content strategy, and organic traffic growth.",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "paid_ads_agent",
+        "name": "Paid Ads",
+        "type": "Business Operations",
+        "description": "Paid Ads Agent - Manages paid advertising campaigns across platforms",
+        "capabilities": [
+          "Multi-platform campaign management",
+          "Audience targeting and segmentation",
+          "Ad creative development and optimization",
+          "Budget allocation and management",
+          "A/B testing and performance optimization",
+          "Campaign analytics and reporting",
+          "Conversion tracking and attribution",
+          "Platform-specific best practices"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "brand_strategist_agent",
+        "name": "Brand Strategist",
+        "type": "Business Operations",
+        "description": "Brand Strategist Agent for Guild-AI",
+        "capabilities": [
+          "Brand identity and personality development",
+          "Visual brand consistency management",
+          "Tone and voice standardization",
+          "Brand positioning and differentiation",
+          "Brand architecture and hierarchy",
+          "Brand equity building and protection",
+          "Cross-channel brand consistency",
+          "Brand evolution and growth strategy"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "contract_analyzer_agent",
+        "name": "Contract Analyzer",
+        "type": "Business Operations",
+        "description": "Contract Analyzer Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "product_manager_agent",
+        "name": "Product Manager",
+        "type": "Business Operations",
+        "description": "Product Manager Agent for Guild-AI",
+        "capabilities": [
+          "Product roadmap planning",
+          "Feature prioritization",
+          "Customer feedback analysis",
+          "Product strategy development",
+          "Market research and analysis",
+          "Product-market fit optimization",
+          "Release management"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "tax_advisor_agent",
+        "name": "Tax Advisor",
+        "type": "Business Operations",
+        "description": "Tax Advisor Agent for Guild-AI",
+        "capabilities": [
+          "Financial analysis",
+          "Budget planning",
+          "Expense tracking"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "partnerships_agent",
+        "name": "Partnerships",
+        "type": "Business Operations",
+        "description": "Partnerships Agent for Guild-AI",
+        "capabilities": [
+          "Partnership opportunity identification",
+          "Strategic partnership evaluation",
+          "Partnership deal structuring",
+          "Alliance relationship management",
+          "Partnership performance optimization",
+          "Business development strategy",
+          "Joint venture management",
+          "Channel partnership development"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "okr_goal_tracking_agent",
+        "name": "Okr Goal Tracking",
+        "type": "Business Operations",
+        "description": "OKR/Goal Tracking Agent for Guild-AI",
+        "capabilities": [
+          "OKR methodology and implementation",
+          "Goal setting and progress tracking",
+          "Performance metrics and analytics",
+          "Strategic alignment and business focus",
+          "Accountability systems and reminders",
+          "Milestone planning and achievement",
+          "Reporting and visualization",
+          "Adaptive goal management"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "affiliate_partnerships_agent",
+        "name": "Affiliate Partnerships",
+        "type": "Business Operations",
+        "description": "Affiliate & Partnerships Agent for Guild-AI",
+        "capabilities": [
+          "Affiliate program development and management",
+          "Partner identification and recruitment",
+          "Commission structure optimization",
+          "Partnership agreement creation",
+          "Performance tracking and analysis",
+          "Partner relationship management",
+          "Promotional resource development",
+          "Compliance and quality control"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "outsourcing_agent",
+        "name": "Outsourcing",
+        "type": "Business Operations",
+        "description": "Generates comprehensive outsourcing strategy using advanced prompting strategies.",
+        "capabilities": [
+          "Task analysis and outsourcing assessment",
+          "Freelancer sourcing and platform management",
+          "Job posting creation and optimization",
+          "Freelancer evaluation and selection",
+          "Project management and communication",
+          "Quality assurance and delivery management",
+          "Payment processing and contract management",
+          "Vendor relationship management"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "sales_funnel_agent",
+        "name": "Sales Funnel",
+        "type": "Business Operations",
+        "description": "Sales process optimization, funnel analysis, and conversion rate improvement.",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "pr_outreach_agent",
+        "name": "Pr Outreach",
+        "type": "Business Operations",
+        "description": "PR Outreach Agent for Guild-AI",
+        "capabilities": [
+          "Press release writing and distribution",
+          "Media contact identification and management",
+          "Pitch development and outreach",
+          "Backlink strategy and execution",
+          "Crisis communication management",
+          "Brand messaging and narrative development",
+          "Media monitoring and coverage analysis",
+          "Relationship building and management"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "outbound_sales_agent",
+        "name": "Outbound Sales",
+        "type": "Business Operations",
+        "description": "Proactive sales outreach, lead generation, and conversion optimization.",
+        "capabilities": [
+          "Lead research and data scraping",
+          "Personalized outreach message creation",
+          "Multi-channel campaign management",
+          "Lead qualification and scoring",
+          "Sales pipeline management"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "icp_evolution_agent",
+        "name": "Icp Evolution",
+        "type": "Business Operations",
+        "description": "ICP (Ideal Customer Profile) Evolution Agent for Guild-AI",
+        "capabilities": [
+          "ICP modeling",
+          "Hypothesis loops",
+          "Signal weighting",
+          "Playbook design",
+          "Versioning & governance"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "competitive_intelligence_agent",
+        "name": "Competitive Intelligence",
+        "type": "Business Operations",
+        "description": "Competitive Intelligence Agent for Guild-AI",
+        "capabilities": [
+          "Competitor profiling",
+          "Feature parity analysis",
+          "Pricing & packaging comparison",
+          "Differentiation mapping",
+          "Sales battlecards",
+          "Counter-move strategy"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "influencer_outreach_agent",
+        "name": "Influencer Outreach",
+        "type": "Business Operations",
+        "description": "Influencer Outreach Agent for Guild-AI",
+        "capabilities": [
+          "Influencer identification and research",
+          "Audience alignment analysis",
+          "Engagement and authenticity assessment",
+          "Outreach strategy development",
+          "Relationship building and management",
+          "Collaboration planning and execution",
+          "Performance tracking and analysis",
+          "ROI optimization and reporting"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "skill_development_agent",
+        "name": "Skill Development",
+        "type": "Business Operations",
+        "description": "Generates comprehensive skill development strategy using advanced prompting strategies.",
+        "capabilities": [
+          "Skill gap analysis and assessment",
+          "Personalized learning plan development",
+          "Learning resource curation and recommendation",
+          "Industry insight and trend analysis",
+          "Practical application project design",
+          "Learning progress tracking and optimization",
+          "Business-aligned skill development",
+          "Micro-learning and just-in-time training"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "trend_spotter_agent",
+        "name": "Trend Spotter",
+        "type": "Business Operations",
+        "description": "Trend Spotter Agent for Guild-AI",
+        "capabilities": [
+          "Weak-signal detection",
+          "Cross-source triangulation",
+          "Theme clustering",
+          "Opportunity mapping",
+          "Risk scanning",
+          "Indicator framework design"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "sop_agent",
+        "name": "Sop",
+        "type": "Business Operations",
+        "description": "SOP (Standard Operating Procedure) Agent for Guild-AI",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "risk_management_agent",
+        "name": "Risk Management",
+        "type": "Business Operations",
+        "description": "Risk Management Agent for Guild-AI",
+        "capabilities": [
+          "Legal and regulatory compliance risk assessment",
+          "Operational and process risk identification",
+          "Financial and market risk analysis",
+          "Strategic and business model risk evaluation",
+          "Cybersecurity and data protection risk management",
+          "Reputational and brand risk monitoring",
+          "Supply chain and vendor risk assessment",
+          "Human capital and talent risk mitigation"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "hr_agent",
+        "name": "Hr",
+        "type": "Business Operations",
+        "description": "Human resources management, talent acquisition, and employee development.",
+        "capabilities": [
+          "Recruitment strategy development",
+          "Job description creation",
+          "Interview planning and execution",
+          "Onboarding program design",
+          "Performance management",
+          "Employee relations",
+          "Talent acquisition"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "scenario_planner_agent",
+        "name": "Scenario Planner",
+        "type": "Business Operations",
+        "description": "from guild.src.core.llm_client import LlmClient",
+        "capabilities": [
+          "Strategic foresight and scenario development",
+          "Financial modeling and projection",
+          "Risk assessment and mitigation planning",
+          "Resource allocation optimization",
+          "Sensitivity analysis and stress testing",
+          "Decision tree and contingency planning",
+          "Business model simulation",
+          "Market condition modeling"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "ad_performance_optimizer_agent",
+        "name": "Ad Performance Optimizer",
+        "type": "Business Operations",
+        "description": "Ad Performance Optimizer Agent for Guild-AI",
+        "capabilities": [
+          "Campaign performance analysis",
+          "Cross-platform optimization",
+          "Budget allocation strategy",
+          "Audience targeting refinement",
+          "Creative performance assessment",
+          "Bid strategy optimization",
+          "A/B testing framework development",
+          "ROI and ROAS maximization"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "hiring_hr_agent",
+        "name": "Hiring Hr",
+        "type": "Business Operations",
+        "description": "Hiring HR Agent for Guild-AI",
+        "capabilities": [
+          "Job description creation and optimization",
+          "CV screening and candidate evaluation",
+          "Interview planning and coordination",
+          "Onboarding plan development",
+          "HR compliance and policy management",
+          "Talent acquisition strategy",
+          "Performance management and development",
+          "Employee relations and retention"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "customer_success_agent",
+        "name": "Customer Success",
+        "type": "Business Operations",
+        "description": "Customer Success Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "localization_agent",
+        "name": "Localization",
+        "type": "Business Operations",
+        "description": "Localization Agent for Guild-AI",
+        "capabilities": [
+          "Cultural adaptation and sensitivity",
+          "Language translation and localization",
+          "Market-specific content optimization",
+          "Regional compliance and regulations",
+          "Visual and design localization",
+          "Messaging effectiveness across cultures",
+          "Local SEO and digital presence",
+          "Cross-cultural user experience"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "enhanced_prompts",
+        "name": "Enhanced Prompts",
+        "type": "Business Operations",
+        "description": "Enhanced Agent Prompts for Guild-AI",
+        "capabilities": [
+          "Financial analysis",
+          "Budget planning",
+          "Expense tracking"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "feedback_collector_agent",
+        "name": "Feedback Collector",
+        "type": "Business Operations",
+        "description": "Feedback Collector Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "multi_channel_inbox_agent",
+        "name": "Multi Channel Inbox",
+        "type": "Business Operations",
+        "description": "Multi-Channel Inbox Agent for Guild-AI",
+        "capabilities": [
+          "Priority detection",
+          "Rule-based routing",
+          "Auto-replies",
+          "Assignments",
+          "Batching"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "customer_support_agent",
+        "name": "Customer Support",
+        "type": "Business Operations",
+        "description": "Customer service automation, issue resolution, and relationship management.",
+        "capabilities": [
+          "Ticket management",
+          "FAQ responses",
+          "Issue escalation",
+          "Customer satisfaction tracking",
+          "Customer communication",
+          "Problem resolution",
+          "Knowledge base management"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "wellbeing_agent",
+        "name": "Wellbeing",
+        "type": "Business Operations",
+        "description": "Well-being & Workload Optimization Agent - Monitors and optimizes team well-being and workload distribution.",
+        "capabilities": [
+          "Team wellbeing monitoring and assessment",
+          "Workload distribution optimization",
+          "Burnout prevention and risk management",
+          "Work-life balance promotion",
+          "Productivity metrics and analytics",
+          "Stress management and mental health support",
+          "Team performance optimization",
+          "Organizational health and culture"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "meeting_notes_agent",
+        "name": "Meeting Notes",
+        "type": "Business Operations",
+        "description": "Meeting Notes Agent for Guild-AI",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "onboarding_agent",
+        "name": "Onboarding",
+        "type": "Business Operations",
+        "description": "Generates comprehensive onboarding strategy using advanced prompting strategies.",
+        "capabilities": [
+          "User onboarding and setup",
+          "Business foundation establishment",
+          "Brand voice and tone setup",
+          "System configuration and integration",
+          "User education and training",
+          "Progress tracking and validation",
+          "Personalization and customization",
+          "Support and guidance systems"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "knowledge_management_agent",
+        "name": "Knowledge Management",
+        "type": "Business Operations",
+        "description": "Knowledge Management Agent for Guild-AI",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "vision_enhanced_training_agent",
+        "name": "Vision Enhanced Training",
+        "type": "Business Operations",
+        "description": "Vision-Enhanced Training Agent for Guild AI",
+        "capabilities": [
+          "Visual SOP creation and documentation",
+          "Computer vision and image recognition",
+          "Demonstration learning and recording",
+          "Visual workflow automation",
+          "Screenshot analysis and processing",
+          "Visual feedback and analysis",
+          "Training video creation",
+          "Visual learning systems"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "training_agent",
+        "name": "Training",
+        "type": "Business Operations",
+        "description": "Training material creation, skill development, and knowledge transfer.",
+        "capabilities": [
+          "Training program design and development",
+          "Standard Operating Procedure (SOP) creation and maintenance",
+          "Micro-learning and just-in-time training",
+          "Knowledge management and documentation",
+          "Instructional design and learning theory",
+          "Process documentation and workflow design",
+          "Training delivery and assessment",
+          "Continuous learning and improvement"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "market_trends_agent",
+        "name": "Market Trends",
+        "type": "Business Operations",
+        "description": "Market Trends Agent for Guild-AI",
+        "capabilities": [
+          "Indicator synthesis",
+          "Trend quantification",
+          "Segmentation & geo analysis",
+          "Forecast framing",
+          "Actionable recommendations"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "well_being_agent",
+        "name": "Well Being",
+        "type": "Business Operations",
+        "description": "Generates comprehensive wellbeing strategy using advanced prompting strategies.",
+        "capabilities": [
+          "Workload analysis and optimization",
+          "Burnout prevention and risk assessment",
+          "Time management and productivity coaching",
+          "Work-life balance optimization",
+          "Stress management and mental health support",
+          "Behavioral nudges and habit formation",
+          "Scheduling optimization and calendar management",
+          "Performance monitoring and analytics"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "storage_agent",
+        "name": "Storage",
+        "type": "Business Operations",
+        "description": "Storage Agent - Manages local and cloud data storage for sensitive business information",
+        "capabilities": [
+          "Financial analysis",
+          "Budget planning",
+          "Expense tracking"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "crm_agent",
+        "name": "Crm",
+        "type": "Business Operations",
+        "description": "Customer relationship management, lead tracking, and sales pipeline optimization.",
+        "capabilities": [
+          "CRM platform selection and setup",
+          "Marketing automation workflow design",
+          "Lead scoring and qualification",
+          "Customer segmentation and targeting",
+          "Sales pipeline management",
+          "Customer lifecycle optimization"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "wellbeing_workload_agent",
+        "name": "Wellbeing Workload",
+        "type": "Business Operations",
+        "description": "Well-being & Workload Optimization Agent - Monitors workload and prevents burnout",
+        "capabilities": [
+          "Workload analysis and utilization tracking",
+          "Burnout prevention and risk assessment",
+          "Time management and productivity optimization",
+          "Work-life balance and scheduling",
+          "Stress management and mental health support",
+          "Behavioral nudges and habit formation",
+          "Performance monitoring and analytics",
+          "Sustainable productivity coaching"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "ux_ui_tester_agent",
+        "name": "Ux Ui Tester",
+        "type": "Business Operations",
+        "description": "UX/UI Tester Agent for Guild-AI",
+        "capabilities": [
+          "Usability testing and analysis",
+          "Design consistency evaluation",
+          "Accessibility compliance assessment",
+          "User experience optimization",
+          "Design system recommendations",
+          "Performance and usability metrics",
+          "User journey analysis",
+          "Interface testing and validation"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "upsell_cross_sell_agent",
+        "name": "Upsell Cross Sell",
+        "type": "Business Operations",
+        "description": "Upsell/Cross-sell Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "calendar_harmony_agent",
+        "name": "Calendar Harmony",
+        "type": "Business Operations",
+        "description": "Calendar Harmony Agent for Guild-AI",
+        "capabilities": [
+          "Time-blocking",
+          "Conflict resolution",
+          "Meeting batching",
+          "Priority-aware scheduling",
+          "Timezone coordination"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "vendor_management_agent",
+        "name": "Vendor Management",
+        "type": "Business Operations",
+        "description": "Vendor Management Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "grant_funding_agent",
+        "name": "Grant Funding",
+        "type": "Business Operations",
+        "description": "Grant/Funding Agent for Guild-AI",
+        "capabilities": [
+          "Grant research and identification",
+          "Accelerator program matching",
+          "Eligibility assessment and optimization",
+          "Application strategy development",
+          "Funding calendar management",
+          "Proposal development guidance",
+          "Alternative funding source identification",
+          "Grant compliance and reporting"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "compliance_agent",
+        "name": "Compliance",
+        "type": "Business Operations",
+        "description": "Compliance Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "project_manager_agent",
+        "name": "Project Manager",
+        "type": "Business Operations",
+        "description": "Project planning, execution tracking, and resource management.",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "churn_predictor_agent",
+        "name": "Churn Predictor",
+        "type": "Business Operations",
+        "description": "Churn Predictor Agent for Guild-AI",
+        "capabilities": [
+          "Churn prediction modeling",
+          "Customer behavior analysis",
+          "Risk scoring",
+          "Retention recommendations",
+          "Customer health scoring",
+          "Intervention planning",
+          "Predictive analytics",
+          "Lifetime value optimization"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      },
+      {
+        "id": "connector_agent",
+        "name": "Connector",
+        "type": "Business Operations",
+        "description": "Connector Agent - Manages integrations with external services and APIs",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🏢"
+      }
+    ],
+    "Research & Data": [
+      {
+        "id": "supplier_research_agent",
+        "name": "Supplier Research",
+        "type": "Research & Data",
+        "description": "Supplier Research Agent for Guild-AI",
+        "capabilities": [
+          "Discovery & profiling",
+          "Certification checks",
+          "Lead-time/MOQ analysis",
+          "Weighted scoring",
+          "Risk mitigation"
+        ],
+        "status": "available",
+        "icon": "🔍"
+      },
+      {
+        "id": "research_scraper_agent",
+        "name": "Research Scraper",
+        "type": "Research & Data",
+        "description": "Research & Scraper Agent for Guild-AI",
+        "capabilities": [
+          "Web research and data collection",
+          "Market intelligence gathering",
+          "Competitive analysis",
+          "Data validation and cleaning",
+          "Trend analysis and forecasting",
+          "Source verification and fact-checking"
+        ],
+        "status": "available",
+        "icon": "🔍"
+      },
+      {
+        "id": "scraper_agent",
+        "name": "Scraper",
+        "type": "Research & Data",
+        "description": "Advanced Scraper Agent for Guild-AI",
+        "capabilities": [
+          "Ethical data collection and lead prospecting",
+          "Public source intelligence gathering",
+          "ICP-based lead filtering and validation",
+          "Data quality assessment and enhancement",
+          "Compliance and privacy protection",
+          "Multi-source data integration",
+          "Structured data export and delivery"
+        ],
+        "status": "available",
+        "icon": "🔍"
+      },
+      {
+        "id": "research_agent",
+        "name": "Research",
+        "type": "Research & Data",
+        "description": "Advanced web research, data gathering, and market intelligence for informed decision-making.",
+        "capabilities": [
+          "Information gathering",
+          "Web research",
+          "Data analysis",
+          "Source validation",
+          "Market research",
+          "Competitive analysis",
+          "Knowledge synthesis"
+        ],
+        "status": "available",
+        "icon": "🔍"
+      },
+      {
+        "id": "data_hygiene_agent",
+        "name": "Data Hygiene",
+        "type": "Research & Data",
+        "description": "Data Hygiene Agent for Guild-AI",
+        "capabilities": [
+          "Deduplication",
+          "Validation & normalization",
+          "Enrichment",
+          "Audit logging"
+        ],
+        "status": "available",
+        "icon": "🔍"
+      },
+      {
+        "id": "lead_personalization_agent",
+        "name": "Lead Personalization",
+        "type": "Research & Data",
+        "description": "Sales psychology-based outreach, personalized messaging, and conversion optimization.",
+        "capabilities": [
+          "Sales psychology application",
+          "Lead data analysis",
+          "Multi-channel message personalization",
+          "Conversion rate optimization",
+          "Behavioral psychology insights",
+          "A/B testing and optimization"
+        ],
+        "status": "available",
+        "icon": "🔍"
+      }
+    ],
+    "Financial & Business": [
+      {
+        "id": "investor_relations_agent",
+        "name": "Investor Relations",
+        "type": "Financial & Business",
+        "description": "Investor Relations Agent for Guild-AI",
+        "capabilities": [
+          "Investor relationship management",
+          "Funding update preparation",
+          "Pitch deck creation",
+          "Due diligence support",
+          "Fundraising strategy and execution",
+          "Capital market analysis",
+          "Regulatory compliance",
+          "Investor education and engagement"
+        ],
+        "status": "available",
+        "icon": "💰"
+      },
+      {
+        "id": "investor_update_agent",
+        "name": "Investor Update",
+        "type": "Financial & Business",
+        "description": "Investor Update Agent for Guild-AI",
+        "capabilities": [
+          "Financial analysis",
+          "Budget planning",
+          "Expense tracking"
+        ],
+        "status": "available",
+        "icon": "💰"
+      },
+      {
+        "id": "expense_optimizer_agent",
+        "name": "Expense Optimizer",
+        "type": "Financial & Business",
+        "description": "Expense Optimizer Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "💰"
+      },
+      {
+        "id": "accounting_agent",
+        "name": "Accounting",
+        "type": "Financial & Business",
+        "description": "Comprehensive financial data processing, reporting, and analysis for business intelligence and compliance.",
+        "capabilities": [
+          "Financial data processing and validation",
+          "Accounting report generation",
+          "Financial health analysis",
+          "Budget planning and variance analysis",
+          "Compliance and regulatory reporting",
+          "Business intelligence and insights"
+        ],
+        "status": "available",
+        "icon": "💰"
+      },
+      {
+        "id": "pricing_intelligence_agent",
+        "name": "Pricing Intelligence",
+        "type": "Financial & Business",
+        "description": "Dynamic pricing strategy, competitive analysis, and pricing optimization.",
+        "capabilities": [
+          "Competitor benchmarking",
+          "WTP synthesis",
+          "Elasticity modeling",
+          "Packaging design",
+          "Experiment rollout"
+        ],
+        "status": "available",
+        "icon": "💰"
+      },
+      {
+        "id": "pricing_agent",
+        "name": "Pricing",
+        "type": "Financial & Business",
+        "description": "Pricing Agent for Guild-AI",
+        "capabilities": [
+          "Pricing strategy development and optimization",
+          "Competitive pricing analysis and benchmarking",
+          "Value-based pricing and customer value assessment",
+          "A/B testing and pricing experiments",
+          "Dynamic pricing and revenue optimization",
+          "Price psychology and behavioral economics",
+          "Market positioning and pricing models",
+          "Revenue forecasting and pricing analytics"
+        ],
+        "status": "available",
+        "icon": "💰"
+      },
+      {
+        "id": "bookkeeping_agent",
+        "name": "Bookkeeping",
+        "type": "Financial & Business",
+        "description": "git branch",
+        "capabilities": [
+          "Transaction processing and categorization",
+          "Account reconciliation and matching",
+          "Financial report generation",
+          "Expense analysis and tracking",
+          "Compliance and audit support",
+          "Data validation and error detection",
+          "Financial automation and workflow",
+          "Cash flow management and forecasting"
+        ],
+        "status": "available",
+        "icon": "💰"
+      }
+    ],
+    "Content Creation": [
+      {
+        "id": "content_strategist",
+        "name": "Content Strategist",
+        "type": "Content Creation",
+        "description": "Comprehensive content strategy, calendar development, and multi-platform content planning.",
+        "capabilities": [
+          "Strategic content planning and calendar development",
+          "Audience analysis and market intelligence",
+          "Multi-platform content strategy",
+          "Content performance optimization",
+          "Brand voice and messaging alignment",
+          "Competitive content analysis",
+          "Content workflow management",
+          "ROI and performance tracking"
+        ],
+        "status": "available",
+        "icon": "📝"
+      },
+      {
+        "id": "proposal_writer_agent",
+        "name": "Proposal Writer",
+        "type": "Content Creation",
+        "description": "Proposal Writer Agent for Guild-AI",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "📝"
+      },
+      {
+        "id": "content_repurposer_agent",
+        "name": "Content Repurposer",
+        "type": "Content Creation",
+        "description": "Content Repurposer Agent for Guild-AI",
+        "capabilities": [
+          "Content format transformation",
+          "Platform-specific adaptation",
+          "Audience segmentation and targeting",
+          "Engagement optimization",
+          "Content performance analysis",
+          "Multi-channel distribution strategy",
+          "Brand consistency maintenance",
+          "Content lifecycle management"
+        ],
+        "status": "available",
+        "icon": "📝"
+      },
+      {
+        "id": "copywriter",
+        "name": "Copywriter",
+        "type": "Content Creation",
+        "description": "Generates comprehensive copywriting strategy using advanced prompting strategies.",
+        "capabilities": [
+          "Persuasive copywriting and conversion optimization",
+          "Audience analysis and persona development",
+          "Brand voice and tone development",
+          "Multi-channel copy strategy",
+          "A/B testing and performance optimization",
+          "Emotional psychology and behavioral triggers",
+          "SEO-optimized content creation",
+          "Call-to-action optimization"
+        ],
+        "status": "available",
+        "icon": "📝"
+      },
+      {
+        "id": "copywriter_agent",
+        "name": "Copywriter",
+        "type": "Content Creation",
+        "description": "Copywriter Agent for Guild-AI",
+        "capabilities": [
+          "Persuasive copywriting",
+          "Content creation",
+          "Brand messaging",
+          "A/B testing",
+          "Conversion optimization",
+          "Multi-channel adaptation",
+          "Audience psychology"
+        ],
+        "status": "available",
+        "icon": "📝"
+      }
+    ],
+    "Human & Psychological": [
+      {
+        "id": "motivation_coach_agent",
+        "name": "Motivation Coach",
+        "type": "Human & Psychological",
+        "description": "Motivation Coach Agent for Guild-AI",
+        "capabilities": [
+          "Tiny-habits",
+          "Motivational interviewing",
+          "Streaks & cues",
+          "Check-ins & accountability",
+          "Celebration & reward"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      },
+      {
+        "id": "learning_agent",
+        "name": "Learning",
+        "type": "Human & Psychological",
+        "description": "Learning Agent for Guild-AI",
+        "capabilities": [
+          "Skill gap analysis",
+          "Learning path design",
+          "Resource curation",
+          "Progress tracking",
+          "Adaptive learning",
+          "Competency assessment"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      },
+      {
+        "id": "wellness_agent",
+        "name": "Wellness",
+        "type": "Human & Psychological",
+        "description": "Holistic wellness coaching, stress management, and work-life balance optimization.",
+        "capabilities": [
+          "Stress assessment and management",
+          "Work-life balance optimization",
+          "Energy management coaching",
+          "Mental health awareness",
+          "Burnout prevention",
+          "Wellness routine design"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      },
+      {
+        "id": "community_connector_agent",
+        "name": "Community Connector",
+        "type": "Human & Psychological",
+        "description": "Community Connector Agent for Guild-AI",
+        "capabilities": [
+          "Network analysis and mapping",
+          "Community building strategy",
+          "Networking opportunity identification",
+          "Relationship management",
+          "Event planning and coordination",
+          "Cross-community collaboration"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      },
+      {
+        "id": "celebration_narrator_agent",
+        "name": "Celebration Narrator",
+        "type": "Human & Psychological",
+        "description": "Celebration Narrator Agent for Guild-AI",
+        "capabilities": [
+          "Achievement recognition and validation",
+          "Milestone celebration design",
+          "Team motivation and morale building",
+          "Progress amplification",
+          "Recognition system design",
+          "Celebration storytelling"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      },
+      {
+        "id": "accountability_coach_agent",
+        "name": "Accountability Coach",
+        "type": "Human & Psychological",
+        "description": "Accountability Coach Agent for Guild-AI",
+        "capabilities": [
+          "Personalized goal setting",
+          "Progress tracking and monitoring",
+          "Motivational coaching sessions",
+          "Accountability system implementation",
+          "Focus re-alignment support",
+          "Habit formation guidance",
+          "Crisis support and intervention",
+          "Performance analytics and insights"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      },
+      {
+        "id": "community_manager_agent",
+        "name": "Community Manager",
+        "type": "Human & Psychological",
+        "description": "Community Manager Agent for Guild-AI",
+        "capabilities": [
+          "Community engagement and relationship building",
+          "Social media content creation and management",
+          "Crisis communication and reputation management",
+          "Brand voice development and consistency",
+          "Audience growth and retention strategies",
+          "Platform-specific optimization",
+          "Sentiment analysis and community insights",
+          "Influencer relations and user-generated content"
+        ],
+        "status": "available",
+        "icon": "🧠"
+      }
+    ],
+    "Evaluator League": [
+      {
+        "id": "agent_evaluator",
+        "name": "Agent Evaluator",
+        "type": "Evaluator League",
+        "description": "Performance monitoring, optimization recommendations, and system health analysis.",
+        "capabilities": [
+          "Agent performance analysis",
+          "Quality assessment and evaluation",
+          "System optimization recommendations",
+          "Performance monitoring and alerting",
+          "User satisfaction analysis",
+          "A/B testing and experimentation"
+        ],
+        "status": "available",
+        "icon": "⚖️"
+      },
+      {
+        "id": "judge_agent",
+        "name": "Judge",
+        "type": "Evaluator League",
+        "description": "Quality assessment, evaluation rubrics, and performance scoring for deliverables.",
+        "capabilities": [
+          "Quality rubric generation",
+          "Deliverable evaluation",
+          "Revision cycle management",
+          "Multi-dimensional assessment",
+          "Brand compliance verification",
+          "Audience alignment validation"
+        ],
+        "status": "available",
+        "icon": "⚖️"
+      }
+    ],
+    "Meta-Agents": [
+      {
+        "id": "knowledge_updater",
+        "name": "Knowledge Updater",
+        "type": "Meta-Agents",
+        "description": "Continuous learning, knowledge management, and information integration.",
+        "capabilities": [
+          "Knowledge gap analysis",
+          "Information source evaluation",
+          "Knowledge synthesis and integration",
+          "Learning system optimization",
+          "Information freshness management",
+          "Continuous learning protocols"
+        ],
+        "status": "available",
+        "icon": "🔧"
+      },
+      {
+        "id": "orchestration_tuner",
+        "name": "Orchestration Tuner",
+        "type": "Meta-Agents",
+        "description": "Workflow optimization, efficiency tuning, and system performance enhancement.",
+        "capabilities": [
+          "Workflow orchestration optimization",
+          "Agent coordination pattern analysis",
+          "Multi-agent system performance tuning",
+          "Resource allocation and load balancing",
+          "Parallel execution optimization",
+          "System bottleneck identification"
+        ],
+        "status": "available",
+        "icon": "🔧"
+      },
+      {
+        "id": "security_agent",
+        "name": "Security",
+        "type": "Meta-Agents",
+        "description": "System security monitoring, threat detection, and access control management.",
+        "capabilities": [
+          "Security risk assessment",
+          "Threat analysis and modeling",
+          "Vulnerability identification",
+          "Security control evaluation",
+          "Incident response planning",
+          "Compliance management"
+        ],
+        "status": "available",
+        "icon": "🔧"
+      },
+      {
+        "id": "scalability_agent",
+        "name": "Scalability",
+        "type": "Meta-Agents",
+        "description": "Performance monitoring, capacity planning, and scaling optimization.",
+        "capabilities": [
+          "Performance analysis and optimization",
+          "Bottleneck identification and resolution",
+          "Scalability architecture design",
+          "Capacity planning and forecasting",
+          "Cost optimization for scale",
+          "Performance monitoring and alerting"
+        ],
+        "status": "available",
+        "icon": "🔧"
+      }
+    ],
+    "Automation": [
+      {
+        "id": "automation_bridge_agent",
+        "name": "Automation Bridge",
+        "type": "Automation",
+        "description": "Automation Bridge Agent for Guild-AI",
+        "capabilities": [
+          "Connector mapping",
+          "Data flow design",
+          "Error handling",
+          "Idempotency",
+          "Monitoring & alerting"
+        ],
+        "status": "available",
+        "icon": "🤖"
+      },
+      {
+        "id": "unified_automation_agent",
+        "name": "Unified Automation",
+        "type": "Automation",
+        "description": "Visual and web automation, cross-platform task automation.",
+        "capabilities": [
+          "Visual automation (PyAutoGUI + OpenCV)",
+          "Web automation (Selenium WebDriver)",
+          "Cross-platform automation",
+          "Workflow automation and orchestration",
+          "Computer vision and image recognition",
+          "Browser automation and web scraping",
+          "Desktop application automation",
+          "Automation script generation and testing"
+        ],
+        "status": "available",
+        "icon": "🤖"
+      },
+      {
+        "id": "crm_automation_agent",
+        "name": "Crm Automation",
+        "type": "Automation",
+        "description": "Customer relationship management automation and workflow optimization.",
+        "capabilities": [
+          "CRM platform integration",
+          "Automated workflow creation",
+          "Lead data processing and enrichment",
+          "Email marketing automation",
+          "Data synchronization",
+          "Lead scoring and segmentation",
+          "Performance tracking and optimization",
+          "Customer journey automation"
+        ],
+        "status": "available",
+        "icon": "🤖"
+      },
+      {
+        "id": "desktop_automation_agent",
+        "name": "Desktop Automation",
+        "type": "Automation",
+        "description": "Desktop Automation Agent for Guild-AI",
+        "capabilities": [
+          "Visual targeting",
+          "Stable automation primitives",
+          "Retry/backoff",
+          "Idempotent steps",
+          "Safety & monitoring"
+        ],
+        "status": "available",
+        "icon": "🤖"
+      },
+      {
+        "id": "visual_agent",
+        "name": "Visual",
+        "type": "Automation",
+        "description": "Visual Agent for Guild AI",
+        "capabilities": [
+          "GUI interaction and automation",
+          "Visual learning and demonstration recording",
+          "Workflow automation and execution",
+          "Screenshot analysis and processing",
+          "UI element detection and interaction",
+          "Computer vision and image recognition",
+          "Visual feedback and analysis",
+          "Cross-platform visual automation"
+        ],
+        "status": "available",
+        "icon": "🤖"
+      },
+      {
+        "id": "automation_agent",
+        "name": "Automation",
+        "type": "Automation",
+        "description": "Process automation, workflow optimization, and intelligent task delegation.",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🤖"
+      }
+    ],
+    "Executive Layer": [
+      {
+        "id": "business_strategist_agent",
+        "name": "Business Strategist",
+        "type": "Executive Layer",
+        "description": "Strategic planning, market analysis, and long-term business development.",
+        "capabilities": [
+          "Strategic planning",
+          "Market analysis",
+          "Business model optimization",
+          "Competitive intelligence",
+          "SWOT analysis",
+          "Strategic decision making",
+          "Performance measurement"
+        ],
+        "status": "available",
+        "icon": "👑"
+      },
+      {
+        "id": "business_strategist",
+        "name": "Business Strategist",
+        "type": "Executive Layer",
+        "description": "Generates comprehensive business strategy using advanced prompting strategies.",
+        "capabilities": [
+          "Strategic business planning and analysis",
+          "Market opportunity assessment and analysis",
+          "Competitive intelligence and positioning",
+          "Business model development and optimization",
+          "Growth strategy and scaling planning",
+          "Risk assessment and mitigation planning",
+          "Financial planning and resource allocation",
+          "Strategic decision making and recommendations"
+        ],
+        "status": "available",
+        "icon": "👑"
+      },
+      {
+        "id": "board_advisor_agent",
+        "name": "Board Advisor",
+        "type": "Executive Layer",
+        "description": "Board Advisor Agent for Guild-AI",
+        "capabilities": [
+          "Corporate governance and board dynamics",
+          "Strategic decision analysis",
+          "Financial oversight and planning",
+          "Marketing strategy and brand positioning",
+          "Product development and roadmapping",
+          "Risk management and compliance",
+          "Executive leadership coaching",
+          "Stakeholder management"
+        ],
+        "status": "available",
+        "icon": "👑"
+      },
+      {
+        "id": "chief_of_staff_agent",
+        "name": "Chief Of Staff",
+        "type": "Executive Layer",
+        "description": "Executive support, strategic coordination, and high-level task prioritization.",
+        "capabilities": [
+          "Executive coordination",
+          "Strategic planning",
+          "Task prioritization",
+          "Resource allocation",
+          "Cross-functional management",
+          "Workflow optimization",
+          "Stakeholder management",
+          "Performance monitoring"
+        ],
+        "status": "available",
+        "icon": "👑"
+      },
+      {
+        "id": "strategy_agent",
+        "name": "Strategy",
+        "type": "Executive Layer",
+        "description": "Strategy Agent for Guild-AI",
+        "capabilities": [
+          "Strategic planning",
+          "Market analysis",
+          "Competitive intelligence",
+          "Risk assessment",
+          "Implementation planning",
+          "Performance measurement",
+          "Business development"
+        ],
+        "status": "available",
+        "icon": "👑"
+      }
+    ],
+    "Campaign & Marketing": [
+      {
+        "id": "enhanced_campaign_agent",
+        "name": "Enhanced Campaign",
+        "type": "Campaign & Marketing",
+        "description": "Advanced campaign management, direct API access, and autonomous optimization.",
+        "capabilities": [
+          "Meta Business Suite integration",
+          "Facebook & Instagram advertising",
+          "WhatsApp Business campaigns",
+          "Campaign analytics & optimization",
+          "Creative asset management",
+          "Audience targeting & segmentation",
+          "Budget optimization",
+          "Performance monitoring"
+        ],
+        "status": "available",
+        "icon": "🚀"
+      },
+      {
+        "id": "enhanced_marketing_agent",
+        "name": "Enhanced Marketing",
+        "type": "Campaign & Marketing",
+        "description": "Enhanced Marketing Agent - Handles marketing campaigns with image generation capabilities",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🚀"
+      },
+      {
+        "id": "marketing_agent",
+        "name": "Marketing",
+        "type": "Campaign & Marketing",
+        "description": "Strategic marketing campaign development, brand positioning, and multi-channel marketing optimization.",
+        "capabilities": [
+          "Marketing strategy development",
+          "Campaign planning and execution",
+          "Brand positioning and messaging",
+          "Multi-channel marketing",
+          "Performance optimization",
+          "Customer acquisition",
+          "Marketing analytics"
+        ],
+        "status": "available",
+        "icon": "🚀"
+      },
+      {
+        "id": "event_marketing_agent",
+        "name": "Event Marketing",
+        "type": "Campaign & Marketing",
+        "description": "Event Marketing Agent for Guild-AI",
+        "capabilities": [
+          "Event strategy and objective setting",
+          "Event format selection and design",
+          "Content development and speaker management",
+          "Promotional campaign planning",
+          "Platform integration and technical setup",
+          "Attendee experience optimization",
+          "Event analytics and performance measurement",
+          "Post-event engagement and follow-up"
+        ],
+        "status": "available",
+        "icon": "🚀"
+      }
+    ],
+    "Creative & Media": [
+      {
+        "id": "video_editor_agent",
+        "name": "Video Editor",
+        "type": "Creative & Media",
+        "description": "Video creation, editing, and multimedia content production.",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🎨"
+      },
+      {
+        "id": "voice_agent",
+        "name": "Voice",
+        "type": "Creative & Media",
+        "description": "Text-to-speech, speech-to-text, and voice interaction capabilities.",
+        "capabilities": [
+          "Text-to-speech generation",
+          "Speech-to-text transcription",
+          "Audio quality enhancement",
+          "Voice communication optimization",
+          "Accessibility and inclusive design",
+          "Multi-language audio processing"
+        ],
+        "status": "available",
+        "icon": "🎨"
+      },
+      {
+        "id": "design_qa_agent",
+        "name": "Design Qa",
+        "type": "Creative & Media",
+        "description": "Design QA Agent for Guild-AI",
+        "capabilities": [
+          "Data analysis",
+          "Market research",
+          "Trend analysis"
+        ],
+        "status": "available",
+        "icon": "🎨"
+      },
+      {
+        "id": "telephony_voice_agent",
+        "name": "Telephony Voice",
+        "type": "Creative & Media",
+        "description": "Telephony/Voice Calls Agent - Manages voice communications and telephony operations",
+        "capabilities": [
+          "Voice call management and automation",
+          "Telephony integration and provider management",
+          "Speech-to-text processing and transcription",
+          "Text-to-speech generation and voice synthesis",
+          "Call analytics and performance monitoring",
+          "Voice message automation and scheduling",
+          "Call routing and customer service",
+          "Compliance and regulatory management"
+        ],
+        "status": "available",
+        "icon": "🎨"
+      },
+      {
+        "id": "image_generation_agent",
+        "name": "Image Generation",
+        "type": "Creative & Media",
+        "description": "AI-powered image creation, visual content generation, and creative asset production.",
+        "capabilities": [
+          "AI-powered image generation",
+          "Brand-consistent visual design",
+          "Marketing material development",
+          "Social media visual optimization",
+          "Product mockup creation",
+          "Infographic generation"
+        ],
+        "status": "available",
+        "icon": "🎨"
+      },
+      {
+        "id": "voice_persona_agent",
+        "name": "Voice Persona",
+        "type": "Creative & Media",
+        "description": "Voice Persona Agent for Guild-AI",
+        "capabilities": [
+          "Content strategy",
+          "Creative writing",
+          "Brand messaging"
+        ],
+        "status": "available",
+        "icon": "🎨"
+      }
+    ],
+    "Orchestration & Management": [
+      {
+        "id": "orchestrator_agent",
+        "name": "Orchestrator",
+        "type": "Orchestration & Management",
+        "description": "Multi-agent coordination, workflow orchestration, and intelligent task distribution.",
+        "capabilities": [
+          "Workflow orchestration",
+          "Task coordination",
+          "Agent management",
+          "Resource allocation",
+          "Multi-agent coordination",
+          "Execution monitoring",
+          "Performance optimization"
+        ],
+        "status": "available",
+        "icon": "🎯"
+      }
+    ]
+  }
+}

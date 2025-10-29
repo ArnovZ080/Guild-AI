@@ -205,51 +205,6 @@ class OAuthState(Base):
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-# User Management
-class User(Base):
-    __tablename__ = "users"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    firebase_uid = Column(String, unique=True, nullable=True)  # Firebase user ID
-    supabase_id = Column(String, unique=True, nullable=True)  # Legacy Supabase user ID (for backwards compatibility)
-    email = Column(String, unique=True, nullable=False)
-    full_name = Column(String, nullable=True)
-    avatar_url = Column(String, nullable=True)
-    
-    # Subscription info
-    subscription_status = Column(String, default="free")  # free, active, cancelled, past_due
-    subscription_tier = Column(String, default="free")    # free, starter, professional, enterprise
-    paystack_customer_id = Column(String, nullable=True)
-    
-    # Beta testing access
-    is_beta_tester = Column(Boolean, default=False)  # True for beta testers with full access
-    beta_access_granted_at = Column(DateTime, nullable=True)
-    beta_access_granted_by = Column(String, nullable=True)  # Admin who granted access
-    
-    # Admin access
-    is_admin = Column(Boolean, default=False)  # True for platform admins/owners
-    admin_role = Column(String, nullable=True)  # owner, admin, moderator
-    admin_granted_at = Column(DateTime, nullable=True)
-    
-    # Usage tracking
-    credits_used_this_month = Column(Integer, default=0)
-    credits_limit = Column(Integer, default=100)  # Free tier limit
-    bonus_credits = Column(Integer, default=0)    # Purchased credits that don't expire
-    api_calls_this_month = Column(Integer, default=0)
-    
-    # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    last_login = Column(DateTime, nullable=True)
-    
-    # Relationships
-    subscriptions = relationship("Subscription", back_populates="user")
-    workflows = relationship("Workflow", back_populates="user")
-    usage_logs = relationship("UsageLog", back_populates="user")
-    credit_transactions = relationship("CreditTransaction", back_populates="user")
-    onboarding_data = relationship("OnboardingData", back_populates="user", uselist=False)
-
-
 class WaitingList(Base):
     """Waiting list for users who want to join before launch"""
     __tablename__ = "waiting_list"
@@ -282,65 +237,6 @@ class WaitingList(Base):
     admin_notes = Column(Text, nullable=True)
 
 
-class OnboardingData(Base):
-    """Source of truth for user's business information collected during onboarding"""
-    __tablename__ = "onboarding_data"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, unique=True)
-    
-    # Business Information
-    business_type = Column(String, nullable=True)
-    business_description = Column(Text, nullable=True)
-    industry = Column(String, nullable=True)
-    
-    # Audience Information
-    target_audience = Column(Text, nullable=True)
-    customer_avatar = Column(JSON, nullable=True)
-    audience_problems = Column(Text, nullable=True)
-    audience_size = Column(String, nullable=True)
-    
-    # Brand Information
-    brand_voice_tone = Column(String, nullable=True)
-    brand_personality = Column(JSON, nullable=True)
-    brand_colors = Column(JSON, nullable=True)
-    logo_status = Column(String, nullable=True)
-    brand_values = Column(JSON, nullable=True)
-    brand_story = Column(Text, nullable=True)
-    brand_differentiation = Column(Text, nullable=True)
-    brand_consistency = Column(String, nullable=True)
-    
-    # Financial Information
-    pricing_status = Column(String, nullable=True)
-    pricing_model = Column(String, nullable=True)
-    marketing_budget = Column(String, nullable=True)
-    revenue_goals = Column(String, nullable=True)
-    
-    # Goals & Priorities
-    priority_3months = Column(Text, nullable=True)
-    key_metrics = Column(JSON, nullable=True)
-    success_definition = Column(Text, nullable=True)
-    
-    # Preferences
-    communication_style = Column(String, nullable=True)
-    data_storage_preference = Column(String, nullable=True)
-    security_preference = Column(String, nullable=True)
-    
-    # Completion tracking
-    incomplete_fields = Column(JSON, default=lambda: [])  # List of fields that need follow-up
-    completion_percentage = Column(Integer, default=0)
-    needs_follow_up = Column(Boolean, default=False)
-    
-    # Raw onboarding responses (full data)
-    raw_responses = Column(JSON, default=lambda: {})
-    
-    # Timestamps
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    completed_at = Column(DateTime, nullable=True)
-    
-    # Relationship
-    user = relationship("User", back_populates="onboarding_data")
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
@@ -427,3 +323,81 @@ class CreditTransaction(Base):
     
     # Relationships
     user = relationship("User", back_populates="credit_transactions")
+
+
+# --- User Model ---
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(String(50), primary_key=True, index=True)
+    firebase_uid = Column(String(128), unique=True, index=True)
+    supabase_id = Column(String(128), unique=True, index=True)  # For backward compatibility
+    email = Column(String(255), unique=True, index=True, nullable=False)
+    name = Column(String(255), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
+    subscription_status = Column(String(50), default='free')
+    subscription_tier = Column(String(50), default='free')
+    credits_used_this_month = Column(Integer, default=0)
+    credits_limit = Column(Integer, default=100)
+    bonus_credits = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+    is_active = Column(Boolean, default=True)
+    
+    # Relationships
+    workflows = relationship("Workflow", back_populates="user")
+    onboarding_data = relationship("OnboardingData", back_populates="user")
+    subscriptions = relationship("Subscription", back_populates="user")
+    usage_logs = relationship("UsageLog", back_populates="user")
+    credit_transactions = relationship("CreditTransaction", back_populates="user")
+    conversations = relationship("Conversation", back_populates="user")
+    conversation_messages = relationship("ConversationMessage", back_populates="user")
+
+
+# --- Onboarding Data Model ---
+class OnboardingData(Base):
+    __tablename__ = 'onboarding_data'
+
+    id = Column(String(50), primary_key=True, index=True)
+    user_id = Column(String(50), ForeignKey("users.id"), nullable=False)
+    raw_responses = Column(JSON, nullable=False)
+    business_type = Column(String(100), nullable=True)
+    business_description = Column(Text, nullable=True)
+    target_audience = Column(String(200), nullable=True)
+    brand_voice_tone = Column(String(200), nullable=True)
+    completion_percentage = Column(Float, default=0.0)
+    needs_follow_up = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="onboarding_data")
+
+
+# --- Conversation Models ---
+class Conversation(Base):
+    __tablename__ = "conversations"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    title = Column(String(200), nullable=True)
+    status = Column(String(20), default="active")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user = relationship("User", back_populates="conversations")
+    messages = relationship("ConversationMessage", back_populates="conversation", cascade="all, delete-orphan")
+
+
+class ConversationMessage(Base):
+    __tablename__ = "conversation_messages"
+    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    conversation_id = Column(String, ForeignKey("conversations.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    message_type = Column(String(20), nullable=False)  # user, assistant, system
+    content = Column(Text, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User", back_populates="conversation_messages")
+    conversation = relationship("Conversation", back_populates="messages")

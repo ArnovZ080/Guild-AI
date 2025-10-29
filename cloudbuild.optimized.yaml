@@ -1,0 +1,132 @@
+# Optimized Cloud Build configuration for Guild-AI
+# This reduces build size from 2.2GB to ~700MB by using optimized Dockerfile and better exclusions
+
+steps:
+  # Step 0: Fetch Firebase Config from Secret Manager
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Fetching Firebase configuration from Secret Manager..."
+        
+        # Fetch all Firebase secrets
+        FIREBASE_API_KEY=$(gcloud secrets versions access latest --secret=firebase-api-key)
+        FIREBASE_AUTH_DOMAIN=$(gcloud secrets versions access latest --secret=firebase-auth-domain)
+        FIREBASE_PROJECT_ID=$(gcloud secrets versions access latest --secret=firebase-project-id)
+        FIREBASE_STORAGE_BUCKET=$(gcloud secrets versions access latest --secret=firebase-storage-bucket)
+        FIREBASE_MESSAGING_SENDER_ID=$(gcloud secrets versions access latest --secret=firebase-messaging-sender-id)
+        FIREBASE_APP_ID=$(gcloud secrets versions access latest --secret=firebase-app-id)
+        
+        # Paystack public key
+        PAYSTACK_PUBLIC_KEY="pk_live_922abd14db6d404fb684764611c349c601d9151d"
+        
+        # Create .env.production file for frontend build
+        cat > frontend/.env.production <<ENVFILE
+        VITE_API_URL=https://guildof1.com
+        VITE_API_BASE_URL=https://guildof1.com
+        VITE_ORCHESTRATOR_BASE_URL=https://guildof1.com/api/orchestrator
+        VITE_FIREBASE_API_KEY=$${FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN=$${FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID=$${FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET=$${FIREBASE_STORAGE_BUCKET}
+        VITE_FIREBASE_MESSAGING_SENDER_ID=$${FIREBASE_MESSAGING_SENDER_ID}
+        VITE_FIREBASE_APP_ID=$${FIREBASE_APP_ID}
+        VITE_PAYSTACK_PUBLIC_KEY=$${PAYSTACK_PUBLIC_KEY}
+        ENVFILE
+        
+        echo "✅ Firebase and Paystack configuration written to frontend/.env.production"
+    id: 'fetch-firebase-config'
+
+  # Step 1: Build the Docker image (using .dockerignore for size optimization)
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+      - '-f'
+      - './api_server/Dockerfile'
+      - '.'
+    id: 'build-image'
+    waitFor: ['fetch-firebase-config']
+    timeout: '1800s'  # 30 minutes timeout for build
+
+  # Step 2: Push the Docker image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Starting Docker push..."
+        echo "Image size: $(docker images gcr.io/$PROJECT_ID/guild-ai:latest --format "table {{.Size}}")"
+        docker push gcr.io/$PROJECT_ID/guild-ai:latest
+        echo "✅ Docker image pushed successfully"
+    id: 'push-image'
+    waitFor: ['build-image']
+    timeout: '3600s'  # 60 minutes timeout for push
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'guild-ai-api'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '5000'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--timeout'
+      - '600'
+      - '--max-instances'
+      - '10'
+      - '--min-instances'
+      - '1'
+      - '--cpu-boost'
+      - '--set-env-vars'
+      - 'GOOGLE_CLOUD_PROJECT=guild-ai-080,DB_SECRET_NAME=db-root-password,CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql,POSTGRES_USER=postgres,POSTGRES_DB=workflow_db,REDIS_HOST=10.87.64.4,REDIS_PORT=6379,LLM_PROVIDER=vertex_ai,VERTEX_AI_LOCATION=us-central1,VERTEX_AI_MODEL=gemini-1.5-flash,FASTAPI_APP_ENV=production,ENABLE_COST_OPTIMIZATION=true,ADMIN_EMAILS=arnovzyl080@gmail.com,BETA_TESTER_EMAILS=arnovzyl080@gmail.com;renault.agnes@gmail.com,PAYSTACK_SECRET_KEY=sk_live_734abe9a227058d6f7ac24014cd6814cd5aa6ea1,PAYSTACK_PUBLIC_KEY=pk_live_922abd14db6d404fb684764611c349c601d9151d,PAYSTACK_SUBACCOUNT=ACCT_rhpjaolq4elgsqg'
+      - '--update-secrets'
+      - 'POSTGRES_PASSWORD=db-root-password:latest'
+      - '--add-cloudsql-instances'
+      - 'guild-ai-080:us-central1:guild-ai-sql'
+      - '--service-account'
+      - 'guild-ai-cloud-run-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--vpc-connector'
+      - 'guild-ai-vpc-connector'
+      - '--vpc-egress'
+      - 'all'
+    id: 'deploy-cloud-run'
+    waitFor: ['push-image']
+    timeout: '1800s'  # 30 minutes timeout for deployment
+
+  # Step 4: Run Database Migrations
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 Running database migrations..."
+        curl -X POST https://guildof1.com/api/migration/migrate
+        echo "✅ Database migrations completed"
+    id: 'run-migrations'
+    waitFor: ['deploy-cloud-run']
+    timeout: '300s'  # 5 minutes timeout for migrations
+
+# Images to store in Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/guild-ai:latest'
+
+# Logging configuration
+options:
+  logging: CLOUD_LOGGING_ONLY
+  logStreamingOption: STREAM_ON
+  machineType: 'E2_HIGHCPU_8'

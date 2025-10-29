@@ -5,7 +5,7 @@
 
 import apiService from './api.js';
 
-const ORCHESTRATOR_BASE = '/api/orchestrator';
+const ORCHESTRATOR_BASE = '/orchestrator';
 
 class EnhancedOrchestratorService {
   

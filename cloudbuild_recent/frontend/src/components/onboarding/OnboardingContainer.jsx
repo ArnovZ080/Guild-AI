@@ -1,0 +1,289 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import BusinessQuestions from './BusinessQuestions';
+import AudienceQuestions from './AudienceQuestions';
+import BrandQuestions from './BrandQuestions.jsx';
+import FinancialQuestions from './FinancialQuestions';
+import GoalsQuestions from './GoalsQuestions';
+import PreferencesStep from './PreferencesStep';
+import IntegrationsStep from './IntegrationsStep';
+import ScreenRecordingStep from './ScreenRecordingStep';
+import SummaryStep from './SummaryStep';
+import CapabilitiesStep from './CapabilitiesStep';
+import CompletionScreen from './CompletionScreen';
+import WelcomeStep from './WelcomeStep';
+import OnboardingComplete from './OnboardingComplete';
+
+const OnboardingContainer = ({ onComplete }) => {
+  const [currentStep, setCurrentStep] = useState('welcome');
+  const [answers, setAnswers] = useState({});
+  const [unknowns, setUnknowns] = useState([]); // track questions answered as unknown
+  const [showScreenRecording, setShowScreenRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [completionData, setCompletionData] = useState(null);
+  const [showCompletion, setShowCompletion] = useState(false);
+
+  const updateAnswers = (newData) => {
+    // merge answers
+    setAnswers(prev => ({ ...prev, ...newData }));
+    // collect unknowns based on simple heuristics
+    const lowered = Object.entries(newData).map(([k, v]) => [k, String(v || '').toLowerCase()]);
+    const UNKNOWN_PATTERNS = [
+      'not sure',
+      "don't know",
+      'dont know',
+      'do not know',
+      'not sure yet',
+      'not sure what',
+      "don't track",
+      'dont track',
+      "i don't have",
+      'i dont have',
+    ];
+    const newUnknowns = lowered
+      .filter(([, v]) => v === '' || UNKNOWN_PATTERNS.some(p => v.includes(p)))
+      .map(([k]) => k);
+    if (newUnknowns.length) {
+      setUnknowns(prev => Array.from(new Set([...
+        prev,
+        ...newUnknowns
+      ])));
+    }
+  };
+
+  // Calculate completion percentage
+  const calculateCompletionPercentage = (answers, unknowns) => {
+    const totalFields = 20; // Total number of onboarding fields
+    const completedFields = totalFields - unknowns.length;
+    return Math.max(0, Math.min(100, Math.round((completedFields / totalFields) * 100)));
+  };
+
+  const persistProfile = async (data) => {
+    try {
+      setIsLoading(true);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      
+      // Get Firebase token
+      const { auth } = await import('../../config/firebase.js');
+      const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+      
+      if (!token) {
+        console.warn('No auth token available, skipping source of truth save');
+        setIsLoading(false);
+        return;
+      }
+      
+      // Save to source of truth endpoint
+      const response = await fetch(`${API_URL}/api/onboarding/save`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          responses: data,
+          incomplete_fields: unknowns  // Pass the tracked unknowns
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Source of truth saved:', result);
+        console.log(`Completion: ${result.completion_percentage}%`);
+        console.log(`Needs follow-up: ${result.needs_follow_up}`);
+        console.log(`Incomplete fields: ${result.incomplete_fields?.join(', ') || 'none'}`);
+        
+        setCompletionData(result);
+        return result;
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to save source of truth:', errorText);
+        // If backend fails, calculate completion locally and return mock result
+        const localCompletionPercentage = calculateCompletionPercentage(data, unknowns);
+        const mockResult = {
+          completion_percentage: localCompletionPercentage,
+          needs_follow_up: unknowns.length > 0,
+          incomplete_fields: unknowns
+        };
+        console.log('⚠️ Backend unavailable, using local calculation:', mockResult);
+        setCompletionData(mockResult);
+        return mockResult;
+      }
+      
+    } catch (e) {
+      console.error('Failed to persist onboarding data:', e);
+      // If backend is completely unavailable, calculate completion locally
+      const localCompletionPercentage = calculateCompletionPercentage(data, unknowns);
+      const mockResult = {
+        completion_percentage: localCompletionPercentage,
+        needs_follow_up: unknowns.length > 0,
+        incomplete_fields: unknowns
+      };
+      console.log('⚠️ Backend unavailable, using local calculation:', mockResult);
+      setCompletionData(mockResult);
+      return mockResult;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const steps = {
+    welcome: <WelcomeStep onNext={() => setCurrentStep('business')} />,
+    business: (
+      <BusinessQuestions
+        onNext={(data) => { 
+          updateAnswers(data); 
+          setCurrentStep('audience'); 
+        }}
+      />
+    ),
+    audience: (
+      <AudienceQuestions
+        onNext={(data) => { 
+          updateAnswers(data); 
+          setCurrentStep('brand'); 
+        }}
+        businessType={answers.business_type}
+      />
+    ),
+    brand: (
+      <BrandQuestions
+        onNext={(data) => {
+          updateAnswers(data);
+          setCurrentStep('financial');
+        }}
+      />
+    ),
+    financial: (
+      <FinancialQuestions
+        onNext={(data) => { 
+          updateAnswers(data); 
+          setCurrentStep('goals'); 
+        }}
+      />
+    ),
+    goals: (
+      <GoalsQuestions
+        onNext={(data) => { 
+          updateAnswers(data); 
+          setCurrentStep('preferences'); 
+        }}
+      />
+    ),
+    preferences: (
+      <PreferencesStep
+        onNext={(data) => { 
+          updateAnswers(data); 
+          setCurrentStep('integrations'); 
+        }}
+      />
+    ),
+    integrations: (
+      <IntegrationsStep
+        onNext={(data) => { 
+          updateAnswers(data); 
+          setCurrentStep('summary'); 
+        }}
+        onScreenRecord={() => setShowScreenRecording(true)}
+      />
+    ),
+    summary: (
+      <SummaryStep
+        answers={answers}
+        onNext={async (editedAnswers) => {
+          const finalAnswers = editedAnswers || answers;
+          try {
+            const result = await persistProfile(finalAnswers);
+            setCompletionData(result);
+            setShowCompletion(true);
+          } catch (error) {
+            console.error('Failed to complete onboarding:', error);
+            // Still complete onboarding even if save fails - calculate completion locally
+            const localCompletionPercentage = calculateCompletionPercentage(finalAnswers, unknowns);
+            setCompletionData({
+              completion_percentage: localCompletionPercentage,
+              needs_follow_up: unknowns.length > 0,
+              incomplete_fields: unknowns
+            });
+            setShowCompletion(true);
+          }
+        }}
+      />
+    ),
+    // Disabled steps - kept for testing purposes
+    capabilities: (
+      <CapabilitiesStep
+        answers={answers}
+        onNext={async () => {
+          const result = await persistProfile(answers);
+          onComplete({ ...answers, unknowns });
+        }}
+      />
+    ),
+    completion: (
+      <CompletionScreen
+        answers={answers}
+        onFinish={() => onComplete({ ...answers, unknowns })}
+      />
+    ),
+  };
+
+  const handleEnterDashboard = () => {
+    onComplete({ 
+      ...answers, 
+      unknowns, 
+      completionData,
+      needsFollowUp: completionData?.needs_follow_up || false,
+      completionPercentage: completionData?.completion_percentage || 0
+    });
+  };
+
+  if (showCompletion) {
+    return (
+      <OnboardingComplete 
+        completionData={completionData}
+        onEnterDashboard={handleEnterDashboard}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="text-gray-700">Saving your business profile...</span>
+            </div>
+          </div>
+        )}
+        
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {steps[currentStep]}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      
+      {showScreenRecording && (
+        <ScreenRecordingStep
+          selectedSoftware={answers.selectedSoftware}
+          onClose={() => setShowScreenRecording(false)}
+          onComplete={(data) => {
+            updateAnswers(data);
+            setShowScreenRecording(false);
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+export default OnboardingContainer;

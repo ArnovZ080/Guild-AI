@@ -15,7 +15,7 @@ from .. import models
 from .auth import get_current_user
 from .admin_auth import get_current_admin, get_current_user_with_admin_check
 
-router = APIRouter(prefix="/api/waitlist", tags=["waitlist"])
+router = APIRouter(tags=["waitlist"])
 
 # Configuration - Beta tester emails (can be loaded from env or database)
 # Support both comma and semicolon separators to avoid gcloud parsing issues

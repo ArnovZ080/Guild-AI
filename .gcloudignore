@@ -1,22 +1,21 @@
-# This file specifies files that are *not* uploaded to Google Cloud
-# using gcloud. It follows the same syntax as .gitignore, with the addition of
-# "#!include" directives (which insert the entries of the given .gitignore-style
-# file at that point).
+# Optimized .gcloudignore for Guild-AI
+# This excludes unnecessary files to reduce build size from 2.2GB to ~700MB
 
-.gcloudignore
-# If you would like to upload your .git directory, .gitignore file or files
-# from your .gitignore file, remove the corresponding line
-# below:
+# Git and version control
 .git
 .gitignore
+.gcloudignore
 
-# Python pycache:
+# Python cache and compiled files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Distribution / packaging
+*.so
+*.pyo
+*.pyd
 .Python
+
+# Python distribution / packaging
 build/
 develop-eggs/
 dist/
@@ -32,6 +31,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
 # PyInstaller
 *.manifest
@@ -41,7 +41,7 @@ wheels/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Testing and coverage
 htmlcov/
 .tox/
 .coverage
@@ -52,6 +52,9 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Virtual environments
 .env
@@ -61,15 +64,21 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.conda/
+.conda-env/
+api_server/venv/
 
-# IDEs
+# IDEs and editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.pydevproject
+.settings/
 
-# OS
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -77,25 +86,184 @@ venv.bak/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Documentation
+# Documentation (keep only essential)
 *.md
 docs/
 !README.md
+!CHANGELOG.md
 
-# Test files
+# Test files and directories
 test_*
 *_test.py
 tests/
+test_documents/
+test_*
+*_test.py
+test_*.py
+*test.py
 
-# Development files
+# Development and temporary files
 .env*
+.env-vars
 docker-compose*
-# Dockerfile*  # Commented out to allow Dockerfile uploads
 *.log
 logs/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
 
-# Frontend build artifacts (we'll build these during deployment)
+# Frontend dependencies and build artifacts (but keep source files)
 frontend/node_modules/
 frontend/build/
 frontend/dist/
+frontend/.next/
+frontend/.nuxt/
+frontend/.cache/
+frontend/.parcel-cache/
+# Keep frontend source files for build
+!frontend/src/
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/vite.config.mjs
+!frontend/tailwind.config.js
+!frontend/postcss.config.js
+!frontend/index.html
+!frontend/public/
+
+# Backend specific exclusions
+api_server/__pycache__/
+api_server/*.pyc
+api_server/*.pyo
+api_server/*.pyd
+api_server/.pytest_cache/
+api_server/.coverage
+api_server/htmlcov/
+
+# Large directories that shouldn't be in build (keeping essential ones)
+jules-scratch/
+cloudbuild_recent/
+markitdown_test_env/
+monitoring/
+
+# Archive and backup files
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.dmg
+*.iso
+
+# Large data files
+*.csv
+*.json
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+
+# Cloud Build artifacts
+cloudbuild_recent/
+*.tgz
+*.tar.gz
+
+# MCP servers (if not needed in production)
+api_server/src/mcp/
+
+# Temporary and cache directories
+.cache/
+.tmp/
+.temp/
+tmp/
+temp/
+
+# Node.js specific
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# Force-include critical config/lockfiles even if earlier patterns ignore JSON
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/pnpm-lock.yaml
+!**/package.json
+!**/package-lock.json

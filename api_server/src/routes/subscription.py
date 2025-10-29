@@ -13,7 +13,7 @@ from .auth import get_current_user
 from .. import models
 from ..database import get_db
 
-router = APIRouter(prefix="/api/subscription", tags=["subscription"])
+router = APIRouter(tags=["subscription"])
 
 # Paystack configuration
 PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY")

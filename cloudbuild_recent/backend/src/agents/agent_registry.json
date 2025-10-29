@@ -1,0 +1,155 @@
+{
+  "agents": [
+    {
+      "agent_id": "outsourcing",
+      "name": "Outsourcing Agent",
+      "description": "Outsourcing Agent for business automation and optimization",
+      "capabilities": [
+        "Task analysis and outsourcing assessment",
+        "Freelancer sourcing and platform management",
+        "Job posting creation and optimization",
+        "Freelancer evaluation and selection",
+        "Project management and communication",
+        "Quality assurance and delivery management",
+        "Payment processing and contract management",
+        "Vendor relationship management"
+      ],
+      "category": "procurement",
+      "icon": "\ud83d\uded2",
+      "class_name": "OutsourcingAgent",
+      "file_name": "outsourcing_agent.py"
+    },
+    {
+      "agent_id": "copywriter",
+      "name": "Copywriter Agent",
+      "description": "Marketing professionals and small business owners.",
+      "capabilities": [
+        "Persuasive copywriting and conversion optimization",
+        "Audience analysis and persona development",
+        "Brand voice and tone development",
+        "Multi-channel copy strategy",
+        "A/B testing and performance optimization",
+        "Emotional psychology and behavioral triggers",
+        "SEO-optimized content creation",
+        "Call-to-action optimization"
+      ],
+      "category": "content",
+      "icon": "\u270d\ufe0f",
+      "class_name": "Copywriter",
+      "file_name": "copywriter.py"
+    },
+    {
+      "agent_id": "skilldevelopment",
+      "name": "Skill Development Agent",
+      "description": "Skill Development Agent for business automation and optimization",
+      "capabilities": [
+        "Skill gap analysis and assessment",
+        "Personalized learning plan development",
+        "Learning resource curation and recommendation",
+        "Industry insight and trend analysis",
+        "Practical application project design",
+        "Learning progress tracking and optimization",
+        "Business-aligned skill development",
+        "Micro-learning and just-in-time training"
+      ],
+      "category": "training",
+      "icon": "\ud83c\udf93",
+      "class_name": "SkillDevelopmentAgent",
+      "file_name": "skill_development_agent.py"
+    },
+    {
+      "agent_id": "hr",
+      "name": "HR Agent",
+      "description": "HR Agent for business automation and optimization",
+      "capabilities": [
+        "Recruitment strategy development",
+        "Job description creation",
+        "Interview planning and execution",
+        "Onboarding program design",
+        "Performance management",
+        "Employee relations",
+        "Talent acquisition"
+      ],
+      "category": "hr",
+      "icon": "\ud83d\udc54",
+      "class_name": "HRAgent",
+      "file_name": "hr_agent.py"
+    },
+    {
+      "agent_id": "onboarding",
+      "name": "Onboarding Agent",
+      "description": "Onboarding Agent for business automation and optimization",
+      "capabilities": [
+        "User onboarding and setup",
+        "Business foundation establishment",
+        "Brand voice and tone setup",
+        "System configuration and integration",
+        "User education and training",
+        "Progress tracking and validation",
+        "Personalization and customization",
+        "Support and guidance systems"
+      ],
+      "category": "customer",
+      "icon": "\ud83d\udc65",
+      "class_name": "OnboardingAgent",
+      "file_name": "onboarding_agent.py"
+    },
+    {
+      "agent_id": "visionenhancedtraining",
+      "name": "Vision Enhanced Training Agent",
+      "description": "Vision Enhanced Training Agent for business automation and optimization",
+      "capabilities": [
+        "Visual SOP creation and documentation",
+        "Computer vision and image recognition",
+        "Demonstration learning and recording",
+        "Visual workflow automation",
+        "Screenshot analysis and processing",
+        "Visual feedback and analysis",
+        "Training video creation",
+        "Visual learning systems"
+      ],
+      "category": "training",
+      "icon": "\ud83c\udf93",
+      "class_name": "VisionEnhancedTrainingAgent",
+      "file_name": "vision_enhanced_training_agent.py"
+    },
+    {
+      "agent_id": "wellbeing",
+      "name": "Well-being Agent",
+      "description": "Well-being Agent for business automation and optimization",
+      "capabilities": [
+        "Workload analysis and optimization",
+        "Burnout prevention and risk assessment",
+        "Time management and productivity coaching",
+        "Work-life balance optimization",
+        "Stress management and mental health support",
+        "Behavioral nudges and habit formation",
+        "Scheduling optimization and calendar management",
+        "Performance monitoring and analytics"
+      ],
+      "category": "general",
+      "icon": "\ud83e\udd16",
+      "class_name": "WellBeingAgent",
+      "file_name": "well_being_agent.py"
+    },
+    {
+      "agent_id": "crm",
+      "name": "CRM Agent",
+      "description": "Environmentally conscious yoga practitioners.",
+      "capabilities": [
+        "CRM platform selection and setup",
+        "Marketing automation workflow design",
+        "Lead scoring and qualification",
+        "Customer segmentation and targeting",
+        "Sales pipeline management",
+        "Customer lifecycle optimization"
+      ],
+      "category": "general",
+      "icon": "\ud83e\udd16",
+      "class_name": "CRMAgent",
+      "file_name": "crm_agent.py"
+    }
+  ],
+  "registry_version": "1.0.0",
+  "last_updated": "2024-01-01T00:00:00Z"
+}

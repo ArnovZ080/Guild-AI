@@ -1,0 +1,112 @@
+id: business_development_manager
+name: Business Development & Partnership Manager
+description: "Automated business development, partnership discovery, and revenue growth opportunity identification."
+
+trigger:
+  type: schedule
+  cron: "0 8 * * 2,4" # Tuesday and Thursday at 8 AM
+
+steps:
+  - name: scan_industry_landscape
+    agent: research_agent
+    input: "Research current industry trends, market opportunities, and emerging technologies in our space."
+    output: industry_insights
+
+  - name: identify_potential_partners
+    agent: scraper_agent
+    input: "Scan for potential business partners, complementary services, and companies that could benefit from collaboration."
+    output: potential_partners
+
+  - name: research_partner_companies
+    agent: research_agent
+    loop: "{{ steps.identify_potential_partners.output }}"
+    input:
+      partner: "{{ loop.item }}"
+      prompt: "Research company details, financial health, market position, and partnership potential"
+    output: partner_research
+
+  - name: evaluate_partnership_opportunities
+    agent: evaluation_agent
+    loop: "{{ steps.research_partner_companies.output }}"
+    input:
+      partner: "{{ loop.item }}"
+      criteria: "{{ config.partnership_criteria }}"
+      prompt: "Evaluate partnership potential based on strategic fit, market opportunity, and revenue potential"
+    output: partnership_opportunities
+
+  - name: identify_revenue_opportunities
+    agent: research_agent
+    input:
+      industry: "{{ steps.industry_insights.output }}"
+      partners: "{{ steps.partnership_opportunities.output }}"
+      prompt: "Identify new revenue streams, market expansion opportunities, and untapped customer segments"
+    output: revenue_opportunities
+
+  - name: generate_partnership_proposals
+    agent: copywriter_agent
+    loop: "{{ steps.partnership_opportunities.output }}"
+    input:
+      partner: "{{ loop.item }}"
+      opportunities: "{{ steps.revenue_opportunities.output }}"
+      prompt: "Create compelling partnership proposals with clear value propositions and revenue sharing models"
+    output: partnership_proposals
+
+  - name: create_outreach_sequences
+    agent: marketing_agent
+    input:
+      partners: "{{ steps.partnership_opportunities.output }}"
+      proposals: "{{ steps.generate_partnership_proposals.output }}"
+      prompt: "Create personalized outreach sequences for each potential partner with timing and follow-up strategy"
+    output: outreach_sequences
+
+  - name: send_initial_outreach
+    agent: email_agent
+    loop: "{{ steps.outreach_sequences.output.initial_emails }}"
+    input:
+      to: "{{ loop.item.contact_email }}"
+      subject: "{{ loop.item.email_subject }}"
+      body: "{{ loop.item.email_body }}"
+      follow_up_date: "{{ loop.item.follow_up_date }}"
+    output: outreach_sent
+
+  - name: track_partnership_conversations
+    agent: evaluation_agent
+    input:
+      outreach: "{{ steps.outreach_sent.output }}"
+      prompt: "Track and categorize all partnership conversations and responses"
+    output: partnership_conversations
+
+  - name: identify_quick_wins
+    agent: evaluation_agent
+    input:
+      opportunities: "{{ steps.revenue_opportunities.output }}"
+      conversations: "{{ steps.partnership_conversations.output }}"
+      prompt: "Identify quick-win opportunities that can generate immediate revenue"
+    output: quick_wins
+
+  - name: generate_business_development_report
+    agent: content_strategist
+    input:
+      insights: "{{ steps.industry_insights.output }}"
+      opportunities: "{{ steps.partnership_opportunities.output }}"
+      conversations: "{{ steps.partnership_conversations.output }}"
+      quick_wins: "{{ steps.quick_wins.output }}"
+      prompt: "Create comprehensive business development report with actionable next steps"
+    output: business_development_report
+
+  - name: schedule_follow_up_meetings
+    agent: visual_agent
+    input:
+      skill: "calendar_scheduling"
+      data: "{{ steps.partnership_conversations.output }}"
+      prompt: "Schedule follow-up meetings and calls for promising partnership opportunities"
+    output: meetings_scheduled
+
+  - name: send_business_development_summary
+    agent: email_agent
+    input:
+      to: "{{ config.business_development_team }}"
+      subject: "Business Development Report - {{ date }}"
+      body: "{{ steps.generate_business_development_report.output }}"
+      attachments: ["{{ steps.generate_business_development_report.output }}"]
+    output: summary_sent

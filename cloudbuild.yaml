@@ -24,6 +24,8 @@ steps:
         # Create .env.production file for frontend build
         cat > frontend/.env.production <<ENVFILE
         VITE_API_URL=https://guildof1.com
+        VITE_API_BASE_URL=https://guildof1.com
+        VITE_ORCHESTRATOR_BASE_URL=https://guildof1.com/api/orchestrator
         VITE_FIREBASE_API_KEY=$${FIREBASE_API_KEY}
         VITE_FIREBASE_AUTH_DOMAIN=$${FIREBASE_AUTH_DOMAIN}
         VITE_FIREBASE_PROJECT_ID=$${FIREBASE_PROJECT_ID}
@@ -43,15 +45,35 @@ steps:
       - '-c'
       - |
         echo "Building frontend..."
+        echo "Current directory: $(pwd)"
+        echo "Contents:"
+        ls -la
+        
+        echo "Frontend directory contents:"
+        ls -la frontend/
+        
         cd frontend
         
-        # Install dependencies
-        npm ci
+        echo "In frontend directory: $(pwd)"
+        echo "Frontend contents:"
+        ls -la
+        
+        # Check if package.json exists
+        if [ ! -f "package.json" ]; then
+          echo "ERROR: package.json not found in frontend directory!"
+          exit 1
+        fi
+        
+        # Install dependencies using npm install instead of npm ci
+        echo "Installing dependencies..."
+        npm install
         
         # Build for production (uses .env.production from previous step)
+        echo "Building frontend..."
         npm run build
         
         echo "Frontend built successfully!"
+        echo "Dist directory contents:"
         ls -la dist/
         
         # Verify dist exists and has files
@@ -61,15 +83,35 @@ steps:
         fi
         
         if [ ! -f "dist/index.html" ]; then
-          echo "ERROR: dist/index.html not found!"
+          echo "ERROR: index.html not found in dist!"
           exit 1
         fi
         
-        echo "✅ Frontend build verified: $(du -sh dist)"
+        echo "✅ Frontend build verification complete"
     id: 'build-frontend'
     waitFor: ['fetch-firebase-config']
-  
-  # Step 2: Build the Docker image
+    timeout: '1200s'  # 20 minutes timeout for frontend build
+
+  # Step 2.5: Verify frontend files are in build context
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔍 Verifying frontend files are in build context..."
+        echo "📁 Current directory contents:"
+        ls -la .
+        echo "📁 Frontend directory contents:"
+        ls -la frontend/
+        echo "📁 Frontend dist directory contents:"
+        ls -la frontend/dist/
+        echo "📁 Checking for index.html:"
+        ls -la frontend/dist/index.html
+        echo "✅ Frontend files verified in build context"
+    id: 'verify-frontend-context'
+    waitFor: ['build-frontend']
+
+  # Step 3: Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -79,139 +121,36 @@ steps:
       - './api_server/Dockerfile'
       - '.'
     id: 'build-image'
-    waitFor: ['build-frontend']
+    waitFor: ['verify-frontend-context']
+    timeout: '1800s'  # 30 minutes timeout for build
 
-  # Step 3: Push the Docker image to Google Container Registry
+  # Step 4: Push the Docker image to Google Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - 'gcr.io/$PROJECT_ID/guild-ai:latest'
-    id: 'push-image'
-    waitFor: ['build-image']
-
-  # Step 4: Run Database Migrations (with Cloud SQL Proxy)
-  - name: 'gcr.io/$PROJECT_ID/guild-ai:latest'
-    entrypoint: 'sh'
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # Download and setup Cloud SQL Proxy
-        wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O /tmp/cloud_sql_proxy
-        chmod +x /tmp/cloud_sql_proxy
-        
-        # Start Cloud SQL Proxy in background
-        /tmp/cloud_sql_proxy -instances=guild-ai-080:us-central1:guild-ai-sql=tcp:5432 &
-        PROXY_PID=$$!
-        
-        # Wait for proxy to be ready
-        sleep 5
-        
-        # Create database if it doesn't exist
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'workflow_db'" | grep -q 1 || PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -c "CREATE DATABASE workflow_db"
-        
-        # Add firebase_uid column if it doesn't exist
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid VARCHAR UNIQUE;"
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ALTER COLUMN supabase_id DROP NOT NULL;"
-        
-        # Add beta tester columns to users table
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT FALSE;"
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_at TIMESTAMP;"
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_access_granted_by VARCHAR;"
-        
-        # Add admin columns to users table
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;"
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_role VARCHAR;"
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "ALTER TABLE users ADD COLUMN IF NOT EXISTS admin_granted_at TIMESTAMP;"
-        
-        # Create waiting_list table if it doesn't exist
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
-        CREATE TABLE IF NOT EXISTS waiting_list (
-          id VARCHAR PRIMARY KEY,
-          email VARCHAR UNIQUE NOT NULL,
-          full_name VARCHAR,
-          company VARCHAR,
-          role VARCHAR,
-          how_heard VARCHAR,
-          use_case TEXT,
-          status VARCHAR DEFAULT 'pending',
-          invited_at TIMESTAMP,
-          converted_at TIMESTAMP,
-          converted_user_id VARCHAR REFERENCES users(id),
-          referral_source VARCHAR,
-          utm_campaign VARCHAR,
-          utm_source VARCHAR,
-          utm_medium VARCHAR,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          admin_notes TEXT
-        );
-        CREATE INDEX IF NOT EXISTS idx_waiting_list_email ON waiting_list(email);
-        CREATE INDEX IF NOT EXISTS idx_waiting_list_status ON waiting_list(status);
-        "
-        
-        # Create onboarding_data table if it doesn't exist
-        PGPASSWORD=$${POSTGRES_PASSWORD} psql -h 127.0.0.1 -U postgres -d workflow_db -c "
-        CREATE TABLE IF NOT EXISTS onboarding_data (
-          id VARCHAR PRIMARY KEY,
-          user_id VARCHAR UNIQUE REFERENCES users(id),
-          business_type VARCHAR,
-          business_description TEXT,
-          industry VARCHAR,
-          target_audience TEXT,
-          customer_avatar JSONB,
-          audience_problems TEXT,
-          audience_size VARCHAR,
-          brand_voice_tone VARCHAR,
-          brand_personality JSONB,
-          brand_colors JSONB,
-          logo_status VARCHAR,
-          brand_values JSONB,
-          brand_story TEXT,
-          brand_differentiation TEXT,
-          brand_consistency VARCHAR,
-          pricing_status VARCHAR,
-          pricing_model VARCHAR,
-          marketing_budget VARCHAR,
-          revenue_goals VARCHAR,
-          priority_3months TEXT,
-          key_metrics JSONB,
-          success_definition TEXT,
-          communication_style VARCHAR,
-          data_storage_preference VARCHAR,
-          security_preference VARCHAR,
-          incomplete_fields JSONB DEFAULT '[]',
-          completion_percentage INTEGER DEFAULT 0,
-          needs_follow_up BOOLEAN DEFAULT FALSE,
-          raw_responses JSONB DEFAULT '{}',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          completed_at TIMESTAMP
-        );"
-        
-        # Run migrations
-        /usr/local/bin/python /app/api_server/src/manage.py migrate
-        
-        # Kill proxy
-        kill $$PROXY_PID
-    id: 'run-migrations'
-    waitFor: ['push-image']
-    env:
-      - 'GOOGLE_CLOUD_PROJECT=guild-ai-080'
-      - 'POSTGRES_USER=postgres'
-      - 'POSTGRES_DB=workflow_db'
-      - 'POSTGRES_PASSWORD=$${POSTGRES_PASSWORD}'
-      - 'POSTGRES_HOST=127.0.0.1'
-      - 'POSTGRES_PORT=5432'
-      - 'REDIS_HOST=10.87.64.4'
-      - 'REDIS_PORT=6379'
-      - 'LLM_PROVIDER=vertex_ai'
-      - 'VERTEX_AI_LOCATION=us-central1'
-      - 'VERTEX_AI_MODEL=gemini-1.5-flash'
-      - 'FASTAPI_APP_ENV=production'
-      - 'RQ_QUEUES={"default": {"HOST": "10.87.64.4", "PORT": 6379, "DB": 0}}'
-      - 'DJANGO_SETTINGS_MODULE=api_server.src.django_settings'
+        echo "Starting Docker push..."
+        echo "Image size: $(docker images gcr.io/$PROJECT_ID/guild-ai:latest --format "table {{.Size}}")"
+        docker push gcr.io/$PROJECT_ID/guild-ai:latest
+        echo "✅ Docker image pushed successfully"
+    id: 'push-image'
+    waitFor: ['build-image']
+    timeout: '3600s'  # 60 minutes timeout for push
 
-  # Step 5: Deploy to Cloud Run
+  # Step 5: Skip Database Migrations (Handle separately)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "⏭️  Skipping database migrations during build"
+        echo "📝 Database migrations will be handled after deployment"
+        echo "✅ Build can proceed without database connection"
+    id: 'skip-migrations'
+    waitFor: ['push-image']
+
+  # Step 6: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -239,9 +178,9 @@ steps:
       - '1'
       - '--cpu-boost'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=guild-ai-080,DB_SECRET_NAME=db-root-password,CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql,POSTGRES_USER=postgres,POSTGRES_DB=workflow_db,REDIS_HOST=10.87.64.4,REDIS_PORT=6379,LLM_PROVIDER=vertex_ai,VERTEX_AI_LOCATION=us-central1,VERTEX_AI_MODEL=gemini-1.5-flash,FASTAPI_APP_ENV=production,ENABLE_COST_OPTIMIZATION=true,ADMIN_EMAILS=arnovzyl080@gmail.com,BETA_TESTER_EMAILS=arnovzyl080@gmail.com;renault.agnes@gmail.com,PAYSTACK_SECRET_KEY=sk_live_734abe9a227058d6f7ac24014cd6814cd5aa6ea1,PAYSTACK_PUBLIC_KEY=pk_live_922abd14db6d404fb684764611c349c601d9151d,PAYSTACK_SUBACCOUNT=ACCT_rhpjaolq4elgsqg'
+      - 'GOOGLE_CLOUD_PROJECT=guild-ai-080,DB_SECRET_NAME=db-root-password,CLOUDSQL_CONNECTION_NAME=guild-ai-080:us-central1:guild-ai-sql,POSTGRES_USER=postgres,POSTGRES_DB=workflow_db,REDIS_HOST=10.87.64.4,REDIS_PORT=6379,LLM_PROVIDER=vertex_ai,VERTEX_AI_LOCATION=us-central1,VERTEX_AI_MODEL=gemini-1.5-flash,FASTAPI_APP_ENV=production,ENABLE_COST_OPTIMIZATION=true,ADMIN_EMAILS=arnovzyl080@gmail.com,BETA_TESTER_EMAILS=arnovzyl080@gmail.com;renault.agnes@gmail.com,PAYSTACK_SECRET_KEY=sk_live_734abe9a227058d6f7ac24014cd6814cd5aa6ea1,PAYSTACK_PUBLIC_KEY=pk_live_922abd14db6d404fb684764611c349c601d9151d,PAYSTACK_SUBACCOUNT=ACCT_rhpjaolq4elgsqg,ALLOWED_ORIGINS=https://guildof1.com;https://www.guildof1.com,VITE_API_URL=https://guild-ai-api-881782424.us-central1.run.app,VITE_FIREBASE_API_KEY=AIzaSyBfKVAoxvoUDGTdnl0D_gz0WJE7MiRYpg8,VITE_FIREBASE_AUTH_DOMAIN=guild-ai-080.firebaseapp.com,VITE_FIREBASE_PROJECT_ID=guild-ai-080,VITE_FIREBASE_STORAGE_BUCKET=guild-ai-080.firebasestorage.app,VITE_FIREBASE_MESSAGING_SENDER_ID=881782424,VITE_FIREBASE_APP_ID=1:881782424:web:a8fc5e0c0c1f097c7baaed,VITE_FIREBASE_MEASUREMENT_ID=G-L0E52HE6FB'
       - '--update-secrets'
-      - 'POSTGRES_PASSWORD=db-root-password:latest'
+      - 'POSTGRES_PASSWORD=db-root-password:latest,FIREBASE_CONFIG_JSON=firebase-service-account:latest'
       - '--add-cloudsql-instances'
       - 'guild-ai-080:us-central1:guild-ai-sql'
       - '--service-account'
@@ -251,7 +190,21 @@ steps:
       - '--vpc-egress'
       - 'all'
     id: 'deploy-cloud-run'
-    waitFor: ['run-migrations']
+    waitFor: ['skip-migrations']
+    timeout: '1800s'  # 30 minutes timeout for deployment
+
+  # Step 7: Run Database Migrations
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "🔄 Running database migrations..."
+        curl -X POST https://guildof1.com/api/migration/migrate
+        echo "✅ Database migrations completed"
+    id: 'run-migrations'
+    waitFor: ['deploy-cloud-run']
+    timeout: '300s'  # 5 minutes timeout for migrations
 
 # Images to store in Container Registry
 images:

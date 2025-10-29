@@ -101,7 +101,7 @@ export const SettingsProvider = ({ children }) => {
     (async () => {
       try {
         // Try backend first
-        const res = await fetch('/api/settings');
+        const res = await fetch('/api/settings'); // TODO: replace with real endpoint or disable if not implemented
         if (res.ok) {
           const data = await res.json();
           const fromServer = data?.data || {};
@@ -129,7 +129,7 @@ export const SettingsProvider = ({ children }) => {
   useEffect(() => {
     (async () => {
       try {
-        await fetch('/api/settings', {
+        await fetch('/api/settings', { // TODO: replace with real endpoint or disable if not implemented
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data: settings }),

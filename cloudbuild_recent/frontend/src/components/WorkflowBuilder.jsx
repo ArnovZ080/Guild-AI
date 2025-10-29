@@ -1,0 +1,351 @@
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+
+const EXECUTION_API = '/api/execution-layer';
+const BUILDER_API = '/api/workflow-builder';
+
+export default function WorkflowBuilder() {
+  const [workflows, setWorkflows] = useState([]);
+  const [templates, setTemplates] = useState({});
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const [newWorkflow, setNewWorkflow] = useState({ name: '', description: '' });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadWorkflows();
+    loadTemplates();
+  }, []);
+
+  const loadWorkflows = async () => {
+    try {
+      // Prefer workflow-builder list endpoint
+      const response = await fetch(`${BUILDER_API}/workflows`);
+      if (!response.ok) throw new Error('failed');
+      const data = await response.json();
+      // Map to UI shape with graceful defaults
+      const mapped = (Array.isArray(data) ? data : []).map((w) => ({
+        workflow_id: w.id || w.workflow_id || w.name || `wf_${Math.random().toString(36).slice(2)}`,
+        name: w.name || 'Untitled Workflow',
+        description: w.description || 'No description provided',
+        node_count: Array.isArray(w.nodes) ? w.nodes.length : (w.node_count ?? 0),
+        connection_count: Array.isArray(w.connections) ? w.connections.length : (w.connection_count ?? 0),
+        status: w.status || 'draft',
+      }));
+      setWorkflows(mapped);
+    } catch (err) {
+      // Graceful fallback: show empty with hint
+      setWorkflows([]);
+      setError('No workflows yet or backend unavailable.');
+    }
+  };
+
+  const loadTemplates = async () => {
+    try {
+      const response = await fetch(`${EXECUTION_API}/workflow-templates`);
+      if (!response.ok) throw new Error('failed');
+      const data = await response.json();
+      // Backend returns { success, templates: ["name", ...] }
+      const list = Array.isArray(data?.templates) ? data.templates : [];
+      const normalized = {
+        "Recommended": list.map((t) => ({
+          template_id: t,
+          name: t.replaceAll('_', ' '),
+          description: 'Starter blueprint',
+          type: 'template',
+        })),
+      };
+      setTemplates(normalized);
+    } catch (err) {
+      setTemplates({});
+      setError('No templates yet or backend unavailable.');
+    }
+  };
+
+  const createWorkflow = async () => {
+    if (!newWorkflow.name.trim()) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`${EXECUTION_API}/create-workflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          template_name: 'social_media_posting', // Default template
+          custom_config: newWorkflow
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setNewWorkflow({ name: '', description: '' });
+        loadWorkflows();
+        setSelectedWorkflow(data.workflow_id);
+      }
+    } catch (err) {
+      setError('Failed to create workflow');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addNode = async (workflowId, templateId, position = [100, 100]) => {
+    try {
+      const response = await fetch(`${BUILDER_API}/workflows/${workflowId}/nodes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          template_id: templateId,
+          position: position
+        })
+      });
+      
+      if (response.ok) {
+        // Refresh workflow data
+        if (selectedWorkflow === workflowId) {
+          // Trigger refresh of selected workflow
+        }
+      }
+    } catch (err) {
+      setError('Failed to add node');
+    }
+  };
+
+  const executeWorkflow = async (workflowId) => {
+    try {
+      const response = await fetch(`${EXECUTION_API}/deploy-workflow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          workflow_id: workflowId,
+          automation_platform: 'n8n' // Default to n8n
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        alert(`Workflow deployed successfully! Platform: ${data.platform}`);
+      }
+    } catch (err) {
+      setError('Failed to deploy workflow');
+    }
+  };
+
+  const renderTemplatePalette = () => (
+    <Card className="w-80">
+      <CardHeader>
+        <CardTitle>Node Templates</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {Object.entries(templates).length === 0 && (
+          <div className="text-sm text-gray-500">No templates yet…</div>
+        )}
+        {Object.entries(templates).map(([category, templateList]) => (
+          <div key={category}>
+            <h4 className="font-semibold text-sm text-gray-700 mb-2">{category}</h4>
+            <div className="space-y-2">
+              {templateList.map((template) => (
+                <div
+                  key={template.template_id}
+                  className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+                  onClick={() => selectedWorkflow && addNode(selectedWorkflow, template.template_id)}
+                >
+                  <div className="font-medium text-sm">{template.name}</div>
+                  <div className="text-xs text-gray-600">{template.description}</div>
+                  <Badge variant="secondary" className="text-xs mt-1">
+                    {template.type}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+
+  const renderWorkflowList = () => (
+    <Card className="w-80">
+      <CardHeader>
+        <CardTitle>Workflows</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {workflows.map((workflow) => (
+            <div
+              key={workflow.workflow_id}
+              className={`p-3 border rounded-lg cursor-pointer ${
+                selectedWorkflow === workflow.workflow_id
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'hover:bg-gray-50'
+              }`}
+              onClick={() => setSelectedWorkflow(workflow.workflow_id)}
+            >
+              <div className="font-medium">{workflow.name}</div>
+              <div className="text-sm text-gray-600">{workflow.description}</div>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="outline">{workflow.node_count} nodes</Badge>
+                <Badge variant="outline">{workflow.connection_count} connections</Badge>
+                <Badge variant={workflow.status === 'active' ? 'default' : 'secondary'}>
+                  {workflow.status}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <Separator className="my-4" />
+        
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="workflow-name">Workflow Name</Label>
+            <Input
+              id="workflow-name"
+              value={newWorkflow.name}
+              onChange={(e) => setNewWorkflow({ ...newWorkflow, name: e.target.value })}
+              placeholder="Enter workflow name"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label htmlFor="workflow-description">Description</Label>
+            <Textarea
+              id="workflow-description"
+              value={newWorkflow.description}
+              onChange={(e) => setNewWorkflow({ ...newWorkflow, description: e.target.value })}
+              placeholder="Enter workflow description"
+              className="mt-1"
+            />
+          </div>
+          <Button 
+            onClick={createWorkflow} 
+            disabled={loading || !newWorkflow.name.trim()}
+            className="w-full"
+          >
+            {loading ? 'Creating...' : 'Create Workflow'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  const renderWorkflowCanvas = () => {
+    if (!selectedWorkflow) {
+      return (
+        <Card className="flex-1">
+          <CardContent className="flex items-center justify-center h-96">
+            <div className="text-center text-gray-500">
+              <div className="text-2xl mb-2">🎨</div>
+              <div>Select a workflow to start building</div>
+              <div className="text-sm">Or create a new one to get started</div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    const workflow = workflows.find(w => w.workflow_id === selectedWorkflow);
+    
+    return (
+      <Card className="flex-1">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{workflow?.name}</CardTitle>
+              <p className="text-sm text-gray-600">{workflow?.description}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                Validate
+              </Button>
+              <Button 
+                onClick={() => executeWorkflow(selectedWorkflow)}
+                size="sm"
+              >
+                Execute
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg h-96 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <div className="text-2xl mb-2">🚧</div>
+              <div>Visual Canvas Coming Soon!</div>
+              <div className="text-sm">
+                Drag and drop nodes here to build your workflow
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="container mx-auto p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Visual Workflow Builder</h1>
+        <p className="text-gray-600">
+          Build powerful workflows by combining AI agents with visual automation skills
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="text-red-800">{error}</div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setError(null)}
+            className="mt-2"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
+
+      <div className="flex gap-6">
+        {/* Left Sidebar - Workflows */}
+        {renderWorkflowList()}
+        
+        {/* Center - Workflow Canvas */}
+        {renderWorkflowCanvas()}
+        
+        {/* Right Sidebar - Node Templates */}
+        {renderTemplatePalette()}
+      </div>
+
+      <div className="mt-8 p-6 bg-gray-50 rounded-lg">
+        <h3 className="text-lg font-semibold mb-3">What You Can Build</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="p-4 bg-white rounded-lg border">
+            <div className="font-medium mb-2">📧 Multi-Channel Messaging</div>
+            <div className="text-sm text-gray-600">
+              Automate Gmail, WhatsApp, and Messenger campaigns with AI-generated content
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-lg border">
+            <div className="font-medium mb-2">📱 Social Media Automation</div>
+            <div className="text-sm text-gray-600">
+              Post to Facebook, Instagram, LinkedIn with intelligent scheduling
+            </div>
+          </div>
+          <div className="p-4 bg-white rounded-lg border">
+            <div className="font-medium mb-2">🎯 Lead Generation</div>
+            <div className="text-sm text-gray-600">
+              Multi-platform lead enrichment and CRM synchronization
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

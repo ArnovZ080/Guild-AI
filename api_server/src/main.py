@@ -68,11 +68,18 @@ async def startup_event():
 
 # Ensure orchestrator health routes are always available even if other routes fail
 try:
-    from .routes import orchestrator_fixed as orchestrator
+    from .routes import orchestrator_unified as orchestrator
     app.include_router(orchestrator.router)
-    logger.info("✅ Orchestrator routes registered (standalone)")
+    logger.info("✅ Unified Orchestrator routes registered (standalone)")
 except Exception as e:
-    logger.error(f"Orchestrator route import failed: {e}")
+    logger.error(f"Unified Orchestrator route import failed: {e}")
+    # Fallback to fixed orchestrator
+    try:
+        from .routes import orchestrator_fixed as orchestrator
+        app.include_router(orchestrator.router)
+        logger.info("✅ Fallback Orchestrator routes registered")
+    except Exception as e2:
+        logger.error(f"Fallback Orchestrator route import failed: {e2}")
 
 # Hardwired orchestrator health as a safety net
 @app.get("/api/orchestrator/health")
@@ -153,7 +160,11 @@ app.add_middleware(
 
 # CORS configuration
 origins_env = os.getenv("ALLOWED_ORIGINS", "")
-allowed_origins = [o for o in (origins_env.split(",") if origins_env else []) if o]
+# Support both comma and semicolon separators
+if ";" in origins_env:
+    allowed_origins = [o.strip() for o in origins_env.split(";") if o.strip()]
+else:
+    allowed_origins = [o.strip() for o in origins_env.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins or ["*"],
@@ -163,91 +174,134 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-async def startup_event():
-    print("Starting up Guild API server...")
-    print("Server ready to handle agent interactions!")
+# Removed duplicate startup handler - merged into primary one above
 
 
-# Import remaining routes (with error handling)
+"""Per-router guarded registration to avoid all-or-nothing failures."""
+ROUTES_AVAILABLE = True
+
+def _safe_include(router_module_name: str, *, router_attr: str = "router", prefix: str | None = None, tags: list[str] | None = None):
+    global ROUTES_AVAILABLE
+    try:
+        module = __import__(f"{__name__.rsplit('.', 1)[0]}.routes.{router_module_name}", fromlist=[router_module_name])
+        router_obj = getattr(module, router_attr)
+        if prefix or tags:
+            app.include_router(router_obj, prefix=prefix if prefix else "", tags=tags)
+        else:
+            app.include_router(router_obj)
+        logger.info(f"✅ Registered router: {router_module_name}{' with prefix ' + prefix if prefix else ''}")
+    except Exception as e:
+        ROUTES_AVAILABLE = False
+        logger.error(f"❌ Failed to register router {router_module_name}: {e}")
+
+# CRITICAL ROUTERS - Must be available for core functionality
+logger.info("🚀 Registering critical routers...")
+_safe_include("auth_firebase", prefix="/api/auth", tags=["authentication"])
+_safe_include("onboarding", prefix="/api/onboarding", tags=["Onboarding"])
+_safe_include("user_config", prefix="/api/user-config", tags=["user-config"])
+_safe_include("orchestrator_unified", prefix="/api/orchestrator", tags=["Unified Orchestrator"])
+_safe_include("subscription", prefix="/api/subscription", tags=["subscription"])
+_safe_include("waitlist", prefix="/api/waitlist", tags=["waitlist"])
+_safe_include("agents_available", prefix="/api/agents", tags=["agents"])
+_safe_include("connectors", prefix="/api/connectors", tags=["connectors"])
+_safe_include("conversations", prefix="/api/conversations", tags=["conversations"])
+
+# DATABASE & KNOWLEDGE ROUTERS
+logger.info("📚 Registering database and knowledge routers...")
+_safe_include("knowledge", prefix="/api/knowledge", tags=["knowledge"])
+_safe_include("database_migration", prefix="/api/migration", tags=["migration"])
+_safe_include("conversations", prefix="/api/conversations", tags=["conversations"])
+
+# BUSINESS INTELLIGENCE & ANALYTICS ROUTERS
+logger.info("📊 Registering business intelligence routers...")
+_safe_include("business_intelligence", prefix="/api/business-intelligence", tags=["business-intelligence"])
+_safe_include("customer_intelligence", prefix="/api/customer-intelligence", tags=["customer-intelligence"])
+_safe_include("analytics", prefix="/api/analytics", tags=["analytics"])
+_safe_include("dashboard_endpoints", prefix="/api/dashboard", tags=["dashboard"])
+
+# CONTENT & CAMPAIGN ROUTERS
+logger.info("📝 Registering content and campaign routers...")
+_safe_include("content", prefix="/api/content", tags=["content"])
+_safe_include("campaign_agents", prefix="/api/campaigns", tags=["campaigns"])
+_safe_include("asset_agents", prefix="/api/assets", tags=["assets"])
+
+# CALENDAR & SCHEDULING ROUTERS
+logger.info("📅 Registering calendar routers...")
+_safe_include("calendar", prefix="/api/calendar", tags=["calendar"])
+_safe_include("calendar_oauth", prefix="/api/calendar-oauth", tags=["calendar-oauth"])
+
+# GOALS & ACHIEVEMENTS ROUTERS
+logger.info("🎯 Registering goals and achievements routers...")
+_safe_include("goals", prefix="/api/goals", tags=["goals"])
+_safe_include("achievements", prefix="/api/achievements", tags=["achievements"])
+_safe_include("growth_opportunities", prefix="/api/growth-opportunities", tags=["growth-opportunities"])
+
+# ADDITIONAL ROUTERS (non-critical, best effort)
+logger.info("🔧 Registering additional routers...")
+_safe_include("agents", prefix="/api/agents-legacy", tags=["agents-legacy"])
+_safe_include("oauth", prefix="/api/oauth", tags=["oauth"])
+_safe_include("document_processing", prefix="/api/documents", tags=["documents"])
+_safe_include("credits", prefix="/api/credits", tags=["credits"])
+_safe_include("execution_layer", prefix="/api/execution", tags=["execution"])
+_safe_include("workspace", prefix="/api/workspace", tags=["workspace"])
+_safe_include("quality_control", prefix="/api/quality", tags=["quality-control"])
+_safe_include("business_ceo", prefix="/api/business-ceo", tags=["business-ceo"])
+_safe_include("executive_coordination", prefix="/api/executive", tags=["executive"])
+_safe_include("settings", prefix="/api/settings", tags=["settings"])
+_safe_include("notifications", prefix="/api/notifications", tags=["notifications"])
+_safe_include("geocode", prefix="/api/geocode", tags=["geocode"])
+_safe_include("profile", prefix="/api/profile", tags=["profile"])
+_safe_include("health", prefix="/api/health-extra", tags=["health"])
+
+# WEBSOCKET ROUTERS (no prefix needed)
+logger.info("🔌 Registering websocket routers...")
+_safe_include("content_ws", tags=["websockets"])
+_safe_include("workflow_websocket", tags=["websockets"])
+
+# MCP SERVER ROUTERS (Model Context Protocol endpoints)
+logger.info("🤖 Registering MCP server routers...")
+# Import and mount MCP servers as sub-applications
 try:
-    from .routes import agents, oauth, document_processing, auth_firebase as auth, subscription, credits
-    from .routes import execution_layer, connectors, onboarding, workspace, orchestrator_fixed as orchestrator, quality_control, business_intelligence, waitlist
-    from .routes import agents_available, analytics, health
-    from .routes import business_ceo, executive_coordination
-    from .routes import settings as settings_routes
-    from .routes import notifications as notifications_routes
-    from .routes import geocode as geocode_routes
-    from .routes import content_ws, workflow_websocket
-    from .routes import profile, content
-    from .routes import conversations
-    from .routes import campaign_agents, asset_agents
-    from .routes import growth_opportunities
-    from .routes import calendar
-    from .routes import calendar_oauth
-    from .routes import customer_intelligence
-    from .routes import dashboard_endpoints
-    # Include routers only if imports succeeded
-    app.include_router(agents.router)
-    app.include_router(oauth.router)
-    app.include_router(document_processing.router)
-    app.include_router(auth.router)
-    app.include_router(subscription.router)
-    app.include_router(credits.router)
-    app.include_router(execution_layer.router)
-    app.include_router(connectors.router)
-    app.include_router(onboarding.router)
-    app.include_router(waitlist.router)
-    app.include_router(orchestrator.router)
-    app.include_router(quality_control.router)
-    app.include_router(business_intelligence.router)
-    app.include_router(workspace.router)
-    app.include_router(agents_available.router)
-    app.include_router(analytics.router)
-    app.include_router(health.router)
-    app.include_router(business_ceo.router)
-    app.include_router(executive_coordination.router)
-    app.include_router(settings_routes.router)
-    app.include_router(notifications_routes.router)
-    app.include_router(geocode_routes.router)
-    # WS routers
-    app.include_router(content_ws.router)
-    app.include_router(workflow_websocket.router)
-    # Business profile and content intelligence routes
-    app.include_router(profile.router)
-    app.include_router(content.router)
-    # Batch A: campaign-related agent endpoints
-    app.include_router(campaign_agents.router)
-    # Asset generation agents (image, video, editing)
-    app.include_router(asset_agents.router)
-    # Conversations aggregation endpoints
-    app.include_router(conversations.router)
-    # Customer intelligence endpoints
-    app.include_router(customer_intelligence.router)
-    # Goals router
-    from .routes import goals
-    app.include_router(goals.router)
-    # Achievements router
-    from .routes import achievements
-    app.include_router(achievements.router)
-    # Growth opportunities router
-    app.include_router(growth_opportunities.router)
-    # Calendar router
-    app.include_router(calendar.router)
-    app.include_router(calendar_oauth.router)
-    # Dashboard endpoints (social, financial, marketing)
-    app.include_router(dashboard_endpoints.router)
-    # User configuration endpoints
-    from .routes import user_config
-    app.include_router(user_config.router)
+    from .mcp import (
+        social_media_mcp_server, crm_mcp_server, accounting_mcp_server,
+        calendar_mcp_server, ecommerce_mcp_server, analytics_mcp_server,
+        project_management_mcp_server, payments_mcp_server,
+        communication_mcp_server, email_marketing_mcp_server,
+        ad_platforms_mcp_server, support_mcp_server,
+        cloud_infrastructure_mcp_server, ai_analytics_mcp_server,
+        human_os_mcp_server, design_media_mcp_server,
+        intelligence_mcp_server, recruitment_mcp_server,
+        seo_tools_mcp_server, productivity_mcp_server
+    )
     
-    ROUTES_AVAILABLE = True
-    logger.info("✅ All routes imported and registered successfully")
+    # Mount each MCP server as a sub-application
+    app.mount("/mcp/social-media", social_media_mcp_server.app)
+    app.mount("/mcp/crm", crm_mcp_server.app)
+    app.mount("/mcp/accounting", accounting_mcp_server.app)
+    app.mount("/mcp/calendar", calendar_mcp_server.app)
+    app.mount("/mcp/ecommerce", ecommerce_mcp_server.app)
+    app.mount("/mcp/analytics", analytics_mcp_server.app)
+    app.mount("/mcp/project-management", project_management_mcp_server.app)
+    app.mount("/mcp/payments", payments_mcp_server.app)
+    app.mount("/mcp/communication", communication_mcp_server.app)
+    app.mount("/mcp/email-marketing", email_marketing_mcp_server.app)
+    app.mount("/mcp/ad-platforms", ad_platforms_mcp_server.app)
+    app.mount("/mcp/support", support_mcp_server.app)
+    app.mount("/mcp/cloud-infrastructure", cloud_infrastructure_mcp_server.app)
+    app.mount("/mcp/ai-analytics", ai_analytics_mcp_server.app)
+    app.mount("/mcp/human-os", human_os_mcp_server.app)
+    app.mount("/mcp/design-media", design_media_mcp_server.app)
+    app.mount("/mcp/intelligence", intelligence_mcp_server.app)
+    app.mount("/mcp/recruitment", recruitment_mcp_server.app)
+    app.mount("/mcp/seo-tools", seo_tools_mcp_server.app)
+    app.mount("/mcp/productivity", productivity_mcp_server.app)
+    
+    logger.info("✅ 20 MCP servers mounted successfully")
 except Exception as e:
-    logger.error(f"Route imports failed: {e}")
-    import traceback
-    logger.error(f"Import traceback: {traceback.format_exc()}")
-    ROUTES_AVAILABLE = False
+    logger.warning(f"⚠️ Failed to mount MCP servers: {e}")
+    logger.info("MCP functionality will be unavailable, but core system will continue")
+
+logger.info("✅ Router registration complete")
 # Serve uploads directory for profile assets
 import os
 uploads_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "uploads"))
@@ -255,25 +309,7 @@ os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 # app.include_router(business_metrics.router)  # Module doesn't exist
 
-# Comment out other routes that depend on database
-# from api_server.src.routes import workflows, data_rooms, onboarding, schedules, webhooks, vision, voice
-# app.include_router(workflows.router)
-# app.include_router(data_rooms.router)
-# app.include_router(onboarding.router)
-# app.include_router(schedules.router)
-# app.include_router(webhooks.router)
-# app.include_router(vision.router)
-# app.include_router(voice.router)
-
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
-
-@app.get("/api/health")
-async def api_health():
-    """API health check endpoint"""
-    return {"message": "Guild API Server is running.", "status": "ok"}
+# Removed duplicate /health and /api/health - they're already defined above at lines 121-145
 
 # Custom 404 handler for SPA routing
 from fastapi.exceptions import HTTPException as StarletteHTTPException
@@ -294,7 +330,7 @@ async def custom_404_handler(request, exc):
         )
     
     # For all other routes, serve index.html (SPA routing)
-    frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+    frontend_dist = "/app/frontend/dist"
     index_path = os.path.join(frontend_dist, "index.html")
     
     if os.path.exists(index_path):
@@ -308,7 +344,7 @@ async def custom_404_handler(request, exc):
 
 # Serve frontend static files (must be last!)
 # This catches all routes not matched by API endpoints
-frontend_dist = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
+frontend_dist = "/app/frontend/dist"
 if os.path.exists(frontend_dist):
     logger.info(f"Serving frontend from: {frontend_dist}")
     # NOTE: Do NOT use html=True - it breaks API POST requests!
@@ -317,7 +353,7 @@ if os.path.exists(frontend_dist):
 else:
     logger.warning(f"Frontend dist directory not found: {frontend_dist}")
     # Also check build directory as fallback
-    frontend_build = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "build"))
+    frontend_build = "/app/frontend/build"
     if os.path.exists(frontend_build):
         logger.info(f"Serving frontend from build directory: {frontend_build}")
         # NOTE: Do NOT use html=True - it breaks API POST requests!

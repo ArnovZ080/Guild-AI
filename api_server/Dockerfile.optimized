@@ -1,0 +1,120 @@
+# Multi-stage optimized Dockerfile for Guild-AI
+# This reduces image size by using multi-stage builds and excluding unnecessary files
+
+# Stage 1: Build frontend
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+
+# Copy only package files first for better caching
+COPY frontend/package*.json ./
+RUN npm ci --only=production
+
+# Copy frontend source and build
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python dependencies
+FROM python:3.11-slim AS python-deps
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    libgthread-2.0-0 \
+    libgtk-3-0 \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libv4l-dev \
+    libxvidcore-dev \
+    libx264-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    wget \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only requirements first for better caching
+COPY api_server/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 3: Final production image
+FROM python:3.11-slim
+WORKDIR /app
+
+# Install only runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    libgl1 \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    libgthread-2.0-0 \
+    libgtk-3-0 \
+    libavcodec58 \
+    libavformat58 \
+    libswscale5 \
+    libv4l-0 \
+    libxvidcore4 \
+    libx264-160 \
+    libjpeg62-turbo \
+    libpng16-16 \
+    libtiff5 \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python dependencies from previous stage
+COPY --from=python-deps /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-deps /usr/local/bin /usr/local/bin
+
+# Copy only necessary files
+COPY api_server/src/ ./api_server/src/
+COPY api_server/entrypoint.sh ./api_server/entrypoint.sh
+COPY api_server/requirements.txt ./api_server/requirements.txt
+
+# Copy essential platform directories
+COPY llm/ ./llm/
+COPY AI/ ./AI/
+COPY guild/ ./guild/
+COPY models/ ./models/
+COPY scripts/ ./scripts/
+COPY utils/ ./utils/
+COPY backend/ ./backend/
+
+# Copy built frontend from first stage
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV OPENCV_VIDEOIO_PRIORITY_MSMF=0
+ENV DISPLAY=:99
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
+
+# Use entrypoint script
+ENTRYPOINT ["./api_server/entrypoint.sh"]

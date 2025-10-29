@@ -1,0 +1,1902 @@
+import React, { useState, useEffect } from 'react';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { 
+  Calendar, 
+  Clock, 
+  Target, 
+  List, 
+  Grid3X3, 
+  Plus, 
+  Bell, 
+  BarChart3, 
+  Zap,
+  CheckCircle,
+  GitBranch,
+  Edit,
+  ChevronLeft,
+  ChevronRight,
+  Shuffle,
+  Sparkles,
+  X,
+  Brain,
+  Activity,
+  TestTube,
+  DollarSign,
+  Calculator
+} from 'lucide-react';
+
+import DroppableCalendarDay from '../calendar/DroppableCalendarDay';
+import ContentDetailsModal from '../modals/ContentDetailsModal';
+import CreateContentModal from '../modals/CreateContentModal';
+import EditContentModal from '../modals/EditContentModal';
+import AutonomousContentModal from '../modals/AutonomousContentModal';
+import PerformanceAnalyticsModal from '../modals/PerformanceAnalyticsModal';
+import ApprovalModal from '../modals/ApprovalModal';
+import VersionHistoryModal from '../modals/VersionHistoryModal';
+import ContentRepurposeModal from '../modals/ContentRepurposeModal';
+import AIContentSuggestionsModal from '../modals/AIContentSuggestionsModal';
+import ScheduleContentModal from '../modals/ScheduleContentModal';
+import PerformanceForecastingModal from '../modals/PerformanceForecastingModal';
+import AdaptiveReschedulingModal from '../modals/AdaptiveReschedulingModal';
+import MultiAgentOrchestrationModal from '../modals/MultiAgentOrchestrationModal';
+import DynamicSlotsModal from '../modals/DynamicSlotsModal';
+import GrowthGoalsModal from '../modals/GrowthGoalsModal';
+import AutoABTestingModal from '../modals/AutoABTestingModal';
+import RevenueAttributionModal from '../modals/RevenueAttributionModal';
+import ScenarioSimulationModal from '../modals/ScenarioSimulationModal';
+
+const ContentCalendarTab = ({ calendar, hiredAgents = [], campaigns = [], highlightedCampaign = null, onHighlightCampaign = null }) => {
+  const [viewMode, setViewMode] = useState('month'); // month, week, day, list, kanban
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedContent, setSelectedContent] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [filterPlatform, setFilterPlatform] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [localCalendar, setLocalCalendar] = useState(calendar?.calendar || []);
+  const [selectedItems, setSelectedItems] = useState(new Set());
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [showAutonomousModal, setShowAutonomousModal] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalContent, setApprovalContent] = useState(null);
+  const [showVersionModal, setShowVersionModal] = useState(false);
+  const [versionContent, setVersionContent] = useState(null);
+  const [showRepurposeModal, setShowRepurposeModal] = useState(false);
+  const [repurposeContent, setRepurposeContent] = useState(null);
+  const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleContent, setScheduleContent] = useState(null);
+  const [showForecastModal, setShowForecastModal] = useState(false);
+  const [forecastContent, setForecastContent] = useState(null);
+  const [showAdaptiveRescheduleModal, setShowAdaptiveRescheduleModal] = useState(false);
+  const [adaptiveRescheduleContent, setAdaptiveRescheduleContent] = useState(null);
+  const [showOrchestrationModal, setShowOrchestrationModal] = useState(false);
+  const [orchestrationContent, setOrchestrationContent] = useState(null);
+  const [showDynamicSlotsModal, setShowDynamicSlotsModal] = useState(false);
+  const [dynamicSlotsContent, setDynamicSlotsContent] = useState(null);
+  const [showGrowthGoalsModal, setShowGrowthGoalsModal] = useState(false);
+  const [growthGoalsContent, setGrowthGoalsContent] = useState(null);
+  const [showABTestingModal, setShowABTestingModal] = useState(false);
+  const [abTestingContent, setABTestingContent] = useState(null);
+  const [showRevenueAttributionModal, setShowRevenueAttributionModal] = useState(false);
+  const [revenueAttributionContent, setRevenueAttributionContent] = useState(null);
+  const [showScenarioSimulationModal, setShowScenarioSimulationModal] = useState(false);
+  const [scenarioSimulationContent, setScenarioSimulationContent] = useState(null);
+  const [selectedPosts, setSelectedPosts] = useState([]);
+  const [showOptimizationToolbar, setShowOptimizationToolbar] = useState(false);
+  const [showEditorialGuidelines, setShowEditorialGuidelines] = useState(false);
+  const [showDeadlines, setShowDeadlines] = useState(false);
+  const [showCampaignOverview, setShowCampaignOverview] = useState(false);
+  const [selectedTimezone, setSelectedTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC');
+
+  const platforms = ['all', 'instagram', 'linkedin', 'twitter', 'facebook', 'tiktok', 'youtube', 'email'];
+  const statuses = ['all', 'idea', 'draft', 'review', 'pending_approval', 'approved', 'scheduled', 'published', 'archived'];
+
+  // Update local calendar when prop changes
+  useEffect(() => {
+    if (calendar?.calendar) {
+      setLocalCalendar(calendar.calendar);
+    }
+  }, [calendar]);
+
+  // Editorial Guidelines (from onboarding)
+  const getEditorialGuidelines = () => {
+    try {
+      const data = JSON.parse(localStorage.getItem('guild_onboarding_data') || '{}');
+      const brandVoice = data.brandVoice || data.answers?.[11] || '';
+      const keywords = data.brandKeywords || [];
+      const dos = data.brandDos || [];
+      const donts = data.brandDonts || [];
+      return { brandVoice, keywords, dos, donts };
+    } catch (e) {
+      return { brandVoice: '', keywords: [], dos: [], donts: [] };
+    }
+  };
+  const editorial = getEditorialGuidelines();
+
+  // Filter content based on search and filters
+  const filteredCalendar = localCalendar.filter(item => {
+    const matchesPlatform = filterPlatform === 'all' || item.platform === filterPlatform;
+    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
+    const matchesSearch = searchQuery === '' || 
+      (item.content_preview || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.platform || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.content_type || '').toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesPlatform && matchesStatus && matchesSearch;
+  });
+
+  // Get content for a specific date
+  const getContentForDate = (date) => {
+    return filteredCalendar.filter(item => 
+      new Date(item.scheduled_date).toDateString() === date.toDateString()
+    );
+  };
+
+  // Helper function to format dates with timezone
+  const formatDateWithTimezone = (dateString, timezone = selectedTimezone) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch (error) {
+      return new Date(dateString).toLocaleDateString();
+    }
+  };
+
+  // Get content for current view
+  const getViewContent = () => {
+    const content = [];
+    const today = new Date();
+    
+    if (viewMode === 'month') {
+      // Show proper calendar month view
+      const year = selectedDate.getFullYear();
+      const month = selectedDate.getMonth();
+      
+      // Get first day of month and last day of month
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+      
+      // Get first Monday of the week containing the first day (or show previous month's days)
+      const startDate = new Date(firstDay);
+      startDate.setDate(firstDay.getDate() - firstDay.getDay());
+      
+      // Get last Sunday of the week containing the last day (or show next month's days)
+      const endDate = new Date(lastDay);
+      endDate.setDate(lastDay.getDate() + (6 - lastDay.getDay()));
+      
+      // Generate all days in the calendar grid
+      for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+        content.push({
+          date: new Date(date),
+          content: getContentForDate(date),
+          isCurrentMonth: date.getMonth() === month,
+          isToday: date.toDateString() === today.toDateString()
+        });
+      }
+    } else if (viewMode === 'week') {
+      // Show 7 days from selected date
+      const startDate = new Date(selectedDate);
+      startDate.setDate(selectedDate.getDate() - selectedDate.getDay());
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        content.push({
+          date,
+          content: getContentForDate(date)
+        });
+      }
+    } else if (viewMode === 'day') {
+      // Show single day
+      content.push({
+        date: selectedDate,
+        content: getContentForDate(selectedDate)
+      });
+    }
+    
+    return content;
+  };
+
+  const viewContent = getViewContent();
+
+  // Highlighted campaign date-range helper
+  const getHighlightedCampaign = () => {
+    if (!highlightedCampaign || !Array.isArray(campaigns) || campaigns.length === 0) return null;
+    return campaigns.find(c => (c.id || c.campaign_id) === highlightedCampaign) || null;
+  };
+
+  const isDateWithinHighlightedCampaign = (date) => {
+    const campaign = getHighlightedCampaign();
+    if (!campaign) return false;
+    const start = campaign.startDate ? new Date(campaign.startDate) : null;
+    const end = campaign.endDate ? new Date(campaign.endDate) : null;
+    if (!start && !end) return false;
+    const d = new Date(date);
+    d.setHours(0,0,0,0);
+    if (start) start.setHours(0,0,0,0);
+    if (end) end.setHours(0,0,0,0);
+    if (start && end) return d >= start && d <= end;
+    if (start && !end) return d.getTime() === start.getTime();
+    if (!start && end) return d.getTime() === end.getTime();
+    return false;
+  };
+
+  // Handle content move via drag and drop
+  const handleContentMove = (content, newDate) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === content.content_id 
+          ? { ...item, scheduled_date: newDate.toISOString() }
+          : item
+      )
+    );
+  };
+
+  // Handle content click
+  const handleContentClick = (content) => {
+    setSelectedContent(content);
+  };
+
+  // Handle approval request
+  const handleApprovalRequest = (content) => {
+    setApprovalContent(content);
+    setShowApprovalModal(true);
+  };
+
+  // Handle approval actions
+  const handleApproval = (approvalData) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === approvalData.content_id 
+          ? { 
+              ...item, 
+              status: 'approved',
+              approval_history: [...(item.approval_history || []), approvalData],
+              last_approved: approvalData.timestamp,
+              approved_by: approvalData.user
+            }
+          : item
+      )
+    );
+    setShowApprovalModal(false);
+    setApprovalContent(null);
+  };
+
+  const handleRejection = (approvalData) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === approvalData.content_id 
+          ? { 
+              ...item, 
+              status: 'draft',
+              approval_history: [...(item.approval_history || []), approvalData],
+              last_rejected: approvalData.timestamp,
+              rejected_by: approvalData.user,
+              rejection_reason: approvalData.comment
+            }
+          : item
+      )
+    );
+    setShowApprovalModal(false);
+    setApprovalContent(null);
+  };
+
+  const handleRequestChanges = (approvalData) => {
+    setLocalCalendar(prevCalendar => 
+      prevCalendar.map(item => 
+        item.content_id === approvalData.content_id 
+          ? { 
+              ...item, 
+              status: 'draft',
+              approval_history: [...(item.approval_history || []), approvalData],
+              last_changes_requested: approvalData.timestamp,
+              changes_requested_by: approvalData.user,
+              changes_requested: approvalData.comment
+            }
+          : item
+      )
+    );
+    setShowApprovalModal(false);
+    setApprovalContent(null);
+  };
+
+  // Calendar navigation functions
+  const goToPreviousMonth = () => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() - 1);
+      return newDate;
+    });
+  };
+
+  const goToNextMonth = () => {
+    setSelectedDate(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + 1);
+      return newDate;
+    });
+  };
+
+  const goToToday = () => {
+    setSelectedDate(new Date());
+  };
+
+  const getMonthYearDisplay = () => {
+    return selectedDate.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
+  // Repurpose functions
+  const handleRepurpose = (content) => {
+    setRepurposeContent(content);
+    setShowRepurposeModal(true);
+  };
+
+  const handleRepurposeSave = (repurposedItems) => {
+    // Add all repurposed items to the calendar
+    setLocalCalendar(prev => [...prev, ...repurposedItems]);
+  };
+
+  const handleAISuggestionsSave = (suggestedItems) => {
+    // Add all suggested items to the calendar
+    setLocalCalendar(prev => [...prev, ...suggestedItems]);
+  };
+
+  const handleScheduleContent = (content) => {
+    setScheduleContent(content);
+    setShowScheduleModal(true);
+  };
+
+  const handleScheduleSave = (updatedContent) => {
+    // Update the content in the calendar
+    setLocalCalendar(prev =>
+      prev.map(item =>
+        item.content_id === updatedContent.content_id ? updatedContent : item
+      )
+    );
+    setShowScheduleModal(false);
+    setScheduleContent(null);
+    setSelectedContent(null);
+  };
+
+  const handleForecastContent = (content) => {
+    setForecastContent(content);
+    setShowForecastModal(true);
+  };
+
+  const handleOptimizeContent = (optimizedContent) => {
+    // Add the optimized content to the calendar
+    setLocalCalendar(prev => [...prev, optimizedContent]);
+  };
+
+  const handleAdaptiveRescheduleContent = (content) => {
+    setAdaptiveRescheduleContent(content);
+    setShowAdaptiveRescheduleModal(true);
+  };
+
+  const handleApplyAdaptiveRescheduling = (optimizedContent, appliedSuggestions) => {
+    // Add the rescheduled content to the calendar
+    setLocalCalendar(prev => [...prev, optimizedContent]);
+    
+    // Show success feedback
+    alert(`Successfully applied ${appliedSuggestions.length} rescheduling optimization(s)! New content added to calendar.`);
+  };
+
+  const handleOrchestrateContent = (content) => {
+    setOrchestrationContent(content);
+    setShowOrchestrationModal(true);
+  };
+
+  const handleApplyOrchestration = (optimizedContent) => {
+    // Add the orchestrated content to the calendar
+    setLocalCalendar(prev => [...prev, optimizedContent]);
+    
+    // Show success feedback
+    alert(`Multi-agent orchestration complete! Optimized content added to calendar with ${Math.round(optimizedContent.orchestration_score * 100)}% quality score.`);
+  };
+
+  // Dynamic Slots handlers
+  const handleDynamicSlotsContent = (content) => {
+    setDynamicSlotsContent(content);
+    setShowDynamicSlotsModal(true);
+  };
+
+  const handleApplyDynamicSlots = (optimizedContent, appliedOptimizations) => {
+    setLocalCalendar(prev => 
+      prev.map(item => 
+        item.id === optimizedContent.id ? optimizedContent : item
+      )
+    );
+    setShowDynamicSlotsModal(false);
+    setDynamicSlotsContent(null);
+    
+    // Show success feedback
+    alert(`Dynamic slots optimization applied! Content rescheduled with ${appliedOptimizations.length} optimization(s) for maximum engagement.`);
+  };
+
+  // Growth Goals handlers
+  const handleGrowthGoalsContent = (content) => {
+    setGrowthGoalsContent(content);
+    setShowGrowthGoalsModal(true);
+  };
+
+  const handleApplyGrowthStrategy = (newContentItems, appliedStrategies) => {
+    setLocalCalendar(prev => [...prev, ...newContentItems]);
+    setShowGrowthGoalsModal(false);
+    setGrowthGoalsContent(null);
+    
+    // Show success feedback
+    alert(`Growth strategy applied! Generated ${newContentItems.length} content items based on ${appliedStrategies.length} selected strategy(ies) for ambitious growth targets.`);
+  };
+
+  // A/B Testing handlers
+  const handleABTestingContent = (content) => {
+    setABTestingContent(content);
+    setShowABTestingModal(true);
+  };
+
+  const handleApplyABTests = (testContentItems, appliedTests) => {
+    setLocalCalendar(prev => [...prev, ...testContentItems]);
+    setShowABTestingModal(false);
+    setABTestingContent(null);
+    
+    // Show success feedback
+    alert(`A/B testing launched! Created ${testContentItems.length} test variants based on ${appliedTests.length} selected test(s) for automated optimization.`);
+  };
+
+  // Revenue Attribution handlers
+  const handleRevenueAttributionContent = (content) => {
+    setRevenueAttributionContent(content);
+    setShowRevenueAttributionModal(true);
+  };
+
+  const handleApplyRevenueOptimization = (optimizedContent, appliedStrategies) => {
+    setLocalCalendar(prev => 
+      prev.map(item => 
+        item.id === optimizedContent.id ? optimizedContent : item
+      )
+    );
+    setShowRevenueAttributionModal(false);
+    setRevenueAttributionContent(null);
+    
+    // Show success feedback
+    alert(`Revenue optimization applied! Content optimized with ${appliedStrategies.length} revenue strategy(ies) for maximum ROI.`);
+  };
+
+  // Scenario Simulation handlers
+  const handleScenarioSimulationContent = (content) => {
+    setScenarioSimulationContent(content);
+    setShowScenarioSimulationModal(true);
+  };
+
+  const handleApplyScenario = (optimizedContent, appliedScenarios) => {
+    setLocalCalendar(prev => 
+      prev.map(item => 
+        item.id === optimizedContent.id ? optimizedContent : item
+      )
+    );
+    setShowScenarioSimulationModal(false);
+    setScenarioSimulationContent(null);
+    
+    // Show success feedback
+    alert(`Scenario simulation applied! Content optimized based on ${appliedScenarios.length} selected scenario(s) for strategic growth.`);
+  };
+
+  // Post selection and bulk operations
+  const handlePostSelection = (postId, isSelected) => {
+    if (isSelected) {
+      setSelectedPosts(prev => [...prev, postId]);
+    } else {
+      setSelectedPosts(prev => prev.filter(id => id !== postId));
+    }
+  };
+
+  const handleSelectAllPosts = () => {
+    const allPostIds = localCalendar.map(post => post.id);
+    setSelectedPosts(allPostIds);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPosts([]);
+  };
+
+  const handleBulkOptimization = (optimizationType) => {
+    if (selectedPosts.length === 0) {
+      alert('Please select at least one post to apply optimization.');
+      return;
+    }
+
+    const selectedContent = localCalendar.find(post => post.id === selectedPosts[0]);
+    if (!selectedContent) return;
+
+    // Apply optimization to first selected post (for modal display)
+    // In a real implementation, this would process all selected posts
+    switch (optimizationType) {
+      case 'optimize_schedule':
+        handleAdaptiveRescheduleContent(selectedContent);
+        break;
+      case 'orchestrate':
+        handleOrchestrateContent(selectedContent);
+        break;
+      case 'dynamic_slots':
+        handleDynamicSlotsContent(selectedContent);
+        break;
+      case 'growth_goals':
+        handleGrowthGoalsContent(selectedContent);
+        break;
+      case 'ab_testing':
+        handleABTestingContent(selectedContent);
+        break;
+      case 'revenue_attribution':
+        handleRevenueAttributionContent(selectedContent);
+        break;
+      case 'scenario_simulation':
+        handleScenarioSimulationContent(selectedContent);
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Version control functions
+  const handleVersionHistory = (content) => {
+    setVersionContent(content);
+    setShowVersionModal(true);
+  };
+
+  const handleRestoreVersion = (version) => {
+    if (versionContent) {
+      // Update the content with the restored version data
+      const updatedContent = {
+        ...versionContent,
+        ...version.content_snapshot,
+        version_history: [...(versionContent.version_history || []), {
+          id: `restore_${Date.now()}`,
+          version: `${parseFloat(version.version) + 0.1}`,
+          timestamp: new Date().toISOString(),
+          author: 'You',
+          changes: [`Restored from version ${version.version}`],
+          status: 'restored',
+          restored_from: version.id
+        }]
+      };
+
+      setLocalCalendar(prev => 
+        prev.map(item => 
+          item.content_id === versionContent.content_id ? updatedContent : item
+        )
+      );
+    }
+  };
+
+  // Campaign syncing functions
+
+  // Sync campaigns from Campaign Tab (this would be called when campaigns are updated)
+  const syncCampaigns = (campaignData) => {
+    setCampaigns(campaignData);
+  };
+
+  // Get content associated with campaigns
+  const getCampaignContent = (campaignId) => {
+    return localCalendar.filter(content => content.campaign_id === campaignId);
+  };
+
+  // Handle item selection for bulk operations
+  const handleItemSelect = (contentId, isSelected) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (isSelected) {
+        newSet.add(contentId);
+      } else {
+        newSet.delete(contentId);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    if (selectedItems.size === filteredCalendar.length) {
+      setSelectedItems(new Set());
+    } else {
+      const allIds = new Set(filteredCalendar.map(item => item.content_id));
+      setSelectedItems(allIds);
+    }
+  };
+
+
+  // Get upcoming deadlines and reminders
+  const getUpcomingDeadlines = () => {
+    const now = new Date();
+    const deadlines = [];
+
+    // Check for content due for review
+    filteredCalendar.forEach(content => {
+      const scheduledDate = new Date(content.scheduled_date);
+      const daysUntil = Math.ceil((scheduledDate - now) / (1000 * 60 * 60 * 24));
+      
+      if (content.status === 'draft' && daysUntil <= 2 && daysUntil >= 0) {
+        deadlines.push({
+          title: `${content.platform} ${content.content_type} needs review`,
+          description: `"${content.content_preview.substring(0, 50)}..."`,
+          dueDate: scheduledDate.toLocaleDateString(),
+          timeRemaining: daysUntil === 0 ? 'Due today' : `${daysUntil} day${daysUntil === 1 ? '' : 's'} left`,
+          urgency: daysUntil === 0 ? 'high' : 'medium'
+        });
+      }
+      
+      if (content.status === 'review' && daysUntil <= 1 && daysUntil >= 0) {
+        deadlines.push({
+          title: `${content.platform} ${content.content_type} ready to publish`,
+          description: `"${content.content_preview.substring(0, 50)}..."`,
+          dueDate: scheduledDate.toLocaleDateString(),
+          timeRemaining: daysUntil === 0 ? 'Due today' : `${daysUntil} day${daysUntil === 1 ? '' : 's'} left`,
+          urgency: daysUntil === 0 ? 'high' : 'medium'
+        });
+      }
+    });
+
+    // Check for overdue content
+    filteredCalendar.forEach(content => {
+      const scheduledDate = new Date(content.scheduled_date);
+      const daysOverdue = Math.ceil((now - scheduledDate) / (1000 * 60 * 60 * 24));
+      
+      if ((content.status === 'draft' || content.status === 'review') && daysOverdue > 0) {
+        deadlines.push({
+          title: `Overdue: ${content.platform} ${content.content_type}`,
+          description: `"${content.content_preview.substring(0, 50)}..."`,
+          dueDate: scheduledDate.toLocaleDateString(),
+          timeRemaining: `${daysOverdue} day${daysOverdue === 1 ? '' : 's'} overdue`,
+          urgency: 'high'
+        });
+      }
+    });
+
+    return deadlines.sort((a, b) => {
+      if (a.urgency === 'high' && b.urgency !== 'high') return -1;
+      if (b.urgency === 'high' && a.urgency !== 'high') return 1;
+      return 0;
+    });
+  };
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+    <div className="space-y-6">
+      {/* Enhanced Header with Controls */}
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
+          <div className="flex items-center">
+            <Calendar className="w-6 h-6 text-purple-500 mr-3" />
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Content Calendar</h3>
+              <p className="text-sm text-gray-600">Plan and schedule your content across all platforms</p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {/* Top Row: Create Content, AI Suggestions, Autonomous Content */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Create Content Button */}
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create Content
+              </button>
+
+              {/* AI Content Suggestions Button */}
+              <button 
+                onClick={() => setShowAISuggestionsModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-colors flex items-center"
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                AI Suggestions
+              </button>
+
+              {/* Autonomous Content Creation Button */}
+              <button 
+                onClick={() => setShowAutonomousModal(true)}
+                className="px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-colors flex items-center"
+              >
+                <Zap className="w-4 h-4 mr-2" />
+                Autonomous Content
+              </button>
+            </div>
+
+            {/* Bottom Row: Pending, Analytics */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Request Approval Button */}
+              <button 
+                onClick={() => {
+                  const pendingApproval = filteredCalendar.find(item => item.status === 'review');
+                  if (pendingApproval) {
+                    handleApprovalRequest(pendingApproval);
+                  } else {
+                    alert('No content in review status found. Please create content and set it to review status first.');
+                  }
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Pending ({filteredCalendar.filter(item => item.status === 'review').length})
+              </button>
+
+              {/* Performance Analytics Button */}
+              <button 
+                onClick={() => setShowAnalyticsModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Analytics
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Filters and Search */}
+        <div className="flex flex-wrap items-center gap-4 mb-6">
+          {/* Select All Checkbox */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              checked={selectedItems.size === filteredCalendar.length && filteredCalendar.length > 0}
+              onChange={handleSelectAll}
+              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+            />
+            <label className="ml-2 text-sm text-gray-700">Select All</label>
+          </div>
+
+          {/* Search */}
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Search content..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+          </div>
+
+          {/* Platform Filter */}
+          <select
+            value={filterPlatform}
+            onChange={(e) => setFilterPlatform(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {platforms.map(platform => (
+              <option key={platform} value={platform}>
+                {platform === 'all' ? 'All Platforms' : platform.charAt(0).toUpperCase() + platform.slice(1)}
+              </option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {statuses.map(status => (
+              <option key={status} value={status}>
+                {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+              </option>
+            ))}
+          </select>
+
+          {/* Timezone Filter */}
+          <select
+            value={selectedTimezone}
+            onChange={(e) => setSelectedTimezone(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {['UTC','Africa/Johannesburg','America/New_York','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Dubai','Asia/Singapore','Asia/Tokyo','Australia/Sydney'].map(tz => (
+              <option key={tz} value={tz}>{tz}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Performance Analytics Summary */}
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <BarChart3 className="w-5 h-5 text-purple-500 mr-2" />
+            Content Performance Insights
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-purple-600">
+                {filteredCalendar.length}
+              </div>
+              <div className="text-sm text-gray-600">Total Scheduled</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">
+                {filteredCalendar.filter(item => item.status === 'published').length}
+              </div>
+              <div className="text-sm text-gray-600">Published</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">
+                {filteredCalendar.filter(item => item.status === 'scheduled').length}
+              </div>
+              <div className="text-sm text-gray-600">Scheduled</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">
+                {filteredCalendar.filter(item => item.ai_generated).length}
+              </div>
+              <div className="text-sm text-gray-600">AI Generated</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-orange-600">
+                {filteredCalendar.filter(item => item.status === 'pending_approval').length}
+              </div>
+              <div className="text-sm text-gray-600">Pending Approval</div>
+            </div>
+            <div className="bg-white p-3 rounded-lg">
+              <div className="text-2xl font-bold text-emerald-600">
+                {filteredCalendar.filter(item => item.status === 'approved').length}
+              </div>
+              <div className="text-sm text-gray-600">Approved</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Editorial Guidelines */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Editorial Guidelines</h3>
+            <button 
+              onClick={() => setShowEditorialGuidelines(!showEditorialGuidelines)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+            >
+              {showEditorialGuidelines ? 'Hide Guidelines' : 'View Guidelines'}
+            </button>
+          </div>
+          {showEditorialGuidelines && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Brand Voice</div>
+              <div className="text-gray-700 whitespace-pre-line">{editorial.brandVoice || 'No brand voice found. Set during onboarding.'}</div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Keywords</div>
+              <div className="text-gray-700">{Array.isArray(editorial.keywords) && editorial.keywords.length > 0 ? editorial.keywords.join(', ') : '—'}</div>
+            </div>
+            <div>
+              <div className="font-medium text-gray-800 mb-1">Do's & Don'ts</div>
+              <div className="text-gray-700">
+                {Array.isArray(editorial.dos) && editorial.dos.length > 0 && (
+                  <div className="mb-1"><span className="font-medium">Do:</span> {editorial.dos.join(', ')}</div>
+                )}
+                {Array.isArray(editorial.donts) && editorial.donts.length > 0 && (
+                  <div><span className="font-medium">Don't:</span> {editorial.donts.join(', ')}</div>
+                )}
+                {(!editorial.dos || editorial.dos.length === 0) && (!editorial.donts || editorial.donts.length === 0) && '—'}
+              </div>
+            </div>
+          </div>
+          )}
+        </div>
+
+        {/* Upcoming Deadlines & Reminders */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Bell className="w-5 h-5 text-orange-500 mr-2" />
+              Upcoming Deadlines & Reminders
+            </h3>
+            <button 
+              onClick={() => setShowDeadlines(!showDeadlines)}
+              className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center text-sm"
+            >
+              {showDeadlines ? 'Hide Deadlines' : 'View Deadlines'}
+            </button>
+          </div>
+          {showDeadlines && (
+          <div className="space-y-3">
+              <div className="text-sm text-gray-500 mb-4">
+                {getUpcomingDeadlines().length} items need attention
+              </div>
+            {getUpcomingDeadlines().slice(0, 5).map((item, idx) => (
+              <div key={idx} className={`p-3 rounded-lg border-l-4 ${
+                item.urgency === 'high' ? 'border-red-500 bg-red-50' :
+                item.urgency === 'medium' ? 'border-yellow-500 bg-yellow-50' :
+                'border-blue-500 bg-blue-50'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${
+                      item.urgency === 'high' ? 'bg-red-500' :
+                      item.urgency === 'medium' ? 'bg-yellow-500' :
+                      'bg-blue-500'
+                    }`}></div>
+                    <div>
+                      <div className="font-medium text-gray-900">{item.title}</div>
+                      <div className="text-sm text-gray-600">{item.description}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium text-gray-900">{item.dueDate}</div>
+                    <div className="text-xs text-gray-500">{item.timeRemaining}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {getUpcomingDeadlines().length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Bell className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No upcoming deadlines or reminders</p>
+              </div>
+            )}
+          </div>
+          )}
+        </div>
+
+
+        {/* Optimization Toolbar */}
+        {selectedPosts.length > 0 && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="font-medium text-gray-900">
+                    {selectedPosts.length} post{selectedPosts.length !== 1 ? 's' : ''} selected
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleSelectAllPosts}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-gray-300">|</span>
+                  <button
+                    onClick={handleClearSelection}
+                    className="text-xs text-gray-600 hover:text-gray-800 underline"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+              <button
+                onClick={handleClearSelection}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-gray-700">Apply optimization:</span>
+              <div className="flex items-center space-x-2 overflow-x-auto">
+                <button
+                  onClick={() => handleBulkOptimization('optimize_schedule')}
+                  className="px-3 py-1 bg-purple-600 text-white rounded-md text-sm hover:bg-purple-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Clock className="w-3 h-3 mr-1" />
+                  Optimize Schedule
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('orchestrate')}
+                  className="px-3 py-1 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Brain className="w-3 h-3 mr-1" />
+                  Orchestrate
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('dynamic_slots')}
+                  className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Activity className="w-3 h-3 mr-1" />
+                  Dynamic Slots
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('growth_goals')}
+                  className="px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Target className="w-3 h-3 mr-1" />
+                  Growth Goals
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('ab_testing')}
+                  className="px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <TestTube className="w-3 h-3 mr-1" />
+                  A/B Testing
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('revenue_attribution')}
+                  className="px-3 py-1 bg-emerald-600 text-white rounded-md text-sm hover:bg-emerald-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <DollarSign className="w-3 h-3 mr-1" />
+                  Revenue Attribution
+                </button>
+                <button
+                  onClick={() => handleBulkOptimization('scenario_simulation')}
+                  className="px-3 py-1 bg-violet-600 text-white rounded-md text-sm hover:bg-violet-700 transition-colors flex items-center whitespace-nowrap"
+                >
+                  <Calculator className="w-3 h-3 mr-1" />
+                  Scenario Simulation
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Campaign Overview Section */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Target className="w-5 h-5 text-purple-500 mr-2" />
+              Campaign Overview
+            </h3>
+            <button 
+              onClick={() => setShowCampaignOverview(!showCampaignOverview)}
+              className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-sm"
+            >
+              {showCampaignOverview ? 'Hide Campaigns' : 'View Campaigns'}
+            </button>
+          </div>
+          {showCampaignOverview && (
+            <div>
+              <div className="text-sm text-gray-600 mb-4">
+                Campaigns managed in Campaign Tab
+              </div>
+            
+            {campaigns && campaigns.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <Target className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns synced</h3>
+                <p className="text-gray-600 mb-4">Campaigns created in the Campaign Tab will appear here</p>
+                <div className="text-sm text-gray-500">
+                  Go to the Campaign Tab to create and manage campaigns
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {campaigns && campaigns.slice(0, 6).map((campaign) => (
+                  <div 
+                    key={campaign.id || campaign.campaign_id}
+                    className={`bg-white rounded-lg p-3 border-2 transition-all duration-200 ${
+                      highlightedCampaign === (campaign.id || campaign.campaign_id)
+                        ? 'border-purple-300 bg-purple-50 shadow-lg' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          campaign.status === 'active' ? 'bg-green-500' :
+                          campaign.status === 'paused' ? 'bg-yellow-500' :
+                          campaign.status === 'scheduled' ? 'bg-blue-500' :
+                          'bg-gray-500'
+                        }`}></div>
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                          {campaign.name}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                        campaign.status === 'paused' ? 'bg-yellow-100 text-yellow-800' :
+                        campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {campaign.status}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-600 mb-2">
+                      {campaign.platform} • ${campaign.budget}/day
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-500">
+                        {campaign.startDate && new Date(campaign.startDate).toLocaleDateString()}
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Highlight the campaign in the calendar
+                          console.log('Highlight campaign in calendar:', campaign.name);
+                          if (onHighlightCampaign) {
+                            onHighlightCampaign(campaign.id || campaign.campaign_id);
+                          }
+                          // Scroll to the calendar view
+                          const calendarElement = document.querySelector('[data-calendar-view]');
+                          if (calendarElement) {
+                            calendarElement.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                        className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                      >
+                        Show in Calendar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {campaigns && campaigns.length > 6 && (
+              <div className="text-center mt-3">
+                <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                  View All Campaigns ({campaigns.length})
+                </button>
+              </div>
+            )}
+            </div>
+          )}
+        </div>
+
+        {/* View Mode Toggle (moved above calendar) */}
+        <div className="flex bg-gray-100 rounded-lg p-1 mb-4">
+          {[
+            { id: 'month', label: 'Month', icon: Calendar },
+            { id: 'week', label: 'Week', icon: Clock },
+            { id: 'day', label: 'Day', icon: Target },
+            { id: 'list', label: 'List', icon: List },
+            { id: 'kanban', label: 'Kanban', icon: Grid3X3 }
+          ].map(mode => {
+            const Icon = mode.icon;
+            return (
+              <button
+                key={mode.id}
+                onClick={() => setViewMode(mode.id)}
+                className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === mode.id
+                    ? 'bg-white text-purple-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <Icon className="w-4 h-4 mr-1" />
+                {mode.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Calendar View */}
+        {viewMode === 'month' && (
+          <div className="space-y-4" data-calendar-view>
+            {/* Calendar Navigation Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-4">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  {getMonthYearDisplay()}
+                </h2>
+                <button
+                  onClick={goToToday}
+                  className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+                >
+                  Today
+                </button>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={goToPreviousMonth}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+                <button
+                  onClick={goToNextMonth}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Next Month"
+                >
+                  <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            {/* Month Header */}
+        <div className="grid grid-cols-7 gap-2 mb-4">
+          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+            <div key={day} className="text-center font-medium text-gray-600 py-2">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+            {/* Month Grid */}
+        <div className="grid grid-cols-7 gap-2">
+              {viewContent.map((dayData, i) => {
+                const inRange = isDateWithinHighlightedCampaign(dayData.date);
+                let isStart = false;
+                let isEnd = false;
+                const hc = getHighlightedCampaign();
+                if (inRange && hc) {
+                  const start = hc.startDate ? new Date(hc.startDate) : null;
+                  const end = hc.endDate ? new Date(hc.endDate) : null;
+                  if (start) start.setHours(0,0,0,0);
+                  if (end) end.setHours(0,0,0,0);
+                  const d = new Date(dayData.date);
+                  d.setHours(0,0,0,0);
+                  isStart = !!start && d.getTime() === start.getTime();
+                  isEnd = !!end && d.getTime() === end.getTime();
+                }
+                return (
+                  <DroppableCalendarDay
+                    key={i}
+                    date={dayData.date}
+                    content={dayData.content}
+                    onContentMove={handleContentMove}
+                    onContentClick={handleContentClick}
+                    onContentSelect={handlePostSelection}
+                    selectedItems={new Set(selectedPosts)}
+                    isCurrentMonth={dayData.isCurrentMonth}
+                    isToday={dayData.isToday}
+                    isInHighlightedRange={inRange}
+                    isRangeStart={isStart}
+                    isRangeEnd={isEnd}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'week' && (
+          <div className="space-y-4">
+            {/* Week Header */}
+            <div className="grid grid-cols-7 gap-2 mb-4">
+              {viewContent.map((dayData, i) => (
+                <div key={i} className="text-center font-medium text-gray-600 py-2">
+                  {dayData.date.toLocaleDateString('en-US', { weekday: 'short' })}
+                  <div className="text-sm text-gray-500">{dayData.date.getDate()}</div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Week Grid */}
+            <div className="grid grid-cols-7 gap-2">
+              {viewContent.map((dayData, i) => {
+                const inRange = isDateWithinHighlightedCampaign(dayData.date);
+                let isStart = false;
+                let isEnd = false;
+                const hc = getHighlightedCampaign();
+                if (inRange && hc) {
+                  const start = hc.startDate ? new Date(hc.startDate) : null;
+                  const end = hc.endDate ? new Date(hc.endDate) : null;
+                  if (start) start.setHours(0,0,0,0);
+                  if (end) end.setHours(0,0,0,0);
+                  const d = new Date(dayData.date);
+                  d.setHours(0,0,0,0);
+                  isStart = !!start && d.getTime() === start.getTime();
+                  isEnd = !!end && d.getTime() === end.getTime();
+                }
+                return (
+                  <DroppableCalendarDay
+                    key={i}
+                    date={dayData.date}
+                    content={dayData.content}
+                    onContentMove={handleContentMove}
+                    onContentClick={handleContentClick}
+                    onContentSelect={handlePostSelection}
+                    selectedItems={new Set(selectedPosts)}
+                    isInHighlightedRange={inRange}
+                    isRangeStart={isStart}
+                    isRangeEnd={isEnd}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'day' && (
+          <div className="space-y-4">
+            {/* Day Header */}
+            <div className="text-center">
+              <h4 className="text-lg font-semibold text-gray-900">
+                {selectedDate.toLocaleDateString('en-US', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </h4>
+            </div>
+            
+            {/* Day Content */}
+            <div className="space-y-3">
+              {viewContent[0]?.content.map((content, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedContent(content)}
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedPosts.includes(content.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handlePostSelection(content.id, e.target.checked);
+                        }}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <div className={`w-3 h-3 rounded-full ${
+                        content.platform === 'instagram' ? 'bg-pink-500' :
+                        content.platform === 'linkedin' ? 'bg-blue-500' :
+                        content.platform === 'twitter' ? 'bg-blue-400' :
+                        content.platform === 'facebook' ? 'bg-blue-600' :
+                        content.platform === 'tiktok' ? 'bg-black' :
+                        content.platform === 'youtube' ? 'bg-red-500' :
+                        content.platform === 'email' ? 'bg-green-500' :
+                        'bg-gray-500'
+                      }`}></div>
+                      <div>
+                        <div className="font-medium capitalize">{content.platform} {content.content_type}</div>
+                        <div className="text-sm text-gray-600">{content.content_preview}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        content.status === 'published' ? 'bg-green-100 text-green-800' :
+                        content.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        content.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                        content.status === 'pending_approval' ? 'bg-orange-100 text-orange-800' :
+                        content.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                        content.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                        content.status === 'idea' ? 'bg-purple-100 text-purple-800' :
+                        content.status === 'archived' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                        {content.status}
+                      </div>
+                    </div>
+                  </div>
+                    </div>
+                  ))}
+              
+              {viewContent[0]?.content.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <p>No content scheduled for this day</p>
+                  <button 
+                    onClick={() => setShowCreateModal(true)}
+                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Schedule Content
+                  </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+        )}
+
+        {viewMode === 'list' && (
+          <div className="space-y-4">
+            {/* List Header */}
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-gray-900">All Content</h4>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {filteredCalendar.length} items
+                </span>
+              </div>
+            </div>
+            
+            {/* List Content */}
+            <div className="space-y-3">
+              {filteredCalendar.map((content, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => setSelectedContent(content)}
+                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedPosts.includes(content.id)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handlePostSelection(content.id, e.target.checked);
+                        }}
+                        className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      />
+                      <div className={`w-3 h-3 rounded-full ${
+                        content.platform === 'instagram' ? 'bg-pink-500' :
+                        content.platform === 'linkedin' ? 'bg-blue-500' :
+                        content.platform === 'twitter' ? 'bg-blue-400' :
+                        content.platform === 'facebook' ? 'bg-blue-600' :
+                        content.platform === 'tiktok' ? 'bg-black' :
+                        content.platform === 'youtube' ? 'bg-red-500' :
+                        content.platform === 'email' ? 'bg-green-500' :
+                        'bg-gray-500'
+                      }`}></div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium capitalize">{content.platform}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-600 capitalize">{content.content_type}</span>
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-600">{content.theme}</span>
+                          {content.assignee && (
+                            <>
+                              <span className="text-gray-400">•</span>
+                              <span className="text-sm text-blue-600">@{content.assignee}</span>
+                            </>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700 mt-1">{content.content_preview}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        content.status === 'published' ? 'bg-green-100 text-green-800' :
+                        content.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                        content.status === 'approved' ? 'bg-emerald-100 text-emerald-800' :
+                        content.status === 'pending_approval' ? 'bg-orange-100 text-orange-800' :
+                        content.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                        content.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                        content.status === 'idea' ? 'bg-purple-100 text-purple-800' :
+                        content.status === 'archived' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {content.status}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {formatDateWithTimezone(content.scheduled_date, content.scheduled_timezone)}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRepurpose(content);
+                          }}
+                          className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                          title="Repurpose Content"
+                        >
+                          <Shuffle className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleVersionHistory(content);
+                          }}
+                          className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                          title="Version History"
+                        >
+                          <GitBranch className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedContent(content);
+                            setShowEditModal(true);
+                          }}
+                          className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {filteredCalendar.length === 0 && (
+                <div className="text-center py-12">
+                  <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No content found</h3>
+                  <p className="text-gray-600 mb-4">Try adjusting your filters or create new content</p>
+                  <button 
+                    onClick={() => setShowCreateModal(true)}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Create Content
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'kanban' && (
+          <div className="space-y-4">
+            {/* Kanban Header */}
+            <div className="flex items-center justify-between">
+              <h4 className="text-lg font-semibold text-gray-900">Content Pipeline</h4>
+            </div>
+            
+            {/* Kanban Board */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+              {[
+                { id: 'idea', label: 'Ideas', color: 'bg-gray-100', textColor: 'text-gray-700' },
+                { id: 'draft', label: 'Drafts', color: 'bg-yellow-100', textColor: 'text-yellow-700' },
+                { id: 'review', label: 'Review', color: 'bg-blue-100', textColor: 'text-blue-700' },
+                { id: 'pending_approval', label: 'Pending Approval', color: 'bg-orange-100', textColor: 'text-orange-700' },
+                { id: 'scheduled', label: 'Scheduled', color: 'bg-green-100', textColor: 'text-green-700' }
+              ].map(column => {
+                const columnContent = filteredCalendar.filter(item => {
+                  if (column.id === 'idea') return item.status === 'idea';
+                  if (column.id === 'draft') return item.status === 'draft';
+                  if (column.id === 'review') return item.status === 'review';
+                  if (column.id === 'pending_approval') return item.status === 'pending_approval';
+                  if (column.id === 'scheduled') return item.status === 'scheduled' || item.status === 'published' || item.status === 'approved';
+                  return false;
+                });
+
+                return (
+                  <div key={column.id} className="space-y-3">
+                    <div className={`p-3 rounded-lg ${column.color}`}>
+                      <div className="flex items-center justify-between">
+                        <h5 className={`font-medium ${column.textColor}`}>{column.label}</h5>
+                        <span className={`text-sm ${column.textColor} bg-white bg-opacity-50 px-2 py-1 rounded-full`}>
+                          {columnContent.length}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 min-h-[200px]">
+                      {columnContent.map((content, idx) => (
+                        <div 
+                          key={idx} 
+                          onClick={() => setSelectedContent(content)}
+                          className="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition-all"
+                        >
+                          <div className="flex items-start space-x-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedPosts.includes(content.id)}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                handlePostSelection(content.id, e.target.checked);
+                              }}
+                              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-1"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-2">
+                                <div className={`w-2 h-2 rounded-full ${
+                                  content.platform === 'instagram' ? 'bg-pink-500' :
+                                  content.platform === 'linkedin' ? 'bg-blue-500' :
+                                  content.platform === 'twitter' ? 'bg-blue-400' :
+                                  content.platform === 'facebook' ? 'bg-blue-600' :
+                                  content.platform === 'tiktok' ? 'bg-black' :
+                                  content.platform === 'youtube' ? 'bg-red-500' :
+                                  content.platform === 'email' ? 'bg-green-500' :
+                                  'bg-gray-500'
+                                }`}></div>
+                                <span className="text-sm font-medium capitalize">{content.platform}</span>
+                                <span className="text-xs text-gray-500 capitalize">{content.content_type}</span>
+                              </div>
+                              <p className="text-sm text-gray-700 mb-2 line-clamp-2">{content.content_preview}</p>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-500">{content.theme}</span>
+                                <span className="text-xs text-gray-500">
+                                  {formatDateWithTimezone(content.scheduled_date, content.scheduled_timezone)}
+                                </span>
+                              </div>
+                              {/* Approval Button for Review Status */}
+                              {content.status === 'review' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApprovalRequest(content);
+                                  }}
+                                  className="mt-2 w-full px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700 transition-colors"
+                                >
+                                  Request Approval
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+        )}
+    </div>
+
+      {/* Content Details Modal */}
+      {selectedContent && (
+        <ContentDetailsModal
+          content={selectedContent}
+          onClose={() => setSelectedContent(null)}
+          onEdit={(content) => {
+            setSelectedContent(content);
+            setShowEditModal(true);
+          }}
+          onPublish={(content) => {
+            // Update content status to published
+            setLocalCalendar(prev =>
+              prev.map(item =>
+                item.content_id === content.content_id 
+                  ? { ...item, status: 'published', published_at: new Date().toISOString() }
+                  : item
+              )
+            );
+            setSelectedContent(null);
+          }}
+          onSchedule={handleScheduleContent}
+          onDraft={(content) => {
+            // Update content status to draft
+            setLocalCalendar(prev =>
+              prev.map(item =>
+                item.content_id === content.content_id 
+                  ? { ...item, status: 'draft' }
+                  : item
+              )
+            );
+            // Update the selected content to show the change
+            setSelectedContent(prev => prev ? { ...prev, status: 'draft' } : null);
+            // Close modal after a brief delay to show the change
+            setTimeout(() => {
+              setSelectedContent(null);
+            }, 1000);
+          }}
+          onDelete={(content) => {
+            // Remove content from calendar
+            setLocalCalendar(prev =>
+              prev.filter(item => item.content_id !== content.content_id)
+            );
+            setSelectedContent(null);
+          }}
+          onRepurpose={(content) => {
+            setRepurposeContent(content);
+            setShowRepurposeModal(true);
+            setSelectedContent(null);
+          }}
+          onForecast={handleForecastContent}
+          onAdaptiveReschedule={handleAdaptiveRescheduleContent}
+          onOrchestrate={handleOrchestrateContent}
+          onDynamicSlots={handleDynamicSlotsContent}
+          onGrowthGoals={handleGrowthGoalsContent}
+          onABTesting={handleABTestingContent}
+          onRevenueAttribution={handleRevenueAttributionContent}
+          onScenarioSimulation={handleScenarioSimulationContent}
+        />
+      )}
+
+      {/* Create Content Modal */}
+      {showCreateModal && (
+        <CreateContentModal
+          onClose={() => setShowCreateModal(false)}
+          onSave={(contentData) => {
+            console.log('Creating content:', contentData);
+            
+            // Create new content item
+        const newContent = {
+          content_id: `manual_${Date.now()}_${Math.random().toString(36).slice(2,9)}`,
+          platform: contentData.platform,
+          content_type: contentData.content_type,
+          theme: contentData.theme,
+          content_preview: contentData.content_preview,
+          caption: contentData.caption,
+          scheduled_date: contentData.scheduled_date,
+          scheduled_timezone: contentData.scheduled_timezone || 'UTC',
+          status: 'review', // Set to review status for testing approval
+          priority: contentData.priority,
+          assignee: 'You',
+          ai_generated: false,
+          created_at: new Date().toISOString()
+        };
+            
+            // Add to local calendar
+            setLocalCalendar(prev => [...prev, newContent]);
+            setShowCreateModal(false);
+          }}
+        />
+      )}
+
+      {/* Edit Content Modal */}
+      {showEditModal && (
+        <EditContentModal
+          content={selectedContent}
+          onClose={() => setShowEditModal(false)}
+          onSave={(contentData) => {
+            console.log('Updating content:', contentData);
+            setShowEditModal(false);
+          }}
+        />
+      )}
+
+      {/* Autonomous Content Modal */}
+      {showAutonomousModal && (
+        <AutonomousContentModal
+          onClose={() => setShowAutonomousModal(false)}
+          onSchedule={(content) => {
+            console.log('Autonomous content generated:', content);
+            // Add autonomous content to calendar
+            setLocalCalendar(prev => [...prev, ...content]);
+            setShowAutonomousModal(false);
+          }}
+        />
+      )}
+
+      
+
+      {/* Performance Analytics Modal */}
+      {showAnalyticsModal && (
+        <PerformanceAnalyticsModal
+          calendar={localCalendar}
+          onClose={() => setShowAnalyticsModal(false)}
+        />
+      )}
+
+      {/* Approval Modal */}
+      {showApprovalModal && approvalContent && (
+        <ApprovalModal
+          content={approvalContent}
+          onClose={() => {
+            setShowApprovalModal(false);
+            setApprovalContent(null);
+          }}
+          onApprove={handleApproval}
+          onReject={handleRejection}
+          onRequestChanges={handleRequestChanges}
+        />
+      )}
+
+      {/* Version History Modal */}
+      {showVersionModal && versionContent && (
+        <VersionHistoryModal
+          content={versionContent}
+          onClose={() => {
+            setShowVersionModal(false);
+            setVersionContent(null);
+          }}
+          onRestoreVersion={handleRestoreVersion}
+        />
+      )}
+
+      {/* Content Repurpose Modal */}
+      {showRepurposeModal && repurposeContent && (
+        <ContentRepurposeModal
+          content={repurposeContent}
+          onClose={() => {
+            setShowRepurposeModal(false);
+            setRepurposeContent(null);
+          }}
+          onSave={handleRepurposeSave}
+        />
+      )}
+
+      {/* AI Content Suggestions Modal */}
+      {showAISuggestionsModal && (
+        <AIContentSuggestionsModal
+          onClose={() => setShowAISuggestionsModal(false)}
+          onSchedule={handleAISuggestionsSave}
+        />
+      )}
+
+      {/* Schedule Content Modal */}
+      {showScheduleModal && scheduleContent && (
+        <ScheduleContentModal
+          content={scheduleContent}
+          onClose={() => {
+            setShowScheduleModal(false);
+            setScheduleContent(null);
+          }}
+          onSchedule={handleScheduleSave}
+        />
+      )}
+
+      {/* Performance Forecasting Modal */}
+      {showForecastModal && forecastContent && (
+        <PerformanceForecastingModal
+          content={forecastContent}
+          onClose={() => {
+            setShowForecastModal(false);
+            setForecastContent(null);
+          }}
+          onOptimize={handleOptimizeContent}
+        />
+      )}
+
+      {/* Adaptive Rescheduling Modal */}
+      {showAdaptiveRescheduleModal && adaptiveRescheduleContent && (
+        <AdaptiveReschedulingModal
+          content={adaptiveRescheduleContent}
+          onClose={() => {
+            setShowAdaptiveRescheduleModal(false);
+            setAdaptiveRescheduleContent(null);
+          }}
+          onApplyRescheduling={handleApplyAdaptiveRescheduling}
+        />
+      )}
+
+      {/* Multi-Agent Orchestration Modal */}
+      {showOrchestrationModal && orchestrationContent && (
+        <MultiAgentOrchestrationModal
+          content={orchestrationContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowOrchestrationModal(false);
+            setOrchestrationContent(null);
+          }}
+          onApplyOptimizations={handleApplyOrchestration}
+        />
+      )}
+
+      {/* Dynamic Slots Modal */}
+      {showDynamicSlotsModal && dynamicSlotsContent && (
+        <DynamicSlotsModal
+          content={dynamicSlotsContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowDynamicSlotsModal(false);
+            setDynamicSlotsContent(null);
+          }}
+          onApplyDynamicSlots={handleApplyDynamicSlots}
+        />
+      )}
+
+      {/* Growth Goals Modal */}
+      {showGrowthGoalsModal && growthGoalsContent && (
+        <GrowthGoalsModal
+          content={growthGoalsContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowGrowthGoalsModal(false);
+            setGrowthGoalsContent(null);
+          }}
+          onApplyGrowthStrategy={handleApplyGrowthStrategy}
+        />
+      )}
+
+      {/* Auto A/B Testing Modal */}
+      {showABTestingModal && abTestingContent && (
+        <AutoABTestingModal
+          content={abTestingContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowABTestingModal(false);
+            setABTestingContent(null);
+          }}
+          onApplyABTests={handleApplyABTests}
+        />
+      )}
+
+      {/* Revenue Attribution Modal */}
+      {showRevenueAttributionModal && revenueAttributionContent && (
+        <RevenueAttributionModal
+          content={revenueAttributionContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowRevenueAttributionModal(false);
+            setRevenueAttributionContent(null);
+          }}
+          onApplyRevenueOptimization={handleApplyRevenueOptimization}
+        />
+      )}
+
+      {/* Scenario Simulation Modal */}
+      {showScenarioSimulationModal && scenarioSimulationContent && (
+        <ScenarioSimulationModal
+          content={scenarioSimulationContent}
+          hiredAgents={hiredAgents}
+          onClose={() => {
+            setShowScenarioSimulationModal(false);
+            setScenarioSimulationContent(null);
+          }}
+          onApplyScenario={handleApplyScenario}
+        />
+      )}
+
+      </div>
+    </DndProvider>
+  );
+};
+
+export default ContentCalendarTab;

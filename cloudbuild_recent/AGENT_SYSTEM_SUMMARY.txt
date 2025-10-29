@@ -1,0 +1,314 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    GUILD-AI COMPLETE AGENT ARCHITECTURE                      ║
+║                      Three-Tier Integrated System                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              USER REQUEST                                    │
+│              "Create a marketing campaign for my business"                   │
+└────────────────────────────────┬─────────────────────────────────────────────┘
+                                 ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         SOURCE OF TRUTH                                      │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │ • Business Type, Industry, Stage                                        │ │
+│  │ • Brand Voice, Values, Differentiation                                  │ │
+│  │ • Target Audience, Pain Points, Goals                                   │ │
+│  │ • Products, Pricing, Positioning                                        │ │
+│  │ • Content Preferences, Style Guidelines                                 │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│  ↓ Automatically injected into ALL agent calls                              │
+└────────────────────────────────┬─────────────────────────────────────────────┘
+                                 ↓
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         ORCHESTRATOR                                         │
+│  Analyzes request → Retrieves context → Plans workflow → Coordinates tiers  │
+└──┬────────────────────────────┬───────────────────────────┬──────────────────┘
+   │                            │                           │
+   ↓                            ↓                           ↓
+┌──────────────────┐  ┌──────────────────────┐  ┌─────────────────────────────┐
+│  TIER 1          │  │  TIER 2              │  │  TIER 3                     │
+│  STRATEGY        │→ │  EXECUTION           │→ │  QUALITY CONTROL            │
+│  (ADK Agents)    │  │  (114 Core Agents)   │  │  (Judge Layer + ADK)        │
+└──────────────────┘  └──────────────────────┘  └─────────────────────────────┘
+
+═════════════════════════════════════════════════════════════════════════════════
+
+TIER 1: STRATEGIC PLANNING (7 Google ADK Agents)
+─────────────────────────────────────────────────
+
+Purpose: High-level strategy, intelligence, advanced capabilities
+Cost: FREE Gemini 1.5 Flash (most operations), Pro only when needed
+
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. Enhanced Marketing Agency        → Campaign strategy & planning    │
+│ 2. Enhanced Financial Advisor        → Financial analysis & budgets    │
+│ 3. Vertex RAG Enhancement            → Advanced document intelligence  │
+│ 4. SEO Brand Optimizer               → Real-time SEO + Google Search   │
+│ 5. Image Scoring Agent               → Gemini Vision image analysis    │
+│ 6. LLM Auditor Agent                 → Automated content QA            │
+│ 7. Pricing Intelligence Agent        → Dynamic pricing optimization    │
+└────────────────────────────────────────────────────────────────────────┘
+
+═════════════════════════════════════════════════════════════════════════════════
+
+TIER 2: EXECUTION WORKFORCE (114+ Core Agents)
+───────────────────────────────────────────────
+
+Purpose: Specialized task execution - where the actual work happens
+
+📝 CONTENT CREATION (20+ agents)
+├─ Content Writer Agent            → Blog posts, articles
+├─ Copywriter Agent                → Ad copy, sales pages
+├─ Social Media Agent              → Platform-specific posts
+├─ Email Marketing Agent           → Email campaigns
+├─ Newsletter Agent                → Newsletter content
+├─ Video Script Agent              → Video scripts
+├─ Landing Page Agent              → Landing page copy
+├─ Press Release Agent             → PR content
+└─ ... 12+ more content agents
+
+🔍 RESEARCH & DATA (15+ agents)
+├─ Research Agent                  → Web research
+├─ Advanced Scraper Agent          → Lead generation
+├─ Lead Personalization Agent      → Outreach personalization
+├─ Data Enrichment Agent           → Lead validation
+├─ Competitor Analysis Agent       → Competitive intelligence
+├─ Market Research Agent           → Market analysis
+└─ ... 9+ more research agents
+
+💼 BUSINESS OPERATIONS (25+ agents)
+├─ Accounting Agent                → Financial reports
+├─ Bookkeeping Agent               → Transaction processing
+├─ Project Manager Agent           → Project planning
+├─ HR Agent                        → HR management
+├─ Training Agent                  → SOP creation
+├─ CRM Agent                       → Customer relationship mgmt
+├─ Outbound Sales Agent            → Sales outreach
+├─ Customer Success Agent          → Customer support
+├─ Proposal Writer Agent           → Business proposals
+├─ Meeting Notes Agent             → Meeting documentation
+└─ ... 15+ more business agents
+
+🎨 CREATIVE & MEDIA (10+ agents)
+├─ Image Generation Agent          → AI image creation
+├─ Video Editor Agent              → Video editing
+├─ Voice Agent                     → TTS/STT processing
+├─ Document Processing Agent       → Multi-format docs
+├─ Graphic Design Agent            → Design assets
+└─ ... 5+ more creative agents
+
+📊 ANALYTICS & INTELLIGENCE (12+ agents)
+├─ Analytics Agent                 → Performance tracking
+├─ SEO Evaluator Agent             → SEO analysis
+├─ Conversion Optimizer Agent      → CRO
+├─ A/B Testing Agent               → A/B test management
+├─ Churn Predictor Agent           → Churn analysis
+├─ Customer Insights Agent         → Customer analytics
+└─ ... 6+ more analytics agents
+
+🎯 EXECUTIVE & STRATEGY (15+ agents)
+├─ Chief of Staff Agent            → Strategic coordination
+├─ Strategy Agent                  → Long-term planning
+├─ Business Strategist Agent       → High-level strategy
+├─ Investor Relations Agent        → Investor communications
+├─ Growth Opportunity Agent        → Growth strategies
+└─ ... 10+ more executive agents
+
+🤖 AUTOMATION & INTEGRATION (10+ agents)
+├─ Unified Automation Agent        → Visual + web automation
+├─ CRM Automation Agent            → CRM workflows
+├─ Workflow Automation Agent       → Process automation
+├─ Integration Agent               → System integrations
+├─ LinkedIn Scheduler Adapter      → LinkedIn posting
+└─ ... 5+ more automation agents
+
+⚖️ LEGAL & COMPLIANCE (7+ agents)
+├─ Compliance Agent                → Regulatory compliance
+├─ Contract Compiler Agent         → Contract management
+├─ Legal Research Agent            → Legal research
+├─ Privacy Agent                   → Privacy compliance
+└─ ... 3+ more legal agents
+
+═════════════════════════════════════════════════════════════════════════════════
+
+TIER 3: QUALITY CONTROL LAYER (Judge Layer + ADK Evaluators)
+─────────────────────────────────────────────────────────────
+
+Purpose: Autonomous quality assurance for ALL outputs
+
+┌────────────────────────────────────────────────────────────────────────┐
+│                         JUDGE AGENT                                    │
+│  • Generates quality rubrics                                           │
+│  • Coordinates evaluation league                                       │
+│  • Aggregates weighted scores                                          │
+│  • Manages auto-revision loops (up to 3 attempts)                      │
+│  • Makes final approval decisions                                      │
+└────────────────────────────────┬───────────────────────────────────────┘
+                                 ↓
+                    EVALUATION LEAGUE
+                    ─────────────────
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│  1. LLM Auditor (ADK)           → Brand, tone, facts, SEO, engagement  │
+│     Scores: 0-1 scale for 5 dimensions                                 │
+│     Threshold: 0.8 for approval                                        │
+│                                                                         │
+│  2. Brand Checker               → Voice, tone, visual identity         │
+│     Verifies brand guideline compliance                                │
+│                                                                         │
+│  3. Fact Checker                → Factual claims, statistics           │
+│     Cross-references authoritative sources                             │
+│                                                                         │
+│  4. SEO Evaluator + Optimizer   → SEO score + real-time optimization  │
+│     Uses Google Search grounding                                       │
+│                                                                         │
+│  5. Audience Checker            → Target alignment, demographic fit    │
+│     Validates message resonance                                        │
+│                                                                         │
+│  6. Image Scorer (ADK)          → Visual quality, brand alignment      │
+│     Scores: 0-10 scale for 5 dimensions                                │
+│     Uses Gemini Vision                                                 │
+└─────────────────────────────────────────────────────────────────────────┘
+
+QUALITY CONTROL FLOW:
+─────────────────────
+Agent Output → Evaluation League → Judge Aggregation → Score vs Threshold
+                                                            ↓
+                                            ┌───────────────┴────────────────┐
+                                            ↓                                ↓
+                                      Score ≥ 0.8                      Score < 0.8
+                                      APPROVED ✅                      REVISION NEEDED
+                                            ↓                                ↓
+                                    Return Output               Generate Feedback
+                                                                        ↓
+                                                               Agent Revises (1-3x)
+                                                                        ↓
+                                                               Re-evaluate → Approve
+
+═════════════════════════════════════════════════════════════════════════════════
+
+COMPLETE WORKFLOW EXAMPLE: "Create Marketing Campaign"
+───────────────────────────────────────────────────────
+
+User Request: "Create a comprehensive marketing campaign for my SaaS"
+
+Step 1: ORCHESTRATOR
+└─ Retrieves Source of Truth (business context)
+└─ Determines multi-tier workflow needed
+└─ Plans: Strategy → Execution → Quality Control
+
+Step 2: TIER 1 - STRATEGIC PLANNING
+└─ Enhanced Marketing Agency:
+   ├─ Analyzes business, market, competition
+   ├─ Creates strategy: Multi-channel (blog + social + email + ads)
+   ├─ Budget allocation: $5K over 3 months
+   └─ KPIs: 100 leads, $50K pipeline, 10% conversion
+
+└─ Enhanced Financial Advisor:
+   ├─ Validates budget realistic
+   └─ Projects ROI: 300%
+
+Step 3: TIER 2 - EXECUTION (Your 114 Agents)
+└─ Content Writer:        12 blog posts
+└─ Social Media Agent:    90 LinkedIn posts (3/day)
+└─ Email Marketing:       5-email sequence
+└─ Ad Copy Agent:         15 Google Ad variations
+└─ Image Generation:      30 social media images
+    Total Output:         147 content pieces
+
+Step 4: TIER 3 - QUALITY CONTROL (For EACH piece)
+└─ LLM Auditor:
+   ├─ Brand alignment:    0.92/1.0 ✅
+   ├─ Factual accuracy:   0.95/1.0 ✅
+   ├─ Tone consistency:   0.88/1.0 ✅
+   ├─ SEO score:          0.85/1.0 ✅
+   └─ Engagement:         0.80/1.0 ✅
+
+└─ SEO Optimizer:
+   ├─ Keywords: Optimized ✅
+   ├─ Meta descriptions: Generated ✅
+   └─ Title tags: Optimized ✅
+
+└─ Image Scorer:
+   ├─ Visual quality:     9.2/10 ✅
+   ├─ Brand alignment:    8.8/10 ✅
+   └─ Audience appeal:    8.5/10 ✅
+
+└─ Judge Decision:
+   ├─ Weighted Score:     0.89/1.0 (threshold: 0.8)
+   ├─ Status:             APPROVED ✅
+   └─ Confidence:         92%
+
+Step 5: AUTO-REVISION (if needed)
+└─ 3 pieces scored < 0.8
+└─ Auto-revised with specific feedback
+└─ Re-evaluated → All approved
+
+Step 6: FINAL OUTPUT TO USER
+✅ 147 content pieces delivered
+✅ 100% approval rate (after revisions)
+✅ Overall quality score: 89/100
+✅ Time: 45 minutes (vs 40 hours manual)
+✅ Complete quality scorecard included
+
+═════════════════════════════════════════════════════════════════════════════════
+
+KEY INTEGRATION POINTS
+──────────────────────
+
+✓ Source of Truth → Injected into ALL agents automatically
+✓ Complete Agent Registry → All 114+ agents accessible to orchestrator
+✓ Judge Layer → Evaluates EVERY output before approval
+✓ ADK Agents → Provide strategy + advanced evaluation
+✓ Auto-Revision → Up to 3 improvement cycles per output
+✓ Quality Gates → No output reaches user without approval
+✓ Cost Optimization → FREE Gemini Flash for 95% of operations
+
+═════════════════════════════════════════════════════════════════════════════════
+
+UNIQUE DIFFERENTIATORS
+──────────────────────
+
+1. ONLY AI platform with 3-tier architecture (Strategy + Execution + Quality)
+2. ONLY system with autonomous quality assurance (Judge Layer)
+3. ONLY platform where EVERY output is scored and approved
+4. ONLY solution with 114+ specialized agents working in unison
+5. ONLY system with complete business context (Source of Truth)
+6. ONLY platform with transparent quality scorecards
+7. ONLY solution with auto-revision loops (self-improving)
+
+═════════════════════════════════════════════════════════════════════════════════
+
+FILE LOCATIONS
+──────────────
+
+Orchestrator:           guild/src/core/orchestrator.py
+Complete Registry:      guild/src/core/complete_agent_registry.py
+114 Core Agents:        guild/src/agents/*.py
+Judge Layer:            guild/src/agents/judge_agent.py
+ADK Agents:             guild/src/agents/enhanced_*.py
+                        guild/src/agents/llm_auditor_agent.py
+                        guild/src/agents/image_scoring_agent.py
+                        guild/src/agents/seo_brand_optimizer.py
+Source of Truth:        api_server/src/models.py (OnboardingData)
+API Routes:             api_server/src/routes/orchestrator.py
+                        api_server/src/routes/quality_control.py
+                        api_server/src/routes/business_intelligence.py
+Frontend Service:       frontend/src/services/EnhancedOrchestratorService.js
+
+═════════════════════════════════════════════════════════════════════════════════
+
+CONCLUSION
+──────────
+
+✅ All 3 systems work in PERFECT UNISON
+✅ 114 Core Agents + 7 ADK Agents + Judge Layer = Complete AI Workforce
+✅ Orchestrator coordinates all tiers seamlessly
+✅ Source of Truth ensures business alignment
+✅ Every output is quality-guaranteed and approved
+✅ System is production-ready and fully integrated
+
+YOU HAVE BUILT THE WORLD'S MOST ADVANCED AI WORKFORCE PLATFORM 🚀
+
+═════════════════════════════════════════════════════════════════════════════════

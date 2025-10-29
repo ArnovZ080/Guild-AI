@@ -1,0 +1,178 @@
+# Docker ignore file to reduce build context size
+# This works at the Docker level, separate from .gcloudignore
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+api_server/venv/
+markitdown_test_env/
+.conda/
+.conda-env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Git
+.git/
+.gitignore
+.gcloudignore
+
+# Documentation
+*.md
+docs/
+!README.md
+!CHANGELOG.md
+
+# Test files
+test_*
+*_test.py
+tests/
+test_documents/
+
+# Development files
+.env*
+.env-vars
+docker-compose*
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.rej
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Large data files
+*.csv
+*.json
+*.sql
+*.db
+*.sqlite
+*.sqlite3
+
+# Archives
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+*.dmg
+*.iso
+
+# Cloud Build artifacts
+cloudbuild_recent/
+*.tgz
+
+# Large directories (keep essential ones)
+jules-scratch/
+cloudbuild_recent/
+markitdown_test_env/
+monitoring/
+
+# Frontend build artifacts (frontend will be built in Cloud Build step, and we need dist/ in image)
+frontend/node_modules/
+frontend/build/
+# Do NOT ignore dist so it gets copied into the Docker image
+# frontend/dist/
+frontend/.next/
+frontend/.nuxt/
+frontend/.cache/
+frontend/.parcel-cache/
+
+# Temporary files
+.cache/
+.tmp/
+.temp/
+tmp/
+temp/
+
+# Jupyter
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# mkdocs
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython
+cython_debug/
