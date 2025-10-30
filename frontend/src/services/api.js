@@ -1,5 +1,6 @@
 // API service for connecting to the Guild-AI backend
-// Build version: 2025-10-29-final-fix
+// Build version: 2025-10-30-github-deploy
+// Force new bundle generation
 import { auth } from '../config/firebase';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
